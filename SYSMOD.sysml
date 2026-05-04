@@ -31,10 +31,29 @@ library package SYSMOD {
             attribute :>> risk default LevelKind::critical;
             attribute :>> effort default LevelKind::low;
             attribute :>> categories default StakeholderCategoryKind::requirementOwner;
+            // Metadata
+            @AI {
+                create_prompt =
+                    "1. If the user has provided a projectOwner, use it. If not, ask the user for the projectOwner using appropriate questions from the questions field.
+2. Create a concise projectOwner description.
+3. Create the SysML v2 textual notation for the projectOwner.
+4. If the user asks to insert the projectOwner into the SysML model, find the project and the projectOwner within the project. If no project exists, create one and insert the projectOwner into the project redefining the inherited projectOwner part usage. If the projectOwner already exists, update it.
+";
+                questions = (
+                    "Who is the project owner?", "Who is the repsonsible for the project?",
+                );
+            }
         }
         part brownfieldSystemContext : SystemContext {
             doc
             /* The Brownfield Context includes the system, its subcomponents, and actors that are already identified at the start of the Project. These constraints limit the set of possible solutions. */
+            //
+            // Metadata
+            //
+            @AI {
+                create_prompt = "";
+                create_questions = "";
+            }
         }
         part projectStakeholders : ExtendedStakeholder [0..*] {
             doc
@@ -46,6 +65,20 @@ library package SYSMOD {
             subject brownfieldSystem :> brownfieldSystemContext.soi;
             stakeholder projectOwner :> Project::projectOwner;
             attribute :>> priority = LevelKind::critical;
+            // Metadata
+            @AI {
+                create_prompt =
+                    "1. Analyze the provided scenario. If it is forward engineering, identify the problem statement from the given scenario. If it is reverse engineering, identify the problem statement by identifying the problem that is solved by the given system.
+2. Create a concise elevator-pitch style problem statement text (typically 150-250 words)
+3. Follow this format: \"How can we...\"
+4. Ensure the problem statement text is based on the brownfieldSystemContext. If the brownfieldSystemContext is not available, create one that is implied by the problem statement text.
+5. Ensure that the problem statement does not jump to the solution and describe it in advance.
+6. Ensure that the stakeholder projectOwner is set by subsetting the corresponding part usage in the project, if given. If it is not available, invode the 'project-owner' skill to create a new project owner.
+7. If it is reverse engineering, create a satisfy relationship between the given system and the problem statement.
+8. Create the SysML v2 textual notation for the problemStatement.
+9. If the user asks to insert the problemStatement into the SysML model, find the project and the problemStatement within the project. If no project exists, create one and insert the problemStatement into the project redefining the inherited problemStatement concern usage. If the problemStatement already exists, update it.
+";
+            }
         }
         concern stakeholderNeeds {
             doc
@@ -99,6 +132,20 @@ library package SYSMOD {
         }
         allocation functional2logical [0..1] allocate functionalContext to logicalContext;
         allocation logical2product [0..1] allocate logicalContext to productContext;
+
+        //
+        // Metadata
+        //
+        @AI {
+            create_prompt =
+                "1. Create the SySML v2 textual notation for the project definition using the SYSMOD-defined keyword: '#project occurrence def PROJECTNAME {}'  
+2. Invoke the skill 'project-owner' to set the project owner of the project.
+3. If not given by the user, use the questions to get the name of the project and the location where the project should be added.
+";
+            questions = (
+                "What is the name of the project?", "Where should I add the project definition?",
+            );
+        }
     }
     abstract occurrence projects : Project [*];
 
@@ -235,6 +282,16 @@ library package SYSMOD {
         medium = 0.5;
         high = 0.75;
         critical = 1.0;
+    }
+
+    //
+    // AI
+    //
+    metadata def AI {
+        attribute name : ScalarValues::String;
+        attribute create_prompt : ScalarValues::String;
+        attribute create_questions : ScalarValues::String [*];
+        attribute validation_prompt : ScalarValues::String;
     }
 
     //

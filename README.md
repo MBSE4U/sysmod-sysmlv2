@@ -42,8 +42,8 @@ Contributions are welcome — please submit issues or pull requests.
 
 ## License
 
-Copyright MBSE4U, Tim Weilkiens
-Apache License 2.0 — see [LICENSE](LICENSE) for details.
+- Copyright MBSE4U, Tim Weilkiens
+- Apache License 2.0 — see [LICENSE](LICENSE) for details.
 
 ## Contact
 

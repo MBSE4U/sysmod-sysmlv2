@@ -1,4 +1,8 @@
-
+sysand-lock.toml
+.sysand/
+.claude/
 /Temp
 models/Cameo-SYSMOD.mdszip
 webapp/
+output/
+*.kpar

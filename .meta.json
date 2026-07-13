@@ -1,4 +1,13 @@
 {
-  "index": {},
-  "created": "2026-06-15T08:50:55Z"
+  "index": {
+    "SYSMOD": "SYSMOD.sysml"
+  },
+  "created": "2026-06-15T08:50:55Z",
+  "metamodel": "https://www.omg.org/spec/SysML/20250201",
+  "checksum": {
+    "SYSMOD.sysml": {
+      "value": "",
+      "algorithm": "NONE"
+    }
+  }
 }

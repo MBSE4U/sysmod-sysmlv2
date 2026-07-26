@@ -706,6 +706,7 @@ const steps = [
   }
   <span class="kw">part</span> deliveryDroneSystemIdeaContextImpl :&gt;&gt; systemIdeaContextImpl : <span class="ty">DD_SYSTEMIDEA::DeliveryDroneSystemIdeaContextImpl</span> :&gt; deliveryDroneSystemIdeaContext, deliveryDroneBrownfieldContextImpl {
       <span class="kw">part</span> deliveryDroneSystemImpl :&gt;&gt; deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneBrownfieldContextImpl::deliveryDroneSystemImpl, <span class="ty">Project</span>::systemIdeaContextImpl::soiImpl;
+      <span class="kw">satisfy</span> <span class="ty">PRJ</span>::problemStatement;
   }
 }      
 <span class="kw">#systemContext part def</span> <span class="ty">DeliveryDroneSystemIdeaContext</span> :&gt; <span class="ty">DD_BROWNFIELD::DeliveryDroneSystemContext</span> {

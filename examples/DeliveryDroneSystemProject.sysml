@@ -83,6 +83,7 @@ package <DD> DeliveryDrone {
         }
         part deliveryDroneSystemIdeaContextImpl :>> systemIdeaContextImpl : DD_SYSTEMIDEA::DeliveryDroneSystemIdeaContextImpl :> deliveryDroneSystemIdeaContext, deliveryDroneBrownfieldContextImpl {
             part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneBrownfieldContextImpl::deliveryDroneSystemImpl, Project::systemIdeaContextImpl::soiImpl;
+            satisfy PRJ::problemStatement;
         }
 
         //------------------------- Specification

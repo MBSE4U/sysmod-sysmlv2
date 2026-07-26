@@ -61,11 +61,12 @@ package <DD> DeliveryDrone {
         //------------------------- Stakeholder Needs
         private import DD_STAKEHOLDERNEEDS::*;
         concern :>> stakeholderNeeds {
-            // frame problemStatement is inherited from SYSMOD::Project
             subject :>> brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
+            frame problemStatement :>> Project::stakeholderNeeds::problemStatement :> PRJ::problemStatement;
             concern reliableDelivery : ReliableDelivery;
             concern safeOperation : SafeOperation;
             concern lowDeliveryCost : LowDeliveryCost;
+
         }
 
         //------------------------- Brownfield Architecture

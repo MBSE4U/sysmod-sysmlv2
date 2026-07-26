@@ -171,6 +171,8 @@
   /* ---------- Layer 4: Concrete Model (left border = teal, code-forward) ---------- */
   section.layer-model{border-top-color:var(--accent-teal);}
   section.layer-model .eyebrow{color:var(--accent-teal);}
+  section.layer-model .content-grid{align-items:stretch;}
+  section.layer-model .text-col--model-code{overflow-y:auto; min-height:0;}
 
   /* ---------- Layer 5: AI Skill (left border = violet) ---------- */
   section.layer-ai{border-top-color:var(--accent-violet); background:#FAF8FC;}
@@ -466,8 +468,8 @@ const steps = [
       model:{ text:"Each concrete need subsets the library’s stakeholderNeeds and stays intent-level — reliable, safe, and cheap, not yet how.", 
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
   <span class="kw">concern</span> :&gt;&gt; stakeholderNeeds {
-            <span class="cm">// frame problemStatement is inherited from SYSMOD::Project</span>
             <span class="kw">subject</span> :&gt;&gt; brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
+            <span class="kw">frame</span> problemStatement :>> <span class="ty">Project</span>::stakeholderNeeds::problemStatement :> <span class="ty">PRJ</span>::problemStatement;
             <span class="kw">concern</span> reliableDelivery : <span class="ty">ReliableDelivery</span>;
             <span class="kw">concern</span> safeOperation : <span class="ty">SafeOperation</span>;
             <span class="kw">concern</span> lowDeliveryCost : <span class="ty">LowDeliveryCost</span>;

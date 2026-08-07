@@ -230,6 +230,20 @@ library package SYSMOD {
         attribute ucResult : ScalarValues::String {
             doc /* The outcome the use case guarantees once it completes successfully. */
         }
+        constraint precondition {
+            doc /* The condition that must hold before the use case starts. */
+        }
+        constraint postcondition {
+            doc /* The condition that is guaranteed to hold once the use case completes successfully. */
+        }
+        ref use case :>> start {
+            doc /* The use case starts only if the precondition is satisfied. */
+            assert constraint :> precondition;
+        }
+        ref use case :>> done {
+            doc /* The use case is only considered done if the postcondition is satisfied. */
+            assert constraint :> postcondition;
+        }
     }
     use case systemUseCases[*] : SystemUseCase;
 

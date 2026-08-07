@@ -142,7 +142,13 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
             attribute :>> ucMotivation = "The recipient needs the package as soon as possible, and the logistics company wants to offer faster, cheaper delivery to remote places than ground transport can.";
             attribute :>> ucTrigger = "The operator dispatches a drone with a package for a landing zone.";
             attribute :>> ucResult = "The package is delivered to the landing zone and the drone returns safely.";
-            
+            constraint :>> precondition {
+                doc /* A drone is available and assigned to a delivery order with a known pickup and destination location. */
+            }
+            constraint :>> postcondition {
+                doc /* The package has been dropped off at the landing zone and the drone has returned to its home station. */
+            }
+
             in item order : DeliveryOrder;
             in item pkgIn : Parcel;
             out item pkgOut : Parcel;
@@ -186,6 +192,12 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
             attribute :>> ucMotivation = "The operator wants deliveries to reach remote destinations without being limited by a single battery charge, avoiding a costly detour back to a ground dock.";
             attribute :>> ucTrigger = "A drone\'s battery falls below the threshold needed to complete its remaining route.";
             attribute :>> ucResult = "The low-battery drone receives enough energy in flight to safely complete its delivery.";
+            constraint :>> precondition {
+                doc /* A drone's battery has fallen below the threshold needed to complete its remaining route, and a charger drone is available to rendezvous in flight. */
+            }
+            constraint :>> postcondition {
+                doc /* The low-battery drone has received enough energy in flight and has resumed its route. */
+            }
 
             first start then droneSystem.detectLowBattery;
             first droneSystem.detectLowBattery then droneSystem.assignChargerDrone;
@@ -206,6 +218,12 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
             attribute :>> ucMotivation = "The operator is accountable for the whole fleet\'s safety and schedule, and needs to supervise many drones at once without contacting each one individually.";
             attribute :>> ucTrigger = "The operator requests a status overview of the fleet.";
             attribute :>> ucResult = "The operator receives the current position, battery level, and task status of every active drone.";
+            constraint :>> precondition {
+                doc /* The operator has an active connection to the fleet management system and requests a status overview. */
+            }
+            constraint :>> postcondition {
+                doc /* The operator has received the current position, battery level, and task status of every active drone. */
+            }
 
             first start then droneSystem.requestStatus;
             first droneSystem.requestStatus then droneSystem.pollDrones;
@@ -225,6 +243,12 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
             attribute :>> ucMotivation = "The operator and the company want to protect the drone, the package, and anyone nearby from harm, prioritizing safety over completing the delivery.";
             attribute :>> ucTrigger = "The drone detects a critical fault mid-flight (e.g., battery failure, rotor fault, or loss of communication).";
             attribute :>> ucResult = "The drone lands as safely as possible at the nearest suitable location, whether or not its delivery was completed.";
+            constraint :>> precondition {
+                doc /* The drone detects a critical fault while in flight (e.g., battery failure, rotor fault, or loss of communication). */
+            }
+            constraint :>> postcondition {
+                doc /* The drone has landed at the safest available location and the operator has been notified of the outcome. */
+            }
             first start then detectFault;
             first detectFault then identifyLandingSite;
             first identifyLandingSite then alertOperator;

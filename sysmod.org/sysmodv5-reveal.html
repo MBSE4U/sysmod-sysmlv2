@@ -842,7 +842,7 @@ const steps = [
     layers:{
       story:{ text:"The SYSMOD owl asks the team to act out every way an actor can meet this system, one scene at a time. Deliver Package: pick up, transport, recharge mid-flight if the battery runs low, drop off. Charge Drone: a low-battery drone rendezvous with a charger drone in flight and takes on just enough energy to finish the trip. Report Fleet Status: the operator checks in on every drone at once, without touching a single one. Handle Emergency Landing: something goes wrong mid-air, and the drone has to put itself down safely, package or no package. Each scene rehearses the idea before opening night — and each one, once it's acted out, becomes something the requirements have to account for.", img:"assets/08-usecases-story.jpg", slot:"08-usecases-story" },
       generic:{ subtitle: "", text:"A required interaction sequence between the system and an actor that delivers an observable outcome for that actor.", iso:"System Requirements Definition", img:null, slot:"08-usecases-generic" },
-      library:{ subtitle: "", text:"SystemContext defines actors, the system-of-interest, and the useCases collection together — a use case's subject is the system of interest. The use case adds additional attributes for documentation purposes.", 
+      library:{ subtitle: "", text:"SystemContext defines actors, the system-of-interest, and the useCases collection together — a use case's subject is the system of interest. The use case adds additional attributes for documentation purposes, plus a precondition and postcondition constraint that its start and done refs assert against.",
       code:`<span class="kw">part</span> <span class="kw">def</span> <span class="ty">SystemContext</span> {
   <span class="kw">part</span> actors [1..*] { <span class="kw">port</span> actorPorts; }
   <span class="kw">part</span> &lt;soi&gt; systemOfInterest {
@@ -862,6 +862,18 @@ const steps = [
     }
     <span class="kw">attribute</span> ucResult : <span class="ty">ScalarValues::String</span> {
       <span class="kw">doc</span> <span class="cm">/* The outcome the use case guarantees once it completes successfully. */</span>
+    }
+    <span class="kw">constraint</span> precondition {
+      <span class="kw">doc</span> <span class="cm">/* The condition that must hold before the use case starts. */</span>
+    }
+    <span class="kw">constraint</span> postcondition {
+      <span class="kw">doc</span> <span class="cm">/* The condition guaranteed once the use case completes successfully. */</span>
+    }
+    <span class="kw">ref</span> <span class="kw">use</span> <span class="kw">case</span> :&gt;&gt; start {
+      <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; precondition;
+    }
+    <span class="kw">ref</span> <span class="kw">use</span> <span class="kw">case</span> :&gt;&gt; done {
+      <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; postcondition;
     }
 }`, img:null, slot:"08-usecases-library" },
       model:{ text:"DeliverPackage no longer defines its own actions — every action it needs (planDelivery, pickUpPackage, chargeInFlight, dropOffPackage, and more) is now owned once by DeliveryDroneSystem itself, shared across all four use cases. DeliverPackage just orchestrates them: local actions here subset the shared ones, so the same charging behavior ChargeDrone describes on its own can't quietly drift out of sync.", 
@@ -909,6 +921,12 @@ const steps = [
         }
         <span class="kw">attribute</span> :&gt;&gt; ucTrigger = "The operator dispatches a drone with a package for a landing zone.";
         <span class="kw">attribute</span> :&gt;&gt; ucResult = "The package is delivered to the landing zone and the drone returns safely.";
+        <span class="kw">constraint</span> :&gt;&gt; precondition {
+            <span class="kw">doc</span> <span class="cm">/* A drone is available and assigned to a delivery order with a known pickup and destination location. */</span>
+        }
+        <span class="kw">constraint</span> :&gt;&gt; postcondition {
+            <span class="kw">doc</span> <span class="cm">/* The package has been dropped off at the landing zone and the drone has returned to its home station. */</span>
+        }
         <span class="kw">in item</span> order : DeliveryOrder;
         <span class="kw">in item</span> pkgIn : Parcel;
         <span class="kw">out item</span> pkgOut : Parcel;
@@ -2394,6 +2412,20 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
         <span class="kw">attribute</span> ucResult : <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
             <span class="kw">doc</span> <span class="cm">/* The outcome the use case guarantees once it completes successfully. */</span>
+        }
+        <span class="kw">constraint</span> precondition {
+            <span class="kw">doc</span> <span class="cm">/* The condition that must hold before the use case starts. */</span>
+        }
+        <span class="kw">constraint</span> postcondition {
+            <span class="kw">doc</span> <span class="cm">/* The condition that is guaranteed to hold once the use case completes successfully. */</span>
+        }
+        <span class="kw">ref</span> <span class="kw">use</span> <span class="kw">case</span> :&gt;&gt; start {
+            <span class="kw">doc</span> <span class="cm">/* The use case starts only if the precondition is satisfied. */</span>
+            <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; precondition;
+        }
+        <span class="kw">ref</span> <span class="kw">use</span> <span class="kw">case</span> :&gt;&gt; done {
+            <span class="kw">doc</span> <span class="cm">/* The use case is only considered done if the postcondition is satisfied. */</span>
+            <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; postcondition;
         }
     }
     <span class="kw">use</span> <span class="kw">case</span> systemUseCases[*] : <span class="ty">SystemUseCase</span>;

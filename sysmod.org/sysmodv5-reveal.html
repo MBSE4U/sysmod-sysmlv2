@@ -970,7 +970,7 @@ const steps = [
     layers:{
       story:{ text:"Now the promises get specific. Maximum payload weight. Legal flight zones. Every requirement traces back to someone accountable for it.", img:"assets/09-requirements-story.jpg", slot:"09-requirements-story" },
       generic:{ subtitle: "", text:"A specific, verifiable statement of what the system must do or be, traceable to a stakeholder need and to the stakeholder accountable for it.", iso:"System Requirements Definition", img:null, slot:"09-requirements-generic" },
-      library:{ subtitle: "", text:"The requirement specification frames stakeholderNeeds. ExtendedRequirement extends the concern with obligation, stability, and motivation attributes for full traceability.", code:`<span class="kw">requirement</span> systemRequirementSpecification {
+      library:{ subtitle: "", text:"The requirement specification frames stakeholderNeeds. ExtendedRequirement extends the concern with obligation, stability, and motivation attributes for full traceability. A RequirementBoilderplates package adds ready-to-specialize patterns — like MaxValue — for common quantitative constraints.", code:`<span class="kw">requirement</span> systemRequirementSpecification {
   <span class="kw">doc</span> <span class="cm">/* Root element for the system requirements. */</span>
   <span class="kw">subject</span> specificationSystem :&gt; specificationContext.soi;
   <span class="kw">frame</span> stakeholderNeeds;
@@ -993,8 +993,16 @@ const steps = [
     none;
     unstable;
     stable;
+}
+<span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MaxValue</span> {
+    <span class="kw">doc</span> <span class="cm">/* The quantity must stay strictly below an upper bound. */</span>
+    <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+    <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+    <span class="kw">require</span> <span class="kw">constraint</span> {
+        currentValue &lt; maxValue
+    }
 }`, img:null, slot:"09-requirements-library" },
-      model:{ text:"maxPayloadWeight is a concrete ExtendedRequirement with a mandatory obligation — one line, but it now traces all the way back to a stakeholder need.", 
+      model:{ text:"maxPayloadWeight is a concrete ExtendedRequirement with a mandatory obligation — one line, but it now traces all the way back to a stakeholder need. It also specializes the MaxValue boilerplate, binding currentValue and maxValue to the drone's payload mass and its 5 kg limit.",
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
   <span class="kw">requirement</span> deliveryDroneSystemRequirementsSpecification :&gt;&gt; systemRequirementSpecification : <span class="ty">DD_SPECIFICATION::DeliveryDroneSystemRequirements</span> {
       <span class="kw">subject</span> :&gt;&gt; specificationSystem = deliveryDroneSpecificationContext.deliveryDroneSystem;
@@ -1006,12 +1014,14 @@ const steps = [
     <span class="kw">requirement</span> maxPayloadMass : <span class="ty">MaxPayloadMass</span>;
     <span class="kw">requirement</span> airCharging : <span class="ty">AirCharging</span>;
 }
-<span class="kw">#extendedRequirement requirement def</span> <span class="ty">MaxPayloadMass</span> {
+<span class="kw">#extendedRequirement requirement def</span> <span class="ty">MaxPayloadMass</span> :&gt; <span class="ty">RequirementBoilderplates</span>::<span class="ty">MaxValue</span> {
     <span class="kw">doc</span>
     <span class="cm">/* The system shall transport payloads with a mass of up to 5 kg. */</span>
     <span class="kw">attribute</span> :&gt;&gt; obligation = <span class="ty">ObligationKind</span>::mandatory;
     <span class="kw">attribute</span> :&gt;&gt; stability = <span class="ty">StabilityKind</span>::stable;
     <span class="kw">attribute</span> :&gt;&gt; motivation = "Typical last-mile parcels weigh less than 5 kg.";
+    <span class="kw">attribute</span> :&gt;&gt; currentValue = deliveryDrone.payloadMass;
+    <span class="kw">attribute</span> :&gt;&gt; maxValue = 5;
 }
 <span class="kw">#extendedRequirement requirement def</span> <span class="ty">AirCharging</span> {
     <span class="kw">doc</span>
@@ -2971,7 +2981,86 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         :&gt;&gt; baseType = systemUseCases meta <span class="ty">SysML</span>::<span class="ty">Type</span>;
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseDefinition</span>;
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseUsage</span>;
-    }    
+    }
+
+    <span class="kw">package</span> <span class="ty">RequirementBoilderplates</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* Library of generic, parametric requirement patterns. Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold. */</span>
+
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MaxValue</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The quantity must stay strictly below an upper bound. */</span>
+            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                currentValue &lt; maxValue
+            }
+        }
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinValue</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The quantity must stay strictly above a lower bound. */</span>
+            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> minValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                minValue &gt; currentValue
+            }
+        }
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">RangeValue</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The quantity must stay within an inclusive lower and upper bound. */</span>
+            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> minValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                minValue &lt;= currentValue <span class="kw">and</span> currentValue &lt;= maxValue
+            }
+        }
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">ExactValue</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The quantity must equal a specific target value. */</span>
+            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> targetValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                currentValue == targetValue
+            }
+        }
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">ToleranceValue</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The quantity must stay within a target value plus/minus a tolerance. */</span>
+            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> targetValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> tolerance : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                currentValue &gt;= targetValue - tolerance <span class="kw">and</span> currentValue &lt;= targetValue + tolerance
+            }
+        }
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinAvailability</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The ratio of uptime to total time must reach at least a minimum availability. */</span>
+            <span class="kw">attribute</span> uptime :&gt; <span class="ty">ISQ</span>::duration;
+            <span class="kw">attribute</span> totalTime :&gt; <span class="ty">ISQ</span>::duration;
+            <span class="kw">attribute</span> minAvailability :&gt; <span class="ty">ISQ</span>::duration;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                uptime / totalTime &gt;= minAvailability
+            }
+        }
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinReliability</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The mean time between failures must reach at least a minimum MTBF. */</span>
+            <span class="kw">attribute</span> meanTimeBetweenFailures :&gt; <span class="ty">ISQ</span>::duration;
+            <span class="kw">attribute</span> minMTBF :&gt; <span class="ty">ISQ</span>::duration;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                meanTimeBetweenFailures &gt;= minMTBF
+            }
+        }
+    }
 }`;
 
 

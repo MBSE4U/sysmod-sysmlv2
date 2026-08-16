@@ -12,3 +12,4 @@
 - Updated example model: added Recipient and Regulator stakeholders to DeliveryDroneSystemStakeholders and DeliveryDroneSystemProject, so the four stakeholders match the sysmod.org story.
 - Added a "SYSMOD Steps" navigation menu to sysmod.org's header, for jumping directly to any step.
 - Added the SYSMOD products overview image to the "About SYSMOD" page on sysmod.org, with clickable step cards that jump directly to the corresponding SYSMOD step.
+- Added two validation checks to the SYSMOD library's productContextAI metadata (SYSMOD.sysml), covering MOSA-conformant port/interface-only dependencies between product components and complete interface specification.

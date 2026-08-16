@@ -2200,6 +2200,18 @@ const aiSkills = {
      the product architecture back to the
      systemRequirementSpecification (directly or via
      the solutionSystemImpl in solutionContextImpl).
+  8. Every dependency between two product
+     components crosses only through a defined
+     port/interface — flag any part-to-part
+     reference that bypasses the published
+     interface. A back-door dependency is both a
+     MOSA violation and the exact thing that breaks
+     module-scoped context retrieval.
+  9. Each component's published interface is
+     specified completely enough that a neighbor —
+     or an AI assistant — never needs that
+     component's internal structure to use it
+     correctly.
   Report each finding with the element name, the
   violated SYSMOD rule, and a concrete suggestion
   for correction."</span>;
@@ -3000,6 +3012,8 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 5. <span class="ty">If</span> a logicalContext is present <span class="kw">in</span> the project, a logical2product <span class="kw">allocation</span> is defined connecting logicalContext <span class="kw">to</span> productContext.
                 6. <span class="ty">Interfaces</span> between product components are defined where components interact physically or through <span class="ty">APIs</span>.
                 7. <span class="ty">All</span> system requirements are satisfied — <span class="kw">verify</span> that a <span class="kw">satisfy</span> relationship chain exists <span class="kw">from</span> the product architecture back <span class="kw">to</span> the systemRequirementSpecification (directly or via the solutionSystemImpl <span class="kw">in</span> solutionContextImpl).
+                8. <span class="ty">Every</span> dependency between two product components crosses only through a defined <span class="kw">port</span>/<span class="kw">interface</span> — flag any part-to-part reference that bypasses the published <span class="kw">interface</span>. <span class="ty">A</span> back-door dependency is both a <span class="ty">MOSA</span> violation and the exact thing that breaks module-scoped context retrieval.
+                9. <span class="ty">Each</span> component's published <span class="kw">interface</span> is specified completely enough that a neighbor — or an <span class="ty">AI</span> assistant — never needs that component's internal structure <span class="kw">to</span> use it correctly.
                 <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
         }
 

@@ -712,6 +712,8 @@ library package SYSMOD {
                 5. If a logicalContext is present in the project, a logical2product allocation is defined connecting logicalContext to productContext.
                 6. Interfaces between product components are defined where components interact physically or through APIs.
                 7. All system requirements are satisfied — verify that a satisfy relationship chain exists from the product architecture back to the systemRequirementSpecification (directly or via the solutionSystemImpl in solutionContextImpl).
+                8. Every dependency between two product components crosses only through a defined port/interface — flag any part-to-part reference that bypasses the published interface. A back-door dependency is both a MOSA violation and the exact thing that breaks module-scoped context retrieval.
+                9. Each component's published interface is specified completely enough that a neighbor — or an AI assistant — never needs that component's internal structure to use it correctly.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 

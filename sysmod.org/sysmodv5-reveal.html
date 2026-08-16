@@ -251,6 +251,52 @@
   #site-header .sep{color:var(--rule);}
   #site-header .tag{color:var(--ink-soft); font-weight:500; letter-spacing:0.02em; text-transform:none;}
 
+  #nav-menu-toggle{
+    margin-left:auto; pointer-events:auto; cursor:pointer;
+    display:flex; align-items:center; gap:8px;
+    background:none; border:none; padding:0;
+    font-family:var(--sans); font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; font-weight:600;
+    color:var(--brand-blue);
+  }
+  #nav-menu-toggle:hover{color:var(--accent-teal);}
+  #nav-menu-toggle .bars{display:flex; flex-direction:column; gap:4px; justify-content:center; width:22px; height:16px; flex:none;}
+  #nav-menu-toggle .bars span{display:block; width:100%; height:2px; background:var(--brand-blue); border-radius:2px;}
+  #nav-menu-toggle:hover .bars span{background:var(--accent-teal);}
+
+  #nav-menu-overlay{
+    position:fixed; inset:0; z-index:9998; display:none;
+    background:rgba(31,41,51,0.35);
+  }
+  #nav-menu-overlay.open{display:block;}
+  #nav-menu-panel{
+    position:fixed; top:0; right:0; height:100%; width:320px; max-width:86vw;
+    background:var(--page-bg); box-shadow:-8px 0 24px rgba(0,0,0,0.18);
+    box-sizing:border-box; padding:20px 0; overflow-y:auto;
+    transform:translateX(100%); transition:transform 0.25s ease;
+  }
+  #nav-menu-overlay.open #nav-menu-panel{transform:translateX(0);}
+  .nav-menu-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 22px 14px; margin-bottom:8px; border-bottom:1px solid var(--rule);
+    font-family:var(--sans); font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; font-weight:600;
+    color:var(--brand-blue);
+  }
+  .nav-menu-close{cursor:pointer; font-size:1.3rem; line-height:1; color:var(--ink-soft);}
+  .nav-menu-close:hover{color:var(--brand-blue);}
+  #nav-menu-list .nav-menu-item{
+    display:flex; align-items:baseline; gap:10px;
+    padding:9px 22px; cursor:pointer;
+    font-family:var(--sans); font-size:0.86rem; color:var(--ink);
+    border-left:3px solid transparent;
+  }
+  #nav-menu-list .nav-menu-item:hover{background:var(--panel-bg);}
+  #nav-menu-list .nav-menu-item.active{border-left-color:var(--brand-blue); background:var(--panel-bg-2); color:var(--brand-blue); font-weight:600;}
+  #nav-menu-list .nav-menu-num{
+    font-family:var(--mono); font-size:0.72rem; color:var(--brand-blue-dim); flex:none; width:20px;
+  }
+  #nav-menu-list .nav-menu-item.nav-menu-bookend{font-style:italic; color:var(--ink-soft);}
+  #nav-menu-list .nav-menu-item.nav-menu-bookend.active{color:var(--brand-blue);}
+
   #site-footer{
     position:fixed; bottom:0; left:0; width:100%; z-index:50;
     display:flex; justify-content:center;
@@ -287,6 +333,20 @@
   <a href="https://mbse4u.com" target="_blank" rel="noopener">MBSE4U</a>
   <span class="sep">&middot;</span>
   <span class="tag">Practical MBSE</span>
+  <button id="nav-menu-toggle" aria-label="Open step navigation" aria-expanded="false" aria-controls="nav-menu-panel">
+    <span class="label">SYSMOD Steps</span>
+    <span class="bars"><span></span><span></span><span></span></span>
+  </button>
+</div>
+
+<div id="nav-menu-overlay">
+  <div id="nav-menu-panel">
+    <div class="nav-menu-header">
+      <span>SYSMOD Steps</span>
+      <span class="nav-menu-close">&times;</span>
+    </div>
+    <div id="nav-menu-list"></div>
+  </div>
 </div>
 
 <div class="reveal">
@@ -3273,6 +3333,41 @@ const trackerSlideCount = steps.length + 2;
 tracker.innerHTML = Array.from({length: trackerSlideCount}, (_,i) =>
   `<div class="dot" data-i="${i}"></div>`).join('');
 
+/* ---------- step navigation menu: jump directly to any step (h-index accounts for the title slide at h=0) ---------- */
+const navEntries = [
+  {h:1, label:"About SYSMOD", bookend:true},
+  ...steps.map((s,i) => ({h:i+2, label:s.title, num:s.num})),
+  {h:steps.length+2, label:"Summary", bookend:true}
+];
+const navList = document.getElementById('nav-menu-list');
+navList.innerHTML = navEntries.map(e =>
+  `<div class="nav-menu-item${e.bookend ? ' nav-menu-bookend' : ''}" data-h="${e.h}">
+     <span class="nav-menu-num">${e.num !== undefined ? e.num : ''}</span><span>${e.label}</span>
+   </div>`).join('');
+
+const navToggle = document.getElementById('nav-menu-toggle');
+const navOverlay = document.getElementById('nav-menu-overlay');
+function openNavMenu(){
+  navOverlay.classList.add('open');
+  navToggle.setAttribute('aria-expanded', 'true');
+}
+function closeNavMenu(){
+  navOverlay.classList.remove('open');
+  navToggle.setAttribute('aria-expanded', 'false');
+}
+navToggle.addEventListener('click', ()=>{
+  navOverlay.classList.contains('open') ? closeNavMenu() : openNavMenu();
+});
+navOverlay.addEventListener('click', (e)=>{
+  if(e.target === navOverlay || e.target.closest('.nav-menu-close')) closeNavMenu();
+});
+navList.addEventListener('click', (e)=>{
+  const item = e.target.closest('.nav-menu-item');
+  if(!item) return;
+  deck.slide(Number(item.dataset.h), 0);
+  closeNavMenu();
+});
+
 /* ---------- image lightbox: click any content image to see it large ---------- */
 const lightbox = document.getElementById('lightbox-overlay');
 const lightboxImg = document.getElementById('lightbox-img');
@@ -3291,6 +3386,8 @@ document.addEventListener('keydown', (e)=>{
   if(e.key === 'Escape' && lightbox.classList.contains('open')){
     lightbox.classList.remove('open');
     lightboxImg.src = '';
+  } else if(e.key === 'Escape' && navOverlay.classList.contains('open')){
+    closeNavMenu();
   }
 });
 
@@ -3326,6 +3423,9 @@ function updateChrome(indices){
     r.classList.toggle('active', Number(r.dataset.layer) === v);
   });
   document.getElementById('depth-gauge').classList.toggle('gauge-hidden', hIndex < 0);
+  document.querySelectorAll('#nav-menu-list .nav-menu-item').forEach(item=>{
+    item.classList.toggle('active', Number(item.dataset.h) === indices.h);
+  });
 }
 
 deck.on('slidechanged', event => updateChrome(deck.getIndices()));

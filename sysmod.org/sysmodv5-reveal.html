@@ -1005,12 +1005,15 @@ const steps = [
       model:{ text:"maxPayloadWeight is a concrete ExtendedRequirement with a mandatory obligation — one line, but it now traces all the way back to a stakeholder need. It also specializes the MaxValue boilerplate, binding currentValue and maxValue to the drone's payload mass and its 5 kg limit.",
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
   <span class="kw">requirement</span> deliveryDroneSystemRequirementsSpecification :&gt;&gt; systemRequirementSpecification : <span class="ty">DD_SPECIFICATION::DeliveryDroneSystemRequirements</span> {
-      <span class="kw">subject</span> :&gt;&gt; specificationSystem = deliveryDroneSpecificationContext.deliveryDroneSystem;
+      <span class="kw">subject</span> deliveryDroneSystem :&gt;&gt; specificationSystem, deliveryDroneSystem :&gt; deliveryDroneSpecificationContext.deliveryDroneSystem;
+      <span class="kw">stakeholder</span> :&gt;&gt; projectOwner = johnFinch;
   }
 }
 <span class="kw">requirement def</span> <span class="ty">DeliveryDroneSystemRequirements</span> {
     <span class="kw">doc</span>
     <span class="cm">/* Root of the delivery drone system requirements. */</span>
+    <span class="kw">subject</span> deliveryDroneSystem : <span class="ty">DD_SPECIFICATION::DeliveryDroneSystem</span>;
+    <span class="kw">stakeholder</span> projectOwner : <span class="ty">ExtendedStakeholder</span>;
     <span class="kw">requirement</span> maxPayloadMass : <span class="ty">MaxPayloadMass</span>;
     <span class="kw">requirement</span> airCharging : <span class="ty">AirCharging</span>;
 }

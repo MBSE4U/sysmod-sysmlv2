@@ -94,7 +94,8 @@ package <DD> DeliveryDrone {
             part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSystemIdeaContextImpl::deliveryDroneSystemImpl, Project::systemIdeaContextImpl::soiImpl;
         }
         requirement deliveryDroneSystemRequirementsSpecification :>> systemRequirementSpecification : DD_SPECIFICATION::Requirements::DeliveryDroneSystemRequirements {
-            subject :>> specificationSystem = deliveryDroneSpecificationContext.deliveryDroneSystem;
+            subject deliveryDroneSystem :>> specificationSystem, deliveryDroneSystem :> deliveryDroneSpecificationContext.deliveryDroneSystem;
+            stakeholder :>> projectOwner = johnFinch;
         }
 
         //------------------------- Solution Architecture: Functional Architecture

@@ -79,8 +79,20 @@
   .text-col--code p, .text-col--model-code p{font-size:0.95rem; margin:0 0 16px; color:var(--ink-soft);}
   .img-col{flex:0 0 auto; width:400px; display:flex; align-items:center; justify-content:center;}
   .img-col--narrow{width:360px;}
+  .img-col--overview{width:380px;}
+  .img-col--overview.img-col--compact{width:320px;}
   .img-col img{max-width:100%; max-height:50vh; border-radius:4px; box-shadow:0 6px 20px rgba(31,41,51,0.14); cursor:zoom-in; transition:opacity 0.15s;}
   .img-col img:hover{opacity:0.88;}
+
+  .step-image-map{position:relative; width:100%; line-height:0;}
+  .step-image-map img{width:100%; max-width:100%; max-height:50vh; border-radius:4px; box-shadow:0 6px 20px rgba(31,41,51,0.14); cursor:zoom-in;}
+  .step-hot{position:absolute; border-radius:4px; cursor:pointer; transition:background 0.15s, box-shadow 0.15s;}
+  .step-hot:hover{background:rgba(255,255,255,0.12); box-shadow:inset 0 0 0 2px var(--brand-blue);}
+  h3.img-map-heading{
+    font-family:var(--display); font-weight:600; font-size:0.95rem; letter-spacing:0.01em;
+    color:var(--brand-blue); margin:34px 0 8px;
+  }
+  .reveal .slides section.layer-products{justify-content:flex-start; overflow-y:auto; padding-top:32px; padding-bottom:32px;}
 
   .img-placeholder{
     width:100%; aspect-ratio:4/3; max-height:50vh;
@@ -215,7 +227,7 @@
     .reveal .slides section{padding:36px 24px;}
     .content-grid{flex-direction:column;}
     .text-col, .text-col--wide, .text-col--code, .text-col--model-code,
-    .img-col, .img-col--narrow{width:100%; max-width:100%;}
+    .img-col, .img-col--narrow, .img-col--overview, .img-col--overview.img-col--compact{width:100%; max-width:100%;}
   }
 
   @media (max-width:640px){
@@ -3151,7 +3163,7 @@ function renderIntro(){
   return `
   <section class="step-h" data-step="intro">
 
-    <section class="layer-story" data-layer="0">
+    <section class="layer-story layer-products" data-layer="0">
       <div class="eyebrow">Introduction \u00b7 Layer 1 \u2014 Why a Story</div>
       <h2 class="slide-title">About SYSMOD</h2>
       <div class="slide-sub">Why tell this as a story at all?</div>
@@ -3159,10 +3171,12 @@ function renderIntro(){
         <div class="text-col text-col--wide">
           <p>Each step that follows is told five times: as a story, as a formal definition, as a SysML v2 library element, as an example model, and as an AI skill. The story comes first because a method is easier to remember, teach, and defend in front of stakeholders when it's carried by a concrete narrative rather than an abstract process description. Here, that narrative follows a fictional delivery-drone project at a company called Amperdrones \u2014 simple on purpose, so the sequence of thinking stays memorable rather than realistic.</p>
         </div>
+        <h3 class="img-map-heading">Main SYSMOD Products</h3>
+        <div class="img-col img-col--overview">${renderStepsOverviewMap()}</div>
       </div>
     </section>
 
-    <section class="layer-generic" data-layer="1">
+    <section class="layer-generic layer-products" data-layer="1">
       <div class="eyebrow">Introduction \u00b7 Layer 2 \u2014 What SYSMOD Is</div>
       <h2 class="slide-title">About SYSMOD</h2>
       <div class="slide-sub">A brief definition, and where it sits in ISO 15288</div>
@@ -3171,6 +3185,8 @@ function renderIntro(){
           <p>SYSMOD is a pragmatic, lightweight method for Model-Based Systems Engineering with SysML: a focused chain of artifacts, from problem statement to verification, that keeps a project traceable without demanding a full heavyweight process.</p>
           <div class="iso-tag">ISO/IEC/IEEE 15288 \u2014 SYSMOD is <em>not</em> a complete implementation of ISO/IEC/IEEE 15288. It touches several technical processes (Business or Mission Analysis, Stakeholder Needs &amp; Requirements Definition, System Requirements Definition, Architecture Definition, Verification, Validation) but deliberately omits others, and does not implement every activity within the processes it does address.</div>
         </div>
+        <h3 class="img-map-heading">Main SYSMOD Products</h3>
+        <div class="img-col img-col--overview img-col--compact">${renderStepsOverviewMap()}</div>
       </div>
     </section>
 
@@ -3300,6 +3316,30 @@ function renderSummary(){
     </section>
 
   </section>`;
+}
+
+/* products overview image on the "About SYSMOD" page: a 4x3 grid of step cards,
+   each wired to jump straight to the matching step (last card -> Summary/Delivery) */
+function renderStepsOverviewMap(){
+  const cols = [[1.7,24.1],[25.9,48.6],[50.7,73.3],[75.4,97.9]];
+  const rows = [[1.7,32.9],[35.2,65.8],[68.0,97.5]];
+  const cellHs = [
+    2,3,4,5,
+    6,7,8,9,
+    10,11,12, steps.length+2
+  ];
+  let hotspots = '';
+  let i = 0;
+  for(const [t,b] of rows){
+    for(const [l,r] of cols){
+      hotspots += `<div class="step-hot" style="left:${l}%;top:${t}%;width:${(r-l).toFixed(2)}%;height:${(b-t).toFixed(2)}%" onclick="deck.slide(${cellHs[i]},0)" title="Jump to this step"></div>`;
+      i++;
+    }
+  }
+  return `<div class="step-image-map">
+    <img src="assets/sysmod-products-overview.png" alt="Overview of the SYSMOD steps and products">
+    ${hotspots}
+  </div>`;
 }
 
 function imgPlaceholderOrTag(slot){

@@ -11,3 +11,4 @@
 - Updated example model: DeliveryDroneSystemRequirements now declares its own subject and stakeholder (projectOwner); DeliveryDroneSystemProject redefines both accordingly.
 - Updated example model: added Recipient and Regulator stakeholders to DeliveryDroneSystemStakeholders and DeliveryDroneSystemProject, so the four stakeholders match the sysmod.org story.
 - Added a "SYSMOD Steps" navigation menu to sysmod.org's header, for jumping directly to any step.
+- Added the SYSMOD products overview image to the "About SYSMOD" page on sysmod.org, with clickable step cards that jump directly to the corresponding SYSMOD step.

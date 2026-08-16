@@ -325,7 +325,7 @@ const steps = [
   {
     num:1, title:"The Project", kicker:"Who owns this, and why does it matter?",
     layers:{
-      story:{ text:"The engineering department calls a project kickoff: a new delivery drone, to serve markets the company has never reached before. Jordan Finch is named project owner — a fitting name for someone about to spend the next year thinking about flying things. The SYSMOD owl is invited to sit in from day one, notepad already open.", img:"assets/01-kickoff-story.jpg", slot:"01-kickoff-story" },
+      story:{ text:"The engineering department calls a project kickoff: a new delivery drone, to serve markets the company has never reached before. John Finch is named project owner — a fitting name for someone about to spend the next year thinking about flying things. The SYSMOD owl is invited to sit in from day one, notepad already open.", img:"assets/01-kickoff-story.jpg", slot:"01-kickoff-story" },
       generic:{ subtitle: "", text:"The project is the context that ties an engineering effort together: it documents the charter for the engineering team and assigns the project owner, and serves as the shared scope in which all other engineering artifacts — requirements, architectures, and everything in between — exist as usages, so they stay traceable to one another from day one.", iso:"Project Planning Process", img:null, slot:"01-kickoff-generic" },
       library:{ subtitle: "", text:"The reusable Project definition owns the projectOwner and is the shared context for every other artifact — problemStatement, brownfieldContext, and the rest — added later in this chain.", code:`<span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">Project</span> {
   <span class="kw">doc</span> <span class="cm">/* Context for all main engineering
@@ -337,7 +337,7 @@ const steps = [
   }
   <span class="cm">// + problemStatement, brownfieldContext, ...</span>
 }`, img:null, slot:"01-kickoff-library" },
-      model:{ text:"'Delivery Drone Project' implicitly specializes the SYSMOD Project element. Redefining projectOwner give it a face: Jordan Finch. It subsets projectStakeholders which also adds ExtendedStakeholder features.", 
+      model:{ text:"'Delivery Drone Project' implicitly specializes the SYSMOD Project element. Redefining projectOwner give it a face: John Finch. It subsets projectStakeholders which also adds ExtendedStakeholder features.",
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
     <span class="kw">doc</span> 
     <span class="cm">/* Project Charter: Delivery Drone
@@ -363,7 +363,7 @@ const steps = [
   {
     num:2, title:"Problem Statement", kicker:"Why are we doing this at all?",
     layers:{
-      story:{ text:"Before anyone gets to talk about drones, the SYSMOD owl walks to the whiteboard and writes a single question: why are we doing this at all? Not \u201cbuild a delivery drone\u201d \u2014 that's already a solution wearing a problem's clothes. Jordan Finch watches the team wrestle with restating it three times before the room agrees it's finally solution-free.", img:"assets/02-problem-statement-story.jpg", slot:"02-problem-statement-story" },
+      story:{ text:"Before anyone gets to talk about drones, the SYSMOD owl walks to the whiteboard and writes a single question: why are we doing this at all? Not \u201cbuild a delivery drone\u201d \u2014 that's already a solution wearing a problem's clothes. John Finch watches the team wrestle with restating it three times before the room agrees it's finally solution-free.", img:"assets/02-problem-statement-story.jpg", slot:"02-problem-statement-story" },
       generic:{ subtitle: "", text:"A concise statement of the problem or opportunity, deliberately independent of any proposed solution. Answers \u2018why are we doing this at all?\u2019 Now is the time to check whether all team members are aware of it, have understood it, and agree that we are solving the right problem. So is the goal to build a better car, or to enable mobility, or better headphones or listening experiences, and so on?", iso:"Business or Mission Analysis", img:null, slot:"02-problem-statement-generic" },
       library:{ subtitle: "", text:"The problem statement is a concern typed by ExtendedConcern owned by the project. Its subject is bound to the brownfield system, the project owner is the stakeholder and its priority defaults to critical.", 
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
@@ -425,10 +425,12 @@ const steps = [
     high = 0.75;
     critical = 1.0;
 }`, img:null, slot:"04-stakeholders-library" },
-      model:{ text:"Shipper specializes ExtendedStakeholder and assigns concrete risk, effort, and category values — all it takes to compute its priority.", 
+      model:{ text:"LogisticCompany specializes ExtendedStakeholder and assigns concrete risk, effort, and category values — all it takes to compute its priority.",
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
   <span class="kw">part</span> logisticCompany : <span class="ty">LogisticCompany</span> :&gt; projectStakeholders;
   <span class="kw">part</span> droneOperator : <span class="ty">DroneOperator</span> :&gt; projectStakeholders;
+  <span class="kw">part</span> recipient : <span class="ty">Recipient</span> :&gt; projectStakeholders;
+  <span class="kw">part</span> regulator : <span class="ty">Regulator</span> :&gt; projectStakeholders;
 }
 <span class="kw">#extendedStakeholder part def</span> <span class="ty">LogisticCompany</span> {
     <span class="kw">doc</span>
@@ -446,6 +448,24 @@ const steps = [
     <span class="kw">attribute</span> :>> risk = <span class="ty">LevelKind</span>::medium;
     <span class="kw">attribute</span> :>> effort = <span class="ty">LevelKind</span>::low;
     <span class="kw">attribute</span> :>> categories = <span class="ty">StakeholderCategoryKind</span>::user;
+}
+<span class="kw">#extendedStakeholder part def</span> <span class="ty">Recipient</span> {
+    <span class="kw">doc</span>
+    <span class="cm">/* The person who receives the delivered parcel at the landing zone.
+      * Wants the package to arrive quickly and intact, but has no direct
+      * interaction with the drone system. */</span>
+    <span class="kw">attribute</span> :>> risk = <span class="ty">LevelKind</span>::low;
+    <span class="kw">attribute</span> :>> effort = <span class="ty">LevelKind</span>::low;
+    <span class="kw">attribute</span> :>> categories = <span class="ty">StakeholderCategoryKind</span>::other;
+}
+<span class="kw">#extendedStakeholder part def</span> <span class="ty">Regulator</span> {
+    <span class="kw">doc</span>
+    <span class="cm">/* The aviation authority that approves and oversees autonomous drone
+      * operations, including airspace and safety rules. Main source of the
+      * compliance and certification requirements. */</span>
+    <span class="kw">attribute</span> :>> risk = <span class="ty">LevelKind</span>::high;
+    <span class="kw">attribute</span> :>> effort = <span class="ty">LevelKind</span>::medium;
+    <span class="kw">attribute</span> :>> categories = <span class="ty">StakeholderCategoryKind</span>::requirementOwner;
 }`, img:"assets/03-stakeholders-model.png", slot:"03-stakeholders-model", diagram:"assets/03-stakeholders-diagram.png", diagramSlot:"03-stakeholders-diagram" }
     }
   },
@@ -3152,7 +3172,7 @@ function renderSummary(){
       <h2 class="slide-title">The System, in Operation</h2>
       <div class="slide-sub">Mission accomplished</div>
       <div class="content-grid">
-        <div class="text-col"><p>The drone lifts off, delivers its package to the island, recharges mid-air from a sibling drone, and lands safely. On the dock, the recipient signs for the package with a smile. Back at Amperdrones, Jordan Finch closes the project folder, and the SYSMOD owl closes its notepad \u2014 every choice, from the first sticky note to the final test flight, still traceable end to end.</p></div>
+        <div class="text-col"><p>The drone lifts off, delivers its package to the island, recharges mid-air from a sibling drone, and lands safely. On the dock, the recipient signs for the package with a smile. Back at Amperdrones, John Finch closes the project folder, and the SYSMOD owl closes its notepad \u2014 every choice, from the first sticky note to the final test flight, still traceable end to end.</p></div>
         <div class="img-col">${imgPlaceholderOrTag("12-summary-story")}</div>
       </div>
     </section>

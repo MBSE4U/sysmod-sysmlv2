@@ -39,6 +39,24 @@ package <DD_STAKEHOLDERS> DeliveryDroneSystemStakeholders {
         attribute :>> effort = LevelKind::low;
         attribute :>> categories = StakeholderCategoryKind::user;
     }
+    #extendedStakeholder part def Recipient {
+        doc
+        /* The person who receives the delivered parcel at the landing zone.
+         * Wants the package to arrive quickly and intact, but has no direct
+         * interaction with the drone system. */
+        attribute :>> risk = LevelKind::low;
+        attribute :>> effort = LevelKind::low;
+        attribute :>> categories = StakeholderCategoryKind::other;
+    }
+    #extendedStakeholder part def Regulator {
+        doc
+        /* The aviation authority that approves and oversees autonomous drone
+         * operations, including airspace and safety rules. Main source of the
+         * compliance and certification requirements. */
+        attribute :>> risk = LevelKind::high;
+        attribute :>> effort = LevelKind::medium;
+        attribute :>> categories = StakeholderCategoryKind::requirementOwner;
+    }
 }
 
 package <DD_STAKEHOLDERNEEDS> DeliveryDroneSystemStakeholderNeeds {

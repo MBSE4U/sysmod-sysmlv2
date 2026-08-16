@@ -9,3 +9,4 @@
 - Added preconditions and postconditions to the SYSMOD UseCase concept.
 - Added library with RequirementBoilerplates
 - Updated example model: DeliveryDroneSystemRequirements now declares its own subject and stakeholder (projectOwner); DeliveryDroneSystemProject redefines both accordingly.
+- Added a "SYSMOD Steps" navigation menu to sysmod.org's header, for jumping directly to any step.

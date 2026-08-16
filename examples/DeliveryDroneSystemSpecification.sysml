@@ -286,6 +286,8 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
         requirement def DeliveryDroneSystemRequirements {
             doc
             /* Root of the delivery drone system requirements. */
+            subject deliveryDroneSystem : DD_SPECIFICATION::DeliveryDroneSystem;
+            stakeholder projectOwner : ExtendedStakeholder;
             requirement maxPayloadMass : MaxPayloadMass;
             requirement airCharging : AirCharging;
         }

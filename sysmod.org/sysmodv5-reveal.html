@@ -251,6 +251,52 @@
   #site-header .sep{color:var(--rule);}
   #site-header .tag{color:var(--ink-soft); font-weight:500; letter-spacing:0.02em; text-transform:none;}
 
+  #nav-menu-toggle{
+    margin-left:auto; pointer-events:auto; cursor:pointer;
+    display:flex; align-items:center; gap:8px;
+    background:none; border:none; padding:0;
+    font-family:var(--sans); font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; font-weight:600;
+    color:var(--brand-blue);
+  }
+  #nav-menu-toggle:hover{color:var(--accent-teal);}
+  #nav-menu-toggle .bars{display:flex; flex-direction:column; gap:4px; justify-content:center; width:22px; height:16px; flex:none;}
+  #nav-menu-toggle .bars span{display:block; width:100%; height:2px; background:var(--brand-blue); border-radius:2px;}
+  #nav-menu-toggle:hover .bars span{background:var(--accent-teal);}
+
+  #nav-menu-overlay{
+    position:fixed; inset:0; z-index:9998; display:none;
+    background:rgba(31,41,51,0.35);
+  }
+  #nav-menu-overlay.open{display:block;}
+  #nav-menu-panel{
+    position:fixed; top:0; right:0; height:100%; width:320px; max-width:86vw;
+    background:var(--page-bg); box-shadow:-8px 0 24px rgba(0,0,0,0.18);
+    box-sizing:border-box; padding:20px 0; overflow-y:auto;
+    transform:translateX(100%); transition:transform 0.25s ease;
+  }
+  #nav-menu-overlay.open #nav-menu-panel{transform:translateX(0);}
+  .nav-menu-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 22px 14px; margin-bottom:8px; border-bottom:1px solid var(--rule);
+    font-family:var(--sans); font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; font-weight:600;
+    color:var(--brand-blue);
+  }
+  .nav-menu-close{cursor:pointer; font-size:1.3rem; line-height:1; color:var(--ink-soft);}
+  .nav-menu-close:hover{color:var(--brand-blue);}
+  #nav-menu-list .nav-menu-item{
+    display:flex; align-items:baseline; gap:10px;
+    padding:9px 22px; cursor:pointer;
+    font-family:var(--sans); font-size:0.86rem; color:var(--ink);
+    border-left:3px solid transparent;
+  }
+  #nav-menu-list .nav-menu-item:hover{background:var(--panel-bg);}
+  #nav-menu-list .nav-menu-item.active{border-left-color:var(--brand-blue); background:var(--panel-bg-2); color:var(--brand-blue); font-weight:600;}
+  #nav-menu-list .nav-menu-num{
+    font-family:var(--mono); font-size:0.72rem; color:var(--brand-blue-dim); flex:none; width:20px;
+  }
+  #nav-menu-list .nav-menu-item.nav-menu-bookend{font-style:italic; color:var(--ink-soft);}
+  #nav-menu-list .nav-menu-item.nav-menu-bookend.active{color:var(--brand-blue);}
+
   #site-footer{
     position:fixed; bottom:0; left:0; width:100%; z-index:50;
     display:flex; justify-content:center;
@@ -287,6 +333,20 @@
   <a href="https://mbse4u.com" target="_blank" rel="noopener">MBSE4U</a>
   <span class="sep">&middot;</span>
   <span class="tag">Practical MBSE</span>
+  <button id="nav-menu-toggle" aria-label="Open step navigation" aria-expanded="false" aria-controls="nav-menu-panel">
+    <span class="label">SYSMOD Steps</span>
+    <span class="bars"><span></span><span></span><span></span></span>
+  </button>
+</div>
+
+<div id="nav-menu-overlay">
+  <div id="nav-menu-panel">
+    <div class="nav-menu-header">
+      <span>SYSMOD Steps</span>
+      <span class="nav-menu-close">&times;</span>
+    </div>
+    <div id="nav-menu-list"></div>
+  </div>
 </div>
 
 <div class="reveal">
@@ -325,7 +385,7 @@ const steps = [
   {
     num:1, title:"The Project", kicker:"Who owns this, and why does it matter?",
     layers:{
-      story:{ text:"The engineering department calls a project kickoff: a new delivery drone, to serve markets the company has never reached before. Jordan Finch is named project owner — a fitting name for someone about to spend the next year thinking about flying things. The SYSMOD owl is invited to sit in from day one, notepad already open.", img:"assets/01-kickoff-story.jpg", slot:"01-kickoff-story" },
+      story:{ text:"The engineering department calls a project kickoff: a new delivery drone, to serve markets the company has never reached before. John Finch is named project owner — a fitting name for someone about to spend the next year thinking about flying things. The SYSMOD owl is invited to sit in from day one, notepad already open.", img:"assets/01-kickoff-story.jpg", slot:"01-kickoff-story" },
       generic:{ subtitle: "", text:"The project is the context that ties an engineering effort together: it documents the charter for the engineering team and assigns the project owner, and serves as the shared scope in which all other engineering artifacts — requirements, architectures, and everything in between — exist as usages, so they stay traceable to one another from day one.", iso:"Project Planning Process", img:null, slot:"01-kickoff-generic" },
       library:{ subtitle: "", text:"The reusable Project definition owns the projectOwner and is the shared context for every other artifact — problemStatement, brownfieldContext, and the rest — added later in this chain.", code:`<span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">Project</span> {
   <span class="kw">doc</span> <span class="cm">/* Context for all main engineering
@@ -337,7 +397,7 @@ const steps = [
   }
   <span class="cm">// + problemStatement, brownfieldContext, ...</span>
 }`, img:null, slot:"01-kickoff-library" },
-      model:{ text:"'Delivery Drone Project' implicitly specializes the SYSMOD Project element. Redefining projectOwner give it a face: Jordan Finch. It subsets projectStakeholders which also adds ExtendedStakeholder features.", 
+      model:{ text:"'Delivery Drone Project' implicitly specializes the SYSMOD Project element. Redefining projectOwner give it a face: John Finch. It subsets projectStakeholders which also adds ExtendedStakeholder features.",
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
     <span class="kw">doc</span> 
     <span class="cm">/* Project Charter: Delivery Drone
@@ -363,7 +423,7 @@ const steps = [
   {
     num:2, title:"Problem Statement", kicker:"Why are we doing this at all?",
     layers:{
-      story:{ text:"Before anyone gets to talk about drones, the SYSMOD owl walks to the whiteboard and writes a single question: why are we doing this at all? Not \u201cbuild a delivery drone\u201d \u2014 that's already a solution wearing a problem's clothes. Jordan Finch watches the team wrestle with restating it three times before the room agrees it's finally solution-free.", img:"assets/02-problem-statement-story.jpg", slot:"02-problem-statement-story" },
+      story:{ text:"Before anyone gets to talk about drones, the SYSMOD owl walks to the whiteboard and writes a single question: why are we doing this at all? Not \u201cbuild a delivery drone\u201d \u2014 that's already a solution wearing a problem's clothes. John Finch watches the team wrestle with restating it three times before the room agrees it's finally solution-free.", img:"assets/02-problem-statement-story.jpg", slot:"02-problem-statement-story" },
       generic:{ subtitle: "", text:"A concise statement of the problem or opportunity, deliberately independent of any proposed solution. Answers \u2018why are we doing this at all?\u2019 Now is the time to check whether all team members are aware of it, have understood it, and agree that we are solving the right problem. So is the goal to build a better car, or to enable mobility, or better headphones or listening experiences, and so on?", iso:"Business or Mission Analysis", img:null, slot:"02-problem-statement-generic" },
       library:{ subtitle: "", text:"The problem statement is a concern typed by ExtendedConcern owned by the project. Its subject is bound to the brownfield system, the project owner is the stakeholder and its priority defaults to critical.", 
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
@@ -425,10 +485,12 @@ const steps = [
     high = 0.75;
     critical = 1.0;
 }`, img:null, slot:"04-stakeholders-library" },
-      model:{ text:"Shipper specializes ExtendedStakeholder and assigns concrete risk, effort, and category values — all it takes to compute its priority.", 
+      model:{ text:"LogisticCompany specializes ExtendedStakeholder and assigns concrete risk, effort, and category values — all it takes to compute its priority.",
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
   <span class="kw">part</span> logisticCompany : <span class="ty">LogisticCompany</span> :&gt; projectStakeholders;
   <span class="kw">part</span> droneOperator : <span class="ty">DroneOperator</span> :&gt; projectStakeholders;
+  <span class="kw">part</span> recipient : <span class="ty">Recipient</span> :&gt; projectStakeholders;
+  <span class="kw">part</span> regulator : <span class="ty">Regulator</span> :&gt; projectStakeholders;
 }
 <span class="kw">#extendedStakeholder part def</span> <span class="ty">LogisticCompany</span> {
     <span class="kw">doc</span>
@@ -446,6 +508,24 @@ const steps = [
     <span class="kw">attribute</span> :>> risk = <span class="ty">LevelKind</span>::medium;
     <span class="kw">attribute</span> :>> effort = <span class="ty">LevelKind</span>::low;
     <span class="kw">attribute</span> :>> categories = <span class="ty">StakeholderCategoryKind</span>::user;
+}
+<span class="kw">#extendedStakeholder part def</span> <span class="ty">Recipient</span> {
+    <span class="kw">doc</span>
+    <span class="cm">/* The person who receives the delivered parcel at the landing zone.
+      * Wants the package to arrive quickly and intact, but has no direct
+      * interaction with the drone system. */</span>
+    <span class="kw">attribute</span> :>> risk = <span class="ty">LevelKind</span>::low;
+    <span class="kw">attribute</span> :>> effort = <span class="ty">LevelKind</span>::low;
+    <span class="kw">attribute</span> :>> categories = <span class="ty">StakeholderCategoryKind</span>::other;
+}
+<span class="kw">#extendedStakeholder part def</span> <span class="ty">Regulator</span> {
+    <span class="kw">doc</span>
+    <span class="cm">/* The aviation authority that approves and oversees autonomous drone
+      * operations, including airspace and safety rules. Main source of the
+      * compliance and certification requirements. */</span>
+    <span class="kw">attribute</span> :>> risk = <span class="ty">LevelKind</span>::high;
+    <span class="kw">attribute</span> :>> effort = <span class="ty">LevelKind</span>::medium;
+    <span class="kw">attribute</span> :>> categories = <span class="ty">StakeholderCategoryKind</span>::requirementOwner;
 }`, img:"assets/03-stakeholders-model.png", slot:"03-stakeholders-model", diagram:"assets/03-stakeholders-diagram.png", diagramSlot:"03-stakeholders-diagram" }
     }
   },
@@ -842,7 +922,7 @@ const steps = [
     layers:{
       story:{ text:"The SYSMOD owl asks the team to act out every way an actor can meet this system, one scene at a time. Deliver Package: pick up, transport, recharge mid-flight if the battery runs low, drop off. Charge Drone: a low-battery drone rendezvous with a charger drone in flight and takes on just enough energy to finish the trip. Report Fleet Status: the operator checks in on every drone at once, without touching a single one. Handle Emergency Landing: something goes wrong mid-air, and the drone has to put itself down safely, package or no package. Each scene rehearses the idea before opening night — and each one, once it's acted out, becomes something the requirements have to account for.", img:"assets/08-usecases-story.jpg", slot:"08-usecases-story" },
       generic:{ subtitle: "", text:"A required interaction sequence between the system and an actor that delivers an observable outcome for that actor.", iso:"System Requirements Definition", img:null, slot:"08-usecases-generic" },
-      library:{ subtitle: "", text:"SystemContext defines actors, the system-of-interest, and the useCases collection together — a use case's subject is the system of interest. The use case adds additional attributes for documentation purposes.", 
+      library:{ subtitle: "", text:"SystemContext defines actors, the system-of-interest, and the useCases collection together — a use case's subject is the system of interest. The use case adds additional attributes for documentation purposes, plus a precondition and postcondition constraint that its start and done refs assert against.",
       code:`<span class="kw">part</span> <span class="kw">def</span> <span class="ty">SystemContext</span> {
   <span class="kw">part</span> actors [1..*] { <span class="kw">port</span> actorPorts; }
   <span class="kw">part</span> &lt;soi&gt; systemOfInterest {
@@ -862,6 +942,18 @@ const steps = [
     }
     <span class="kw">attribute</span> ucResult : <span class="ty">ScalarValues::String</span> {
       <span class="kw">doc</span> <span class="cm">/* The outcome the use case guarantees once it completes successfully. */</span>
+    }
+    <span class="kw">constraint</span> precondition {
+      <span class="kw">doc</span> <span class="cm">/* The condition that must hold before the use case starts. */</span>
+    }
+    <span class="kw">constraint</span> postcondition {
+      <span class="kw">doc</span> <span class="cm">/* The condition guaranteed once the use case completes successfully. */</span>
+    }
+    <span class="kw">ref</span> <span class="kw">use</span> <span class="kw">case</span> :&gt;&gt; start {
+      <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; precondition;
+    }
+    <span class="kw">ref</span> <span class="kw">use</span> <span class="kw">case</span> :&gt;&gt; done {
+      <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; postcondition;
     }
 }`, img:null, slot:"08-usecases-library" },
       model:{ text:"DeliverPackage no longer defines its own actions — every action it needs (planDelivery, pickUpPackage, chargeInFlight, dropOffPackage, and more) is now owned once by DeliveryDroneSystem itself, shared across all four use cases. DeliverPackage just orchestrates them: local actions here subset the shared ones, so the same charging behavior ChargeDrone describes on its own can't quietly drift out of sync.", 
@@ -909,6 +1001,12 @@ const steps = [
         }
         <span class="kw">attribute</span> :&gt;&gt; ucTrigger = "The operator dispatches a drone with a package for a landing zone.";
         <span class="kw">attribute</span> :&gt;&gt; ucResult = "The package is delivered to the landing zone and the drone returns safely.";
+        <span class="kw">constraint</span> :&gt;&gt; precondition {
+            <span class="kw">doc</span> <span class="cm">/* A drone is available and assigned to a delivery order with a known pickup and destination location. */</span>
+        }
+        <span class="kw">constraint</span> :&gt;&gt; postcondition {
+            <span class="kw">doc</span> <span class="cm">/* The package has been dropped off at the landing zone and the drone has returned to its home station. */</span>
+        }
         <span class="kw">in item</span> order : DeliveryOrder;
         <span class="kw">in item</span> pkgIn : Parcel;
         <span class="kw">out item</span> pkgOut : Parcel;
@@ -952,7 +1050,7 @@ const steps = [
     layers:{
       story:{ text:"Now the promises get specific. Maximum payload weight. Legal flight zones. Every requirement traces back to someone accountable for it.", img:"assets/09-requirements-story.jpg", slot:"09-requirements-story" },
       generic:{ subtitle: "", text:"A specific, verifiable statement of what the system must do or be, traceable to a stakeholder need and to the stakeholder accountable for it.", iso:"System Requirements Definition", img:null, slot:"09-requirements-generic" },
-      library:{ subtitle: "", text:"The requirement specification frames stakeholderNeeds. ExtendedRequirement extends the concern with obligation, stability, and motivation attributes for full traceability.", code:`<span class="kw">requirement</span> systemRequirementSpecification {
+      library:{ subtitle: "", text:"The requirement specification frames stakeholderNeeds. ExtendedRequirement extends the concern with obligation, stability, and motivation attributes for full traceability. A RequirementBoilderplates package adds ready-to-specialize patterns — like MaxValue — for common quantitative constraints.", code:`<span class="kw">requirement</span> systemRequirementSpecification {
   <span class="kw">doc</span> <span class="cm">/* Root element for the system requirements. */</span>
   <span class="kw">subject</span> specificationSystem :&gt; specificationContext.soi;
   <span class="kw">frame</span> stakeholderNeeds;
@@ -975,25 +1073,38 @@ const steps = [
     none;
     unstable;
     stable;
+}
+<span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MaxValue</span> {
+    <span class="kw">doc</span> <span class="cm">/* The quantity must stay strictly below an upper bound. */</span>
+    <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+    <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+    <span class="kw">require</span> <span class="kw">constraint</span> {
+        currentValue &lt; maxValue
+    }
 }`, img:null, slot:"09-requirements-library" },
-      model:{ text:"maxPayloadWeight is a concrete ExtendedRequirement with a mandatory obligation — one line, but it now traces all the way back to a stakeholder need.", 
+      model:{ text:"maxPayloadWeight is a concrete ExtendedRequirement with a mandatory obligation — one line, but it now traces all the way back to a stakeholder need. It also specializes the MaxValue boilerplate, binding currentValue and maxValue to the drone's payload mass and its 5 kg limit.",
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
   <span class="kw">requirement</span> deliveryDroneSystemRequirementsSpecification :&gt;&gt; systemRequirementSpecification : <span class="ty">DD_SPECIFICATION::DeliveryDroneSystemRequirements</span> {
-      <span class="kw">subject</span> :&gt;&gt; specificationSystem = deliveryDroneSpecificationContext.deliveryDroneSystem;
+      <span class="kw">subject</span> deliveryDroneSystem :&gt;&gt; specificationSystem, deliveryDroneSystem :&gt; deliveryDroneSpecificationContext.deliveryDroneSystem;
+      <span class="kw">stakeholder</span> :&gt;&gt; projectOwner = johnFinch;
   }
 }
 <span class="kw">requirement def</span> <span class="ty">DeliveryDroneSystemRequirements</span> {
     <span class="kw">doc</span>
     <span class="cm">/* Root of the delivery drone system requirements. */</span>
+    <span class="kw">subject</span> deliveryDroneSystem : <span class="ty">DD_SPECIFICATION::DeliveryDroneSystem</span>;
+    <span class="kw">stakeholder</span> projectOwner : <span class="ty">ExtendedStakeholder</span>;
     <span class="kw">requirement</span> maxPayloadMass : <span class="ty">MaxPayloadMass</span>;
     <span class="kw">requirement</span> airCharging : <span class="ty">AirCharging</span>;
 }
-<span class="kw">#extendedRequirement requirement def</span> <span class="ty">MaxPayloadMass</span> {
+<span class="kw">#extendedRequirement requirement def</span> <span class="ty">MaxPayloadMass</span> :&gt; <span class="ty">RequirementBoilderplates</span>::<span class="ty">MaxValue</span> {
     <span class="kw">doc</span>
     <span class="cm">/* The system shall transport payloads with a mass of up to 5 kg. */</span>
     <span class="kw">attribute</span> :&gt;&gt; obligation = <span class="ty">ObligationKind</span>::mandatory;
     <span class="kw">attribute</span> :&gt;&gt; stability = <span class="ty">StabilityKind</span>::stable;
     <span class="kw">attribute</span> :&gt;&gt; motivation = "Typical last-mile parcels weigh less than 5 kg.";
+    <span class="kw">attribute</span> :&gt;&gt; currentValue = deliveryDrone.payloadMass;
+    <span class="kw">attribute</span> :&gt;&gt; maxValue = 5;
 }
 <span class="kw">#extendedRequirement requirement def</span> <span class="ty">AirCharging</span> {
     <span class="kw">doc</span>
@@ -2395,6 +2506,20 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         <span class="kw">attribute</span> ucResult : <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
             <span class="kw">doc</span> <span class="cm">/* The outcome the use case guarantees once it completes successfully. */</span>
         }
+        <span class="kw">constraint</span> precondition {
+            <span class="kw">doc</span> <span class="cm">/* The condition that must hold before the use case starts. */</span>
+        }
+        <span class="kw">constraint</span> postcondition {
+            <span class="kw">doc</span> <span class="cm">/* The condition that is guaranteed to hold once the use case completes successfully. */</span>
+        }
+        <span class="kw">ref</span> <span class="kw">use</span> <span class="kw">case</span> :&gt;&gt; start {
+            <span class="kw">doc</span> <span class="cm">/* The use case starts only if the precondition is satisfied. */</span>
+            <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; precondition;
+        }
+        <span class="kw">ref</span> <span class="kw">use</span> <span class="kw">case</span> :&gt;&gt; done {
+            <span class="kw">doc</span> <span class="cm">/* The use case is only considered done if the postcondition is satisfied. */</span>
+            <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; postcondition;
+        }
     }
     <span class="kw">use</span> <span class="kw">case</span> systemUseCases[*] : <span class="ty">SystemUseCase</span>;
 
@@ -2939,7 +3064,86 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         :&gt;&gt; baseType = systemUseCases meta <span class="ty">SysML</span>::<span class="ty">Type</span>;
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseDefinition</span>;
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseUsage</span>;
-    }    
+    }
+
+    <span class="kw">package</span> <span class="ty">RequirementBoilderplates</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* Library of generic, parametric requirement patterns. Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold. */</span>
+
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MaxValue</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The quantity must stay strictly below an upper bound. */</span>
+            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                currentValue &lt; maxValue
+            }
+        }
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinValue</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The quantity must stay strictly above a lower bound. */</span>
+            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> minValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                minValue &gt; currentValue
+            }
+        }
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">RangeValue</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The quantity must stay within an inclusive lower and upper bound. */</span>
+            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> minValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                minValue &lt;= currentValue <span class="kw">and</span> currentValue &lt;= maxValue
+            }
+        }
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">ExactValue</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The quantity must equal a specific target value. */</span>
+            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> targetValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                currentValue == targetValue
+            }
+        }
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">ToleranceValue</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The quantity must stay within a target value plus/minus a tolerance. */</span>
+            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> targetValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+            <span class="kw">attribute</span> tolerance : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                currentValue &gt;= targetValue - tolerance <span class="kw">and</span> currentValue &lt;= targetValue + tolerance
+            }
+        }
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinAvailability</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The ratio of uptime to total time must reach at least a minimum availability. */</span>
+            <span class="kw">attribute</span> uptime :&gt; <span class="ty">ISQ</span>::duration;
+            <span class="kw">attribute</span> totalTime :&gt; <span class="ty">ISQ</span>::duration;
+            <span class="kw">attribute</span> minAvailability :&gt; <span class="ty">ISQ</span>::duration;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                uptime / totalTime &gt;= minAvailability
+            }
+        }
+        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinReliability</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* The mean time between failures must reach at least a minimum MTBF. */</span>
+            <span class="kw">attribute</span> meanTimeBetweenFailures :&gt; <span class="ty">ISQ</span>::duration;
+            <span class="kw">attribute</span> minMTBF :&gt; <span class="ty">ISQ</span>::duration;
+
+            <span class="kw">require</span> <span class="kw">constraint</span> {
+                meanTimeBetweenFailures &gt;= minMTBF
+            }
+        }
+    }
 }`;
 
 
@@ -3028,7 +3232,7 @@ function renderSummary(){
       <h2 class="slide-title">The System, in Operation</h2>
       <div class="slide-sub">Mission accomplished</div>
       <div class="content-grid">
-        <div class="text-col"><p>The drone lifts off, delivers its package to the island, recharges mid-air from a sibling drone, and lands safely. On the dock, the recipient signs for the package with a smile. Back at Amperdrones, Jordan Finch closes the project folder, and the SYSMOD owl closes its notepad \u2014 every choice, from the first sticky note to the final test flight, still traceable end to end.</p></div>
+        <div class="text-col"><p>The drone lifts off, delivers its package to the island, recharges mid-air from a sibling drone, and lands safely. On the dock, the recipient signs for the package with a smile. Back at Amperdrones, John Finch closes the project folder, and the SYSMOD owl closes its notepad \u2014 every choice, from the first sticky note to the final test flight, still traceable end to end.</p></div>
         <div class="img-col">${imgPlaceholderOrTag("12-summary-story")}</div>
       </div>
     </section>
@@ -3129,6 +3333,41 @@ const trackerSlideCount = steps.length + 2;
 tracker.innerHTML = Array.from({length: trackerSlideCount}, (_,i) =>
   `<div class="dot" data-i="${i}"></div>`).join('');
 
+/* ---------- step navigation menu: jump directly to any step (h-index accounts for the title slide at h=0) ---------- */
+const navEntries = [
+  {h:1, label:"About SYSMOD", bookend:true},
+  ...steps.map((s,i) => ({h:i+2, label:s.title, num:s.num})),
+  {h:steps.length+2, label:"Summary", bookend:true}
+];
+const navList = document.getElementById('nav-menu-list');
+navList.innerHTML = navEntries.map(e =>
+  `<div class="nav-menu-item${e.bookend ? ' nav-menu-bookend' : ''}" data-h="${e.h}">
+     <span class="nav-menu-num">${e.num !== undefined ? e.num : ''}</span><span>${e.label}</span>
+   </div>`).join('');
+
+const navToggle = document.getElementById('nav-menu-toggle');
+const navOverlay = document.getElementById('nav-menu-overlay');
+function openNavMenu(){
+  navOverlay.classList.add('open');
+  navToggle.setAttribute('aria-expanded', 'true');
+}
+function closeNavMenu(){
+  navOverlay.classList.remove('open');
+  navToggle.setAttribute('aria-expanded', 'false');
+}
+navToggle.addEventListener('click', ()=>{
+  navOverlay.classList.contains('open') ? closeNavMenu() : openNavMenu();
+});
+navOverlay.addEventListener('click', (e)=>{
+  if(e.target === navOverlay || e.target.closest('.nav-menu-close')) closeNavMenu();
+});
+navList.addEventListener('click', (e)=>{
+  const item = e.target.closest('.nav-menu-item');
+  if(!item) return;
+  deck.slide(Number(item.dataset.h), 0);
+  closeNavMenu();
+});
+
 /* ---------- image lightbox: click any content image to see it large ---------- */
 const lightbox = document.getElementById('lightbox-overlay');
 const lightboxImg = document.getElementById('lightbox-img');
@@ -3147,6 +3386,8 @@ document.addEventListener('keydown', (e)=>{
   if(e.key === 'Escape' && lightbox.classList.contains('open')){
     lightbox.classList.remove('open');
     lightboxImg.src = '';
+  } else if(e.key === 'Escape' && navOverlay.classList.contains('open')){
+    closeNavMenu();
   }
 });
 
@@ -3182,6 +3423,9 @@ function updateChrome(indices){
     r.classList.toggle('active', Number(r.dataset.layer) === v);
   });
   document.getElementById('depth-gauge').classList.toggle('gauge-hidden', hIndex < 0);
+  document.querySelectorAll('#nav-menu-list .nav-menu-item').forEach(item=>{
+    item.classList.toggle('active', Number(item.dataset.h) === indices.h);
+  });
 }
 
 deck.on('slidechanged', event => updateChrome(deck.getIndices()));

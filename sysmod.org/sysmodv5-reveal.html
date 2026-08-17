@@ -2519,30 +2519,16 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
     }
 
     <span class="cm">// Use Case</span>
-    <span class="kw">use</span> <span class="kw">case</span> <span class="kw">def</span> <span class="ty">SystemUseCase</span> {
+    <span class="kw">use</span> <span class="kw">case</span> <span class="kw">def</span> <span class="ty">SystemUseCase</span> :&gt; <span class="ty">ConstrainedOccurrence</span> {
         <span class="kw">doc</span> <span class="cm">/* A SYSMOD use case adds attributes for documentation purposes. */</span>
         <span class="kw">attribute</span> ucMotivation: <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
-            <span class="kw">doc</span> <span class="cm">/* The motivation that prompts the actor to initiate the use case. */</span>            
+            <span class="kw">doc</span> <span class="cm">/* The motivation that prompts the actor to initiate the use case. */</span>
         }
         <span class="kw">attribute</span> ucTrigger : <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
             <span class="kw">doc</span> <span class="cm">/* The event at the system boundary that starts the use case. */</span>
         }
         <span class="kw">attribute</span> ucResult : <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
             <span class="kw">doc</span> <span class="cm">/* The outcome the use case guarantees once it completes successfully. */</span>
-        }
-        <span class="kw">constraint</span> precondition {
-            <span class="kw">doc</span> <span class="cm">/* The condition that must hold before the use case starts. */</span>
-        }
-        <span class="kw">constraint</span> postcondition {
-            <span class="kw">doc</span> <span class="cm">/* The condition that is guaranteed to hold once the use case completes successfully. */</span>
-        }
-        <span class="kw">ref</span> <span class="kw">use</span> <span class="kw">case</span> :&gt;&gt; start {
-            <span class="kw">doc</span> <span class="cm">/* The use case starts only if the precondition is satisfied. */</span>
-            <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; precondition;
-        }
-        <span class="kw">ref</span> <span class="kw">use</span> <span class="kw">case</span> :&gt;&gt; done {
-            <span class="kw">doc</span> <span class="cm">/* The use case is only considered done if the postcondition is satisfied. */</span>
-            <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; postcondition;
         }
     }
     <span class="kw">use</span> <span class="kw">case</span> systemUseCases[*] : <span class="ty">SystemUseCase</span>;
@@ -2647,6 +2633,30 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         high = 0.75;
         critical = 1.0;
     }
+
+    <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">ConstrainedOccurrence</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* A reusable base for any occurrence whose life cycle is governed by a precondition and a
+         * postcondition: the occurrence only starts once its precondition is satisfied, and it is
+         * only considered done once its postcondition is satisfied. SystemUseCase specializes it
+         * so that SYSMOD use cases get this contract for free.
+         */</span>
+        <span class="kw">constraint</span> precondition {
+            <span class="kw">doc</span> <span class="cm">/* The condition that must hold before the use case starts. */</span>
+        }
+        <span class="kw">constraint</span> postcondition {
+            <span class="kw">doc</span> <span class="cm">/* The condition that is guaranteed to hold once the use case completes successfully. */</span>
+        }
+        <span class="kw">ref</span> <span class="kw">occurrence</span> :&gt;&gt; startShot {
+            <span class="kw">doc</span> <span class="cm">/* The occurrence starts only if the precondition is satisfied. */</span>
+            <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; precondition;
+        }
+        <span class="kw">ref</span> <span class="kw">occurrence</span> :&gt;&gt; endShot {
+            <span class="kw">doc</span> <span class="cm">/* The occurrence is only considered done if the postcondition is satisfied. */</span>
+            <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; postcondition;
+        }
+    }
+    <span class="kw">occurrence</span> constrainedOccurrences[*] : <span class="ty">ConstrainedOccurrence</span>;
 
     <span class="cm">//</span>
     <span class="cm">// AI</span>

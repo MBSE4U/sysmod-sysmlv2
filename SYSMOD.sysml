@@ -219,7 +219,7 @@ library package SYSMOD {
     }
 
     // Use Case
-    use case def SystemUseCase {
+    use case def SystemUseCase :> ConstrainedOccurrence {
         doc /* A SYSMOD use case adds attributes for documentation purposes. */
         attribute ucMotivation: ScalarValues::String {
             doc /* The motivation that prompts the actor to initiate the use case. */            
@@ -229,20 +229,6 @@ library package SYSMOD {
         }
         attribute ucResult : ScalarValues::String {
             doc /* The outcome the use case guarantees once it completes successfully. */
-        }
-        constraint precondition {
-            doc /* The condition that must hold before the use case starts. */
-        }
-        constraint postcondition {
-            doc /* The condition that is guaranteed to hold once the use case completes successfully. */
-        }
-        ref use case :>> start {
-            doc /* The use case starts only if the precondition is satisfied. */
-            assert constraint :> precondition;
-        }
-        ref use case :>> done {
-            doc /* The use case is only considered done if the postcondition is satisfied. */
-            assert constraint :> postcondition;
         }
     }
     use case systemUseCases[*] : SystemUseCase;
@@ -347,6 +333,30 @@ library package SYSMOD {
         high = 0.75;
         critical = 1.0;
     }
+
+    occurrence def ConstrainedOccurrence {
+        doc
+        /* A reusable base for any occurrence whose life cycle is governed by a precondition and a
+         * postcondition: the occurrence only starts once its precondition is satisfied, and it is
+         * only considered done once its postcondition is satisfied. SystemUseCase specializes it
+         * so that SYSMOD use cases get this contract for free.
+         */
+        constraint precondition {
+            doc /* The condition that must hold before the use case starts. */
+        }
+        constraint postcondition {
+            doc /* The condition that is guaranteed to hold once the use case completes successfully. */
+        }
+        ref occurrence :>> startShot {
+            doc /* The occurrence starts only if the precondition is satisfied. */
+            assert constraint :> precondition;
+        }
+        ref occurrence :>> endShot {
+            doc /* The occurrence is only considered done if the postcondition is satisfied. */
+            assert constraint :> postcondition;
+        }
+    }
+    occurrence constrainedOccurrences[*] : ConstrainedOccurrence;
 
     //
     // AI

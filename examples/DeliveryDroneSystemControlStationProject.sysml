@@ -40,8 +40,8 @@ package <DDCS> DeliveryDroneControlStation {
          *
          */
 
-        part jordanFinch :>> projectOwner {
-            doc /* Jordan Finch leads the ground-segment team and is accountable
+        part tomSchilling :>> projectOwner {
+            doc /* Tom Schilling leads the ground-segment team and is accountable
                    for the control station sub-project. */
         }
 
@@ -51,7 +51,7 @@ package <DDCS> DeliveryDroneControlStation {
                    control station was built for manually piloted drones and one
                    operator per drone; it does not scale to an autonomous fleet. */
             subject :>> brownfieldSystem = controlStationBrownfieldContextImpl.controlStationImpl;
-            stakeholder :>> projectOwner = jordanFinch;
+            stakeholder :>> projectOwner = tomSchilling;
         }
 
         //------------------------- Stakeholders

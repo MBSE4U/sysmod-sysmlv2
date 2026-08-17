@@ -219,7 +219,7 @@ library package SYSMOD {
     }
 
     // Use Case
-    use case def SystemUseCase {
+    use case def SystemUseCase :> ConstrainedOccurrence {
         doc /* A SYSMOD use case adds attributes for documentation purposes. */
         attribute ucMotivation: ScalarValues::String {
             doc /* The motivation that prompts the actor to initiate the use case. */            
@@ -333,6 +333,30 @@ library package SYSMOD {
         high = 0.75;
         critical = 1.0;
     }
+
+    occurrence def ConstrainedOccurrence {
+        doc
+        /* A reusable base for any occurrence whose life cycle is governed by a precondition and a
+         * postcondition: the occurrence only starts once its precondition is satisfied, and it is
+         * only considered done once its postcondition is satisfied. SystemUseCase specializes it
+         * so that SYSMOD use cases get this contract for free.
+         */
+        constraint precondition {
+            doc /* The condition that must hold before the use case starts. */
+        }
+        constraint postcondition {
+            doc /* The condition that is guaranteed to hold once the use case completes successfully. */
+        }
+        ref occurrence :>> startShot {
+            doc /* The occurrence starts only if the precondition is satisfied. */
+            assert constraint :> precondition;
+        }
+        ref occurrence :>> endShot {
+            doc /* The occurrence is only considered done if the postcondition is satisfied. */
+            assert constraint :> postcondition;
+        }
+    }
+    occurrence constrainedOccurrences[*] : ConstrainedOccurrence;
 
     //
     // AI
@@ -698,6 +722,8 @@ library package SYSMOD {
                 5. If a logicalContext is present in the project, a logical2product allocation is defined connecting logicalContext to productContext.
                 6. Interfaces between product components are defined where components interact physically or through APIs.
                 7. All system requirements are satisfied — verify that a satisfy relationship chain exists from the product architecture back to the systemRequirementSpecification (directly or via the solutionSystemImpl in solutionContextImpl).
+                8. Every dependency between two product components crosses only through a defined port/interface — flag any part-to-part reference that bypasses the published interface. A back-door dependency is both a MOSA violation and the exact thing that breaks module-scoped context retrieval.
+                9. Each component's published interface is specified completely enough that a neighbor — or an AI assistant — never needs that component's internal structure to use it correctly.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -775,4 +801,84 @@ library package SYSMOD {
         :> annotatedElement : SysML::UseCaseDefinition;
         :> annotatedElement : SysML::UseCaseUsage;
     }    
+
+
+    package RequirementBoilderplates {
+        doc
+        /* Library of generic, parametric requirement patterns. Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold. */
+
+        requirement def MaxValue {
+            doc
+            /* The quantity must stay strictly below an upper bound. */
+            attribute currentValue : ScalarValues::Real;
+            attribute maxValue : ScalarValues::Real;
+
+            require constraint {
+                currentValue < maxValue
+            }
+        }
+        requirement def MinValue {
+            doc
+            /* The quantity must stay strictly above a lower bound. */
+            attribute currentValue : ScalarValues::Real;
+            attribute minValue : ScalarValues::Real;
+
+            require constraint {
+                minValue > currentValue
+            }
+        }
+        requirement def RangeValue {
+            doc
+            /* The quantity must stay within an inclusive lower and upper bound. */
+            attribute currentValue : ScalarValues::Real;
+            attribute minValue : ScalarValues::Real;
+            attribute maxValue : ScalarValues::Real;
+
+            require constraint {
+                minValue <= currentValue and currentValue <= maxValue
+            }
+        }
+        requirement def ExactValue {
+            doc
+            /* The quantity must equal a specific target value. */
+            attribute currentValue : ScalarValues::Real;
+            attribute targetValue : ScalarValues::Real;
+
+            require constraint {
+                currentValue == targetValue
+            }
+        }
+        requirement def ToleranceValue {
+            doc
+            /* The quantity must stay within a target value plus/minus a tolerance. */
+            attribute currentValue : ScalarValues::Real;
+            attribute targetValue : ScalarValues::Real;
+            attribute tolerance : ScalarValues::Real;
+
+            require constraint {
+                currentValue >= targetValue - tolerance and currentValue <= targetValue + tolerance
+            }
+        }
+        requirement def MinAvailability {
+            doc
+            /* The ratio of uptime to total time must reach at least a minimum availability. */
+            attribute uptime :> ISQ::duration;
+            attribute totalTime :> ISQ::duration;
+            attribute minAvailability :> ISQ::duration;
+
+            require constraint {
+                uptime / totalTime >= minAvailability
+            }
+        }
+        requirement def MinReliability {
+            doc
+            /* The mean time between failures must reach at least a minimum MTBF. */
+            attribute meanTimeBetweenFailures :> ISQ::duration;
+            attribute minMTBF :> ISQ::duration;
+
+            require constraint {
+                meanTimeBetweenFailures >= minMTBF
+            }
+        }
+    }
 }

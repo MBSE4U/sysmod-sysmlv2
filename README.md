@@ -4,6 +4,8 @@ SysML v2 library implementing the [SYSMOD methodology](https://mbse4u.com/sysmod
 
 Source: [github.com/mbse4u/sysmod-sysmlv2](https://github.com/mbse4u/sysmod-sysmlv2)
 
+Sysand project: [sysand.com/projects/mbse4u/sysmod](https://sysand.com/projects/mbse4u/sysmod/) — Sysand is a package registry for publishing, versioning, and discovering reusable SysML v2 libraries.
+
 ## What's in the Library
 
 The library provides ready-to-use SysML v2 definitions for the core SYSMOD concepts:
@@ -14,6 +16,7 @@ The library provides ready-to-use SysML v2 definitions for the core SYSMOD conce
 - **Stakeholders** — `ExtendedStakeholder` with risk/effort/priority attributes and stakeholder categories
 - **Problem Statement & Stakeholder Needs** — `ExtendedConcern`-based artifacts framing the problem and stakeholder intent, traced through to requirements
 - **Requirements** — `ExtendedRequirement` with obligation, stability, and motivation attributes
+- **Requirement Boilerplates** — `RequirementBoilderplates` package of ready-to-specialize quantitative requirement patterns (`MaxValue`, `MinValue`, `RangeValue`, `ExactValue`, `ToleranceValue`, `MinAvailability`, `MinReliability`)
 - **Use Cases** — `SystemUseCase` with motivation, trigger, and result attributes
 - **Functional, Logical & Product Architecture** — Optional solution architecture contexts, connected by `functional2logical` and `logical2product` allocations
 - **Sub-Projects** — Derived `subProjects` list for decomposing a project into subsystem or component projects

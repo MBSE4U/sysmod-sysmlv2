@@ -57,12 +57,14 @@ package <DD> DeliveryDrone {
         private import DD_STAKEHOLDERS::*;
         part logisticCompany : LogisticCompany :> projectStakeholders;
         part droneOperator : DroneOperator :> projectStakeholders;
+        part recipient : Recipient :> projectStakeholders;
+        part regulator : Regulator :> projectStakeholders;
 
         //------------------------- Stakeholder Needs
         private import DD_STAKEHOLDERNEEDS::*;
         concern :>> stakeholderNeeds {
-            // frame problemStatement is inherited from SYSMOD::Project
             subject :>> brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
+            frame problemStatement :>> Project::stakeholderNeeds::problemStatement :> PRJ::problemStatement;
             concern reliableDelivery : ReliableDelivery;
             concern safeOperation : SafeOperation;
             concern lowDeliveryCost : LowDeliveryCost;
@@ -82,6 +84,7 @@ package <DD> DeliveryDrone {
         }
         part deliveryDroneSystemIdeaContextImpl :>> systemIdeaContextImpl : DD_SYSTEMIDEA::DeliveryDroneSystemIdeaContextImpl :> deliveryDroneSystemIdeaContext, deliveryDroneBrownfieldContextImpl {
             part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneBrownfieldContextImpl::deliveryDroneSystemImpl, Project::systemIdeaContextImpl::soiImpl;
+            satisfy PRJ::problemStatement;
         }
 
         //------------------------- Specification
@@ -92,7 +95,8 @@ package <DD> DeliveryDrone {
             part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSystemIdeaContextImpl::deliveryDroneSystemImpl, Project::systemIdeaContextImpl::soiImpl;
         }
         requirement deliveryDroneSystemRequirementsSpecification :>> systemRequirementSpecification : DD_SPECIFICATION::Requirements::DeliveryDroneSystemRequirements {
-            subject :>> specificationSystem = deliveryDroneSpecificationContext.deliveryDroneSystem;
+            subject deliveryDroneSystem :>> specificationSystem, deliveryDroneSystem :> deliveryDroneSpecificationContext.deliveryDroneSystem;
+            stakeholder :>> projectOwner = johnFinch;
         }
 
         //------------------------- Solution Architecture: Functional Architecture

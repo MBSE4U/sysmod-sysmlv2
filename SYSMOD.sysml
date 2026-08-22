@@ -108,26 +108,26 @@ library package SYSMOD {
         }
         part functionalContext[0..1] :> specificationContext {
             doc
-            /* The Functional Context is optional and specializes the black-box solution context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white-box solution context: a functional architecture contains only functional blocks and must not depend on the physical internal structure of the system. */
+            /* The Functional Context is optional and specializes the black-box specification context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white-box solution context: a functional architecture contains only functional blocks and must not depend on the physical internal structure of the system. */
             part <soi> functionalSystem :>> specificationContext::soi {
                 doc
-                /* The Functional System is the root element of the functional architecture. It redefines the black-box solution system and thereby inherits the context information such as the system ports, so that functions can be related to the system's external interfaces without depending on its physical internal structure. */
+                /* The Functional System is the root element of the functional architecture. It redefines the black-box specification system and thereby inherits the context information such as the system ports, so that functions can be related to the system's external interfaces without depending on its physical internal structure. */
             }
         }
         part logicalContext[0..1] :> specificationContext {
             doc
-            /* The Logical Context is optional and specializes the black-box solution context. It provides the context for a logical architecture with technology-independent building blocks. */
+            /* The Logical Context is optional and specializes the black-box specification context. It provides the context for a logical architecture with technology-independent building blocks. */
             part <soi> logicalSystem :>> specificationContext::soi {
                 doc
-                /* The Logical System is the root element of the logical architecture. It redefines the white-box solution system. */
+                /* The Logical System is the root element of the logical architecture. It redefines the black-box specification system. */
             }
         }
         part productContext :> specificationContextImpl {
             doc
-            /* The Product Context specializes the white-box solution context and provides the context for a product architecture with concrete, physical or deployable building blocks. */
+            /* The Product Context specializes the white-box specification context and provides the context for a product architecture with concrete, physical or deployable building blocks. */
             part <soiImpl> productSystem :>> specificationContextImpl::soiImpl {
                 doc
-                /* The Product System is the root element of the product architecture. It redefines the white-box solution system. It satisfies the system requirements. */
+                /* The Product System is the root element of the product architecture. It redefines the white-box specification system. It satisfies the system requirements. */
                 satisfy systemRequirementSpecification;
 
             }
@@ -398,7 +398,7 @@ library package SYSMOD {
                 "1. Create the SysML v2 textual notation for the project definition using the SYSMOD-defined keyword: '#project occurrence def PROJECTNAME {}'
                 2. Use the create_prompt of the AI metadata of the projectOwner to create the project owner of the project.
                 3. If not given by the user, use the questions to get the name of the project and the location where the project should be added.
-                4. Optionally continue with the other engineering artifacts in SYSMOD order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, solutionContext, functionalContext, logicalContext, productContext) using the create_prompts of their AI metadata.";
+                4. Optionally continue with the other engineering artifacts in SYSMOD order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, functionalContext, logicalContext, productContext) using the create_prompts of their AI metadata.";
             create_questions = (
                 "What is the name of the project?", "Where should I add the project definition?",
             );
@@ -413,10 +413,9 @@ library package SYSMOD {
                 6. A systemIdeaContext part usage is present and specializes brownfieldContext; a systemIdeaContextImpl part usage is present and specializes systemIdeaContext and brownfieldContextImpl.
                 7. A specificationContext part usage is present and specializes systemIdeaContext; a specificationContextImpl part usage is present and specializes specificationContext and systemIdeaContextImpl.
                 8. A systemRequirementSpecification requirement usage is present and frames stakeholderNeeds.
-                9. A solutionContext part usage is present and specializes specificationContext; a solutionContextImpl part usage is present and specializes solutionContext and specificationContextImpl.
-                10. A productContext part usage is present and specializes solutionContextImpl.
-                11. The cross-artifact traceability chain is intact: problemStatement <- stakeholderNeeds <- systemRequirementSpecification, and satisfy relationships exist at the system idea and solution levels.
-                12. If both functionalContext and logicalContext are present, the functional2logical allocation is defined; if logicalContext is present, the logical2product allocation is defined.
+                9. A productContext part usage is present and specializes specificationContextImpl.
+                10. The cross-artifact traceability chain is intact: problemStatement <- stakeholderNeeds <- systemRequirementSpecification, and satisfy relationships exist at the system idea and solution levels.
+                11. If both functionalContext and logicalContext are present, the functional2logical allocation is defined; if logicalContext is present, the logical2product allocation is defined.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -610,7 +609,7 @@ library package SYSMOD {
                 5. Each use case has at least one actor involved (include or extend relationships, or actor references in the use case subject/stakeholder).
                 6. Each use case has a meaningful name and doc comment describing the interaction goal.
                 7. All actors from the systemIdeaContext are inherited or redefined — no actor should silently disappear.
-                8. The specificationContext does not contain solution architecture elements — it should remain a black-box view of the system.
+                8. The specificationContext does not contain solution elements — it should remain a black-box view of the system.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -647,7 +646,7 @@ library package SYSMOD {
         metadata functionalContextAI : AI about functionalContext {
             name = "sysmod-functional-architecture";
             create_prompt =
-                "1. If a functional architecture is required, specialize solutionContext (black-box view) within functionalContext. Do not specialize solutionContextImpl — the functional architecture must not depend on the physical internal structure of the system.
+                "1. If a functional architecture is required, specialize specificationContext (black-box view) within functionalContext. Do not specialize specificationContextImpl — the functional architecture must not depend on the physical internal structure of the system.
                 2. Redefine the inherited functionalSystem part (which redefines the black-box solution soi) as the root of the functional architecture (e.g., developed with the FAS method). It inherits the system ports, so functions can be related to the system's external interfaces.
                 3. Define the top-level functions as action usages or part usages within the functionalSystem.
                 4. If allocations to the logical architecture are known, note them; formal allocations are expressed via the functional2logical allocation in the project.
@@ -661,7 +660,7 @@ library package SYSMOD {
             validation_prompt =
                 "Validate the functionalContext against the SYSMOD Functional Architecture concept and report findings grouped as errors, warnings, and suggestions.
                 Check:
-                1. If present, the functionalContext part usage specializes solutionContext and has multiplicity [0..1].
+                1. If present, the functionalContext part usage specializes specificationContext.
                 2. A functionalSystem part is present as the root of the functional decomposition, redefining the black-box solution soi.
                 3. At least one top-level function is defined as an action usage or part usage within the functionalSystem.
                 4. Each top-level function is traceable to at least one system requirement (via satisfy, refine, or doc comment reference).
@@ -674,8 +673,8 @@ library package SYSMOD {
         metadata logicalContextAI : AI about logicalContext {
             name = "sysmod-logical-architecture";
             create_prompt =
-                "1. If a logical architecture is required, specialize solutionContextImpl by redefining the soiImpl part for the logical level.
-                2. Define logical components as part usages within logicalSystem (the redefined white-box soiImpl), representing technology-independent building blocks that realize the functional architecture.
+                "1. If a logical architecture is required, specialize specificationContext by redefining the soi part for the logical level.
+                2. Define logical components as part usages within logicalSystem (the redefined black-box soi), representing technology-independent building blocks that realize the functional architecture.
                 3. If allocations from the functional architecture are known, note them; formal allocations are expressed via the functional2logical allocation in the project.
                 4. If allocations to the product architecture are known, note them; formal allocations are expressed via the logical2product allocation in the project.
                 5. Create the SysML v2 textual notation for the logicalContext.
@@ -688,7 +687,7 @@ library package SYSMOD {
             validation_prompt =
                 "Validate the logicalContext against the SYSMOD Logical Architecture concept and report findings grouped as errors, warnings, and suggestions.
                 Check:
-                1. If present, the logicalContext part usage specializes solutionContextImpl and has multiplicity [0..1].
+                1. If present, the logicalContext part usage specializes specificationContext.
                 2. At least one logical component is defined as a part usage within logicalSystem.
                 3. Logical components are technology-independent — check for product-specific naming, vendor names, physical form factors, or deployment-specific details that belong in the productContext.
                 4. Each logical component is traceable to at least one function from the functionalContext (if present) via allocation or doc comment.
@@ -701,7 +700,7 @@ library package SYSMOD {
         metadata productContextAI : AI about productContext {
             name = "sysmod-product-architecture";
             create_prompt =
-                "1. Specialize solutionContextImpl for the product architecture by redefining the soiImpl part with a concrete product-level definition.
+                "1. Specialize specificationContextImpl for the product architecture by redefining the soiImpl part with a concrete product-level definition.
                 2. Define product components as part usages within productSystem (the redefined white-box soiImpl), representing physical or deployable building blocks (hardware, software components, assemblies).
                 3. If allocations from the logical architecture are known, note them; formal allocations are expressed via the logical2product allocation in the project.
                 4. Include interfaces between product components where relevant.
@@ -715,13 +714,13 @@ library package SYSMOD {
             validation_prompt =
                 "Validate the productContext against the SYSMOD Product Architecture concept and report findings grouped as errors, warnings, and suggestions.
                 Check:
-                1. The productContext part usage is present in the project and specializes solutionContextImpl.
+                1. The productContext part usage is present in the project and specializes specificationContextImpl.
                 2. At least one product component is defined as a part usage within productSystem.
                 3. Product components represent concrete, physical or deployable building blocks — check that logical or functional abstractions have been resolved to specific technologies, hardware types, or software components.
                 4. Each product component is traceable to at least one logical component from the logicalContext (if present) via the logical2product allocation or doc comment.
                 5. If a logicalContext is present in the project, a logical2product allocation is defined connecting logicalContext to productContext.
                 6. Interfaces between product components are defined where components interact physically or through APIs.
-                7. All system requirements are satisfied — verify that a satisfy relationship chain exists from the product architecture back to the systemRequirementSpecification (directly or via the solutionSystemImpl in solutionContextImpl).
+                7. All system requirements are satisfied — verify that a satisfy relationship chain exists from the product architecture back to the systemRequirementSpecification.
                 8. Every dependency between two product components crosses only through a defined port/interface — flag any part-to-part reference that bypasses the published interface. A back-door dependency is both a MOSA violation and the exact thing that breaks module-scoped context retrieval.
                 9. Each component's published interface is specified completely enough that a neighbor — or an AI assistant — never needs that component's internal structure to use it correctly.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
@@ -824,7 +823,7 @@ library package SYSMOD {
             attribute minValue : ScalarValues::Real;
 
             require constraint {
-                minValue > currentValue
+                currentValue > minValue
             }
         }
         requirement def RangeValue {
@@ -864,7 +863,7 @@ library package SYSMOD {
             /* The ratio of uptime to total time must reach at least a minimum availability. */
             attribute uptime :> ISQ::duration;
             attribute totalTime :> ISQ::duration;
-            attribute minAvailability :> ISQ::duration;
+            attribute minAvailability : ScalarValues::Real;
 
             require constraint {
                 uptime / totalTime >= minAvailability

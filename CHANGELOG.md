@@ -2,6 +2,10 @@
 
 ## v5.1.1
 
+- Fixed inconsistent "solution" terminology in SYSMOD.sysml doc comments and AI metadata prompts, correcting references to match the actual specificationContext/specificationContextImpl concepts.
+- Removed references to the non-existent solutionContext/solutionContextImpl concepts from the project AI metadata's structure and validation checks; productContext now specializes specificationContextImpl directly.
+- Fixed the RequirementBoilderplates MinValue constraint, which had its comparison operands reversed (`minValue > currentValue`) so it required the opposite of a lower bound; it now correctly requires `currentValue > minValue`.
+- Fixed the RequirementBoilderplates MinAvailability requirement's minAvailability attribute, which was typed as ISQ::duration; it is now a dimensionless ScalarValues::Real ratio, consistent with the uptime/totalTime constraint.
 - Added web page https://sysmod.org to the SYSMOD repository
 - Updated example model: PRJ::stakeholderNeeds::problemStatement redefines the inherited problemStatement and subsets PRJ::problemStatement.
 - Updated example model: PRJ::deliveryDroneSystemIdeaContextImpl satisfies PRJ::problemStatement.

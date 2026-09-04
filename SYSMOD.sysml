@@ -3,7 +3,7 @@ library package SYSMOD {
     /* 
      * Definition of SYSMOD v5 for SysML v2
      *
-     * Version v5.1 
+     * Version v5.1.3
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -359,14 +359,182 @@ library package SYSMOD {
     occurrence constrainedOccurrences[*] : ConstrainedOccurrence;
 
     //
-    // AI
+    // Semantic Metadata
     //
+    metadata def <project> ProjectMetadata :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #project to mark occurrence definitions and usages as SYSMOD projects. */
+        :>> baseType = projects meta SysML::Type;
+        :> annotatedElement : SysML::OccurrenceDefinition;
+        :> annotatedElement : SysML::OccurrenceUsage;
+    }
+    metadata def <systemContext> SystemContextMetadata :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #systemContext to mark part definitions and usages as SYSMOD system contexts. */
+        :>> baseType = systemContexts meta SysML::Type;
+        :> annotatedElement : SysML::PartDefinition;
+        :> annotatedElement : SysML::PartUsage;
+    }
+    metadata def <extendedStakeholder> StakeholderMetadata :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #extendedStakeholder to mark part definitions and usages as SYSMOD stakeholders. */
+        :>> baseType = stakeholders meta SysML::Type;
+        :> annotatedElement : SysML::PartDefinition;
+        :> annotatedElement : SysML::PartUsage;
+    }
+    metadata def <extendedConcern> ExtendedConcernMetadata :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #extendedConcern to mark concern definitions and usages as SYSMOD concerns. */
+        :>> baseType = extendedConcerns meta SysML::Type;
+        :> annotatedElement : SysML::ConcernDefinition;
+        :> annotatedElement : SysML::ConcernUsage;
+    }
+    metadata def <extendedRequirement> ExtendedRequirementMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #extendedRequirement to mark requirement definitions and usages as SYSMOD requirements. */
+        :>> baseType = extendedRequirements meta SysML::Type;
+        :> annotatedElement : SysML::RequirementDefinition;
+        :> annotatedElement : SysML::RequirementUsage;
+    }
+    metadata def <systemUseCase> SystemUseCaseMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #systemUseCase. */
+        :>> baseType = systemUseCases meta SysML::Type;
+        :> annotatedElement : SysML::UseCaseDefinition;
+        :> annotatedElement : SysML::UseCaseUsage;
+    }    
+
+
+    package RequirementBoilderplates {
+        doc
+        /* Library of generic, parametric requirement patterns. Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold. */
+
+        requirement def MaxValue {
+            doc
+            /* The quantity must stay strictly below an upper bound. */
+            attribute currentValue : ScalarValues::Real;
+            attribute maxValue : ScalarValues::Real;
+
+            require constraint {
+                currentValue < maxValue
+            }
+        }
+        requirement def MinValue {
+            doc
+            /* The quantity must stay strictly above a lower bound. */
+            attribute currentValue : ScalarValues::Real;
+            attribute minValue : ScalarValues::Real;
+
+            require constraint {
+                currentValue > minValue
+            }
+        }
+        requirement def RangeValue {
+            doc
+            /* The quantity must stay within an inclusive lower and upper bound. */
+            attribute currentValue : ScalarValues::Real;
+            attribute minValue : ScalarValues::Real;
+            attribute maxValue : ScalarValues::Real;
+
+            require constraint {
+                minValue <= currentValue and currentValue <= maxValue
+            }
+        }
+        requirement def ExactValue {
+            doc
+            /* The quantity must equal a specific target value. */
+            attribute currentValue : ScalarValues::Real;
+            attribute targetValue : ScalarValues::Real;
+
+            require constraint {
+                currentValue == targetValue
+            }
+        }
+        requirement def ToleranceValue {
+            doc
+            /* The quantity must stay within a target value plus/minus a tolerance. */
+            attribute currentValue : ScalarValues::Real;
+            attribute targetValue : ScalarValues::Real;
+            attribute tolerance : ScalarValues::Real;
+
+            require constraint {
+                currentValue >= targetValue - tolerance and currentValue <= targetValue + tolerance
+            }
+        }
+        requirement def MinAvailability {
+            doc
+            /* The ratio of uptime to total time must reach at least a minimum availability. */
+            attribute uptime :> ISQ::duration;
+            attribute totalTime :> ISQ::duration;
+            attribute minAvailability : ScalarValues::Real;
+
+            require constraint {
+                uptime / totalTime >= minAvailability
+            }
+        }
+        requirement def MinReliability {
+            doc
+            /* The mean time between failures must reach at least a minimum MTBF. */
+            attribute meanTimeBetweenFailures :> ISQ::duration;
+            attribute minMTBF :> ISQ::duration;
+
+            require constraint {
+                meanTimeBetweenFailures >= minMTBF
+            }
+        }
+    }
+}
+
+package SYSMOD4AI {
+    doc
+    /*
+     * SYSMOD4AI: AI-assisted extension for SYSMOD v5
+     *
+     * Adds machine-readable AI instructions on top of the core SYSMOD library, so an AI assistant can
+     * create, validate, and explain SYSMOD artifacts directly from this model — with no dependency on
+     * any particular AI tool's skill, plugin, or extension mechanism. It is kept as a separate package
+     * from SYSMOD so the core methodology library stays free of AI-specific concerns; import this
+     * package in addition to SYSMOD only where AI assistance is wanted.
+     *
+     * Contents:
+     * - metadata def AI: the attributes an AI assistant reads to work with one SYSMOD element —
+     *   create_questions, create_prompt, and validation_prompt for the elicit/create/validate
+     *   workflow (run together via perform_prompt), plus story_prompt and slide_prompt for explaining
+     *   any selected element to non-technical stakeholders.
+     * - AIProject: specializes Project and attaches an AI metadata usage to each of its main
+     *   artifacts, in SYSMOD order, forming a complete AI-assisted workflow across the whole project.
+     *
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     * http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     *
+     * Copyright 2026, MBSE4U, Tim Weilkiens
+     */
+
+    private import SYSMOD::*;
+
     metadata def AI {
         doc
-        /* Machine-readable AI instructions attached to SYSMOD artifacts. An AI assistant can use the
-         * create_prompt to create the annotated artifact, the create_questions to elicit missing
-         * information from the user, and the validation_prompt to check an existing artifact against
-         * the SYSMOD rules.
+        /* Machine-readable AI instructions attached to SYSMOD artifacts. perform_prompt is the entry
+         * point: an AI assistant executes it to run the fixed elicit/create/validate workflow over
+         * this metadata's own create_questions, create_prompt, and validation_prompt for the single
+         * SYSMOD element this metadata annotates. story_prompt and slide_prompt are separate, on-demand
+         * entry points that retell any element the user selects for stakeholders who do not read SysML
+         * notation: story_prompt as a plain-language narrative, slide_prompt as a single presentation
+         * slide.
+         * This metadata is self-contained and AI-tool-agnostic: any AI assistant that can read this
+         * library follows these workflows directly from perform_prompt, story_prompt, and slide_prompt,
+         * without needing a tool-specific skill, plugin, or extension file.
          */
         attribute name : ScalarValues::String {
             doc
@@ -382,14 +550,60 @@ library package SYSMOD {
         }
         attribute validation_prompt : ScalarValues::String {
             doc
-            /* Instructions for an AI assistant to validate the annotated artifact against the SYSMOD rules. */
+            /* Instructions for an AI assistant to verify and validate the annotated artifact against the SYSMOD rules. */
+        }
+        attribute perform_prompt : ScalarValues::String = "Perform the AI workflow for the single SYSMOD element annotated by this metadata, in this order:
+            1. Elicit — ask the user only the entries of create_questions that are not already answered by the request or by the existing model.
+            2. Create — execute create_prompt step by step to author or update the annotated element.
+            3. Validate — run validation_prompt against the result and report findings grouped as errors, warnings, and suggestions before presenting the element as final; apply corrections and re-run validation_prompt if the user asks for it.
+            Use only this metadata's own create_questions, create_prompt, and validation_prompt for this element — do not perform the workflow of any other AI metadata unless its own create_prompt explicitly directs you to." {
+            doc
+            /* Single, ready-to-run prompt that performs the elicit/create/validate workflow for the one SYSMOD
+             * element this metadata annotates. An AI assistant can execute this attribute directly instead of
+             * composing create_questions, create_prompt, and validation_prompt itself. Every AI metadata usage
+             * inherits this default; override it only if a specific artifact needs a different orchestration.
+             */
+        }
+        attribute story_prompt : ScalarValues::String = "Explain a SysML v2 element as a short natural-language story for a stakeholder who does not read modeling notation.
+            1. Take the element the user has selected or named; if none is given, use the element this metadata annotates.
+            2. Read the element's name, doc comments, and its immediate relationships in the model (e.g., what it frames, satisfies, subsets, is composed of, or is connected to).
+            3. Retell it as a short narrative in the stakeholder's own language: who or what it represents, why it exists, and how it fits into the surrounding project story (e.g., 'This describes the problem the project owner asked us to solve, which is that...').
+            4. Do not use SysML v2 keywords, notation, or diagrams, and avoid modeling jargon (e.g., 'part usage', 'subsets', 'occurrence') unless the user explicitly asks for the technical mapping alongside the story.
+            5. Ground the story only in what is actually present in the element and its documented relationships — do not invent facts, causes, or consequences that are not in the model.
+            6. Keep it concise: a few sentences to a short paragraph, unless the user asks for more detail.
+            If the user selects a different element than the one this metadata annotates, and that element carries its own AI metadata, use that element's own story_prompt instead." {
+            doc
+            /* Prompt that lets an AI assistant explain any element the user selects — not only the one this
+             * metadata annotates — as a plain-language story rather than SysML notation, for stakeholders who
+             * find the formal model hard to read. Every AI metadata usage inherits this default; override it
+             * only if a specific artifact needs a different narrative framing.
+             */
+        }
+        attribute slide_prompt : ScalarValues::String = "Create a single presentation slide explaining a SysML v2 element for a stakeholder audience, in whatever slide or document format is available (e.g. PDF, PPTX, or an equivalent) so it can be dropped directly into a presentation.
+            1. Take the element the user has selected or named; if none is given, use the element this metadata annotates.
+            2. Read the element's name, doc comments, and its immediate relationships in the model (e.g., what it frames, satisfies, subsets, is composed of, or is connected to).
+            3. Give the slide a short, descriptive title (not the raw SysML identifier) and a few plain-language bullet points covering what the element is, why it exists, and how it fits into the surrounding project — use the same plain-language framing as story_prompt, condensed to slide-appropriate bullets rather than a narrative.
+            4. Do not use SysML v2 keywords, notation, or diagrams, and avoid modeling jargon (e.g., 'part usage', 'subsets', 'occurrence') unless the user explicitly asks for the technical mapping alongside the slide.
+            5. Ground the slide only in what is actually present in the element and its documented relationships — do not invent facts, causes, or consequences that are not in the model.
+            6. If the assistant is capable of generating or inserting images in the current environment, add at most one supporting image to the slide — an illustrative graphic of the element's real-world subject, not an invented SysML diagram or a fabricated technical drawing presented as fact; if image generation or insertion is not available, produce a text-only slide instead.
+            7. Keep it to a single slide: one title, a handful of bullets, and at most one image — do not turn it into a multi-page or multi-slide document.
+            8. If the user asks for a specific output format (e.g. PDF, PPTX, Keynote), produce that format; otherwise choose a format the current environment can actually generate and tell the user which one was used.
+            If the user selects a different element than the one this metadata annotates, and that element carries its own AI metadata, use that element's own slide_prompt instead." {
+            doc
+            /* Prompt that lets an AI assistant turn any element the user selects — not only the one this
+             * metadata annotates — into a single presentation-ready slide (PDF, PPTX, or another format the
+             * environment supports) explaining it in plain language, for direct use in a stakeholder
+             * presentation, adding a supporting image when the assistant is capable of it. Every AI metadata
+             * usage inherits this default; override it only if a specific artifact needs different slide
+             * content.
+             */
         }
     }
 
     occurrence def AIProject :> Project {
         doc
         /* A SYSMOD Project enriched with AI metadata. Use AIProject instead of Project to enable AI-assisted
-         * creation and validation of the engineering artifacts. Each main artifact carries an AI metadata
+         * creation and verification/validation of the engineering artifacts. Each main artifact carries an AI metadata
          * usage with prompts and questions; chained in SYSMOD order, they form a complete AI-assisted workflow.
          */
         metadata projectAI : AI {
@@ -400,7 +614,9 @@ library package SYSMOD {
                 3. If not given by the user, use the questions to get the name of the project and the location where the project should be added.
                 4. Optionally continue with the other engineering artifacts in SYSMOD order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, functionalContext, logicalContext, productContext) using the create_prompts of their AI metadata.";
             create_questions = (
-                "What is the name of the project?", "Where should I add the project definition?",
+                "1. What is the name of the project?", 
+                "2. Where should I add the project definition?",
+                "3. Who is the project owner?"
             );
             validation_prompt =
                 "Validate the project definition against the SYSMOD Project concept and report findings grouped as errors, warnings, and suggestions.
@@ -446,16 +662,18 @@ library package SYSMOD {
             name = "sysmod-brownfield-context";
             create_prompt =
                 "1. Analyze the provided scenario and identify the brownfield system: the existing system, its relevant subcomponents, and all external actors (humans, external systems, environmental effects) that already interact with it before the project starts.
-                2. Create a part definition for the brownfield system of interest specializing SystemContext.
-                3. For each identified actor, add a part usage subsetting the inherited actors part.
-                4. For the black-box view, redefine the inherited soi part (within brownfieldContext) with an appropriately named and typed part definition. For the white-box view, redefine the inherited soiImpl part (within brownfieldContextImpl, which specializes brownfieldContext) accordingly.
-                5. Ensure the brownfield context reflects constraints and givens only — it must not include solution elements.
-                6. Create the SysML v2 textual notation for the brownfieldContext and brownfieldContextImpl.
-                7. If the user asks to insert the brownfieldContext into the SysML model, find the project and redefine the inherited brownfieldContext and brownfieldContextImpl part usages. If the project does not exist, create one first.";
+                2. Create a part definition for the brownfield context specializing SystemContext.
+                3. Create a part definition for the brownfield system of interest.
+                4. For each identified actor, create a part definition in a subpackage named 'Actors', if not already exists.
+                5. For each identified actor, add a part usage defined by the corresponding part definition and subsetting the part usage 'actors' inherited from SystemContext.
+                6. For the black-box view, redefine the inherited soi part (within brownfieldContext) with an appropriately named and typed part definition. For the white-box view, redefine the inherited soiImpl part (within brownfieldContextImpl, which specializes brownfieldContext) accordingly.
+                7. Ensure the brownfield context reflects constraints and givens only — it must not include solution elements.
+                8. Create the SysML v2 textual notation for the brownfieldContext and brownfieldContextImpl.
+                9. If the user asks to insert the brownfieldContext into the SysML model, find the project and redefine the inherited brownfieldContext and brownfieldContextImpl part usages. If the project does not exist, create one first.";
             create_questions = (
-                "What is the name of the existing system (system of interest)?",
-                "Which external actors (users, operators, external systems, environments) interact with the existing system?",
-                "Are there any known subcomponents or subsystems of the existing system that are relevant?",
+                "1. What is the name of the existing system (system of interest)?",
+                "2. Which external actors (users, operators, external systems, environments) interact with the existing system?",
+                "3. Are there any known and preset subcomponents or subsystems of the existing system that are relevant?",
             );
             validation_prompt =
                 "Validate the brownfieldContext and brownfieldContextImpl against the SYSMOD Brownfield Architecture concept and report findings grouped as errors, warnings, and suggestions.
@@ -529,6 +747,29 @@ library package SYSMOD {
                 7. At least one stakeholder with category requirementOwner is present (beyond the projectOwner).
                 8. Each stakeholder has a doc comment or name that clearly identifies its role.
                 9. No two stakeholders have identical risk, effort, and category values without a distinguishing doc comment explaining the distinction.
+                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        }
+
+        metadata stakeholderPriorityMapAI : AI about projectStakeholders {
+            name = "sysmod-stakeholder-priority-map";
+            create_prompt =
+                "1. Use the risk and effort attribute values of each stakeholder in projectStakeholders (typed by ExtendedStakeholder) to position it on a two-dimensional map: risk on the y axis (low to critical, bottom to top), effort on the x axis (low to high, left to right).
+                2. Depict each stakeholder as a stakeholder symbol labeled with its name, placed in the map cell that matches its risk/effort combination.
+                3. If two or more stakeholders share the same risk/effort combination, group their symbols within the same cell without overlapping.
+                4. The stakeholder priority map is a derived view, not a new model element — it must not introduce new stakeholders or change existing risk/effort values. If a stakeholder has no risk or effort value assigned, ask the user for it or use the create_prompt of projectStakeholdersAI first to assess it.
+                5. Render the map as a diagram (e.g., SVG or a described grid), not as SysML v2 textual notation, since it is an analysis artifact rather than a persisted model element.";
+            create_questions = (
+                "1. Which stakeholders (from projectStakeholders) should be included in the map?",
+                "2. Do all included stakeholders already have risk and effort values assigned? If not, what are they?",
+            );
+            validation_prompt =
+                "Validate the stakeholder priority map against the SYSMOD Stakeholder Priority Map concept and report findings grouped as errors, warnings, and suggestions.
+                Check:
+                1. Every stakeholder shown in the map corresponds to an actual part usage subsetting projectStakeholders in the project — no invented stakeholders.
+                2. Every stakeholder in projectStakeholders with both risk and effort assigned is represented exactly once in the map — none silently omitted.
+                3. Each stakeholder's position matches its risk (y axis) and effort (x axis) attribute values exactly.
+                4. Stakeholders sharing the same risk/effort cell are all visible and distinguishable, not overlapping or hidden.
+                5. The map does not introduce or imply risk/effort values that are not set on the underlying stakeholder definitions.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -751,133 +992,5 @@ library package SYSMOD {
                 6. Each sub-project has a meaningful name and doc comment describing its scope and relationship to the parent project.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
-    }
-
-    //
-    // Semantic Metadata
-    //
-    metadata def <project> ProjectMetadata :> Metaobjects::SemanticMetadata {
-        doc
-        /* Enables the user-defined keyword #project to mark occurrence definitions and usages as SYSMOD projects. */
-        :>> baseType = projects meta SysML::Type;
-        :> annotatedElement : SysML::OccurrenceDefinition;
-        :> annotatedElement : SysML::OccurrenceUsage;
-    }
-    metadata def <systemContext> SystemContextMetadata :> Metaobjects::SemanticMetadata {
-        doc
-        /* Enables the user-defined keyword #systemContext to mark part definitions and usages as SYSMOD system contexts. */
-        :>> baseType = systemContexts meta SysML::Type;
-        :> annotatedElement : SysML::PartDefinition;
-        :> annotatedElement : SysML::PartUsage;
-    }
-    metadata def <extendedStakeholder> StakeholderMetadata :> Metaobjects::SemanticMetadata {
-        doc
-        /* Enables the user-defined keyword #extendedStakeholder to mark part definitions and usages as SYSMOD stakeholders. */
-        :>> baseType = stakeholders meta SysML::Type;
-        :> annotatedElement : SysML::PartDefinition;
-        :> annotatedElement : SysML::PartUsage;
-    }
-    metadata def <extendedConcern> ExtendedConcernMetadata :> Metaobjects::SemanticMetadata {
-        doc
-        /* Enables the user-defined keyword #extendedConcern to mark concern definitions and usages as SYSMOD concerns. */
-        :>> baseType = extendedConcerns meta SysML::Type;
-        :> annotatedElement : SysML::ConcernDefinition;
-        :> annotatedElement : SysML::ConcernUsage;
-    }
-    metadata def <extendedRequirement> ExtendedRequirementMetadata
-        :> Metaobjects::SemanticMetadata {
-        doc
-        /* Enables the user-defined keyword #extendedRequirement to mark requirement definitions and usages as SYSMOD requirements. */
-        :>> baseType = extendedRequirements meta SysML::Type;
-        :> annotatedElement : SysML::RequirementDefinition;
-        :> annotatedElement : SysML::RequirementUsage;
-    }
-    metadata def <systemUseCase> SystemUseCaseMetadata
-        :> Metaobjects::SemanticMetadata {
-        doc
-        /* Enables the user-defined keyword #systemUseCase. */
-        :>> baseType = systemUseCases meta SysML::Type;
-        :> annotatedElement : SysML::UseCaseDefinition;
-        :> annotatedElement : SysML::UseCaseUsage;
     }    
-
-
-    package RequirementBoilderplates {
-        doc
-        /* Library of generic, parametric requirement patterns. Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold. */
-
-        requirement def MaxValue {
-            doc
-            /* The quantity must stay strictly below an upper bound. */
-            attribute currentValue : ScalarValues::Real;
-            attribute maxValue : ScalarValues::Real;
-
-            require constraint {
-                currentValue < maxValue
-            }
-        }
-        requirement def MinValue {
-            doc
-            /* The quantity must stay strictly above a lower bound. */
-            attribute currentValue : ScalarValues::Real;
-            attribute minValue : ScalarValues::Real;
-
-            require constraint {
-                currentValue > minValue
-            }
-        }
-        requirement def RangeValue {
-            doc
-            /* The quantity must stay within an inclusive lower and upper bound. */
-            attribute currentValue : ScalarValues::Real;
-            attribute minValue : ScalarValues::Real;
-            attribute maxValue : ScalarValues::Real;
-
-            require constraint {
-                minValue <= currentValue and currentValue <= maxValue
-            }
-        }
-        requirement def ExactValue {
-            doc
-            /* The quantity must equal a specific target value. */
-            attribute currentValue : ScalarValues::Real;
-            attribute targetValue : ScalarValues::Real;
-
-            require constraint {
-                currentValue == targetValue
-            }
-        }
-        requirement def ToleranceValue {
-            doc
-            /* The quantity must stay within a target value plus/minus a tolerance. */
-            attribute currentValue : ScalarValues::Real;
-            attribute targetValue : ScalarValues::Real;
-            attribute tolerance : ScalarValues::Real;
-
-            require constraint {
-                currentValue >= targetValue - tolerance and currentValue <= targetValue + tolerance
-            }
-        }
-        requirement def MinAvailability {
-            doc
-            /* The ratio of uptime to total time must reach at least a minimum availability. */
-            attribute uptime :> ISQ::duration;
-            attribute totalTime :> ISQ::duration;
-            attribute minAvailability : ScalarValues::Real;
-
-            require constraint {
-                uptime / totalTime >= minAvailability
-            }
-        }
-        requirement def MinReliability {
-            doc
-            /* The mean time between failures must reach at least a minimum MTBF. */
-            attribute meanTimeBetweenFailures :> ISQ::duration;
-            attribute minMTBF :> ISQ::duration;
-
-            require constraint {
-                meanTimeBetweenFailures >= minMTBF
-            }
-        }
-    }
 }

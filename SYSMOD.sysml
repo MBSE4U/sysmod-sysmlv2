@@ -602,9 +602,15 @@ package SYSMOD4AI {
 
     occurrence def AIProject :> Project {
         doc
-        /* A SYSMOD Project enriched with AI metadata. Use AIProject instead of Project to enable AI-assisted
-         * creation and verification/validation of the engineering artifacts. Each main artifact carries an AI metadata
-         * usage with prompts and questions; chained in SYSMOD order, they form a complete AI-assisted workflow.
+        /* AIProject pairs AI metadata with the structure of Project. Metadata usages are not
+         * inherited onto redefining features, so specializing AIProject instead of Project gives a
+         * concrete project no metadata of its own — there is no structural benefit to using AIProject
+         * in a model. Its value is as a reference for an AI assistant: because AIProject specializes
+         * Project, it has exactly Project's structure, and each main artifact here carries an AI
+         * metadata usage "about" the corresponding feature of Project. Reading
+         * AIProject therefore tells an AI assistant both the structure a SYSMOD project must have and,
+         * for each of its parts, which AI metadata (e.g. problemStatementAI) to apply — whether or not
+         * the actual project being worked on specializes AIProject at all.
          */
         metadata projectAI : AI {
             name = "sysmod-project";

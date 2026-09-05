@@ -998,5 +998,132 @@ package SYSMOD4AI {
                 6. Each sub-project has a meaningful name and doc comment describing its scope and relationship to the parent project.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
+    }
+
+    //
+    // Semantic Metadata
+    //
+    metadata def <project> ProjectMetadata :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #project to mark occurrence definitions and usages as SYSMOD projects. */
+        :>> baseType = projects meta SysML::Type;
+        :> annotatedElement : SysML::OccurrenceDefinition;
+        :> annotatedElement : SysML::OccurrenceUsage;
+    }
+    metadata def <systemContext> SystemContextMetadata :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #systemContext to mark part definitions and usages as SYSMOD system contexts. */
+        :>> baseType = systemContexts meta SysML::Type;
+        :> annotatedElement : SysML::PartDefinition;
+        :> annotatedElement : SysML::PartUsage;
+    }
+    metadata def <extendedStakeholder> StakeholderMetadata :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #extendedStakeholder to mark part definitions and usages as SYSMOD stakeholders. */
+        :>> baseType = stakeholders meta SysML::Type;
+        :> annotatedElement : SysML::PartDefinition;
+        :> annotatedElement : SysML::PartUsage;
+    }
+    metadata def <extendedConcern> ExtendedConcernMetadata :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #extendedConcern to mark concern definitions and usages as SYSMOD concerns. */
+        :>> baseType = extendedConcerns meta SysML::Type;
+        :> annotatedElement : SysML::ConcernDefinition;
+        :> annotatedElement : SysML::ConcernUsage;
+    }
+    metadata def <extendedRequirement> ExtendedRequirementMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #extendedRequirement to mark requirement definitions and usages as SYSMOD requirements. */
+        :>> baseType = extendedRequirements meta SysML::Type;
+        :> annotatedElement : SysML::RequirementDefinition;
+        :> annotatedElement : SysML::RequirementUsage;
+    }
+    metadata def <systemUseCase> SystemUseCaseMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #systemUseCase. */
+        :>> baseType = systemUseCases meta SysML::Type;
+        :> annotatedElement : SysML::UseCaseDefinition;
+        :> annotatedElement : SysML::UseCaseUsage;
     }    
+}
+
+library package SYSMODRequirementBoilerplates {
+    doc
+    /* Library of generic, parametric requirement patterns. Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold. */
+
+    requirement def MaxValue {
+        doc
+        /* The quantity must stay strictly below an upper bound. */
+        attribute currentValue : ScalarValues::Real;
+        attribute maxValue : ScalarValues::Real;
+
+        require constraint {
+            currentValue < maxValue
+        }
+    }
+    requirement def MinValue {
+        doc
+        /* The quantity must stay strictly above a lower bound. */
+        attribute currentValue : ScalarValues::Real;
+        attribute minValue : ScalarValues::Real;
+
+        require constraint {
+            currentValue > minValue
+        }
+    }
+    requirement def RangeValue {
+        doc
+        /* The quantity must stay within an inclusive lower and upper bound. */
+        attribute currentValue : ScalarValues::Real;
+        attribute minValue : ScalarValues::Real;
+        attribute maxValue : ScalarValues::Real;
+
+        require constraint {
+            minValue <= currentValue and currentValue <= maxValue
+        }
+    }
+    requirement def ExactValue {
+        doc
+        /* The quantity must equal a specific target value. */
+        attribute currentValue : ScalarValues::Real;
+        attribute targetValue : ScalarValues::Real;
+
+        require constraint {
+            currentValue == targetValue
+        }
+    }
+    requirement def ToleranceValue {
+        doc
+        /* The quantity must stay within a target value plus/minus a tolerance. */
+        attribute currentValue : ScalarValues::Real;
+        attribute targetValue : ScalarValues::Real;
+        attribute tolerance : ScalarValues::Real;
+
+        require constraint {
+            currentValue >= targetValue - tolerance and currentValue <= targetValue + tolerance
+        }
+    }
+    requirement def MinAvailability {
+        doc
+        /* The ratio of uptime to total time must reach at least a minimum availability. */
+        attribute uptime :> ISQ::duration;
+        attribute totalTime :> ISQ::duration;
+        attribute minAvailability : ScalarValues::Real;
+
+        require constraint {
+            uptime / totalTime >= minAvailability
+        }
+    }
+    requirement def MinReliability {
+        doc
+        /* The mean time between failures must reach at least a minimum MTBF. */
+        attribute meanTimeBetweenFailures :> ISQ::duration;
+        attribute minMTBF :> ISQ::duration;
+
+        require constraint {
+            meanTimeBetweenFailures >= minMTBF
+        }
+    }
 }

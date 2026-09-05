@@ -292,7 +292,7 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
             requirement maxPayloadMass : MaxPayloadMass;
             requirement airCharging : AirCharging;
         }
-        #extendedRequirement requirement def MaxPayloadMass :> RequirementBoilderplates::MaxValue {
+        #extendedRequirement requirement def MaxPayloadMass :> SYSMODRequirementBoilerplates::MaxValue {
             doc
             /* The system shall transport payloads with a mass of up to 5 kg. */
             subject deliveryDrone : DD_SPECIFICATION::DeliveryDrone;

@@ -800,84 +800,83 @@ library package SYSMOD {
         :> annotatedElement : SysML::UseCaseDefinition;
         :> annotatedElement : SysML::UseCaseUsage;
     }    
+}
 
+library package SYSMODRequirementBoilerplates {
+    doc
+    /* Library of generic, parametric requirement patterns. Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold. */
 
-    package RequirementBoilderplates {
+    requirement def MaxValue {
         doc
-        /* Library of generic, parametric requirement patterns. Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold. */
+        /* The quantity must stay strictly below an upper bound. */
+        attribute currentValue : ScalarValues::Real;
+        attribute maxValue : ScalarValues::Real;
 
-        requirement def MaxValue {
-            doc
-            /* The quantity must stay strictly below an upper bound. */
-            attribute currentValue : ScalarValues::Real;
-            attribute maxValue : ScalarValues::Real;
-
-            require constraint {
-                currentValue < maxValue
-            }
+        require constraint {
+            currentValue < maxValue
         }
-        requirement def MinValue {
-            doc
-            /* The quantity must stay strictly above a lower bound. */
-            attribute currentValue : ScalarValues::Real;
-            attribute minValue : ScalarValues::Real;
+    }
+    requirement def MinValue {
+        doc
+        /* The quantity must stay strictly above a lower bound. */
+        attribute currentValue : ScalarValues::Real;
+        attribute minValue : ScalarValues::Real;
 
-            require constraint {
-                currentValue > minValue
-            }
+        require constraint {
+            currentValue > minValue
         }
-        requirement def RangeValue {
-            doc
-            /* The quantity must stay within an inclusive lower and upper bound. */
-            attribute currentValue : ScalarValues::Real;
-            attribute minValue : ScalarValues::Real;
-            attribute maxValue : ScalarValues::Real;
+    }
+    requirement def RangeValue {
+        doc
+        /* The quantity must stay within an inclusive lower and upper bound. */
+        attribute currentValue : ScalarValues::Real;
+        attribute minValue : ScalarValues::Real;
+        attribute maxValue : ScalarValues::Real;
 
-            require constraint {
-                minValue <= currentValue and currentValue <= maxValue
-            }
+        require constraint {
+            minValue <= currentValue and currentValue <= maxValue
         }
-        requirement def ExactValue {
-            doc
-            /* The quantity must equal a specific target value. */
-            attribute currentValue : ScalarValues::Real;
-            attribute targetValue : ScalarValues::Real;
+    }
+    requirement def ExactValue {
+        doc
+        /* The quantity must equal a specific target value. */
+        attribute currentValue : ScalarValues::Real;
+        attribute targetValue : ScalarValues::Real;
 
-            require constraint {
-                currentValue == targetValue
-            }
+        require constraint {
+            currentValue == targetValue
         }
-        requirement def ToleranceValue {
-            doc
-            /* The quantity must stay within a target value plus/minus a tolerance. */
-            attribute currentValue : ScalarValues::Real;
-            attribute targetValue : ScalarValues::Real;
-            attribute tolerance : ScalarValues::Real;
+    }
+    requirement def ToleranceValue {
+        doc
+        /* The quantity must stay within a target value plus/minus a tolerance. */
+        attribute currentValue : ScalarValues::Real;
+        attribute targetValue : ScalarValues::Real;
+        attribute tolerance : ScalarValues::Real;
 
-            require constraint {
-                currentValue >= targetValue - tolerance and currentValue <= targetValue + tolerance
-            }
+        require constraint {
+            currentValue >= targetValue - tolerance and currentValue <= targetValue + tolerance
         }
-        requirement def MinAvailability {
-            doc
-            /* The ratio of uptime to total time must reach at least a minimum availability. */
-            attribute uptime :> ISQ::duration;
-            attribute totalTime :> ISQ::duration;
-            attribute minAvailability : ScalarValues::Real;
+    }
+    requirement def MinAvailability {
+        doc
+        /* The ratio of uptime to total time must reach at least a minimum availability. */
+        attribute uptime :> ISQ::duration;
+        attribute totalTime :> ISQ::duration;
+        attribute minAvailability : ScalarValues::Real;
 
-            require constraint {
-                uptime / totalTime >= minAvailability
-            }
+        require constraint {
+            uptime / totalTime >= minAvailability
         }
-        requirement def MinReliability {
-            doc
-            /* The mean time between failures must reach at least a minimum MTBF. */
-            attribute meanTimeBetweenFailures :> ISQ::duration;
-            attribute minMTBF :> ISQ::duration;
+    }
+    requirement def MinReliability {
+        doc
+        /* The mean time between failures must reach at least a minimum MTBF. */
+        attribute meanTimeBetweenFailures :> ISQ::duration;
+        attribute minMTBF :> ISQ::duration;
 
-            require constraint {
-                meanTimeBetweenFailures >= minMTBF
-            }
+        require constraint {
+            meanTimeBetweenFailures >= minMTBF
         }
     }
 }

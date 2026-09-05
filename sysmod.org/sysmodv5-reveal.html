@@ -1062,7 +1062,7 @@ const steps = [
     layers:{
       story:{ text:"Now the promises get specific. Maximum payload weight. Legal flight zones. Every requirement traces back to someone accountable for it.", img:"assets/09-requirements-story.jpg", slot:"09-requirements-story" },
       generic:{ subtitle: "", text:"A specific, verifiable statement of what the system must do or be, traceable to a stakeholder need and to the stakeholder accountable for it.", iso:"System Requirements Definition", img:null, slot:"09-requirements-generic" },
-      library:{ subtitle: "", text:"The requirement specification frames stakeholderNeeds. ExtendedRequirement extends the concern with obligation, stability, and motivation attributes for full traceability. A RequirementBoilderplates package adds ready-to-specialize patterns — like MaxValue — for common quantitative constraints.", code:`<span class="kw">requirement</span> systemRequirementSpecification {
+      library:{ subtitle: "", text:"The requirement specification frames stakeholderNeeds. ExtendedRequirement extends the concern with obligation, stability, and motivation attributes for full traceability. A SYSMODRequirementBoilerplates package adds ready-to-specialize patterns — like MaxValue — for common quantitative constraints.", code:`<span class="kw">requirement</span> systemRequirementSpecification {
   <span class="kw">doc</span> <span class="cm">/* Root element for the system requirements. */</span>
   <span class="kw">subject</span> specificationSystem :&gt; specificationContext.soi;
   <span class="kw">frame</span> stakeholderNeeds;
@@ -1109,7 +1109,7 @@ const steps = [
     <span class="kw">requirement</span> maxPayloadMass : <span class="ty">MaxPayloadMass</span>;
     <span class="kw">requirement</span> airCharging : <span class="ty">AirCharging</span>;
 }
-<span class="kw">#extendedRequirement requirement def</span> <span class="ty">MaxPayloadMass</span> :&gt; <span class="ty">RequirementBoilderplates</span>::<span class="ty">MaxValue</span> {
+<span class="kw">#extendedRequirement requirement def</span> <span class="ty">MaxPayloadMass</span> :&gt; <span class="ty">SYSMODRequirementBoilerplates</span>::<span class="ty">MaxValue</span> {
     <span class="kw">doc</span>
     <span class="cm">/* The system shall transport payloads with a mass of up to 5 kg. */</span>
     <span class="kw">attribute</span> :&gt;&gt; obligation = <span class="ty">ObligationKind</span>::mandatory;
@@ -3102,7 +3102,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseUsage</span>;
     }
 
-    <span class="kw">package</span> <span class="ty">RequirementBoilderplates</span> {
+    <span class="kw">package</span> <span class="ty">SYSMODRequirementBoilerplates</span> {
         <span class="kw">doc</span>
         <span class="cm">/* Library of generic, parametric requirement patterns. Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold. */</span>
 

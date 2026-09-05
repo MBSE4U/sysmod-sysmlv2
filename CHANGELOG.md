@@ -1,5 +1,9 @@
 # Change Log
 
+## v5.1.3
+
+- Moved and renamed the `RequirementBoilderplates` package to `SYSMODRequirementBoilerplates`: it is now a top-level library package alongside `SYSMOD` (previously nested inside it), and the name's spelling is corrected. Update any qualified references from `SYSMOD::RequirementBoilderplates` to `SYSMODRequirementBoilerplates`.
+
 ## v5.1.2
 
 - Fixed inconsistent "solution" terminology in SYSMOD.sysml doc comments and AI metadata prompts, correcting references to match the actual specificationContext/specificationContextImpl concepts.

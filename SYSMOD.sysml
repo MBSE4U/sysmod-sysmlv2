@@ -503,8 +503,13 @@ package SYSMOD4AI {
      *   create_questions, create_prompt, and validation_prompt for the elicit/create/validate
      *   workflow (run together via perform_prompt), plus story_prompt and slide_prompt for explaining
      *   any selected element to non-technical stakeholders.
-     * - AIProject: specializes Project and attaches an AI metadata usage to each of its main
-     *   artifacts, in SYSMOD order, forming a complete AI-assisted workflow across the whole project.
+     * - AIProject: a template that attaches an AI metadata usage to each of Project's main artifacts,
+     *   in SYSMOD order, forming a complete AI-assisted workflow across the whole project. AIProject
+     *   is not meant to be specialized by real projects — a real project stays a plain #project
+     *   occurrence def (or :> Project), independent of SYSMOD4AI. An AI assistant instead applies a
+     *   given AI metadata usage's prompts to the identically-named/-roled feature on that real
+     *   project (e.g. AIProject::problemStatementAI's prompts apply to any project's own
+     *   problemStatement), matched by feature identity rather than by inheritance from AIProject.     *
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -535,6 +540,9 @@ package SYSMOD4AI {
          * This metadata is self-contained and AI-tool-agnostic: any AI assistant that can read this
          * library follows these workflows directly from perform_prompt, story_prompt, and slide_prompt,
          * without needing a tool-specific skill, plugin, or extension file.
+         * An AI metadata usage attached here under AIProject (e.g. problemStatementAI) is applied to the
+         * identically-named feature on any real #project occurrence — matched by feature identity, not by that
+         * project specializing AIProject.
          */
         attribute name : ScalarValues::String {
             doc
@@ -552,7 +560,7 @@ package SYSMOD4AI {
             doc
             /* Instructions for an AI assistant to verify and validate the annotated artifact against the SYSMOD rules. */
         }
-        attribute perform_prompt : ScalarValues::String = "Perform the AI workflow for the single SYSMOD element annotated by this metadata, in this order:
+        attribute perform_prompt : ScalarValues::String = "Perform the AI workflow for each single SYSMOD element, in this order:
             1. Elicit — ask the user only the entries of create_questions that are not already answered by the request or by the existing model.
             2. Create — execute create_prompt step by step to author or update the annotated element.
             3. Validate — run validation_prompt against the result and report findings grouped as errors, warnings, and suggestions before presenting the element as final; apply corrections and re-run validation_prompt if the user asks for it.
@@ -602,16 +610,12 @@ package SYSMOD4AI {
 
     occurrence def AIProject :> Project {
         doc
-        /* AIProject pairs AI metadata with the structure of Project. Metadata usages are not
-         * inherited onto redefining features, so specializing AIProject instead of Project gives a
-         * concrete project no metadata of its own — there is no structural benefit to using AIProject
-         * in a model. Its value is as a reference for an AI assistant: because AIProject specializes
-         * Project, it has exactly Project's structure, and each main artifact here carries an AI
-         * metadata usage "about" the corresponding feature of Project. Reading
-         * AIProject therefore tells an AI assistant both the structure a SYSMOD project must have and,
-         * for each of its parts, which AI metadata (e.g. problemStatementAI) to apply — whether or not
-         * the actual project being worked on specializes AIProject at all.
-         */
+        /* A template that enriches Project's main artifacts with AI metadata. AIProject is not meant to be
+        * specialized by real projects — it exists only so every artifact's AI metadata is defined once, in one
+        * coherent structure that mirrors SYSMOD order. Real projects stay plain #project occurrence defs (or
+        * :> Project); an AI assistant applies a given artifact's AI metadata usage here (e.g. problemStatementAI)
+        * to the correspondingly named feature on that real project, matched by feature identity, not inheritance.
+        */
         metadata projectAI : AI {
             name = "sysmod-project";
             create_prompt =
@@ -620,9 +624,9 @@ package SYSMOD4AI {
                 3. If not given by the user, use the questions to get the name of the project and the location where the project should be added.
                 4. Optionally continue with the other engineering artifacts in SYSMOD order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, functionalContext, logicalContext, productContext) using the create_prompts of their AI metadata.";
             create_questions = (
-                "1. What is the name of the project?", 
-                "2. Where should I add the project definition?",
-                "3. Who is the project owner?"
+                "What is the name of the project?", 
+                "Where should I add the project definition?",
+                "Who is the project owner?"
             );
             validation_prompt =
                 "Validate the project definition against the SYSMOD Project concept and report findings grouped as errors, warnings, and suggestions.
@@ -649,7 +653,8 @@ package SYSMOD4AI {
                 3. Create the SysML v2 textual notation for the projectOwner.
                 4. If the user asks to insert the projectOwner into the SysML model, find the project and the projectOwner within the project. If no project exists, create one and insert the projectOwner into the project redefining the inherited projectOwner part usage. If the projectOwner already exists, update it.";
             create_questions = (
-                "Who is the project owner?", "Who is responsible for the project?",
+                "Who is the project owner?", 
+                "Who is responsible for the project?",
             );
             validation_prompt =
                 "Validate the projectOwner against the SYSMOD Project Owner concept and report findings grouped as errors, warnings, and suggestions.
@@ -677,9 +682,9 @@ package SYSMOD4AI {
                 8. Create the SysML v2 textual notation for the brownfieldContext and brownfieldContextImpl.
                 9. If the user asks to insert the brownfieldContext into the SysML model, find the project and redefine the inherited brownfieldContext and brownfieldContextImpl part usages. If the project does not exist, create one first.";
             create_questions = (
-                "1. What is the name of the existing system (system of interest)?",
-                "2. Which external actors (users, operators, external systems, environments) interact with the existing system?",
-                "3. Are there any known and preset subcomponents or subsystems of the existing system that are relevant?",
+                "What is the name of the existing system (system of interest)?",
+                "Which external actors (users, operators, external systems, environments) interact with the existing system?",
+                "Are there any known and preset subcomponents or subsystems of the existing system that are relevant?",
             );
             validation_prompt =
                 "Validate the brownfieldContext and brownfieldContextImpl against the SYSMOD Brownfield Architecture concept and report findings grouped as errors, warnings, and suggestions.
@@ -765,8 +770,8 @@ package SYSMOD4AI {
                 4. The stakeholder priority map is a derived view, not a new model element — it must not introduce new stakeholders or change existing risk/effort values. If a stakeholder has no risk or effort value assigned, ask the user for it or use the create_prompt of projectStakeholdersAI first to assess it.
                 5. Render the map as a diagram (e.g., SVG or a described grid), not as SysML v2 textual notation, since it is an analysis artifact rather than a persisted model element.";
             create_questions = (
-                "1. Which stakeholders (from projectStakeholders) should be included in the map?",
-                "2. Do all included stakeholders already have risk and effort values assigned? If not, what are they?",
+                "Which stakeholders (from projectStakeholders) should be included in the map?",
+                "Do all included stakeholders already have risk and effort values assigned? If not, what are they?",
             );
             validation_prompt =
                 "Validate the stakeholder priority map against the SYSMOD Stakeholder Priority Map concept and report findings grouped as errors, warnings, and suggestions.

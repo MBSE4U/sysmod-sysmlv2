@@ -564,7 +564,7 @@ package SYSMOD4AI {
             1. Elicit — ask the user only the entries of create_questions that are not already answered by the request or by the existing model.
             2. Create — execute create_prompt step by step to author or update the annotated element.
             3. Validate — run validation_prompt against the result and report findings grouped as errors, warnings, and suggestions before presenting the element as final; apply corrections and re-run validation_prompt if the user asks for it.
-            Use only this metadata's own create_questions, create_prompt, and validation_prompt for this element — do not perform the workflow of any other AI metadata unless its own create_prompt explicitly directs you to." {
+            Use only this metadata's own create_questions, create_prompt, and validation_prompt for this element." {
             doc
             /* Single, ready-to-run prompt that performs the elicit/create/validate workflow for the one SYSMOD
              * element this metadata annotates. An AI assistant can execute this attribute directly instead of

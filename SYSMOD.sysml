@@ -3,7 +3,7 @@ library package SYSMOD {
     /* 
      * Definition of SYSMOD v5 for SysML v2
      *
-     * Version v5.1 
+     * Version v5.1.3 
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -357,6 +357,20 @@ library package SYSMOD {
         }
     }
     occurrence constrainedOccurrences[*] : ConstrainedOccurrence;
+
+    package SYSMODViews {
+        view def ProjectView;
+        view def ArchitectureView;
+        view def RequirementsView;
+        view def UseCaseOverviewView;
+        view def UseCaseView;
+
+        view def SystemContextView :> StandardViewDefinitions::InterconnectionView {
+            filter @SysML::PartUsage or @SysML::PortUsage or @SysML::InterfaceUsage or @SysML::ConnectionUsage or @SysML::UseCaseUsage;
+            filter not (@KerML::Element::isLibraryElement);
+            render Views::asInterconnectionDiagram;
+        }
+    }
 
     //
     // AI

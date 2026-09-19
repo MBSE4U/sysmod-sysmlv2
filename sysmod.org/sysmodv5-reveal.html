@@ -1128,11 +1128,11 @@ const steps = [
     }
   },
   {
-    num:10, title:"Solution System Architecture", kicker:"The idea becomes a real design",
+    num:10, title:"Solution System Architectures", kicker:"The idea becomes a real design",
     layers:{
       story:{ text:"The idea, matured through specification, requirements, and use cases, becomes a real design \u2014 functional, logical, and product architecture stacked like building blocks.", img:"assets/10-architecture-story.jpg", slot:"10-architecture-story" },
       generic:{ subtitle: "", text:"The designed structure of the system \u2014 functional, logical, and product/physical \u2014 that satisfies the system requirements and implements the use cases.", iso:"Architecture Definition / Design Definition", img:null, slot:"10-architecture-generic" },
-      library:{ subtitle: "", text:"functionalContext, logicalContext, and productContext now specialize specificationContext (or its Impl) directly — the library dropped the intermediate solutionContext. productSystem itself now carries the satisfy relationship to the requirements.", code:`<span class="kw">part</span> functionalContext[0..1] :&gt; specificationContext {
+      library:{ subtitle: "", text:"The functional context, logical context, and product context specialize specification context (or its Impl). The product system itself now carries the satisfy relationship to the requirements.", code:`<span class="kw">part</span> functionalContext[0..1] :&gt; specificationContext {
   <span class="kw">part</span> &lt;soi&gt; functionalSystem :&gt;&gt; specificationContext::soi;
   <span class="cm">// black-box: no dependency on physical structure</span>
 }
@@ -1272,24 +1272,25 @@ const aiSkills = {
 <span class="kw">metadata</span> projectAI : <span class="kw">AI</span> {
   name = <span class="ty">"sysmod-project"</span>;
   create_prompt =
-    <span class="ty">"1. Create the SysML v2 textual notation for
-     the project definition using the SYSMOD-
-     defined keyword: '#project occurrence def
+    <span class="ty">"1. Create the SysML v2 textual notation for the
+     project definition using the SYSMOD-defined
+     keyword: '#project occurrence def
      PROJECTNAME {}'
-  2. Use the create_prompt of the AI metadata
-     of the projectOwner to create the project
+  2. Use the create_prompt of the AI metadata of
+     the projectOwner to create the project
      owner of the project.
   3. If not given by the user, use the questions
      to get the name of the project and the
      location where the project should be added.
-  4. Optionally continue with the other engineering
-     artifacts in SYSMOD order (brownfieldContext,
-     problemStatement, projectStakeholders,
-     stakeholderNeeds, systemIdeaContext,
-     specificationContext, systemRequirement-
-     Specification, solutionContext, functional-
-     Context, logicalContext, productContext)
-     using the create_prompts of their AI metadata."</span>;
+  4. Optionally continue with the other
+     engineering artifacts in SYSMOD order
+     (brownfieldContext, problemStatement,
+     projectStakeholders, stakeholderNeeds,
+     systemIdeaContext, specificationContext,
+     systemRequirementSpecification,
+     functionalContext, logicalContext,
+     productContext) using the create_prompts of
+     their AI metadata."</span>;
   create_questions = (
     <span class="ty">"What is the name of the project?"</span>,
     <span class="ty">"Where should I add the project definition?"</span>,
@@ -1297,7 +1298,8 @@ const aiSkills = {
   validation_prompt =
     <span class="ty">"Validate the project definition against the
      SYSMOD Project concept and report findings
-     grouped as errors, warnings, and suggestions.
+     grouped as errors, warnings, and
+     suggestions.
   Check:
   1. The project is defined as an occurrence
      definition annotated with the #project
@@ -1305,43 +1307,45 @@ const aiSkills = {
   2. A projectOwner part usage is present and
      subsets projectStakeholders.
   3. A brownfieldContext part usage is present
-     and typed by a SystemContext specialization;
-     a brownfieldContextImpl part usage is present
-     and specializes brownfieldContext.
-  4. A problemStatement concern usage is present.
+     and typed by a SystemContext
+     specialization; a brownfieldContextImpl
+     part usage is present and specializes
+     brownfieldContext.
+  4. A problemStatement concern usage is
+     present.
   5. A stakeholderNeeds concern usage is present
      and frames the problemStatement.
-  6. A systemIdeaContext part usage is present and
-     specializes brownfieldContext; a systemIdea-
-     ContextImpl part usage is present and
-     specializes systemIdeaContext and
+  6. A systemIdeaContext part usage is present
+     and specializes brownfieldContext; a
+     systemIdeaContextImpl part usage is present
+     and specializes systemIdeaContext and
      brownfieldContextImpl.
-  7. A specificationContext part usage is present
-     and specializes systemIdeaContext; a
-     specificationContextImpl part usage is present
-     and specializes specificationContext and
+  7. A specificationContext part usage is
+     present and specializes systemIdeaContext;
+     a specificationContextImpl part usage is
+     present and specializes
+     specificationContext and
      systemIdeaContextImpl.
-  8. A systemRequirementSpecification requirement
-     usage is present and frames stakeholderNeeds.
-  9. A solutionContext part usage is present and
-     specializes specificationContext; a solution-
-     ContextImpl part usage is present and
-     specializes solutionContext and
-     specificationContextImpl.
-  10. A productContext part usage is present and
-      specializes solutionContextImpl.
-  11. The cross-artifact traceability chain is
-      intact: problemStatement &lt;- stakeholderNeeds
-      &lt;- systemRequirementSpecification, and
+  8. A systemRequirementSpecification
+     requirement usage is present and frames
+     stakeholderNeeds.
+  9. A productContext part usage is present and
+     specializes specificationContextImpl.
+  10. The cross-artifact traceability chain is
+      intact: problemStatement &lt;-
+      stakeholderNeeds &lt;-
+      systemRequirementSpecification, and
       satisfy relationships exist at the system
-      idea and solution levels.
-  12. If both functionalContext and logicalContext
-      are present, the functional2logical allocation
-      is defined; if logicalContext is present, the
+      idea and functional, logical, and product
+      architecture levels.
+  11. If both functionalContext and
+      logicalContext are present, the
+      functional2logical allocation is defined;
+      if logicalContext is present, the
       logical2product allocation is defined.
   Report each finding with the element name, the
-  violated SYSMOD rule, and a concrete suggestion
-  for correction."</span>;
+  violated SYSMOD rule, and a concrete
+  suggestion for correction."</span>;
 }` },
 
   2: { text:"This is the actual AI metadata carried by problemStatementAI in the library, verbatim.",
@@ -1351,75 +1355,86 @@ const aiSkills = {
   create_prompt =
     <span class="ty">"1. Follow the structure between engineering
      artifacts given by the SYSMOD library.
-  2. Analyze the provided scenario. If forward
-     engineering, identify the problem statement
-     from the scenario. If reverse engineering,
-     identify it from the problem solved by the
-     given system.
-  3. Create a concise elevator-pitch style problem
-     statement text (typically 150-250 words).
+  2. Analyze the provided scenario. If it is
+     forward engineering, identify the problem
+     statement from the given scenario. If it is
+     reverse engineering, identify the problem
+     statement by identifying the problem that
+     is solved by the given system.
+  3. Create a concise elevator-pitch style
+     problem statement text (typically 150-250
+     words).
   4. Follow this format: 'How can we...'
-  5. Ensure the problem statement is based on the
-     brownfieldContext. If unavailable, create one
-     implied by the problem statement text using
-     the AI metadata about the brownfieldContext.
-  6. Ensure the problem statement does not jump to
-     the solution and describe it in advance.
-  7. Ensure the stakeholder projectOwner is set by
-     subsetting the corresponding part usage in the
-     project. If unavailable, use the create_prompt
-     of the AI metadata about the projectOwner.
-  8. If reverse engineering, create a satisfy
-     relationship between the given system and the
-     problem statement.
-  9. Create the SysML v2 textual notation for the
-     problemStatement.
-  10. If the user asks to insert the problemStatement
-      into the SysML model, find the project and the
-      problemStatement within it. If no project
-      exists, create one and insert the
-      problemStatement redefining the inherited
-      problemStatement concern usage. If it already
-      exists, update it."</span>;
+  5. Ensure the problem statement text is based
+     on the brownfieldContext. If the
+     brownfieldContext is not available, create
+     one that is implied by the problem
+     statement text using the AI metadata about
+     the brownfieldContext.
+  6. Ensure that the problem statement does not
+     jump to the solution and describe it in
+     advance.
+  7. Ensure that the stakeholder projectOwner is
+     set by subsetting the corresponding part
+     usage in the project, if given. If it is
+     not available, use the create_prompt of the
+     AI metadata about the projectOwner to
+     create one.
+  8. If it is reverse engineering, create a
+     satisfy relationship between the given
+     system and the problem statement.
+  9. Create the SysML v2 textual notation for
+     the problemStatement.
+  10. If the user asks to insert the
+      problemStatement into the SysML model,
+      find the project and the problemStatement
+      within the project. If no project exists,
+      create one and insert the problemStatement
+      into the project redefining the inherited
+      problemStatement concern usage. If the
+      problemStatement already exists, update
+      it."</span>;
   create_questions = (
     <span class="ty">"What is the core problem the system should solve?"</span>,
     <span class="ty">"What are the main deficiencies or pain points
      of the existing (brownfield) system?"</span>,
   );
   validation_prompt =
-    <span class="ty">"Validate the problemStatement against the
-     SYSMOD Problem Statement concept and report
+    <span class="ty">"Validate the problemStatement against the SYSMOD
+     Problem Statement concept and report
      findings grouped as errors, warnings, and
      suggestions.
   Check:
-  1. The problemStatement concern usage is present
-     in the project, redefining the inherited
-     problemStatement.
-  2. The subject references the brownfieldContextImpl
-     soiImpl (the existing system is the subject of
-     the problem).
-  3. The projectOwner is set as the stakeholder of
-     the problemStatement.
+  1. The problemStatement concern usage is
+     present in the project, redefining the
+     inherited problemStatement.
+  2. The subject references the
+     brownfieldContextImpl soiImpl (the existing
+     system is the subject of the problem).
+  3. The projectOwner is set as the stakeholder
+     of the problemStatement.
   4. The priority attribute is set to
      LevelKind::critical.
-  5. A doc comment is present containing the problem
-     statement text.
-  6. The problem statement text starts with 'How can
-     we...' or an equivalent problem-framing phrase.
-  7. The problem statement text describes the problem,
-     not a solution — check for premature solution
-     language (e.g., 'we will build', 'the new system
-     shall', named technologies or architectures).
+  5. A doc comment is present containing the
+     problem statement text.
+  6. The problem statement text starts with 'How
+     can we...' or an equivalent problem-framing
+     phrase.
+  7. The problem statement text describes the
+     problem, not a solution — check for
+     premature solution language (e.g., 'we will
+     build', 'the new system shall', named
+     technologies or architectures).
   8. The problem statement text references the
      brownfield system and its deficiencies.
-  9. The problem statement text is concise (typically
-     150-250 words).
-  10. If reverse engineering, a satisfy relationship
-      exists between the existing system and the
-      problemStatement.
+  9. The problem statement text is concise
+     (typically 150-250 words).
+  10. If it is reverse engineering, a satisfy
+      relationship exists between the existing
+      system and the problemStatement.
   Report each finding with the element name, the
-  violated SYSMOD rule, and a concrete suggestion
-  for correction."</span>;
+  violated SYSMOD rule, and a concrete
+  suggestion for correction."</span>;
 }` },
 
   3: { text:"This is the actual AI metadata carried by projectStakeholdersAI in the library, verbatim.",
@@ -1431,17 +1446,20 @@ const aiSkills = {
      problemStatement and identify all relevant
      stakeholders (individuals or organizations
      with an interest in the system).
-  2. For each stakeholder, create a part definition
-     specializing ExtendedStakeholder.
-  3. Assess and set the risk (risk of failure if
-     ignored?), effort (effort to identify their
-     concerns?), and one or more categories (user,
+  2. For each stakeholder, create a part
+     definition specializing
+     ExtendedStakeholder.
+  3. Assess and set the risk (what is the risk
+     of failure if this stakeholder is
+     ignored?), effort (how much effort is
+     needed to identify their concerns?), and
+     one or more stakeholder categories (user,
      requirementOwner, expert, other) for each
      stakeholder.
   4. Add each stakeholder as a named part usage
      subsetting projectStakeholders inside the
-     project, typed by the corresponding stakeholder
-     definition.
+     project, typed by the corresponding
+     stakeholder definition.
   5. Create the SysML v2 textual notation for all
      stakeholder definitions and their usages within
      the project.
@@ -1776,7 +1794,7 @@ const aiSkills = {
      inherited or redefined — no actor should
      silently disappear.
   8. The specificationContext does not contain
-     solution architecture elements — it should
+     solution elements — it should
      remain a black-box view of the system.
   Report each finding with the element name, the
   violated SYSMOD rule, and a concrete suggestion
@@ -1854,7 +1872,7 @@ const aiSkills = {
      inherited or redefined — no actor should
      silently disappear.
   8. The specificationContext does not contain
-     solution architecture elements — it should
+     solution elements — it should
      remain a black-box view of the system.
   Report each finding with the element name, the
   violated SYSMOD rule, and a concrete suggestion
@@ -1938,94 +1956,39 @@ const aiSkills = {
   for correction."</span>;
 }` },
 
-  10: { text:"Step 10 chains four AI metadata blocks from the library, all reproduced verbatim: the solution context, and the functional, logical, and product architectures.",
-    code:`<span class="cm">// solutionContextAI, from the SYSMOD library</span>
-<span class="kw">metadata</span> solutionContextAI : <span class="kw">AI</span> <span class="kw">about</span> solutionContext {
-  name = <span class="ty">"sysmod-solution-context"</span>;
-  create_prompt =
-    <span class="ty">"1. Specialize specificationContext by
-     redefining the soi part (black-box view) with a
-     solution-level system definition, within
-     solutionContext. Specialize solutionContext and
-     specificationContextImpl by redefining the
-     soiImpl part (white-box view) with the matching
-     solution implementation, within
-     solutionContextImpl.
-  2. The solutionSystemImpl must include a satisfy
-     relationship to the systemRequirementSpecification.
-  3. The solutionContext/solutionContextImpl pair is
-     the base for functional, logical, and product
-     architectures — keep it at the integration
-     level and avoid duplicating architecture
-     details that belong in those sub-contexts.
-  4. Create the SysML v2 textual notation for the
-     solutionContext and solutionContextImpl.
-  5. If the user asks to insert the solutionContext
-     into the SysML model, find the project and
-     redefine the inherited solutionContext and
-     solutionContextImpl part usages."</span>;
-  create_questions = (
-    <span class="ty">"What is the name of the solution system?"</span>,
-    <span class="ty">"Are there any top-level solution elements
-     already known at this stage?"</span>,
-  );
-  validation_prompt =
-    <span class="ty">"Validate the solutionContext and
-     solutionContextImpl against the SYSMOD Solution
-     Context concept and report findings grouped as
-     errors, warnings, and suggestions.
-  Check:
-  1. The solutionContext part usage is present in the
-     project and specializes specificationContext.
-  2. The soi part is redefined within solutionContext
-     with a named solution system definition that
-     specializes the specification soi.
-  3. The solutionContextImpl part usage is present,
-     specializes solutionContext and
-     specificationContextImpl, and redefines the
-     soiImpl part, specializing the solution soi.
-  4. The soiImpl contains a satisfy relationship to
-     the systemRequirementSpecification.
-  5. The solutionContext/solutionContextImpl pair does
-     not duplicate architecture details that belong
-     in functionalContext, logicalContext, or
-     productContext.
-  6. All actors from the specificationContext are
-     inherited or redefined — no actor should
-     silently disappear.
-  Report each finding with the element name, the
-  violated SYSMOD rule, and a concrete suggestion
-  for correction."</span>;
-}
-
-<span class="cm">// functionalContextAI, from the SYSMOD library</span>
+  10: { text:"Step 10 chains three AI metadata blocks from the library, all reproduced verbatim: the functional, logical, and product architectures.",
+    code:`<span class="cm">// functionalContextAI, from the SYSMOD library</span>
 <span class="kw">metadata</span> functionalContextAI : <span class="kw">AI</span> <span class="kw">about</span> functionalContext {
   name = <span class="ty">"sysmod-functional-architecture"</span>;
   create_prompt =
     <span class="ty">"1. If a functional architecture is required,
-     specialize solutionContext (black-box view)
-     within functionalContext. Do not specialize
-     solutionContextImpl — the functional
-     architecture must not depend on the physical
-     internal structure of the system.
-  2. Redefine the inherited functionalSystem part
-     (which redefines the black-box solution soi) as
-     the root of the functional architecture (e.g.,
-     developed with the FAS method). It inherits the
-     system ports, so functions can be related to
-     the system's external interfaces.
-  3. Define the top-level functions as action usages
-     or part usages within the functionalSystem.
-  4. If allocations to the logical architecture are
-     known, note them; formal allocations are
-     expressed via the functional2logical allocation
-     in the project.
-  5. Create the SysML v2 textual notation for the
-     functionalContext.
-  6. If the user asks to insert the functionalContext
-     into the SysML model, find the project and
-     redefine the inherited functionalContext part
-     usage (note: multiplicity is [0..1])."</span>;
+     specialize specificationContext (black-box
+     view) within functionalContext. Do not
+     specialize specificationContextImpl — the
+     functional architecture must not depend on
+     the physical internal structure of the
+     system.
+  2. Redefine the inherited functionalSystem
+     part (which redefines the black-box
+     specification soi) as the root of the
+     functional architecture (e.g., developed
+     with the FAS method). It inherits the
+     system ports, so functions can be related
+     to the system's external interfaces.
+  3. Define the top-level functions as action
+     usages or part usages within the
+     functionalSystem.
+  4. If allocations to the logical architecture
+     are known, note them; formal allocations
+     are expressed via the functional2logical
+     allocation in the project.
+  5. Create the SysML v2 textual notation for
+     the functionalContext.
+  6. If the user asks to insert the
+     functionalContext into the SysML model,
+     find the project and redefine the inherited
+     functionalContext part usage (note:
+     multiplicity is [0..1])."</span>;
   create_questions = (
     <span class="ty">"Is a functional architecture required for this
      project?"</span>,
@@ -2037,36 +2000,36 @@ const aiSkills = {
   validation_prompt =
     <span class="ty">"Validate the functionalContext against the
      SYSMOD Functional Architecture concept and
-     report findings grouped as errors, warnings,
-     and suggestions.
+     report findings grouped as errors,
+     warnings, and suggestions.
   Check:
-  1. If present, the functionalContext part usage
-     specializes solutionContext and has
-     multiplicity [0..1].
-  2. A functionalSystem part is present as the root
-     of the functional decomposition, redefining the
-     black-box solution soi.
-  3. At least one top-level function is defined as an
-     action usage or part usage within the
+  1. If present, the functionalContext part
+     usage specializes specificationContext.
+  2. A functionalSystem part is present as the
+     root of the functional decomposition,
+     redefining the black-box specification soi.
+  3. At least one top-level function is defined
+     as an action usage or part usage within the
      functionalSystem.
-  4. Each top-level function is traceable to at least
-     one system requirement (via satisfy, refine, or
-     doc comment reference).
-  5. Functions are technology-independent — check for
-     implementation-specific naming or structure
-     that belongs in the logical or product
-     architecture.
-  6. If a logicalContext is present in the project, a
-     functional2logical allocation is defined
-     connecting the functionalContext to the
-     logicalContext.
-  7. The functionalSystem contains only functional
-     blocks — no physical or internal structure of
-     the system, which belongs in the white-box
-     solution, logical, or product contexts.
+  4. Each top-level function is traceable to at
+     least one system requirement (via satisfy,
+     refine, or doc comment reference).
+  5. Functions are technology-independent —
+     check for implementation-specific naming or
+     structure that belongs in the logical or
+     product architecture.
+  6. If a logicalContext is present in the
+     project, a functional2logical allocation is
+     defined connecting the functionalContext to
+     the logicalContext.
+  7. The functionalSystem contains only
+     functional blocks — no physical or internal
+     structure of the system, which belongs in
+     the white-box speccification, logical, or
+     product contexts.
   Report each finding with the element name, the
-  violated SYSMOD rule, and a concrete suggestion
-  for correction."</span>;
+  violated SYSMOD rule, and a concrete
+  suggestion for correction."</span>;
 }
 
 <span class="cm">// logicalContextAI, from the SYSMOD library</span>
@@ -2074,27 +2037,30 @@ const aiSkills = {
   name = <span class="ty">"sysmod-logical-architecture"</span>;
   create_prompt =
     <span class="ty">"1. If a logical architecture is required,
-     specialize solutionContextImpl by redefining
-     the soiImpl part for the logical level.
-  2. Define logical components as part usages within
-     logicalSystem (the redefined white-box
-     soiImpl), representing technology-independent
-     building blocks that realize the functional
-     architecture.
-  3. If allocations from the functional architecture
-     are known, note them; formal allocations are
-     expressed via the functional2logical allocation
-     in the project.
-  4. If allocations to the product architecture are
-     known, note them; formal allocations are
-     expressed via the logical2product allocation in
-     the project.
-  5. Create the SysML v2 textual notation for the
-     logicalContext.
-  6. If the user asks to insert the logicalContext
-     into the SysML model, find the project and
-     redefine the inherited logicalContext part
-     usage (note: multiplicity is [0..1])."</span>;
+     specialize specificationContext by
+     redefining the soi part for the logical
+     level.
+  2. Define logical components as part usages
+     within logicalSystem (the redefined
+     black-box soi), representing
+     technology-independent building blocks that
+     realize the functional architecture.
+  3. If allocations from the functional
+     architecture are known, note them; formal
+     allocations are expressed via the
+     functional2logical allocation in the
+     project.
+  4. If allocations to the product architecture
+     are known, note them; formal allocations
+     are expressed via the logical2product
+     allocation in the project.
+  5. Create the SysML v2 textual notation for
+     the logicalContext.
+  6. If the user asks to insert the
+     logicalContext into the SysML model, find
+     the project and redefine the inherited
+     logicalContext part usage (note:
+     multiplicity is [0..1])."</span>;
   create_questions = (
     <span class="ty">"Is a logical architecture required for this
      project?"</span>,
@@ -2105,16 +2071,15 @@ const aiSkills = {
      separation of concerns, layers)?"</span>,
   );
   validation_prompt =
-    <span class="ty">"Validate the logicalContext against the
-     SYSMOD Logical Architecture concept and report
+    <span class="ty">"Validate the logicalContext against the SYSMOD
+     Logical Architecture concept and report
      findings grouped as errors, warnings, and
      suggestions.
   Check:
   1. If present, the logicalContext part usage
-     specializes solutionContextImpl and has
-     multiplicity [0..1].
-  2. At least one logical component is defined as a
-     part usage within logicalSystem.
+     specializes specificationContext.
+  2. At least one logical component is defined
+     as a part usage within logicalSystem.
   3. Logical components are technology-independent —
      check for product-specific naming, vendor
      names, physical form factors, or
@@ -2142,8 +2107,8 @@ const aiSkills = {
 <span class="kw">metadata</span> productContextAI : <span class="kw">AI</span> <span class="kw">about</span> productContext {
   name = <span class="ty">"sysmod-product-architecture"</span>;
   create_prompt =
-    <span class="ty">"1. Specialize solutionContextImpl for the
-     product architecture by redefining the soiImpl
+    <span class="ty">"1. Specialize specificationContextImpl for
+     the product architecture by redefining the soiImpl
      part with a concrete product-level definition.
   2. Define product components as part usages within
      productSystem (the redefined white-box
@@ -2177,7 +2142,7 @@ const aiSkills = {
      suggestions.
   Check:
   1. The productContext part usage is present in the
-     project and specializes solutionContextImpl.
+     project and specializes specificationContextImpl.
   2. At least one product component is defined as a
      part usage within productSystem.
   3. Product components represent concrete, physical
@@ -2198,8 +2163,7 @@ const aiSkills = {
   7. All system requirements are satisfied — verify
      that a satisfy relationship chain exists from
      the product architecture back to the
-     systemRequirementSpecification (directly or via
-     the solutionSystemImpl in solutionContextImpl).
+     systemRequirementSpecification.
   8. Every dependency between two product
      components crosses only through a defined
      port/interface — flag any part-to-part
@@ -2698,7 +2662,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 "1. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the project definition using the <span class="ty">SYSMOD</span>-defined keyword: '<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">PROJECTNAME</span> {}'
                 2. <span class="ty">Use</span> the create_prompt of the <span class="ty">AI</span> <span class="kw">metadata</span> of the projectOwner <span class="kw">to</span> create the project owner of the project.
                 3. <span class="ty">If</span> not given by the user, <span class="kw">use</span> the questions <span class="kw">to</span> get the name of the project and the location where the project should be added.
-                4. <span class="ty">Optionally</span> continue with the other engineering artifacts <span class="kw">in</span> <span class="ty">SYSMOD</span> order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, solutionContext, functionalContext, logicalContext, productContext) using the create_prompts of their <span class="ty">AI</span> <span class="kw">metadata</span>.";
+                4. <span class="ty">Optionally</span> continue with the other engineering artifacts <span class="kw">in</span> <span class="ty">SYSMOD</span> order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, functionalContext, logicalContext, productContext) using the create_prompts of their <span class="ty">AI</span> <span class="kw">metadata</span>.";
             create_questions = (
                 "<span class="ty">What</span> is the name of the project?", "<span class="ty">Where</span> should <span class="ty">I</span> add the project definition?",
             );
@@ -2713,10 +2677,9 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 6. <span class="ty">A</span> systemIdeaContext <span class="kw">part</span> usage is present and specializes brownfieldContext; a systemIdeaContextImpl <span class="kw">part</span> usage is present and specializes systemIdeaContext and brownfieldContextImpl.
                 7. <span class="ty">A</span> specificationContext <span class="kw">part</span> usage is present and specializes systemIdeaContext; a specificationContextImpl <span class="kw">part</span> usage is present and specializes specificationContext and systemIdeaContextImpl.
                 8. <span class="ty">A</span> systemRequirementSpecification <span class="kw">requirement</span> usage is present and frames stakeholderNeeds.
-                9. <span class="ty">A</span> solutionContext <span class="kw">part</span> usage is present and specializes specificationContext; a solutionContextImpl <span class="kw">part</span> usage is present and specializes solutionContext and specificationContextImpl.
-                10. <span class="ty">A</span> productContext <span class="kw">part</span> usage is present and specializes solutionContextImpl.
-                11. <span class="ty">The</span> cross-artifact traceability chain is intact: problemStatement &lt;- stakeholderNeeds &lt;- systemRequirementSpecification, and <span class="kw">satisfy</span> relationships exist at the system idea and solution levels.
-                12. <span class="ty">If</span> both functionalContext and logicalContext are present, the functional2logical <span class="kw">allocation</span> is defined; if logicalContext is present, the logical2product <span class="kw">allocation</span> is defined.
+                9. <span class="ty">A</span> productContext <span class="kw">part</span> usage is present and specializes specificationContextImpl.
+                10. <span class="ty">The</span> cross-artifact traceability chain is intact: problemStatement &lt;- stakeholderNeeds &lt;- systemRequirementSpecification, and <span class="kw">satisfy</span> relationships exist at the system idea and functional, logical, and product architecture levels.
+                11. <span class="ty">If</span> both functionalContext and logicalContext are present, the functional2logical <span class="kw">allocation</span> is defined; if logicalContext is present, the logical2product <span class="kw">allocation</span> is defined.
                 <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
         }
 
@@ -2910,7 +2873,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 5. <span class="ty">Each</span> <span class="kw">use</span> <span class="kw">case</span> has at least one actor involved (include or extend relationships, or actor references <span class="kw">in</span> the <span class="kw">use</span> <span class="kw">case</span> <span class="kw">subject</span>/<span class="kw">stakeholder</span>).
                 6. <span class="ty">Each</span> <span class="kw">use</span> <span class="kw">case</span> has a meaningful name and <span class="kw">doc</span> comment describing the interaction goal.
                 7. <span class="ty">All</span> actors <span class="kw">from</span> the systemIdeaContext are inherited or redefined — no actor should silently disappear.
-                8. <span class="ty">The</span> specificationContext does not contain solution architecture elements — it should remain a black-box view of the system.
+                8. <span class="ty">The</span> specificationContext does not contain solution elements — it should remain a black-box view of the system.
                 <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
         }
 
@@ -2947,8 +2910,8 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         <span class="kw">metadata</span> functionalContextAI : <span class="ty">AI</span> <span class="kw">about</span> functionalContext {
             name = "sysmod-functional-architecture";
             create_prompt =
-                "1. <span class="ty">If</span> a functional architecture is required, specialize solutionContext (black-box view) within functionalContext. <span class="ty">Do</span> not specialize solutionContextImpl — the functional architecture must not depend on the physical internal structure of the system.
-                2. <span class="ty">Redefine</span> the inherited functionalSystem <span class="kw">part</span> (which redefines the black-box solution soi) as the root of the functional architecture (e.g., developed with the <span class="ty">FAS</span> method). <span class="ty">It</span> inherits the system ports, so functions can be related <span class="kw">to</span> the system's external interfaces.
+                "1. <span class="ty">If</span> a functional architecture is required, specialize specificationContext (black-box view) within functionalContext. <span class="ty">Do</span> not specialize specificationContextImpl — the functional architecture must not depend on the physical internal structure of the system.
+                2. <span class="ty">Redefine</span> the inherited functionalSystem <span class="kw">part</span> (which redefines the black-box specification soi) as the root of the functional architecture (e.g., developed with the <span class="ty">FAS</span> method). <span class="ty">It</span> inherits the system ports, so functions can be related <span class="kw">to</span> the system's external interfaces.
                 3. <span class="ty">Define</span> the top-level functions as <span class="kw">action</span> usages or <span class="kw">part</span> usages within the functionalSystem.
                 4. <span class="ty">If</span> allocations <span class="kw">to</span> the logical architecture are known, note them; formal allocations are expressed via the functional2logical <span class="kw">allocation</span> <span class="kw">in</span> the project.
                 5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the functionalContext.
@@ -2961,21 +2924,21 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             validation_prompt =
                 "<span class="ty">Validate</span> the functionalContext against the <span class="ty">SYSMOD</span> <span class="ty">Functional</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
                 <span class="ty">Check</span>:
-                1. <span class="ty">If</span> present, the functionalContext <span class="kw">part</span> usage specializes solutionContext and has multiplicity [0..1].
-                2. <span class="ty">A</span> functionalSystem <span class="kw">part</span> is present as the root of the functional decomposition, redefining the black-box solution soi.
+                1. <span class="ty">If</span> present, the functionalContext <span class="kw">part</span> usage specializes specificationContext.
+                2. <span class="ty">A</span> functionalSystem <span class="kw">part</span> is present as the root of the functional decomposition, redefining the black-box specification soi.
                 3. <span class="ty">At</span> least one top-level function is defined as an <span class="kw">action</span> usage or <span class="kw">part</span> usage within the functionalSystem.
                 4. <span class="ty">Each</span> top-level function is traceable <span class="kw">to</span> at least one system <span class="kw">requirement</span> (via <span class="kw">satisfy</span>, refine, or <span class="kw">doc</span> comment reference).
                 5. <span class="ty">Functions</span> are technology-independent — check for implementation-specific naming or structure that belongs <span class="kw">in</span> the logical or product architecture.
                 6. <span class="ty">If</span> a logicalContext is present <span class="kw">in</span> the project, a functional2logical <span class="kw">allocation</span> is defined connecting the functionalContext <span class="kw">to</span> the logicalContext.
-                7. <span class="ty">The</span> functionalSystem contains only functional blocks — no physical or internal structure of the system, which belongs <span class="kw">in</span> the white-box solution, logical, or product contexts.
+                7. <span class="ty">The</span> functionalSystem contains only functional blocks — no physical or internal structure of the system, which belongs <span class="kw">in</span> the white-box speccification, logical, or product contexts.
                 <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
         }
 
         <span class="kw">metadata</span> logicalContextAI : <span class="ty">AI</span> <span class="kw">about</span> logicalContext {
             name = "sysmod-logical-architecture";
             create_prompt =
-                "1. <span class="ty">If</span> a logical architecture is required, specialize solutionContextImpl by redefining the soiImpl <span class="kw">part</span> for the logical level.
-                2. <span class="ty">Define</span> logical components as <span class="kw">part</span> usages within logicalSystem (the redefined white-box soiImpl), representing technology-independent building blocks that realize the functional architecture.
+                "1. <span class="ty">If</span> a logical architecture is required, specialize specificationContext by redefining the soi <span class="kw">part</span> for the logical level.
+                2. <span class="ty">Define</span> logical components as <span class="kw">part</span> usages within logicalSystem (the redefined black-box soi), representing technology-independent building blocks that realize the functional architecture.
                 3. <span class="ty">If</span> allocations <span class="kw">from</span> the functional architecture are known, note them; formal allocations are expressed via the functional2logical <span class="kw">allocation</span> <span class="kw">in</span> the project.
                 4. <span class="ty">If</span> allocations <span class="kw">to</span> the product architecture are known, note them; formal allocations are expressed via the logical2product <span class="kw">allocation</span> <span class="kw">in</span> the project.
                 5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the logicalContext.
@@ -2988,7 +2951,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             validation_prompt =
                 "<span class="ty">Validate</span> the logicalContext against the <span class="ty">SYSMOD</span> <span class="ty">Logical</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
                 <span class="ty">Check</span>:
-                1. <span class="ty">If</span> present, the logicalContext <span class="kw">part</span> usage specializes solutionContextImpl and has multiplicity [0..1].
+                1. <span class="ty">If</span> present, the logicalContext <span class="kw">part</span> usage specializes specificationContext.
                 2. <span class="ty">At</span> least one logical component is defined as a <span class="kw">part</span> usage within logicalSystem.
                 3. <span class="ty">Logical</span> components are technology-independent — check for product-specific naming, vendor names, physical form factors, or deployment-specific details that belong <span class="kw">in</span> the productContext.
                 4. <span class="ty">Each</span> logical component is traceable <span class="kw">to</span> at least one function <span class="kw">from</span> the functionalContext (if present) via <span class="kw">allocation</span> or <span class="kw">doc</span> comment.
@@ -3001,7 +2964,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         <span class="kw">metadata</span> productContextAI : <span class="ty">AI</span> <span class="kw">about</span> productContext {
             name = "sysmod-product-architecture";
             create_prompt =
-                "1. <span class="ty">Specialize</span> solutionContextImpl for the product architecture by redefining the soiImpl <span class="kw">part</span> with a concrete product-level definition.
+                "1. <span class="ty">Specialize</span> specificationContextImpl for the product architecture by redefining the soiImpl <span class="kw">part</span> with a concrete product-level definition.
                 2. <span class="ty">Define</span> product components as <span class="kw">part</span> usages within productSystem (the redefined white-box soiImpl), representing physical or deployable building blocks (hardware, software components, assemblies).
                 3. <span class="ty">If</span> allocations <span class="kw">from</span> the logical architecture are known, note them; formal allocations are expressed via the logical2product <span class="kw">allocation</span> <span class="kw">in</span> the project.
                 4. <span class="ty">Include</span> interfaces between product components where relevant.
@@ -3015,13 +2978,13 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             validation_prompt =
                 "<span class="ty">Validate</span> the productContext against the <span class="ty">SYSMOD</span> <span class="ty">Product</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
                 <span class="ty">Check</span>:
-                1. <span class="ty">The</span> productContext <span class="kw">part</span> usage is present <span class="kw">in</span> the project and specializes solutionContextImpl.
+                1. <span class="ty">The</span> productContext <span class="kw">part</span> usage is present <span class="kw">in</span> the project and specializes specificationContextImpl.
                 2. <span class="ty">At</span> least one product component is defined as a <span class="kw">part</span> usage within productSystem.
                 3. <span class="ty">Product</span> components represent concrete, physical or deployable building blocks — check that logical or functional abstractions have been resolved <span class="kw">to</span> specific technologies, hardware types, or software components.
                 4. <span class="ty">Each</span> product component is traceable <span class="kw">to</span> at least one logical component <span class="kw">from</span> the logicalContext (if present) via the logical2product <span class="kw">allocation</span> or <span class="kw">doc</span> comment.
                 5. <span class="ty">If</span> a logicalContext is present <span class="kw">in</span> the project, a logical2product <span class="kw">allocation</span> is defined connecting logicalContext <span class="kw">to</span> productContext.
                 6. <span class="ty">Interfaces</span> between product components are defined where components interact physically or through <span class="ty">APIs</span>.
-                7. <span class="ty">All</span> system requirements are satisfied — <span class="kw">verify</span> that a <span class="kw">satisfy</span> relationship chain exists <span class="kw">from</span> the product architecture back <span class="kw">to</span> the systemRequirementSpecification (directly or via the solutionSystemImpl <span class="kw">in</span> solutionContextImpl).
+                7. <span class="ty">All</span> system requirements are satisfied — <span class="kw">verify</span> that a <span class="kw">satisfy</span> relationship chain exists <span class="kw">from</span> the product architecture back <span class="kw">to</span> the systemRequirementSpecification.
                 8. <span class="ty">Every</span> dependency between two product components crosses only through a defined <span class="kw">port</span>/<span class="kw">interface</span> — flag any part-to-part reference that bypasses the published <span class="kw">interface</span>. <span class="ty">A</span> back-door dependency is both a <span class="ty">MOSA</span> violation and the exact thing that breaks module-scoped context retrieval.
                 9. <span class="ty">Each</span> component's published <span class="kw">interface</span> is specified completely enough that a neighbor — or an <span class="ty">AI</span> assistant — never needs that component's internal structure <span class="kw">to</span> use it correctly.
                 <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";

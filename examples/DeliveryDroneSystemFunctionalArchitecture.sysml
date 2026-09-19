@@ -21,6 +21,7 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
      */
 
     private import SYSMOD::*;
+    private import DeliveryDroneDomainLibrary::**;
 
     #systemContext part def DeliveryDroneFunctionalContext :> DD_SPECIFICATION::DeliveryDroneSystemContext {
         doc
@@ -36,19 +37,133 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
          * the FAS method. It redefines the black-box solution system and thereby
          * inherits the system ports, so the functions can be related to the
          * system's external interfaces. */
-        part energyManagement {
-        }
-        part payloadHandling {
-        }
-        part 'flight & positioning' {
 
-            action flyToPosition :> flyToPosition;
+        bind operatorPort.order = deliveryManagement.deliveryPort.deliveryOrder;
+        part deliveryManagement {
+            port deliveryPort : Interfaces::DeliveryPort;
+            port pickupPositionPort : ~Interfaces::PositionPort;
+            port deliveryPositionPort : ~Interfaces::PositionPort;
+
+            bind deliveryPort.deliveryOrder = planDelivery.order;
+            bind pickupPositionPort.position = planDelivery.task.pickupLocation;
+            bind deliveryPositionPort.position = planDelivery.task.deliverLocation;
+            perform planDelivery;
         }
-        part 'planning & diagnosis' {
+
+        interface :Interfaces::PositionInterface 
+            connect deliveryManagement.positionPort to flightControl.positionPort;
+        part flightControl {
+            port positionPort : Interfaces::PositionPort;
+
+            bind positionPort.position = flyToPosition.pos;
+            perform flyToPosition;
+            perform flyToHomeStation;
         }
-        part 'monitoring & reporting' {
+
+        bind packagePort.pkg = packageManagement.packagePort.payload;
+        part packageManagement {
+            port packagePort : Interfaces::PackagePort;
+            
+            bind packagePort.payload = pickUpPackage.pkg;
+            perform pickUpPackage;
+
+            flow dropOffPackage.deliveredPkg to packagePort.payload;
+            perform dropOffPackage;
         }
-        part alerting {
+
+        part batteryManagement {
+            perform chargeInFlight;
+            perform batteryLow;
+
+            perform detectLowBattery;
+        }
+        
+        action detectLowBattery {
+            doc /* Detects that a drone's battery has fallen below the threshold for its remaining route. */
+            in item battLevel : BatteryLevel;
+            out item lowBattSignal : LowBatterySignal;
+        }
+        action assignChargerDrone {
+            doc /* Assigns a nearby charger drone to meet the low-battery drone in flight. */
+            in item lowBattSignal : LowBatterySignal;
+            in item pos : Position;
+            out item chargerAssign : ChargerAssignment;
+        }
+        action rendezvousInFlight {
+            doc /* Brings the charger drone and the low-battery drone together at a shared position. */
+            in item chargerAssign : ChargerAssignment;
+            in item pos : Position;
+            out item chargePos : ChargingPosition;
+        }
+        action transferEnergy {
+            doc /* Transfers energy from the charger drone to the low-battery drone's battery. */
+        }
+        action resumeRoute {
+            doc /* Lets the recharged drone continue its interrupted route. */
+        }
+        action requestStatus {
+            doc /* Initiates the operator's request for a fleet-wide status overview. */
+            out item req : StatusRequest;
+        }
+        action pollDrones {
+            doc /* Polls every active drone in the fleet for its current status. */
+            in item req : StatusRequest;
+            out item droneStatus : DroneStatus;
+        }
+
+        part droneManagement {
+            port sensorPort : SensorPort;
+            port taskPort : TaskPort;
+            port droneStatusPort : ~DroneStatusPort;
+
+            flow sensorPort.sensorData to reportDroneStatus.sensorData;
+            flow taskPort.taskData to reportDroneStatus.taskData;
+            flow reportDroneStatus.droneStatus to droneStatusPort.droneStatus;
+            perform reportDroneStatus;
+
+            perform pollDrones;
+        }
+
+        part fleetManagement {
+            port fleetStatusPort : FleetStatusPort;
+            port droneStatusPort : DroneStatusPort;
+
+            flow fleetStatusPort.fleetStatus to deliverFleetStatus.fleetStatus;
+            perform deliverFleetStatus;
+
+            flow droneStatusPort.droneStatus to aggregateFleetStatus.droneStatus;
+            flow aggregateFleetStatus.fleetStatus to fleetStatusPort.fleetStatus;
+            perform aggregateFleetStatus;
+
+        }
+    }
+
+    package Interfaces {
+        interface def PositionInterface {
+            end port source : ~PositionPort;
+            end port target : PositionPort;
+            flow source.position to target.position;
+        }
+        port def DeliveryPort {
+            in item deliveryOrder : DeliveryOrder;
+        }
+        port def PositionPort {
+            in item position : Position;
+        }
+        port def FleetStatusPort {
+            inout item fleetStatus : FleetStatus;
+        }
+        port def DroneStatusPort {
+            in item droneStatus : DroneStatus;
+        }
+        port def SensorPort {
+            in item sensorData : SensorData;
+        }
+        port def TaskPort {
+            in item taskData : TaskData;
+        }
+        port def PackagePort {
+            inout item payload : Parcel;
         }
     }
 }

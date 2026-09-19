@@ -2,7 +2,11 @@
 
 ## v5.1.3
 
-- Moved and renamed the `RequirementBoilderplates` package to `SYSMODRequirementBoilerplates`: it is now a top-level library package alongside `SYSMOD` (previously nested inside it), and the name's spelling is corrected. Update any qualified references from `SYSMOD::RequirementBoilderplates` to `SYSMODRequirementBoilerplates`.
+- Split the `AI` metadata definition and `AIProject` out of `SYSMOD.sysml` into a new top-level package, `SYSMOD4AI` (file `SYSMOD4AI.sysml`), which privately imports `SYSMOD`. Import it in addition to `SYSMOD` only where AI-assisted workflows are wanted — the core methodology library no longer carries any AI-specific content.
+- Moved and renamed the boilerplate requirements package to `SYSMODRequirementsBoilerplates` (file `SYSMODRequirementsBoilerPlates.sysml`): it is now a top-level library package alongside `SYSMOD` and `SYSMOD4AI` (previously nested inside `SYSMOD`), and the name's spelling is corrected. Update any qualified references from `SYSMOD::RequirementBoilderplates` to `SYSMODRequirementsBoilerplates`.
+- Updated the sysmod.org documentation deck's "Full SYSMOD Library" appendix to show `SYSMOD`, `SYSMOD4AI`, and `SYSMODRequirementsBoilerplates` as the three separate packages they now are, instead of one monolithic package.
+- Updated the deck's `AI` metadata definition and per-step AI prompts to match the library: all seven `AI` attributes are now shown (including `perform_prompt`, `story_prompt`, `slide_prompt`), the `sysmod-stakeholder-priority-map` skill is now documented, and the deck's own copies of the v5.1.2 `MinValue`/`MinAvailability` fixes and the boilerplates renaming — which had not been carried over from the library into the documentation — are now consistent with it.
+- Renamed the deck's "Solution System Architectures" step to "Functional, Logical, Product Architecture" and removed the last `sysmod-solution-context` / "solution architecture" leftovers from its text, matching the library's actual functional/logical/product structure.
 
 ## v5.1.2
 

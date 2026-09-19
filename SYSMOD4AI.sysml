@@ -54,6 +54,9 @@ package SYSMOD4AI {
          * An AI metadata usage attached here under AIProject (e.g. problemStatementAI) is applied to the
          * identically-named feature on any real #project occurrence — matched by feature identity, not by that
          * project specializing AIProject.
+         * Each AI metadata usage documents its own "When to use" / "When not to use" section in its own doc
+         * comment, in the style of an AI-assistant skill's trigger/skip conditions, so these elements can be
+         * turned into Claude Skills or equivalent skill definitions for other LLM platforms.
          */
         attribute name : ScalarValues::String {
             doc
@@ -128,6 +131,24 @@ package SYSMOD4AI {
         * to the correspondingly named feature on that real project, matched by feature identity, not inheritance.
         */
         metadata projectAI : AI {
+            doc
+            /* Scaffolds or validates the whole SYSMOD project: the root #project occurrence and,
+             * optionally, chains through all of its main artifacts in SYSMOD order.
+             *
+             * When to use:
+             * - Starting a brand-new SYSMOD project from scratch (kickoff), or the user asks to
+             *   scaffold an entire project end to end in one go.
+             * - Validating a whole project's structure and cross-artifact traceability chain,
+             *   rather than just one artifact in isolation.
+             *
+             * When not to use:
+             * - The user is working on a single artifact (e.g. only the problem statement, or
+             *   only the stakeholders) — use that artifact's own AI metadata (e.g.
+             *   problemStatementAI, projectStakeholdersAI) directly instead of going through the
+             *   whole project.
+             * - The project already exists and only the project owner needs to be identified or
+             *   changed — use projectOwnerAI.
+             */
             name = "sysmod-project";
             create_prompt =
                 "1. Create the SysML v2 textual notation for the project definition using the SYSMOD-defined keyword: '#project occurrence def PROJECTNAME {}'
@@ -157,6 +178,22 @@ package SYSMOD4AI {
         }
 
         metadata projectOwnerAI : AI about projectOwner {
+            doc
+            /* Identifies or updates the single stakeholder who is in charge of the project (the
+             * project owner) — a special ExtendedStakeholder with critical risk and low effort.
+             *
+             * When to use:
+             * - The user names or asks about who owns, sponsors, or is accountable for the
+             *   project.
+             * - The project's problemStatement needs a stakeholder set and no projectOwner exists
+             *   yet.
+             *
+             * When not to use:
+             * - Identifying the broader stakeholder set beyond the owner — use
+             *   projectStakeholdersAI.
+             * - The user is describing what the owner (or anyone else) needs from the system —
+             *   use stakeholderNeedsAI, not this skill.
+             */
             name = "sysmod-project-owner";
             create_prompt =
                 "1. If the user has provided a projectOwner, use it. If not, ask the user for the projectOwner using appropriate questions from the questions field.
@@ -181,6 +218,25 @@ package SYSMOD4AI {
         }
 
         metadata brownfieldContextAI : AI about brownfieldContext {
+            doc
+            /* Documents the existing (as-is) system and its actors before the project starts —
+             * the constraints and givens the project must work within.
+             *
+             * When to use:
+             * - The user describes an existing system, legacy system, current state, or "as-is"
+             *   situation that the project starts from.
+             * - The project is brownfield (an existing system is being changed or replaced) and
+             *   its current actors, subcomponents, or interfaces need to be captured before any
+             *   solution is proposed.
+             *
+             * When not to use:
+             * - The project is greenfield with no existing system to document — skip this skill
+             *   and go straight to problemStatementAI / systemIdeaContextAI.
+             * - The user is describing the new or changed system, its idea, or its architecture —
+             *   that is systemIdeaContextAI (idea) or functionalContextAI / logicalContextAI /
+             *   productContextAI (architecture), never this skill. Brownfield content must
+             *   contain no solution elements.
+             */
             name = "sysmod-brownfield-context";
             create_prompt =
                 "1. Analyze the provided scenario and identify the brownfield system: the existing system, its relevant subcomponents, and all external actors (humans, external systems, environmental effects) that already interact with it before the project starts.
@@ -211,6 +267,24 @@ package SYSMOD4AI {
         }
 
         metadata problemStatementAI : AI about problemStatement {
+            doc
+            /* Frames the problem the project is meant to solve, as a concise elevator-pitch style
+             * statement based on the brownfield system's deficiencies — never a solution.
+             *
+             * When to use:
+             * - The user wants to articulate, refine, or validate why the project exists — the
+             *   problem, pain point, or opportunity being addressed.
+             * - Starting a new project and no problem statement exists yet, or an existing one
+             *   needs to be checked against the SYSMOD rules (e.g. no premature solution
+             *   language).
+             *
+             * When not to use:
+             * - The user is describing the solution, the new system's idea, or its architecture —
+             *   use systemIdeaContextAI (or the architecture skills) instead; problemStatementAI
+             *   never describes "how", only "why".
+             * - The user wants individual stakeholder needs rather than the single overarching
+             *   problem — use stakeholderNeedsAI.
+             */
             name = "sysmod-problem-statement";
             create_prompt =
                 "1. Follow the structure between engineering artifacts given by the SYSMOD library.
@@ -244,6 +318,23 @@ package SYSMOD4AI {
         }
 
         metadata projectStakeholdersAI : AI about projectStakeholders {
+            doc
+            /* Identifies the individuals and organizations with an interest in the system
+             * (beyond the project owner) and assesses each one's risk, effort, and category.
+             *
+             * When to use:
+             * - The user asks who the users, customers, regulators, or other interested parties
+             *   are, or wants to identify or prioritize/assess stakeholders.
+             * - The brownfieldContext's actors need to be reflected as stakeholders, or a
+             *   stakeholder list needs validating for completeness.
+             *
+             * When not to use:
+             * - Identifying or updating specifically the project owner — use projectOwnerAI.
+             * - Capturing what a stakeholder needs from the system — use stakeholderNeedsAI, not
+             *   this skill.
+             * - Visualizing already-identified stakeholders on a risk/effort map — use
+             *   stakeholderPriorityMapAI once risk and effort are assessed here.
+             */
             name = "sysmod-stakeholders";
             create_prompt =
                 "1. Analyze the brownfieldContext and the problemStatement and identify all relevant stakeholders (individuals or organizations with an interest in the system).
@@ -273,6 +364,24 @@ package SYSMOD4AI {
         }
 
         metadata stakeholderPriorityMapAI : AI about projectStakeholders {
+            doc
+            /* Renders the project's already-identified stakeholders as a derived risk/effort
+             * priority map — an analysis view, not a persisted model element.
+             *
+             * When to use:
+             * - The user asks to visualize, prioritize, or compare stakeholders by risk and
+             *   effort, or wants a stakeholder map or matrix.
+             * - Stakeholders already exist in projectStakeholders with risk and effort assigned
+             *   (or the user is willing to supply missing values on request).
+             *
+             * When not to use:
+             * - No stakeholders have been identified yet — use projectStakeholdersAI first.
+             * - The user wants to add, remove, or change stakeholders, or change their
+             *   risk/effort values — this skill must not introduce or alter stakeholder data,
+             *   only visualize it.
+             * - The user wants a persisted SysML model element — the map is a diagram/analysis
+             *   artifact only.
+             */
             name = "sysmod-stakeholder-priority-map";
             create_prompt =
                 "1. Use the risk and effort attribute values of each stakeholder in projectStakeholders (typed by ExtendedStakeholder) to position it on a two-dimensional map: risk on the y axis (low to critical, bottom to top), effort on the x axis (low to high, left to right).
@@ -296,6 +405,23 @@ package SYSMOD4AI {
         }
 
         metadata stakeholderNeedsAI : AI about stakeholderNeeds {
+            doc
+            /* Derives each stakeholder's high-level needs from the problem statement and
+             * stakeholder list — what they need the system to do or be, expressed at the intent
+             * level, not as requirements.
+             *
+             * When to use:
+             * - The user describes what stakeholders want, expect, or need from the system, in
+             *   their own words.
+             * - Stakeholders and the problem statement already exist and their needs must be
+             *   captured or validated before deriving formal requirements.
+             *
+             * When not to use:
+             * - The user is stating a verifiable, solution-neutral requirement rather than an
+             *   intent-level need — use systemRequirementSpecificationAI.
+             * - No stakeholders or problem statement exist yet — use projectStakeholdersAI /
+             *   problemStatementAI first, since needs must trace back to both.
+             */
             name = "sysmod-stakeholder-needs";
             create_prompt =
                 "1. Analyze the projectStakeholders and the problemStatement and derive the high-level needs of each stakeholder.
@@ -323,6 +449,25 @@ package SYSMOD4AI {
         }
 
         metadata systemIdeaContextAI : AI about systemIdeaContext {
+            doc
+            /* Develops the high-level system idea — an elevator-pitch-style outline of the new or
+             * changed system that answers the problem statement, at a conceptual level with no
+             * architecture yet.
+             *
+             * When to use:
+             * - The user proposes, sketches, or asks for a high-level concept, approach, or "big
+             *   idea" for solving the problem.
+             * - A problem statement exists and the project is ready to move from "why" to a
+             *   first-cut "what".
+             *
+             * When not to use:
+             * - The user wants detailed architecture, components, or technology choices — use
+             *   functionalContextAI, logicalContextAI, or productContextAI instead; the system
+             *   idea stays conceptual.
+             * - The user is describing the existing/as-is system — use brownfieldContextAI, not
+             *   this skill.
+             * - No problemStatement exists yet — create one first with problemStatementAI.
+             */
             name = "sysmod-system-idea";
             create_prompt =
                 "1. Based on the problemStatement, develop a high-level system idea: an elevator-pitch-style outline of the new or changed system that solves the stated problem.
@@ -350,6 +495,25 @@ package SYSMOD4AI {
         }
 
         metadata specificationContextAI : AI about specificationContext {
+            doc
+            /* Refines the system idea into a specification-level system with use cases
+             * describing how actors interact with it, still as a black-box/white-box context (no
+             * requirements yet).
+             *
+             * When to use:
+             * - The user wants to define or validate use cases, actor interactions, or the
+             *   specification-level system definition.
+             * - A system idea exists and is mature enough to describe concrete interactions with
+             *   actors.
+             *
+             * When not to use:
+             * - The user wants the initial high-level concept — use systemIdeaContextAI first.
+             * - The user is stating formal, verifiable requirements — use
+             *   systemRequirementSpecificationAI; this skill defines use cases and actors, not
+             *   requirement text.
+             * - The user is describing internal architecture or design — that comes later, in
+             *   functionalContextAI / logicalContextAI / productContextAI.
+             */
             name = "sysmod-specification-context";
             create_prompt =
                 "1. Specialize systemIdeaContext by redefining the soi part (black-box view) with a specification-level system definition, within specificationContext. Specialize specificationContext and systemIdeaContextImpl by redefining the soiImpl part (white-box view) with the matching specification implementation, within specificationContextImpl.
@@ -377,6 +541,22 @@ package SYSMOD4AI {
         }
 
         metadata systemRequirementSpecificationAI : AI about systemRequirementSpecification {
+            doc
+            /* Derives verifiable, solution-neutral system requirements from the stakeholder needs
+             * and specification-level use cases, each with obligation, stability, and motivation.
+             *
+             * When to use:
+             * - The user wants to state, refine, or validate formal system requirements.
+             * - Stakeholder needs and/or use cases already exist and need to be turned into
+             *   verifiable requirement statements traceable back to them.
+             *
+             * When not to use:
+             * - The user is expressing an intent-level want in their own words, not yet a
+             *   verifiable requirement — use stakeholderNeedsAI instead.
+             * - The user is proposing a design or technology choice — requirements must stay
+             *   solution-neutral; route architecture decisions to functionalContextAI /
+             *   logicalContextAI / productContextAI.
+             */
             name = "sysmod-system-requirements";
             create_prompt =
                 "1. Derive system requirements from the stakeholderNeeds, framed by the stakeholderNeeds and referencing the specificationSystem as subject.
@@ -407,6 +587,24 @@ package SYSMOD4AI {
         }
 
         metadata functionalContextAI : AI about functionalContext {
+            doc
+            /* Defines the optional functional architecture — technology-independent
+             * functions/actions derived from the specification's black-box view, without
+             * depending on physical structure.
+             *
+             * When to use:
+             * - The user wants to decompose the system into functions or behaviors (e.g. using
+             *   the FAS method), independent of implementation technology.
+             * - System requirements exist and the project has decided a functional architecture
+             *   is needed (it is optional in SYSMOD).
+             *
+             * When not to use:
+             * - The project doesn't need a functional decomposition — this artifact is optional;
+             *   skip it and go straight to logicalContextAI / productContextAI if so.
+             * - The user is naming concrete technologies, components, or physical structure —
+             *   that belongs in logicalContextAI (technology-independent building blocks) or
+             *   productContextAI (concrete parts), not here.
+             */
             name = "sysmod-functional-architecture";
             create_prompt =
                 "1. If a functional architecture is required, specialize specificationContext (black-box view) within functionalContext. Do not specialize specificationContextImpl — the functional architecture must not depend on the physical internal structure of the system.
@@ -434,6 +632,25 @@ package SYSMOD4AI {
         }
 
         metadata logicalContextAI : AI about logicalContext {
+            doc
+            /* Defines the optional logical architecture — technology-independent building blocks
+             * that realize the functional architecture (or the requirements directly), without
+             * naming concrete technologies.
+             *
+             * When to use:
+             * - The user wants to define logical components, subsystems, or a technology-
+             *   independent partitioning of the solution.
+             * - A functional architecture (or the requirements) exists and the project has
+             *   decided a logical architecture is needed (it is optional in SYSMOD).
+             *
+             * When not to use:
+             * - The project doesn't need a logical layer — this artifact is optional; go straight
+             *   to productContextAI if so.
+             * - The user names concrete/physical components, vendors, or deployment details —
+             *   that belongs in productContextAI, not here.
+             * - The user wants functions or behaviors rather than structural building blocks —
+             *   use functionalContextAI.
+             */
             name = "sysmod-logical-architecture";
             create_prompt =
                 "1. If a logical architecture is required, specialize specificationContext by redefining the soi part for the logical level.
@@ -461,6 +678,23 @@ package SYSMOD4AI {
         }
 
         metadata productContextAI : AI about productContext {
+            doc
+            /* Defines the concrete, physical or deployable product architecture that satisfies
+             * the system requirements — the only architecture context that is not optional.
+             *
+             * When to use:
+             * - The user wants to define concrete hardware/software components, physical parts,
+             *   or deployment structure, or connect them via ports/interfaces.
+             * - System requirements exist (and, if used, logical architecture) and the project is
+             *   ready to commit to concrete building blocks.
+             *
+             * When not to use:
+             * - The user wants technology-independent structure or behavior — use
+             *   logicalContextAI or functionalContextAI instead.
+             * - Product components would need to reference each other's internals directly
+             *   rather than through a published port/interface — flag that as a MOSA violation
+             *   rather than modeling it.
+             */
             name = "sysmod-product-architecture";
             create_prompt =
                 "1. Specialize specificationContextImpl for the product architecture by redefining the soiImpl part with a concrete product-level definition.
@@ -490,6 +724,23 @@ package SYSMOD4AI {
         }
 
         metadata subProjectsAI : AI about subProjects {
+            doc
+            /* Decomposes a project into sub-projects for distinct subsystems or components, each
+             * with its own narrower-scoped project artifacts.
+             *
+             * When to use:
+             * - The user wants to split a large project into subsystem- or component-level
+             *   projects, or asks how a subsystem/component should be organized as its own
+             *   project.
+             * - The system is complex enough that separate teams or scopes need their own
+             *   project context, sharing stakeholders or requirements with the parent.
+             *
+             * When not to use:
+             * - The project is small enough to stay a single, non-decomposed project — do not
+             *   create sub-projects speculatively.
+             * - The user wants to define an artifact within the current project's own scope —
+             *   use that artifact's own AI metadata instead of creating a sub-project.
+             */
             name = "sysmod-sub-projects";
             create_prompt =
                 "1. If the project is decomposed into sub-projects, create occurrence definitions specializing Project (or AIProject) for each sub-project.

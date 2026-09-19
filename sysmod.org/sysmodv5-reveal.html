@@ -2760,6 +2760,10 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
          * on-demand entry points that retell any element the user selects for stakeholders who do
          * not read SysML notation: story_prompt as a plain-language narrative, slide_prompt as a
          * single presentation slide.
+         * Each AI metadata usage documents its own "When to use" / "When not to use" section in
+         * its own doc comment, in the style of an AI-assistant skill's trigger/skip conditions, so
+         * these elements can be turned into Claude Skills or equivalent skill definitions for
+         * other LLM platforms.
          */</span>
         <span class="kw">attribute</span> name : <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
             <span class="kw">doc</span>
@@ -2812,6 +2816,24 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
          * feature identity, not inheritance.
          */</span>
         <span class="kw">metadata</span> projectAI : <span class="ty">AI</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* Scaffolds or validates the whole SYSMOD project: the root #project occurrence and,
+             * optionally, chains through all of its main artifacts in SYSMOD order.
+             *
+             * When to use:
+             * - Starting a brand-new SYSMOD project from scratch (kickoff), or the user asks to
+             *   scaffold an entire project end to end in one go.
+             * - Validating a whole project's structure and cross-artifact traceability chain,
+             *   rather than just one artifact in isolation.
+             *
+             * When not to use:
+             * - The user is working on a single artifact (e.g. only the problem statement, or
+             *   only the stakeholders) — use that artifact's own AI metadata (e.g.
+             *   problemStatementAI, projectStakeholdersAI) directly instead of going through the
+             *   whole project.
+             * - The project already exists and only the project owner needs to be identified or
+             *   changed — use projectOwnerAI.
+             */</span>
             name = "sysmod-project";
             create_prompt =
                 "1. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the project definition using the <span class="ty">SYSMOD</span>-defined keyword: '<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">PROJECTNAME</span> {}'
@@ -2839,6 +2861,22 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
 
         <span class="kw">metadata</span> projectOwnerAI : <span class="ty">AI</span> <span class="kw">about</span> projectOwner {
+            <span class="kw">doc</span>
+            <span class="cm">/* Identifies or updates the single stakeholder who is in charge of the project (the
+             * project owner) — a special ExtendedStakeholder with critical risk and low effort.
+             *
+             * When to use:
+             * - The user names or asks about who owns, sponsors, or is accountable for the
+             *   project.
+             * - The project's problemStatement needs a stakeholder set and no projectOwner exists
+             *   yet.
+             *
+             * When not to use:
+             * - Identifying the broader stakeholder set beyond the owner — use
+             *   projectStakeholdersAI.
+             * - The user is describing what the owner (or anyone else) needs from the system —
+             *   use stakeholderNeedsAI, not this skill.
+             */</span>
             name = "sysmod-project-owner";
             create_prompt =
                 "1. <span class="ty">If</span> the user has provided a projectOwner, <span class="kw">use</span> it. <span class="ty">If</span> not, ask the user for the projectOwner using appropriate questions <span class="kw">from</span> the questions field.
@@ -2862,6 +2900,25 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
 
         <span class="kw">metadata</span> brownfieldContextAI : <span class="ty">AI</span> <span class="kw">about</span> brownfieldContext {
+            <span class="kw">doc</span>
+            <span class="cm">/* Documents the existing (as-is) system and its actors before the project starts —
+             * the constraints and givens the project must work within.
+             *
+             * When to use:
+             * - The user describes an existing system, legacy system, current state, or "as-is"
+             *   situation that the project starts from.
+             * - The project is brownfield (an existing system is being changed or replaced) and
+             *   its current actors, subcomponents, or interfaces need to be captured before any
+             *   solution is proposed.
+             *
+             * When not to use:
+             * - The project is greenfield with no existing system to document — skip this skill
+             *   and go straight to problemStatementAI / systemIdeaContextAI.
+             * - The user is describing the new or changed system, its idea, or its architecture —
+             *   that is systemIdeaContextAI (idea) or functionalContextAI / logicalContextAI /
+             *   productContextAI (architecture), never this skill. Brownfield content must
+             *   contain no solution elements.
+             */</span>
             name = "sysmod-brownfield-context";
             create_prompt =
                 "1. <span class="ty">Analyze</span> the provided scenario and identify the brownfield system: the existing system, its relevant subcomponents, and all external actors (humans, external systems, environmental effects) that already interact with it before the project starts.
@@ -2892,6 +2949,24 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
 
         <span class="kw">metadata</span> problemStatementAI : <span class="ty">AI</span> <span class="kw">about</span> problemStatement {
+            <span class="kw">doc</span>
+            <span class="cm">/* Frames the problem the project is meant to solve, as a concise elevator-pitch style
+             * statement based on the brownfield system's deficiencies — never a solution.
+             *
+             * When to use:
+             * - The user wants to articulate, refine, or validate why the project exists — the
+             *   problem, pain point, or opportunity being addressed.
+             * - Starting a new project and no problem statement exists yet, or an existing one
+             *   needs to be checked against the SYSMOD rules (e.g. no premature solution
+             *   language).
+             *
+             * When not to use:
+             * - The user is describing the solution, the new system's idea, or its architecture —
+             *   use systemIdeaContextAI (or the architecture skills) instead; problemStatementAI
+             *   never describes "how", only "why".
+             * - The user wants individual stakeholder needs rather than the single overarching
+             *   problem — use stakeholderNeedsAI.
+             */</span>
             name = "sysmod-problem-statement";
             create_prompt =
                 "1. <span class="ty">Follow</span> the structure between engineering artifacts given by the <span class="ty">SYSMOD</span> <span class="kw">library</span>.
@@ -2925,6 +3000,23 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
 
         <span class="kw">metadata</span> projectStakeholdersAI : <span class="ty">AI</span> <span class="kw">about</span> projectStakeholders {
+            <span class="kw">doc</span>
+            <span class="cm">/* Identifies the individuals and organizations with an interest in the system
+             * (beyond the project owner) and assesses each one's risk, effort, and category.
+             *
+             * When to use:
+             * - The user asks who the users, customers, regulators, or other interested parties
+             *   are, or wants to identify or prioritize/assess stakeholders.
+             * - The brownfieldContext's actors need to be reflected as stakeholders, or a
+             *   stakeholder list needs validating for completeness.
+             *
+             * When not to use:
+             * - Identifying or updating specifically the project owner — use projectOwnerAI.
+             * - Capturing what a stakeholder needs from the system — use stakeholderNeedsAI, not
+             *   this skill.
+             * - Visualizing already-identified stakeholders on a risk/effort map — use
+             *   stakeholderPriorityMapAI once risk and effort are assessed here.
+             */</span>
             name = "sysmod-stakeholders";
             create_prompt =
                 "1. <span class="ty">Analyze</span> the brownfieldContext and the problemStatement and identify all relevant stakeholders (individuals or organizations with an interest <span class="kw">in</span> the system).
@@ -2954,6 +3046,24 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
 
         <span class="kw">metadata</span> stakeholderPriorityMapAI : <span class="ty">AI</span> <span class="kw">about</span> projectStakeholders {
+            <span class="kw">doc</span>
+            <span class="cm">/* Renders the project's already-identified stakeholders as a derived risk/effort
+             * priority map — an analysis view, not a persisted model element.
+             *
+             * When to use:
+             * - The user asks to visualize, prioritize, or compare stakeholders by risk and
+             *   effort, or wants a stakeholder map or matrix.
+             * - Stakeholders already exist in projectStakeholders with risk and effort assigned
+             *   (or the user is willing to supply missing values on request).
+             *
+             * When not to use:
+             * - No stakeholders have been identified yet — use projectStakeholdersAI first.
+             * - The user wants to add, remove, or change stakeholders, or change their
+             *   risk/effort values — this skill must not introduce or alter stakeholder data,
+             *   only visualize it.
+             * - The user wants a persisted SysML model element — the map is a diagram/analysis
+             *   artifact only.
+             */</span>
             name = "sysmod-stakeholder-priority-map";
             create_prompt =
                 "1. <span class="ty">Use</span> the risk and effort <span class="kw">attribute</span> values of each <span class="kw">stakeholder</span> <span class="kw">in</span> projectStakeholders (typed by <span class="ty">ExtendedStakeholder</span>) <span class="kw">to</span> position it on a two-dimensional map: risk on the y axis (low <span class="kw">to</span> critical, bottom <span class="kw">to</span> top), effort on the x axis (low <span class="kw">to</span> high, left <span class="kw">to</span> right).
@@ -2977,6 +3087,23 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
 
         <span class="kw">metadata</span> stakeholderNeedsAI : <span class="ty">AI</span> <span class="kw">about</span> stakeholderNeeds {
+            <span class="kw">doc</span>
+            <span class="cm">/* Derives each stakeholder's high-level needs from the problem statement and
+             * stakeholder list — what they need the system to do or be, expressed at the intent
+             * level, not as requirements.
+             *
+             * When to use:
+             * - The user describes what stakeholders want, expect, or need from the system, in
+             *   their own words.
+             * - Stakeholders and the problem statement already exist and their needs must be
+             *   captured or validated before deriving formal requirements.
+             *
+             * When not to use:
+             * - The user is stating a verifiable, solution-neutral requirement rather than an
+             *   intent-level need — use systemRequirementSpecificationAI.
+             * - No stakeholders or problem statement exist yet — use projectStakeholdersAI /
+             *   problemStatementAI first, since needs must trace back to both.
+             */</span>
             name = "sysmod-<span class="kw">stakeholder</span>-needs";
             create_prompt =
                 "1. <span class="ty">Analyze</span> the projectStakeholders and the problemStatement and derive the high-level needs of each <span class="kw">stakeholder</span>.
@@ -3004,6 +3131,25 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
 
         <span class="kw">metadata</span> systemIdeaContextAI : <span class="ty">AI</span> <span class="kw">about</span> systemIdeaContext {
+            <span class="kw">doc</span>
+            <span class="cm">/* Develops the high-level system idea — an elevator-pitch-style outline of the new or
+             * changed system that answers the problem statement, at a conceptual level with no
+             * architecture yet.
+             *
+             * When to use:
+             * - The user proposes, sketches, or asks for a high-level concept, approach, or "big
+             *   idea" for solving the problem.
+             * - A problem statement exists and the project is ready to move from "why" to a
+             *   first-cut "what".
+             *
+             * When not to use:
+             * - The user wants detailed architecture, components, or technology choices — use
+             *   functionalContextAI, logicalContextAI, or productContextAI instead; the system
+             *   idea stays conceptual.
+             * - The user is describing the existing/as-is system — use brownfieldContextAI, not
+             *   this skill.
+             * - No problemStatement exists yet — create one first with problemStatementAI.
+             */</span>
             name = "sysmod-system-idea";
             create_prompt =
                 "1. <span class="ty">Based</span> on the problemStatement, develop a high-level system idea: an elevator-pitch-style outline of the new or changed system that solves the stated problem.
@@ -3031,6 +3177,25 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
 
         <span class="kw">metadata</span> specificationContextAI : <span class="ty">AI</span> <span class="kw">about</span> specificationContext {
+            <span class="kw">doc</span>
+            <span class="cm">/* Refines the system idea into a specification-level system with use cases
+             * describing how actors interact with it, still as a black-box/white-box context (no
+             * requirements yet).
+             *
+             * When to use:
+             * - The user wants to define or validate use cases, actor interactions, or the
+             *   specification-level system definition.
+             * - A system idea exists and is mature enough to describe concrete interactions with
+             *   actors.
+             *
+             * When not to use:
+             * - The user wants the initial high-level concept — use systemIdeaContextAI first.
+             * - The user is stating formal, verifiable requirements — use
+             *   systemRequirementSpecificationAI; this skill defines use cases and actors, not
+             *   requirement text.
+             * - The user is describing internal architecture or design — that comes later, in
+             *   functionalContextAI / logicalContextAI / productContextAI.
+             */</span>
             name = "sysmod-specification-context";
             create_prompt =
                 "1. <span class="ty">Specialize</span> systemIdeaContext by redefining the soi <span class="kw">part</span> (black-box view) with a specification-level system definition, within specificationContext. <span class="ty">Specialize</span> specificationContext and systemIdeaContextImpl by redefining the soiImpl <span class="kw">part</span> (white-box view) with the matching specification implementation, within specificationContextImpl.
@@ -3058,6 +3223,22 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
 
         <span class="kw">metadata</span> systemRequirementSpecificationAI : <span class="ty">AI</span> <span class="kw">about</span> systemRequirementSpecification {
+            <span class="kw">doc</span>
+            <span class="cm">/* Derives verifiable, solution-neutral system requirements from the stakeholder needs
+             * and specification-level use cases, each with obligation, stability, and motivation.
+             *
+             * When to use:
+             * - The user wants to state, refine, or validate formal system requirements.
+             * - Stakeholder needs and/or use cases already exist and need to be turned into
+             *   verifiable requirement statements traceable back to them.
+             *
+             * When not to use:
+             * - The user is expressing an intent-level want in their own words, not yet a
+             *   verifiable requirement — use stakeholderNeedsAI instead.
+             * - The user is proposing a design or technology choice — requirements must stay
+             *   solution-neutral; route architecture decisions to functionalContextAI /
+             *   logicalContextAI / productContextAI.
+             */</span>
             name = "sysmod-system-requirements";
             create_prompt =
                 "1. <span class="ty">Derive</span> system requirements <span class="kw">from</span> the stakeholderNeeds, framed by the stakeholderNeeds and referencing the specificationSystem as <span class="kw">subject</span>.
@@ -3088,6 +3269,24 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
 
         <span class="kw">metadata</span> functionalContextAI : <span class="ty">AI</span> <span class="kw">about</span> functionalContext {
+            <span class="kw">doc</span>
+            <span class="cm">/* Defines the optional functional architecture — technology-independent
+             * functions/actions derived from the specification's black-box view, without
+             * depending on physical structure.
+             *
+             * When to use:
+             * - The user wants to decompose the system into functions or behaviors (e.g. using
+             *   the FAS method), independent of implementation technology.
+             * - System requirements exist and the project has decided a functional architecture
+             *   is needed (it is optional in SYSMOD).
+             *
+             * When not to use:
+             * - The project doesn't need a functional decomposition — this artifact is optional;
+             *   skip it and go straight to logicalContextAI / productContextAI if so.
+             * - The user is naming concrete technologies, components, or physical structure —
+             *   that belongs in logicalContextAI (technology-independent building blocks) or
+             *   productContextAI (concrete parts), not here.
+             */</span>
             name = "sysmod-functional-architecture";
             create_prompt =
                 "1. <span class="ty">If</span> a functional architecture is required, specialize specificationContext (black-box view) within functionalContext. <span class="ty">Do</span> not specialize specificationContextImpl — the functional architecture must not depend on the physical internal structure of the system.
@@ -3115,6 +3314,25 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
 
         <span class="kw">metadata</span> logicalContextAI : <span class="ty">AI</span> <span class="kw">about</span> logicalContext {
+            <span class="kw">doc</span>
+            <span class="cm">/* Defines the optional logical architecture — technology-independent building blocks
+             * that realize the functional architecture (or the requirements directly), without
+             * naming concrete technologies.
+             *
+             * When to use:
+             * - The user wants to define logical components, subsystems, or a technology-
+             *   independent partitioning of the solution.
+             * - A functional architecture (or the requirements) exists and the project has
+             *   decided a logical architecture is needed (it is optional in SYSMOD).
+             *
+             * When not to use:
+             * - The project doesn't need a logical layer — this artifact is optional; go straight
+             *   to productContextAI if so.
+             * - The user names concrete/physical components, vendors, or deployment details —
+             *   that belongs in productContextAI, not here.
+             * - The user wants functions or behaviors rather than structural building blocks —
+             *   use functionalContextAI.
+             */</span>
             name = "sysmod-logical-architecture";
             create_prompt =
                 "1. <span class="ty">If</span> a logical architecture is required, specialize specificationContext by redefining the soi <span class="kw">part</span> for the logical level.
@@ -3142,6 +3360,23 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
 
         <span class="kw">metadata</span> productContextAI : <span class="ty">AI</span> <span class="kw">about</span> productContext {
+            <span class="kw">doc</span>
+            <span class="cm">/* Defines the concrete, physical or deployable product architecture that satisfies
+             * the system requirements — the only architecture context that is not optional.
+             *
+             * When to use:
+             * - The user wants to define concrete hardware/software components, physical parts,
+             *   or deployment structure, or connect them via ports/interfaces.
+             * - System requirements exist (and, if used, logical architecture) and the project is
+             *   ready to commit to concrete building blocks.
+             *
+             * When not to use:
+             * - The user wants technology-independent structure or behavior — use
+             *   logicalContextAI or functionalContextAI instead.
+             * - Product components would need to reference each other's internals directly
+             *   rather than through a published port/interface — flag that as a MOSA violation
+             *   rather than modeling it.
+             */</span>
             name = "sysmod-product-architecture";
             create_prompt =
                 "1. <span class="ty">Specialize</span> specificationContextImpl for the product architecture by redefining the soiImpl <span class="kw">part</span> with a concrete product-level definition.
@@ -3171,6 +3406,23 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
 
         <span class="kw">metadata</span> subProjectsAI : <span class="ty">AI</span> <span class="kw">about</span> subProjects {
+            <span class="kw">doc</span>
+            <span class="cm">/* Decomposes a project into sub-projects for distinct subsystems or components, each
+             * with its own narrower-scoped project artifacts.
+             *
+             * When to use:
+             * - The user wants to split a large project into subsystem- or component-level
+             *   projects, or asks how a subsystem/component should be organized as its own
+             *   project.
+             * - The system is complex enough that separate teams or scopes need their own
+             *   project context, sharing stakeholders or requirements with the parent.
+             *
+             * When not to use:
+             * - The project is small enough to stay a single, non-decomposed project — do not
+             *   create sub-projects speculatively.
+             * - The user wants to define an artifact within the current project's own scope —
+             *   use that artifact's own AI metadata instead of creating a sub-project.
+             */</span>
             name = "sysmod-sub-projects";
             create_prompt =
                 "1. <span class="ty">If</span> the project is decomposed into sub-projects, create <span class="kw">occurrence</span> definitions specializing <span class="ty">Project</span> (or <span class="ty">AIProject</span>) for each sub-project.
@@ -3341,7 +3593,7 @@ function renderIntro(){
       <div class="slide-sub">Delegating a step to an AI assistant</div>
       <div class="content-grid content-grid--full">
         <div class="text-col text-col--wide">
-          <p>Every main artifact in the SYSMOD SysML v2 library carries AI metadata: a machine-readable skill with a name, create_questions, a create_prompt, and a validation_prompt, plus a perform_prompt that runs all three as one ready-to-execute workflow. AIProject attaches one of these to each main artifact of Project, in SYSMOD order; an assistant matches a given artifact's AI metadata (e.g. problemStatementAI) onto the identically-named feature of your own project — a real project stays a plain Project and never specializes AIProject. Two further prompts, story_prompt and slide_prompt, let an assistant explain any selected element to non-technical stakeholders. The layer below shows each step's skill, condensed from the library.</p>
+          <p>Every main artifact in the SYSMOD SysML v2 library carries AI metadata: a machine-readable skill with a name, create_questions, a create_prompt, and a validation_prompt, plus a perform_prompt that runs all three as one ready-to-execute workflow. AIProject attaches one of these to each main artifact of Project, in SYSMOD order; an assistant matches a given artifact's AI metadata (e.g. problemStatementAI) onto the identically-named feature of your own project — a real project stays a plain Project and never specializes AIProject. Two further prompts, story_prompt and slide_prompt, let an assistant explain any selected element to non-technical stakeholders. Each skill's own doc comment also spells out exactly when to use it and when not to — the same trigger/skip framing an AI-assistant skill would use — so these elements can be turned directly into Claude Skills or equivalent definitions for other LLM platforms; see the full library appendix in the Summary for the complete text. The layer below shows each step's skill, condensed from the library.</p>
           <pre class="code-block"><span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">AI</span> {
   <span class="kw">attribute</span> name;
   <span class="kw">attribute</span> create_prompt;

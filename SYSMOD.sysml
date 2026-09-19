@@ -108,7 +108,7 @@ library package SYSMOD {
         }
         part functionalContext[0..1] :> specificationContext {
             doc
-            /* The Functional Context is optional and specializes the black-box specification context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white-box solution context: a functional architecture contains only functional blocks and must not depend on the physical internal structure of the system. */
+            /* The Functional Context is optional and specializes the black-box specification context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white-box specification context: a functional architecture contains only functional blocks and must not depend on the physical internal structure of the system. */
             part <soi> functionalSystem :>> specificationContext::soi {
                 doc
                 /* The Functional System is the root element of the functional architecture. It redefines the black-box specification system and thereby inherits the context information such as the system ports, so that functions can be related to the system's external interfaces without depending on its physical internal structure. */
@@ -641,7 +641,7 @@ package SYSMOD4AI {
                 7. A specificationContext part usage is present and specializes systemIdeaContext; a specificationContextImpl part usage is present and specializes specificationContext and systemIdeaContextImpl.
                 8. A systemRequirementSpecification requirement usage is present and frames stakeholderNeeds.
                 9. A productContext part usage is present and specializes specificationContextImpl.
-                10. The cross-artifact traceability chain is intact: problemStatement <- stakeholderNeeds <- systemRequirementSpecification, and satisfy relationships exist at the system idea and solution levels.
+                10. The cross-artifact traceability chain is intact: problemStatement <- stakeholderNeeds <- systemRequirementSpecification, and satisfy relationships exist at the system idea and functional, logical, and product architecture levels.
                 11. If both functionalContext and logicalContext are present, the functional2logical allocation is defined; if logicalContext is present, the logical2product allocation is defined.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
@@ -900,7 +900,7 @@ package SYSMOD4AI {
             name = "sysmod-functional-architecture";
             create_prompt =
                 "1. If a functional architecture is required, specialize specificationContext (black-box view) within functionalContext. Do not specialize specificationContextImpl — the functional architecture must not depend on the physical internal structure of the system.
-                2. Redefine the inherited functionalSystem part (which redefines the black-box solution soi) as the root of the functional architecture (e.g., developed with the FAS method). It inherits the system ports, so functions can be related to the system's external interfaces.
+                2. Redefine the inherited functionalSystem part (which redefines the black-box specification soi) as the root of the functional architecture (e.g., developed with the FAS method). It inherits the system ports, so functions can be related to the system's external interfaces.
                 3. Define the top-level functions as action usages or part usages within the functionalSystem.
                 4. If allocations to the logical architecture are known, note them; formal allocations are expressed via the functional2logical allocation in the project.
                 5. Create the SysML v2 textual notation for the functionalContext.
@@ -914,12 +914,12 @@ package SYSMOD4AI {
                 "Validate the functionalContext against the SYSMOD Functional Architecture concept and report findings grouped as errors, warnings, and suggestions.
                 Check:
                 1. If present, the functionalContext part usage specializes specificationContext.
-                2. A functionalSystem part is present as the root of the functional decomposition, redefining the black-box solution soi.
+                2. A functionalSystem part is present as the root of the functional decomposition, redefining the black-box specification soi.
                 3. At least one top-level function is defined as an action usage or part usage within the functionalSystem.
                 4. Each top-level function is traceable to at least one system requirement (via satisfy, refine, or doc comment reference).
                 5. Functions are technology-independent — check for implementation-specific naming or structure that belongs in the logical or product architecture.
                 6. If a logicalContext is present in the project, a functional2logical allocation is defined connecting the functionalContext to the logicalContext.
-                7. The functionalSystem contains only functional blocks — no physical or internal structure of the system, which belongs in the white-box solution, logical, or product contexts.
+                7. The functionalSystem contains only functional blocks — no physical or internal structure of the system, which belongs in the white-box speccification, logical, or product contexts.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 

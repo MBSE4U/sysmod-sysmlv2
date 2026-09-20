@@ -1062,7 +1062,7 @@ const steps = [
     layers:{
       story:{ text:"Now the promises get specific. Maximum payload weight. Legal flight zones. Every requirement traces back to someone accountable for it.", img:"assets/09-requirements-story.jpg", slot:"09-requirements-story" },
       generic:{ subtitle: "", text:"A specific, verifiable statement of what the system must do or be, traceable to a stakeholder need and to the stakeholder accountable for it.", iso:"System Requirements Definition", img:null, slot:"09-requirements-generic" },
-      library:{ subtitle: "", text:"The requirement specification frames stakeholderNeeds. ExtendedRequirement extends the concern with obligation, stability, and motivation attributes for full traceability. A SYSMODRequirementBoilerplates package adds ready-to-specialize patterns — like MaxValue — for common quantitative constraints.", code:`<span class="kw">requirement</span> systemRequirementSpecification {
+      library:{ subtitle: "", text:"The requirement specification frames stakeholderNeeds. ExtendedRequirement extends the concern with obligation, stability, and motivation attributes for full traceability. A SYSMODRequirementsBoilerplates package adds ready-to-specialize patterns — like MaxValue — for common quantitative constraints.", code:`<span class="kw">requirement</span> systemRequirementSpecification {
   <span class="kw">doc</span> <span class="cm">/* Root element for the system requirements. */</span>
   <span class="kw">subject</span> specificationSystem :&gt; specificationContext.soi;
   <span class="kw">frame</span> stakeholderNeeds;
@@ -1109,7 +1109,7 @@ const steps = [
     <span class="kw">requirement</span> maxPayloadMass : <span class="ty">MaxPayloadMass</span>;
     <span class="kw">requirement</span> airCharging : <span class="ty">AirCharging</span>;
 }
-<span class="kw">#extendedRequirement requirement def</span> <span class="ty">MaxPayloadMass</span> :&gt; <span class="ty">SYSMODRequirementBoilerplates</span>::<span class="ty">MaxValue</span> {
+<span class="kw">#extendedRequirement requirement def</span> <span class="ty">MaxPayloadMass</span> :&gt; <span class="ty">SYSMODRequirementsBoilerplates</span>::<span class="ty">MaxValue</span> {
     <span class="kw">doc</span>
     <span class="cm">/* The system shall transport payloads with a mass of up to 5 kg. */</span>
     <span class="kw">attribute</span> :&gt;&gt; obligation = <span class="ty">ObligationKind</span>::mandatory;
@@ -1128,11 +1128,11 @@ const steps = [
     }
   },
   {
-    num:10, title:"Solution System Architecture", kicker:"The idea becomes a real design",
+    num:10, title:"Functional, Logical, Product Architecture", kicker:"The idea becomes a real design",
     layers:{
       story:{ text:"The idea, matured through specification, requirements, and use cases, becomes a real design \u2014 functional, logical, and product architecture stacked like building blocks.", img:"assets/10-architecture-story.jpg", slot:"10-architecture-story" },
       generic:{ subtitle: "", text:"The designed structure of the system \u2014 functional, logical, and product/physical \u2014 that satisfies the system requirements and implements the use cases.", iso:"Architecture Definition / Design Definition", img:null, slot:"10-architecture-generic" },
-      library:{ subtitle: "", text:"functionalContext, logicalContext, and productContext now specialize specificationContext (or its Impl) directly — the library dropped the intermediate solutionContext. productSystem itself now carries the satisfy relationship to the requirements.", code:`<span class="kw">part</span> functionalContext[0..1] :&gt; specificationContext {
+      library:{ subtitle: "", text:"The functional context, logical context, and product context specialize specification context (or its Impl). The product system itself now carries the satisfy relationship to the requirements.", code:`<span class="kw">part</span> functionalContext[0..1] :&gt; specificationContext {
   <span class="kw">part</span> &lt;soi&gt; functionalSystem :&gt;&gt; specificationContext::soi;
   <span class="cm">// black-box: no dependency on physical structure</span>
 }
@@ -1148,7 +1148,7 @@ const steps = [
     <span class="kw">allocate</span> functionalContext <span class="kw">to</span> logicalContext;
 <span class="kw">allocation</span> logical2product [0..1]
     <span class="kw">allocate</span> logicalContext <span class="kw">to</span> productContext;`, img:null, slot:"10-architecture-library" },
-      model:{ text:"The solution architecture is just a concept and is still in its very early stages. Three separate files now, one per architecture level. Functional groups actions by FAS method (still mostly empty scaffolding); Logical names the technology-independent building blocks; Product redefines the concrete parts already known from the brownfield and adds real ports — a radio link and a charging contact — connecting them.", code:`<span class="kw">#systemContext part def</span> DeliveryDroneFunctionalContext :&gt; DD_SPECIFICATION::DeliveryDroneSystemContext {
+      model:{ text:"The architecture is split into three separate files, one per level, each still maturing. Functional groups actions by FAS method (still mostly empty scaffolding); Logical names the technology-independent building blocks; Product redefines the concrete parts already known from the brownfield and adds real ports — a radio link and a charging contact — connecting them.", code:`<span class="kw">#systemContext part def</span> DeliveryDroneFunctionalContext :&gt; DD_SPECIFICATION::DeliveryDroneSystemContext {
   <span class="kw">#System part</span> :&gt;&gt; deliveryDroneSystem : DeliveryDroneFunctionalSystem;
 }
 <span class="kw">part def</span> DeliveryDroneFunctionalSystem :&gt; DD_SPECIFICATION::DeliveryDroneSystem {
@@ -1272,32 +1272,35 @@ const aiSkills = {
 <span class="kw">metadata</span> projectAI : <span class="kw">AI</span> {
   name = <span class="ty">"sysmod-project"</span>;
   create_prompt =
-    <span class="ty">"1. Create the SysML v2 textual notation for
-     the project definition using the SYSMOD-
-     defined keyword: '#project occurrence def
+    <span class="ty">"1. Create the SysML v2 textual notation for the
+     project definition using the SYSMOD-defined
+     keyword: '#project occurrence def
      PROJECTNAME {}'
-  2. Use the create_prompt of the AI metadata
-     of the projectOwner to create the project
+  2. Use the create_prompt of the AI metadata of
+     the projectOwner to create the project
      owner of the project.
   3. If not given by the user, use the questions
      to get the name of the project and the
      location where the project should be added.
-  4. Optionally continue with the other engineering
-     artifacts in SYSMOD order (brownfieldContext,
-     problemStatement, projectStakeholders,
-     stakeholderNeeds, systemIdeaContext,
-     specificationContext, systemRequirement-
-     Specification, solutionContext, functional-
-     Context, logicalContext, productContext)
-     using the create_prompts of their AI metadata."</span>;
+  4. Optionally continue with the other
+     engineering artifacts in SYSMOD order
+     (brownfieldContext, problemStatement,
+     projectStakeholders, stakeholderNeeds,
+     systemIdeaContext, specificationContext,
+     systemRequirementSpecification,
+     functionalContext, logicalContext,
+     productContext) using the create_prompts of
+     their AI metadata."</span>;
   create_questions = (
     <span class="ty">"What is the name of the project?"</span>,
     <span class="ty">"Where should I add the project definition?"</span>,
+    <span class="ty">"Who is the project owner?"</span>,
   );
   validation_prompt =
     <span class="ty">"Validate the project definition against the
      SYSMOD Project concept and report findings
-     grouped as errors, warnings, and suggestions.
+     grouped as errors, warnings, and
+     suggestions.
   Check:
   1. The project is defined as an occurrence
      definition annotated with the #project
@@ -1305,43 +1308,45 @@ const aiSkills = {
   2. A projectOwner part usage is present and
      subsets projectStakeholders.
   3. A brownfieldContext part usage is present
-     and typed by a SystemContext specialization;
-     a brownfieldContextImpl part usage is present
-     and specializes brownfieldContext.
-  4. A problemStatement concern usage is present.
+     and typed by a SystemContext
+     specialization; a brownfieldContextImpl
+     part usage is present and specializes
+     brownfieldContext.
+  4. A problemStatement concern usage is
+     present.
   5. A stakeholderNeeds concern usage is present
      and frames the problemStatement.
-  6. A systemIdeaContext part usage is present and
-     specializes brownfieldContext; a systemIdea-
-     ContextImpl part usage is present and
-     specializes systemIdeaContext and
+  6. A systemIdeaContext part usage is present
+     and specializes brownfieldContext; a
+     systemIdeaContextImpl part usage is present
+     and specializes systemIdeaContext and
      brownfieldContextImpl.
-  7. A specificationContext part usage is present
-     and specializes systemIdeaContext; a
-     specificationContextImpl part usage is present
-     and specializes specificationContext and
+  7. A specificationContext part usage is
+     present and specializes systemIdeaContext;
+     a specificationContextImpl part usage is
+     present and specializes
+     specificationContext and
      systemIdeaContextImpl.
-  8. A systemRequirementSpecification requirement
-     usage is present and frames stakeholderNeeds.
-  9. A solutionContext part usage is present and
-     specializes specificationContext; a solution-
-     ContextImpl part usage is present and
-     specializes solutionContext and
-     specificationContextImpl.
-  10. A productContext part usage is present and
-      specializes solutionContextImpl.
-  11. The cross-artifact traceability chain is
-      intact: problemStatement &lt;- stakeholderNeeds
-      &lt;- systemRequirementSpecification, and
+  8. A systemRequirementSpecification
+     requirement usage is present and frames
+     stakeholderNeeds.
+  9. A productContext part usage is present and
+     specializes specificationContextImpl.
+  10. The cross-artifact traceability chain is
+      intact: problemStatement &lt;-
+      stakeholderNeeds &lt;-
+      systemRequirementSpecification, and
       satisfy relationships exist at the system
-      idea and solution levels.
-  12. If both functionalContext and logicalContext
-      are present, the functional2logical allocation
-      is defined; if logicalContext is present, the
+      idea and functional, logical, and product
+      architecture levels.
+  11. If both functionalContext and
+      logicalContext are present, the
+      functional2logical allocation is defined;
+      if logicalContext is present, the
       logical2product allocation is defined.
   Report each finding with the element name, the
-  violated SYSMOD rule, and a concrete suggestion
-  for correction."</span>;
+  violated SYSMOD rule, and a concrete
+  suggestion for correction."</span>;
 }` },
 
   2: { text:"This is the actual AI metadata carried by problemStatementAI in the library, verbatim.",
@@ -1351,78 +1356,89 @@ const aiSkills = {
   create_prompt =
     <span class="ty">"1. Follow the structure between engineering
      artifacts given by the SYSMOD library.
-  2. Analyze the provided scenario. If forward
-     engineering, identify the problem statement
-     from the scenario. If reverse engineering,
-     identify it from the problem solved by the
-     given system.
-  3. Create a concise elevator-pitch style problem
-     statement text (typically 150-250 words).
+  2. Analyze the provided scenario. If it is
+     forward engineering, identify the problem
+     statement from the given scenario. If it is
+     reverse engineering, identify the problem
+     statement by identifying the problem that
+     is solved by the given system.
+  3. Create a concise elevator-pitch style
+     problem statement text (typically 150-250
+     words).
   4. Follow this format: 'How can we...'
-  5. Ensure the problem statement is based on the
-     brownfieldContext. If unavailable, create one
-     implied by the problem statement text using
-     the AI metadata about the brownfieldContext.
-  6. Ensure the problem statement does not jump to
-     the solution and describe it in advance.
-  7. Ensure the stakeholder projectOwner is set by
-     subsetting the corresponding part usage in the
-     project. If unavailable, use the create_prompt
-     of the AI metadata about the projectOwner.
-  8. If reverse engineering, create a satisfy
-     relationship between the given system and the
-     problem statement.
-  9. Create the SysML v2 textual notation for the
-     problemStatement.
-  10. If the user asks to insert the problemStatement
-      into the SysML model, find the project and the
-      problemStatement within it. If no project
-      exists, create one and insert the
-      problemStatement redefining the inherited
-      problemStatement concern usage. If it already
-      exists, update it."</span>;
+  5. Ensure the problem statement text is based
+     on the brownfieldContext. If the
+     brownfieldContext is not available, create
+     one that is implied by the problem
+     statement text using the AI metadata about
+     the brownfieldContext.
+  6. Ensure that the problem statement does not
+     jump to the solution and describe it in
+     advance.
+  7. Ensure that the stakeholder projectOwner is
+     set by subsetting the corresponding part
+     usage in the project, if given. If it is
+     not available, use the create_prompt of the
+     AI metadata about the projectOwner to
+     create one.
+  8. If it is reverse engineering, create a
+     satisfy relationship between the given
+     system and the problem statement.
+  9. Create the SysML v2 textual notation for
+     the problemStatement.
+  10. If the user asks to insert the
+      problemStatement into the SysML model,
+      find the project and the problemStatement
+      within the project. If no project exists,
+      create one and insert the problemStatement
+      into the project redefining the inherited
+      problemStatement concern usage. If the
+      problemStatement already exists, update
+      it."</span>;
   create_questions = (
     <span class="ty">"What is the core problem the system should solve?"</span>,
     <span class="ty">"What are the main deficiencies or pain points
      of the existing (brownfield) system?"</span>,
   );
   validation_prompt =
-    <span class="ty">"Validate the problemStatement against the
-     SYSMOD Problem Statement concept and report
+    <span class="ty">"Validate the problemStatement against the SYSMOD
+     Problem Statement concept and report
      findings grouped as errors, warnings, and
      suggestions.
   Check:
-  1. The problemStatement concern usage is present
-     in the project, redefining the inherited
-     problemStatement.
-  2. The subject references the brownfieldContextImpl
-     soiImpl (the existing system is the subject of
-     the problem).
-  3. The projectOwner is set as the stakeholder of
-     the problemStatement.
+  1. The problemStatement concern usage is
+     present in the project, redefining the
+     inherited problemStatement.
+  2. The subject references the
+     brownfieldContextImpl soiImpl (the existing
+     system is the subject of the problem).
+  3. The projectOwner is set as the stakeholder
+     of the problemStatement.
   4. The priority attribute is set to
      LevelKind::critical.
-  5. A doc comment is present containing the problem
-     statement text.
-  6. The problem statement text starts with 'How can
-     we...' or an equivalent problem-framing phrase.
-  7. The problem statement text describes the problem,
-     not a solution — check for premature solution
-     language (e.g., 'we will build', 'the new system
-     shall', named technologies or architectures).
+  5. A doc comment is present containing the
+     problem statement text.
+  6. The problem statement text starts with 'How
+     can we...' or an equivalent problem-framing
+     phrase.
+  7. The problem statement text describes the
+     problem, not a solution — check for
+     premature solution language (e.g., 'we will
+     build', 'the new system shall', named
+     technologies or architectures).
   8. The problem statement text references the
      brownfield system and its deficiencies.
-  9. The problem statement text is concise (typically
-     150-250 words).
-  10. If reverse engineering, a satisfy relationship
-      exists between the existing system and the
-      problemStatement.
+  9. The problem statement text is concise
+     (typically 150-250 words).
+  10. If it is reverse engineering, a satisfy
+      relationship exists between the existing
+      system and the problemStatement.
   Report each finding with the element name, the
-  violated SYSMOD rule, and a concrete suggestion
-  for correction."</span>;
+  violated SYSMOD rule, and a concrete
+  suggestion for correction."</span>;
 }` },
 
-  3: { text:"This is the actual AI metadata carried by projectStakeholdersAI in the library, verbatim.",
+  3: { text:"This is the actual AI metadata carried by projectStakeholdersAI in the library, verbatim. A companion derived-view skill, stakeholderPriorityMapAI, turns the same stakeholders into a risk/effort priority map — also reproduced verbatim below.",
     code:`<span class="cm">// projectStakeholdersAI, from the SYSMOD library</span>
 <span class="kw">metadata</span> projectStakeholdersAI : <span class="kw">AI</span> <span class="kw">about</span> projectStakeholders {
   name = <span class="ty">"sysmod-stakeholders"</span>;
@@ -1431,17 +1447,20 @@ const aiSkills = {
      problemStatement and identify all relevant
      stakeholders (individuals or organizations
      with an interest in the system).
-  2. For each stakeholder, create a part definition
-     specializing ExtendedStakeholder.
-  3. Assess and set the risk (risk of failure if
-     ignored?), effort (effort to identify their
-     concerns?), and one or more categories (user,
+  2. For each stakeholder, create a part
+     definition specializing
+     ExtendedStakeholder.
+  3. Assess and set the risk (what is the risk
+     of failure if this stakeholder is
+     ignored?), effort (how much effort is
+     needed to identify their concerns?), and
+     one or more stakeholder categories (user,
      requirementOwner, expert, other) for each
      stakeholder.
   4. Add each stakeholder as a named part usage
      subsetting projectStakeholders inside the
-     project, typed by the corresponding stakeholder
-     definition.
+     project, typed by the corresponding
+     stakeholder definition.
   5. Create the SysML v2 textual notation for all
      stakeholder definitions and their usages within
      the project.
@@ -1485,6 +1504,68 @@ const aiSkills = {
   9. No two stakeholders have identical risk, effort,
      and category values without a distinguishing doc
      comment explaining the distinction.
+  Report each finding with the element name, the
+  violated SYSMOD rule, and a concrete suggestion
+  for correction."</span>;
+}
+
+<span class="cm">// stakeholderPriorityMapAI, from the SYSMOD library</span>
+<span class="kw">metadata</span> stakeholderPriorityMapAI : <span class="kw">AI</span> <span class="kw">about</span> projectStakeholders {
+  name = <span class="ty">"sysmod-stakeholder-priority-map"</span>;
+  create_prompt =
+    <span class="ty">"1. Use the risk and effort attribute values of
+     each stakeholder in projectStakeholders (typed
+     by ExtendedStakeholder) to position it on a
+     two-dimensional map: risk on the y axis (low to
+     critical, bottom to top), effort on the x axis
+     (low to high, left to right).
+  2. Depict each stakeholder as a stakeholder symbol
+     labeled with its name, placed in the map cell
+     that matches its risk/effort combination.
+  3. If two or more stakeholders share the same
+     risk/effort combination, group their symbols
+     within the same cell without overlapping.
+  4. The stakeholder priority map is a derived view,
+     not a new model element — it must not introduce
+     new stakeholders or change existing risk/effort
+     values. If a stakeholder has no risk or effort
+     value assigned, ask the user for it or use the
+     create_prompt of projectStakeholdersAI first to
+     assess it.
+  5. Render the map as a diagram (e.g., SVG or a
+     described grid), not as SysML v2 textual
+     notation, since it is an analysis artifact
+     rather than a persisted model element."</span>;
+  create_questions = (
+    <span class="ty">"Which stakeholders (from projectStakeholders)
+     should be included in the map?"</span>,
+    <span class="ty">"Do all included stakeholders already have risk
+     and effort values assigned? If not, what are
+     they?"</span>,
+  );
+  validation_prompt =
+    <span class="ty">"Validate the stakeholder priority map against
+     the SYSMOD Stakeholder Priority Map concept and
+     report findings grouped as errors, warnings,
+     and suggestions.
+  Check:
+  1. Every stakeholder shown in the map corresponds
+     to an actual part usage subsetting
+     projectStakeholders in the project — no
+     invented stakeholders.
+  2. Every stakeholder in projectStakeholders with
+     both risk and effort assigned is represented
+     exactly once in the map — none silently
+     omitted.
+  3. Each stakeholder's position matches its risk (y
+     axis) and effort (x axis) attribute values
+     exactly.
+  4. Stakeholders sharing the same risk/effort cell
+     are all visible and distinguishable, not
+     overlapping or hidden.
+  5. The map does not introduce or imply risk/effort
+     values that are not set on the underlying
+     stakeholder definitions.
   Report each finding with the element name, the
   violated SYSMOD rule, and a concrete suggestion
   for correction."</span>;
@@ -1562,28 +1643,35 @@ const aiSkills = {
   name = <span class="ty">"sysmod-brownfield-context"</span>;
   create_prompt =
     <span class="ty">"1. Analyze the provided scenario and identify
-     the brownfield system: the existing system, its
-     relevant subcomponents, and all external actors
-     (humans, external systems, environmental
-     effects) that already interact with it before
-     the project starts.
+     the brownfield system: the existing system,
+     its relevant subcomponents, and all external
+     actors (humans, external systems,
+     environmental effects) that already interact
+     with it before the project starts.
   2. Create a part definition for the brownfield
-     system of interest specializing SystemContext.
-  3. For each identified actor, add a part usage
-     subsetting the inherited actors part.
-  4. For the black-box view, redefine the inherited
+     context specializing SystemContext.
+  3. Create a part definition for the brownfield
+     system of interest.
+  4. For each identified actor, create a part
+     definition in a subpackage named 'Actors', if
+     not already exists.
+  5. For each identified actor, add a part usage
+     defined by the corresponding part definition
+     and subsetting the part usage 'actors'
+     inherited from SystemContext.
+  6. For the black-box view, redefine the inherited
      soi part (within brownfieldContext) with an
      appropriately named and typed part definition.
      For the white-box view, redefine the inherited
      soiImpl part (within brownfieldContextImpl,
      which specializes brownfieldContext)
      accordingly.
-  5. Ensure the brownfield context reflects
+  7. Ensure the brownfield context reflects
      constraints and givens only — it must not
      include solution elements.
-  6. Create the SysML v2 textual notation for the
+  8. Create the SysML v2 textual notation for the
      brownfieldContext and brownfieldContextImpl.
-  7. If the user asks to insert the brownfieldContext
+  9. If the user asks to insert the brownfieldContext
      into the SysML model, find the project and
      redefine the inherited brownfieldContext and
      brownfieldContextImpl part usages. If the
@@ -1594,8 +1682,8 @@ const aiSkills = {
     <span class="ty">"Which external actors (users, operators,
      external systems, environments) interact with
      the existing system?"</span>,
-    <span class="ty">"Are there any known subcomponents or
-     subsystems of the existing system that are
+    <span class="ty">"Are there any known and preset subcomponents
+     or subsystems of the existing system that are
      relevant?"</span>,
   );
   validation_prompt =
@@ -1776,7 +1864,7 @@ const aiSkills = {
      inherited or redefined — no actor should
      silently disappear.
   8. The specificationContext does not contain
-     solution architecture elements — it should
+     solution elements — it should
      remain a black-box view of the system.
   Report each finding with the element name, the
   violated SYSMOD rule, and a concrete suggestion
@@ -1854,7 +1942,7 @@ const aiSkills = {
      inherited or redefined — no actor should
      silently disappear.
   8. The specificationContext does not contain
-     solution architecture elements — it should
+     solution elements — it should
      remain a black-box view of the system.
   Report each finding with the element name, the
   violated SYSMOD rule, and a concrete suggestion
@@ -1938,94 +2026,39 @@ const aiSkills = {
   for correction."</span>;
 }` },
 
-  10: { text:"Step 10 chains four AI metadata blocks from the library, all reproduced verbatim: the solution context, and the functional, logical, and product architectures.",
-    code:`<span class="cm">// solutionContextAI, from the SYSMOD library</span>
-<span class="kw">metadata</span> solutionContextAI : <span class="kw">AI</span> <span class="kw">about</span> solutionContext {
-  name = <span class="ty">"sysmod-solution-context"</span>;
-  create_prompt =
-    <span class="ty">"1. Specialize specificationContext by
-     redefining the soi part (black-box view) with a
-     solution-level system definition, within
-     solutionContext. Specialize solutionContext and
-     specificationContextImpl by redefining the
-     soiImpl part (white-box view) with the matching
-     solution implementation, within
-     solutionContextImpl.
-  2. The solutionSystemImpl must include a satisfy
-     relationship to the systemRequirementSpecification.
-  3. The solutionContext/solutionContextImpl pair is
-     the base for functional, logical, and product
-     architectures — keep it at the integration
-     level and avoid duplicating architecture
-     details that belong in those sub-contexts.
-  4. Create the SysML v2 textual notation for the
-     solutionContext and solutionContextImpl.
-  5. If the user asks to insert the solutionContext
-     into the SysML model, find the project and
-     redefine the inherited solutionContext and
-     solutionContextImpl part usages."</span>;
-  create_questions = (
-    <span class="ty">"What is the name of the solution system?"</span>,
-    <span class="ty">"Are there any top-level solution elements
-     already known at this stage?"</span>,
-  );
-  validation_prompt =
-    <span class="ty">"Validate the solutionContext and
-     solutionContextImpl against the SYSMOD Solution
-     Context concept and report findings grouped as
-     errors, warnings, and suggestions.
-  Check:
-  1. The solutionContext part usage is present in the
-     project and specializes specificationContext.
-  2. The soi part is redefined within solutionContext
-     with a named solution system definition that
-     specializes the specification soi.
-  3. The solutionContextImpl part usage is present,
-     specializes solutionContext and
-     specificationContextImpl, and redefines the
-     soiImpl part, specializing the solution soi.
-  4. The soiImpl contains a satisfy relationship to
-     the systemRequirementSpecification.
-  5. The solutionContext/solutionContextImpl pair does
-     not duplicate architecture details that belong
-     in functionalContext, logicalContext, or
-     productContext.
-  6. All actors from the specificationContext are
-     inherited or redefined — no actor should
-     silently disappear.
-  Report each finding with the element name, the
-  violated SYSMOD rule, and a concrete suggestion
-  for correction."</span>;
-}
-
-<span class="cm">// functionalContextAI, from the SYSMOD library</span>
+  10: { text:"Step 10 chains three AI metadata blocks from the library, all reproduced verbatim: the functional, logical, and product architectures.",
+    code:`<span class="cm">// functionalContextAI, from the SYSMOD library</span>
 <span class="kw">metadata</span> functionalContextAI : <span class="kw">AI</span> <span class="kw">about</span> functionalContext {
   name = <span class="ty">"sysmod-functional-architecture"</span>;
   create_prompt =
     <span class="ty">"1. If a functional architecture is required,
-     specialize solutionContext (black-box view)
-     within functionalContext. Do not specialize
-     solutionContextImpl — the functional
-     architecture must not depend on the physical
-     internal structure of the system.
-  2. Redefine the inherited functionalSystem part
-     (which redefines the black-box solution soi) as
-     the root of the functional architecture (e.g.,
-     developed with the FAS method). It inherits the
-     system ports, so functions can be related to
-     the system's external interfaces.
-  3. Define the top-level functions as action usages
-     or part usages within the functionalSystem.
-  4. If allocations to the logical architecture are
-     known, note them; formal allocations are
-     expressed via the functional2logical allocation
-     in the project.
-  5. Create the SysML v2 textual notation for the
-     functionalContext.
-  6. If the user asks to insert the functionalContext
-     into the SysML model, find the project and
-     redefine the inherited functionalContext part
-     usage (note: multiplicity is [0..1])."</span>;
+     specialize specificationContext (black-box
+     view) within functionalContext. Do not
+     specialize specificationContextImpl — the
+     functional architecture must not depend on
+     the physical internal structure of the
+     system.
+  2. Redefine the inherited functionalSystem
+     part (which redefines the black-box
+     specification soi) as the root of the
+     functional architecture (e.g., developed
+     with the FAS method). It inherits the
+     system ports, so functions can be related
+     to the system's external interfaces.
+  3. Define the top-level functions as action
+     usages or part usages within the
+     functionalSystem.
+  4. If allocations to the logical architecture
+     are known, note them; formal allocations
+     are expressed via the functional2logical
+     allocation in the project.
+  5. Create the SysML v2 textual notation for
+     the functionalContext.
+  6. If the user asks to insert the
+     functionalContext into the SysML model,
+     find the project and redefine the inherited
+     functionalContext part usage (note:
+     multiplicity is [0..1])."</span>;
   create_questions = (
     <span class="ty">"Is a functional architecture required for this
      project?"</span>,
@@ -2037,36 +2070,36 @@ const aiSkills = {
   validation_prompt =
     <span class="ty">"Validate the functionalContext against the
      SYSMOD Functional Architecture concept and
-     report findings grouped as errors, warnings,
-     and suggestions.
+     report findings grouped as errors,
+     warnings, and suggestions.
   Check:
-  1. If present, the functionalContext part usage
-     specializes solutionContext and has
-     multiplicity [0..1].
-  2. A functionalSystem part is present as the root
-     of the functional decomposition, redefining the
-     black-box solution soi.
-  3. At least one top-level function is defined as an
-     action usage or part usage within the
+  1. If present, the functionalContext part
+     usage specializes specificationContext.
+  2. A functionalSystem part is present as the
+     root of the functional decomposition,
+     redefining the black-box specification soi.
+  3. At least one top-level function is defined
+     as an action usage or part usage within the
      functionalSystem.
-  4. Each top-level function is traceable to at least
-     one system requirement (via satisfy, refine, or
-     doc comment reference).
-  5. Functions are technology-independent — check for
-     implementation-specific naming or structure
-     that belongs in the logical or product
-     architecture.
-  6. If a logicalContext is present in the project, a
-     functional2logical allocation is defined
-     connecting the functionalContext to the
-     logicalContext.
-  7. The functionalSystem contains only functional
-     blocks — no physical or internal structure of
-     the system, which belongs in the white-box
-     solution, logical, or product contexts.
+  4. Each top-level function is traceable to at
+     least one system requirement (via satisfy,
+     refine, or doc comment reference).
+  5. Functions are technology-independent —
+     check for implementation-specific naming or
+     structure that belongs in the logical or
+     product architecture.
+  6. If a logicalContext is present in the
+     project, a functional2logical allocation is
+     defined connecting the functionalContext to
+     the logicalContext.
+  7. The functionalSystem contains only
+     functional blocks — no physical or internal
+     structure of the system, which belongs in
+     the white-box specification, logical, or
+     product contexts.
   Report each finding with the element name, the
-  violated SYSMOD rule, and a concrete suggestion
-  for correction."</span>;
+  violated SYSMOD rule, and a concrete
+  suggestion for correction."</span>;
 }
 
 <span class="cm">// logicalContextAI, from the SYSMOD library</span>
@@ -2074,27 +2107,30 @@ const aiSkills = {
   name = <span class="ty">"sysmod-logical-architecture"</span>;
   create_prompt =
     <span class="ty">"1. If a logical architecture is required,
-     specialize solutionContextImpl by redefining
-     the soiImpl part for the logical level.
-  2. Define logical components as part usages within
-     logicalSystem (the redefined white-box
-     soiImpl), representing technology-independent
-     building blocks that realize the functional
-     architecture.
-  3. If allocations from the functional architecture
-     are known, note them; formal allocations are
-     expressed via the functional2logical allocation
-     in the project.
-  4. If allocations to the product architecture are
-     known, note them; formal allocations are
-     expressed via the logical2product allocation in
-     the project.
-  5. Create the SysML v2 textual notation for the
-     logicalContext.
-  6. If the user asks to insert the logicalContext
-     into the SysML model, find the project and
-     redefine the inherited logicalContext part
-     usage (note: multiplicity is [0..1])."</span>;
+     specialize specificationContext by
+     redefining the soi part for the logical
+     level.
+  2. Define logical components as part usages
+     within logicalSystem (the redefined
+     black-box soi), representing
+     technology-independent building blocks that
+     realize the functional architecture.
+  3. If allocations from the functional
+     architecture are known, note them; formal
+     allocations are expressed via the
+     functional2logical allocation in the
+     project.
+  4. If allocations to the product architecture
+     are known, note them; formal allocations
+     are expressed via the logical2product
+     allocation in the project.
+  5. Create the SysML v2 textual notation for
+     the logicalContext.
+  6. If the user asks to insert the
+     logicalContext into the SysML model, find
+     the project and redefine the inherited
+     logicalContext part usage (note:
+     multiplicity is [0..1])."</span>;
   create_questions = (
     <span class="ty">"Is a logical architecture required for this
      project?"</span>,
@@ -2105,16 +2141,15 @@ const aiSkills = {
      separation of concerns, layers)?"</span>,
   );
   validation_prompt =
-    <span class="ty">"Validate the logicalContext against the
-     SYSMOD Logical Architecture concept and report
+    <span class="ty">"Validate the logicalContext against the SYSMOD
+     Logical Architecture concept and report
      findings grouped as errors, warnings, and
      suggestions.
   Check:
   1. If present, the logicalContext part usage
-     specializes solutionContextImpl and has
-     multiplicity [0..1].
-  2. At least one logical component is defined as a
-     part usage within logicalSystem.
+     specializes specificationContext.
+  2. At least one logical component is defined
+     as a part usage within logicalSystem.
   3. Logical components are technology-independent —
      check for product-specific naming, vendor
      names, physical form factors, or
@@ -2142,8 +2177,8 @@ const aiSkills = {
 <span class="kw">metadata</span> productContextAI : <span class="kw">AI</span> <span class="kw">about</span> productContext {
   name = <span class="ty">"sysmod-product-architecture"</span>;
   create_prompt =
-    <span class="ty">"1. Specialize solutionContextImpl for the
-     product architecture by redefining the soiImpl
+    <span class="ty">"1. Specialize specificationContextImpl for
+     the product architecture by redefining the soiImpl
      part with a concrete product-level definition.
   2. Define product components as part usages within
      productSystem (the redefined white-box
@@ -2177,7 +2212,7 @@ const aiSkills = {
      suggestions.
   Check:
   1. The productContext part usage is present in the
-     project and specializes solutionContextImpl.
+     project and specializes specificationContextImpl.
   2. At least one product component is defined as a
      part usage within productSystem.
   3. Product components represent concrete, physical
@@ -2198,8 +2233,7 @@ const aiSkills = {
   7. All system requirements are satisfied — verify
      that a satisfy relationship chain exists from
      the product architecture back to the
-     systemRequirementSpecification (directly or via
-     the solutionSystemImpl in solutionContextImpl).
+     systemRequirementSpecification.
   8. Every dependency between two product
      components crosses only through a defined
      port/interface — flag any part-to-part
@@ -2303,7 +2337,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
     <span class="cm">/* 
      * Definition of SYSMOD v5 for SysML v2
      *
-     * Version v5.1 
+     * Version v5.1.3
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -2659,402 +2693,6 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
     <span class="kw">occurrence</span> constrainedOccurrences[*] : <span class="ty">ConstrainedOccurrence</span>;
 
     <span class="cm">//</span>
-    <span class="cm">// AI</span>
-    <span class="cm">//</span>
-    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">AI</span> {
-        <span class="kw">doc</span>
-        <span class="cm">/* Machine-readable AI instructions attached to SYSMOD artifacts. An AI assistant can use the
-         * create_prompt to create the annotated artifact, the create_questions to elicit missing
-         * information from the user, and the validation_prompt to check an existing artifact against
-         * the SYSMOD rules.
-         */</span>
-        <span class="kw">attribute</span> name : <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
-            <span class="kw">doc</span>
-            <span class="cm">/* Unique identifier of the AI skill, for example, 'sysmod-problem-statement'. */</span>
-        }
-        <span class="kw">attribute</span> create_prompt : <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
-            <span class="kw">doc</span>
-            <span class="cm">/* Step-by-step instructions for an AI assistant to create the annotated artifact. */</span>
-        }
-        <span class="kw">attribute</span> create_questions : <span class="ty">ScalarValues</span>::<span class="ty">String</span> [*] {
-            <span class="kw">doc</span>
-            <span class="cm">/* Questions the AI assistant can ask the user to elicit missing information. */</span>
-        }
-        <span class="kw">attribute</span> validation_prompt : <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
-            <span class="kw">doc</span>
-            <span class="cm">/* Instructions for an AI assistant to validate the annotated artifact against the SYSMOD rules. */</span>
-        }
-    }
-
-    <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">AIProject</span> :&gt; <span class="ty">Project</span> {
-        <span class="kw">doc</span>
-        <span class="cm">/* A SYSMOD Project enriched with AI metadata. Use AIProject instead of Project to enable AI-assisted
-         * creation and validation of the engineering artifacts. Each main artifact carries an AI metadata
-         * usage with prompts and questions; chained in SYSMOD order, they form a complete AI-assisted workflow.
-         */</span>
-        <span class="kw">metadata</span> projectAI : <span class="ty">AI</span> {
-            name = "sysmod-project";
-            create_prompt =
-                "1. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the project definition using the <span class="ty">SYSMOD</span>-defined keyword: '<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">PROJECTNAME</span> {}'
-                2. <span class="ty">Use</span> the create_prompt of the <span class="ty">AI</span> <span class="kw">metadata</span> of the projectOwner <span class="kw">to</span> create the project owner of the project.
-                3. <span class="ty">If</span> not given by the user, <span class="kw">use</span> the questions <span class="kw">to</span> get the name of the project and the location where the project should be added.
-                4. <span class="ty">Optionally</span> continue with the other engineering artifacts <span class="kw">in</span> <span class="ty">SYSMOD</span> order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, solutionContext, functionalContext, logicalContext, productContext) using the create_prompts of their <span class="ty">AI</span> <span class="kw">metadata</span>.";
-            create_questions = (
-                "<span class="ty">What</span> is the name of the project?", "<span class="ty">Where</span> should <span class="ty">I</span> add the project definition?",
-            );
-            validation_prompt =
-                "<span class="ty">Validate</span> the project definition against the <span class="ty">SYSMOD</span> <span class="ty">Project</span> concept and report findings grouped as errors, warnings, and suggestions.
-                <span class="ty">Check</span>:
-                1. <span class="ty">The</span> project is defined as an <span class="kw">occurrence</span> definition annotated with the <span class="kw">#project</span> keyword or specializing <span class="ty">Project</span>.
-                2. <span class="ty">A</span> projectOwner <span class="kw">part</span> usage is present and subsets projectStakeholders.
-                3. <span class="ty">A</span> brownfieldContext <span class="kw">part</span> usage is present and typed by a <span class="ty">SystemContext</span> specialization; a brownfieldContextImpl <span class="kw">part</span> usage is present and specializes brownfieldContext.
-                4. <span class="ty">A</span> problemStatement <span class="kw">concern</span> usage is present.
-                5. <span class="ty">A</span> stakeholderNeeds <span class="kw">concern</span> usage is present and frames the problemStatement.
-                6. <span class="ty">A</span> systemIdeaContext <span class="kw">part</span> usage is present and specializes brownfieldContext; a systemIdeaContextImpl <span class="kw">part</span> usage is present and specializes systemIdeaContext and brownfieldContextImpl.
-                7. <span class="ty">A</span> specificationContext <span class="kw">part</span> usage is present and specializes systemIdeaContext; a specificationContextImpl <span class="kw">part</span> usage is present and specializes specificationContext and systemIdeaContextImpl.
-                8. <span class="ty">A</span> systemRequirementSpecification <span class="kw">requirement</span> usage is present and frames stakeholderNeeds.
-                9. <span class="ty">A</span> solutionContext <span class="kw">part</span> usage is present and specializes specificationContext; a solutionContextImpl <span class="kw">part</span> usage is present and specializes solutionContext and specificationContextImpl.
-                10. <span class="ty">A</span> productContext <span class="kw">part</span> usage is present and specializes solutionContextImpl.
-                11. <span class="ty">The</span> cross-artifact traceability chain is intact: problemStatement &lt;- stakeholderNeeds &lt;- systemRequirementSpecification, and <span class="kw">satisfy</span> relationships exist at the system idea and solution levels.
-                12. <span class="ty">If</span> both functionalContext and logicalContext are present, the functional2logical <span class="kw">allocation</span> is defined; if logicalContext is present, the logical2product <span class="kw">allocation</span> is defined.
-                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
-        }
-
-        <span class="kw">metadata</span> projectOwnerAI : <span class="ty">AI</span> <span class="kw">about</span> projectOwner {
-            name = "sysmod-project-owner";
-            create_prompt =
-                "1. <span class="ty">If</span> the user has provided a projectOwner, <span class="kw">use</span> it. <span class="ty">If</span> not, ask the user for the projectOwner using appropriate questions <span class="kw">from</span> the questions field.
-                2. <span class="ty">Create</span> a concise projectOwner description.
-                3. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the projectOwner.
-                4. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the projectOwner into the <span class="ty">SysML</span> model, find the project and the projectOwner within the project. <span class="ty">If</span> no project exists, create one and insert the projectOwner into the project redefining the inherited projectOwner <span class="kw">part</span> usage. <span class="ty">If</span> the projectOwner already exists, update it.";
-            create_questions = (
-                "<span class="ty">Who</span> is the project owner?", "<span class="ty">Who</span> is responsible for the project?",
-            );
-            validation_prompt =
-                "<span class="ty">Validate</span> the projectOwner against the <span class="ty">SYSMOD</span> <span class="ty">Project</span> <span class="ty">Owner</span> concept and report findings grouped as errors, warnings, and suggestions.
-                <span class="ty">Check</span>:
-                1. <span class="ty">Exactly</span> one projectOwner <span class="kw">part</span> usage is present <span class="kw">in</span> the project, redefining the inherited projectOwner.
-                2. <span class="ty">The</span> projectOwner subsets projectStakeholders and is typed by an <span class="ty">ExtendedStakeholder</span> specialization.
-                3. <span class="ty">The</span> risk <span class="kw">attribute</span> is set <span class="kw">to</span> <span class="ty">LevelKind</span>::critical (the project owner always has critical risk).
-                4. <span class="ty">The</span> effort <span class="kw">attribute</span> is set <span class="kw">to</span> <span class="ty">LevelKind</span>::low (the project owner is typically easy <span class="kw">to</span> reach).
-                5. <span class="ty">The</span> categories <span class="kw">attribute</span> includes <span class="ty">StakeholderCategoryKind</span>::requirementOwner.
-                6. <span class="ty">The</span> projectOwner is referenced as the <span class="kw">stakeholder</span> of the problemStatement.
-                7. <span class="ty">A</span> meaningful name or <span class="kw">doc</span> comment identifies who the project owner is <span class="kw">in</span> the context of this project.
-                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
-        }
-
-        <span class="kw">metadata</span> brownfieldContextAI : <span class="ty">AI</span> <span class="kw">about</span> brownfieldContext {
-            name = "sysmod-brownfield-context";
-            create_prompt =
-                "1. <span class="ty">Analyze</span> the provided scenario and identify the brownfield system: the existing system, its relevant subcomponents, and all external actors (humans, external systems, environmental effects) that already interact with it before the project starts.
-                2. <span class="ty">Create</span> a <span class="kw">part</span> definition for the brownfield system of interest specializing <span class="ty">SystemContext</span>.
-                3. <span class="ty">For</span> each identified actor, add a <span class="kw">part</span> usage subsetting the inherited actors <span class="kw">part</span>.
-                4. <span class="ty">For</span> the black-box view, redefine the inherited soi <span class="kw">part</span> (within brownfieldContext) with an appropriately named and typed <span class="kw">part</span> definition. <span class="ty">For</span> the white-box view, redefine the inherited soiImpl <span class="kw">part</span> (within brownfieldContextImpl, which specializes brownfieldContext) accordingly.
-                5. <span class="ty">Ensure</span> the brownfield context reflects constraints and givens only — it must not include solution elements.
-                6. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the brownfieldContext and brownfieldContextImpl.
-                7. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the brownfieldContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited brownfieldContext and brownfieldContextImpl <span class="kw">part</span> usages. <span class="ty">If</span> the project does not exist, create one <span class="kw">first</span>.";
-            create_questions = (
-                "<span class="ty">What</span> is the name of the existing system (system of interest)?",
-                "<span class="ty">Which</span> external actors (users, operators, external systems, environments) interact with the existing system?",
-                "<span class="ty">Are</span> there any known subcomponents or subsystems of the existing system that are relevant?",
-            );
-            validation_prompt =
-                "<span class="ty">Validate</span> the brownfieldContext and brownfieldContextImpl against the <span class="ty">SYSMOD</span> <span class="ty">Brownfield</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
-                <span class="ty">Check</span>:
-                1. <span class="ty">The</span> brownfieldContext <span class="kw">part</span> usage is present <span class="kw">in</span> the project and typed by a <span class="ty">SystemContext</span> specialization.
-                2. <span class="ty">At</span> least one actor <span class="kw">part</span> usage subsetting actors is present, representing an external entity that interacts with the existing system.
-                3. <span class="ty">The</span> soi <span class="kw">part</span> is redefined within brownfieldContext with a named <span class="kw">part</span> definition representing the existing system of interest (black-box view).
-                4. <span class="ty">The</span> brownfieldContextImpl <span class="kw">part</span> usage is present, specializes brownfieldContext, and redefines the soiImpl <span class="kw">part</span> representing the white-box view of the existing system.
-                5. <span class="ty">Actor</span>-system interfaces (actorSystemInterfaces) <span class="kw">connect</span> actor ports <span class="kw">to</span> system ports.
-                6. <span class="ty">The</span> brownfield context contains only elements that exist before the project starts — no solution-specific parts, new system ideas, or future-state components.
-                7. <span class="ty">Each</span> actor has a meaningful name and, ideally, a <span class="kw">doc</span> comment describing its role.
-                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
-        }
-
-        <span class="kw">metadata</span> problemStatementAI : <span class="ty">AI</span> <span class="kw">about</span> problemStatement {
-            name = "sysmod-problem-statement";
-            create_prompt =
-                "1. <span class="ty">Follow</span> the structure between engineering artifacts given by the <span class="ty">SYSMOD</span> <span class="kw">library</span>.
-                2. <span class="ty">Analyze</span> the provided scenario. <span class="ty">If</span> it is forward engineering, identify the problem statement <span class="kw">from</span> the given scenario. <span class="ty">If</span> it is reverse engineering, identify the problem statement by identifying the problem that is solved by the given system.
-                3. <span class="ty">Create</span> a concise elevator-pitch style problem statement text (typically 150-250 words).
-                4. <span class="ty">Follow</span> this format: '<span class="ty">How</span> can we...'
-                5. <span class="ty">Ensure</span> the problem statement text is based on the brownfieldContext. <span class="ty">If</span> the brownfieldContext is not available, create one that is implied by the problem statement text using the <span class="ty">AI</span> <span class="kw">metadata</span> <span class="kw">about</span> the brownfieldContext.
-                6. <span class="ty">Ensure</span> that the problem statement does not jump <span class="kw">to</span> the solution and describe it <span class="kw">in</span> advance.
-                7. <span class="ty">Ensure</span> that the <span class="kw">stakeholder</span> projectOwner is set by subsetting the corresponding <span class="kw">part</span> usage <span class="kw">in</span> the project, if given. <span class="ty">If</span> it is not available, <span class="kw">use</span> the create_prompt of the <span class="ty">AI</span> <span class="kw">metadata</span> <span class="kw">about</span> the projectOwner <span class="kw">to</span> create one.
-                8. <span class="ty">If</span> it is reverse engineering, create a <span class="kw">satisfy</span> relationship between the given system and the problem statement.
-                9. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the problemStatement.
-                10. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the problemStatement into the <span class="ty">SysML</span> model, find the project and the problemStatement within the project. <span class="ty">If</span> no project exists, create one and insert the problemStatement into the project redefining the inherited problemStatement <span class="kw">concern</span> usage. <span class="ty">If</span> the problemStatement already exists, update it.";
-            create_questions = (
-                "<span class="ty">What</span> is the core problem the system should solve?",
-                "<span class="ty">What</span> are the main deficiencies or pain points of the existing (brownfield) system?",
-            );
-            validation_prompt =
-                "<span class="ty">Validate</span> the problemStatement against the <span class="ty">SYSMOD</span> <span class="ty">Problem</span> <span class="ty">Statement</span> concept and report findings grouped as errors, warnings, and suggestions.
-                <span class="ty">Check</span>:
-                1. <span class="ty">The</span> problemStatement <span class="kw">concern</span> usage is present <span class="kw">in</span> the project, redefining the inherited problemStatement.
-                2. <span class="ty">The</span> <span class="kw">subject</span> references the brownfieldContextImpl soiImpl (the existing system is the <span class="kw">subject</span> of the problem).
-                3. <span class="ty">The</span> projectOwner is set as the <span class="kw">stakeholder</span> of the problemStatement.
-                4. <span class="ty">The</span> priority <span class="kw">attribute</span> is set <span class="kw">to</span> <span class="ty">LevelKind</span>::critical.
-                5. <span class="ty">A</span> <span class="kw">doc</span> comment is present containing the problem statement text.
-                6. <span class="ty">The</span> problem statement text starts with '<span class="ty">How</span> can we...' or an equivalent problem-framing phrase.
-                7. <span class="ty">The</span> problem statement text describes the problem, not a solution — check for premature solution language (e.g., 'we will build', 'the new system shall', named technologies or architectures).
-                8. <span class="ty">The</span> problem statement text references the brownfield system and its deficiencies.
-                9. <span class="ty">The</span> problem statement text is concise (typically 150-250 words).
-                10. <span class="ty">If</span> it is reverse engineering, a <span class="kw">satisfy</span> relationship exists between the existing system and the problemStatement.
-                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
-        }
-
-        <span class="kw">metadata</span> projectStakeholdersAI : <span class="ty">AI</span> <span class="kw">about</span> projectStakeholders {
-            name = "sysmod-stakeholders";
-            create_prompt =
-                "1. <span class="ty">Analyze</span> the brownfieldContext and the problemStatement and identify all relevant stakeholders (individuals or organizations with an interest <span class="kw">in</span> the system).
-                2. <span class="ty">For</span> each <span class="kw">stakeholder</span>, create a <span class="kw">part</span> definition specializing <span class="ty">ExtendedStakeholder</span>.
-                3. <span class="ty">Assess</span> and set the risk (what is the risk of failure if this <span class="kw">stakeholder</span> is ignored?), effort (how much effort is needed <span class="kw">to</span> identify their concerns?), and one or more <span class="kw">stakeholder</span> categories (user, requirementOwner, expert, other) for each <span class="kw">stakeholder</span>.
-                4. <span class="ty">Add</span> each <span class="kw">stakeholder</span> as a named <span class="kw">part</span> usage subsetting projectStakeholders inside the project, typed by the corresponding <span class="kw">stakeholder</span> definition.
-                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for all <span class="kw">stakeholder</span> definitions and their usages within the project.
-                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the stakeholders into the <span class="ty">SysML</span> model, find the project and add or update the <span class="kw">stakeholder</span> <span class="kw">part</span> usages.";
-            create_questions = (
-                "<span class="ty">Who</span> are the primary users of the system?",
-                "<span class="ty">Which</span> organizations or roles own or define the requirements?",
-                "<span class="ty">Are</span> there regulatory bodies, standards authorities, or other external parties with an interest <span class="kw">in</span> the system?",
-            );
-            validation_prompt =
-                "<span class="ty">Validate</span> the projectStakeholders against the <span class="ty">SYSMOD</span> <span class="ty">Stakeholders</span> concept and report findings grouped as errors, warnings, and suggestions.
-                <span class="ty">Check</span>:
-                1. <span class="ty">At</span> least one <span class="kw">stakeholder</span> <span class="kw">part</span> usage (beyond the projectOwner) subsets projectStakeholders.
-                2. <span class="ty">Each</span> <span class="kw">stakeholder</span> <span class="kw">part</span> usage is typed by a <span class="kw">part</span> definition specializing <span class="ty">ExtendedStakeholder</span>.
-                3. <span class="ty">Each</span> <span class="kw">stakeholder</span> definition has the risk <span class="kw">attribute</span> set <span class="kw">to</span> a non-<span class="kw">default</span> <span class="ty">LevelKind</span> value (i.e., not <span class="ty">LevelKind</span>::none).
-                4. <span class="ty">Each</span> <span class="kw">stakeholder</span> definition has the effort <span class="kw">attribute</span> set <span class="kw">to</span> a non-<span class="kw">default</span> <span class="ty">LevelKind</span> value (i.e., not <span class="ty">LevelKind</span>::none).
-                5. <span class="ty">Each</span> <span class="kw">stakeholder</span> definition has at least one category assigned <span class="kw">from</span> <span class="ty">StakeholderCategoryKind</span>.
-                6. <span class="ty">The</span> set of stakeholders covers all actors present <span class="kw">in</span> the brownfieldContext — every actor should map <span class="kw">to</span> at least one <span class="kw">stakeholder</span>.
-                7. <span class="ty">At</span> least one <span class="kw">stakeholder</span> with category requirementOwner is present (beyond the projectOwner).
-                8. <span class="ty">Each</span> <span class="kw">stakeholder</span> has a <span class="kw">doc</span> comment or name that clearly identifies its role.
-                9. <span class="ty">No</span> two stakeholders have identical risk, effort, and category values without a distinguishing <span class="kw">doc</span> comment explaining the distinction.
-                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
-        }
-
-        <span class="kw">metadata</span> stakeholderNeedsAI : <span class="ty">AI</span> <span class="kw">about</span> stakeholderNeeds {
-            name = "sysmod-<span class="kw">stakeholder</span>-needs";
-            create_prompt =
-                "1. <span class="ty">Analyze</span> the projectStakeholders and the problemStatement and derive the high-level needs of each <span class="kw">stakeholder</span>.
-                2. <span class="ty">For</span> each <span class="kw">stakeholder</span> need, create a <span class="kw">concern</span> usage subsetting stakeholderNeeds, framed by the problemStatement and referencing the brownfield system (the soiImpl of brownfieldContextImpl) as its <span class="kw">subject</span>.
-                3. <span class="ty">Ensure</span> each need is expressed <span class="kw">from</span> the <span class="kw">stakeholder</span>'s perspective and describes what they need the system <span class="kw">to</span> do or be, not how.
-                4. <span class="ty">Do</span> not express needs as solution-specific requirements; keep them at the <span class="kw">stakeholder</span> intent level.
-                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the stakeholderNeeds.
-                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the stakeholderNeeds into the <span class="ty">SysML</span> model, find the project and redefine the inherited stakeholderNeeds <span class="kw">concern</span> usage. <span class="ty">If</span> the project does not exist, create one <span class="kw">first</span>.";
-            create_questions = (
-                "<span class="ty">What</span> does each <span class="kw">stakeholder</span> group need the system <span class="kw">to</span> do or be?",
-                "<span class="ty">Are</span> there any known constraints or non-functional needs (safety, cost, compliance) expressed by stakeholders?",
-            );
-            validation_prompt =
-                "<span class="ty">Validate</span> the stakeholderNeeds against the <span class="ty">SYSMOD</span> <span class="ty">Stakeholder</span> <span class="ty">Needs</span> concept and report findings grouped as errors, warnings, and suggestions.
-                <span class="ty">Check</span>:
-                1. <span class="ty">The</span> stakeholderNeeds <span class="kw">concern</span> usage is present <span class="kw">in</span> the project, redefining the inherited stakeholderNeeds.
-                2. <span class="ty">The</span> stakeholderNeeds frames the problemStatement.
-                3. <span class="ty">The</span> <span class="kw">subject</span> references the brownfieldContextImpl soiImpl.
-                4. <span class="ty">At</span> least one <span class="kw">stakeholder</span> need is defined as a nested <span class="kw">concern</span> usage.
-                5. <span class="ty">Each</span> <span class="kw">stakeholder</span> need is traceable <span class="kw">to</span> at least one <span class="kw">stakeholder</span> <span class="kw">from</span> projectStakeholders (via <span class="kw">stakeholder</span> reference or <span class="kw">doc</span> comment attribution).
-                6. <span class="ty">Each</span> need is expressed at the <span class="kw">stakeholder</span> intent level — check for premature solution or design language (e.g., specific technologies, implementation details, design choices).
-                7. <span class="ty">The</span> set of <span class="kw">stakeholder</span> needs covers all projectStakeholders — no <span class="kw">stakeholder</span> group should be left without at least one associated need.
-                8. <span class="ty">Each</span> need has a <span class="kw">doc</span> comment or name that is understandable without reading the full model.
-                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
-        }
-
-        <span class="kw">metadata</span> systemIdeaContextAI : <span class="ty">AI</span> <span class="kw">about</span> systemIdeaContext {
-            name = "sysmod-system-idea";
-            create_prompt =
-                "1. <span class="ty">Based</span> on the problemStatement, develop a high-level system idea: an elevator-pitch-style outline of the new or changed system that solves the stated problem.
-                2. <span class="ty">Specialize</span> brownfieldContext by redefining the soi <span class="kw">part</span> (black-box view) with a named system idea definition, within systemIdeaContext. <span class="ty">Specialize</span> systemIdeaContext and brownfieldContextImpl by redefining the soiImpl <span class="kw">part</span> (white-box view) with the matching system idea implementation, within systemIdeaContextImpl. <span class="ty">The</span> systemIdeaSystemImpl must include a <span class="kw">satisfy</span> relationship <span class="kw">to</span> the problemStatement.
-                3. <span class="ty">Add</span> any additional actors that are introduced by the system idea and are not already present <span class="kw">in</span> the brownfieldContext.
-                4. <span class="ty">Keep</span> the system idea at a conceptual level — no detailed architecture or design decisions.
-                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the systemIdeaContext and systemIdeaContextImpl.
-                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the systemIdeaContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited systemIdeaContext and systemIdeaContextImpl <span class="kw">part</span> usages. <span class="ty">If</span> the project does not exist, create one <span class="kw">first</span>.";
-            create_questions = (
-                "<span class="ty">What</span> is the high-level concept or approach for the new or changed system?",
-                "<span class="ty">Are</span> there any new actors introduced by the system idea that do not exist <span class="kw">in</span> the brownfield?",
-            );
-            validation_prompt =
-                "<span class="ty">Validate</span> the systemIdeaContext and systemIdeaContextImpl against the <span class="ty">SYSMOD</span> <span class="ty">System</span> <span class="ty">Idea</span> concept and report findings grouped as errors, warnings, and suggestions.
-                <span class="ty">Check</span>:
-                1. <span class="ty">The</span> systemIdeaContext <span class="kw">part</span> usage is present <span class="kw">in</span> the project and specializes brownfieldContext.
-                2. <span class="ty">The</span> soi <span class="kw">part</span> is redefined within systemIdeaContext with a named system idea definition that specializes the brownfield soi.
-                3. <span class="ty">The</span> systemIdeaContextImpl <span class="kw">part</span> usage is present, specializes systemIdeaContext and brownfieldContextImpl, and redefines the soiImpl <span class="kw">part</span>, specializing the system idea soi.
-                4. <span class="ty">The</span> soiImpl contains a <span class="kw">satisfy</span> relationship <span class="kw">to</span> the problemStatement.
-                5. <span class="ty">All</span> actors <span class="kw">from</span> the brownfieldContext are inherited or explicitly redefined — no brownfield actor should silently disappear.
-                6. <span class="ty">Any</span> new actors introduced by the system idea are added as additional actor <span class="kw">part</span> usages.
-                7. <span class="ty">The</span> system idea stays at a conceptual level — check for premature architecture or design detail (e.g., specific components, protocols, or technologies named <span class="kw">in</span> the soiImpl structure).
-                8. <span class="ty">A</span> <span class="kw">doc</span> comment on the soiImpl describes the system idea <span class="kw">in</span> elevator-pitch style.
-                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
-        }
-
-        <span class="kw">metadata</span> specificationContextAI : <span class="ty">AI</span> <span class="kw">about</span> specificationContext {
-            name = "sysmod-specification-context";
-            create_prompt =
-                "1. <span class="ty">Specialize</span> systemIdeaContext by redefining the soi <span class="kw">part</span> (black-box view) with a specification-level system definition, within specificationContext. <span class="ty">Specialize</span> specificationContext and systemIdeaContextImpl by redefining the soiImpl <span class="kw">part</span> (white-box view) with the matching specification implementation, within specificationContextImpl.
-                2. <span class="ty">Identify</span> and add any actors or subcomponents that become visible during requirements analysis (e.g., specific interfaces, subsystems defined at the black-box level).
-                3. <span class="ty">Add</span> system <span class="kw">use</span> cases <span class="kw">to</span> the specificationContext that describe how actors interact with the system of interest at the specification level.
-                4. <span class="ty">Ensure</span> the specificationContext owns the <span class="kw">use</span> cases and that each <span class="kw">use</span> <span class="kw">case</span> references the specificationSystem as its <span class="kw">subject</span>.
-                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the specificationContext and specificationContextImpl, including actor parts and <span class="kw">use</span> <span class="kw">case</span> usages.
-                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the specificationContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited specificationContext and specificationContextImpl <span class="kw">part</span> usages.";
-            create_questions = (
-                "<span class="ty">Which</span> <span class="kw">use</span> cases describe how actors interact with the system?",
-                "<span class="ty">Are</span> there additional actors or subcomponents that become visible at the specification level?",
-            );
-            validation_prompt =
-                "<span class="ty">Validate</span> the specificationContext and specificationContextImpl against the <span class="ty">SYSMOD</span> <span class="ty">Specification</span> <span class="ty">Context</span> concept and report findings grouped as errors, warnings, and suggestions.
-                <span class="ty">Check</span>:
-                1. <span class="ty">The</span> specificationContext <span class="kw">part</span> usage is present <span class="kw">in</span> the project and specializes systemIdeaContext.
-                2. <span class="ty">The</span> soi <span class="kw">part</span> is redefined within specificationContext with a named specification system definition that specializes the system idea soi.
-                3. <span class="ty">The</span> specificationContextImpl <span class="kw">part</span> usage is present, specializes specificationContext and systemIdeaContextImpl, and redefines the soiImpl <span class="kw">part</span>, specializing the specification soi.
-                4. <span class="ty">At</span> least one <span class="kw">use</span> <span class="kw">case</span> usage is present <span class="kw">in</span> the specificationContext, referencing the specificationSystem as its <span class="kw">subject</span>.
-                5. <span class="ty">Each</span> <span class="kw">use</span> <span class="kw">case</span> has at least one actor involved (include or extend relationships, or actor references <span class="kw">in</span> the <span class="kw">use</span> <span class="kw">case</span> <span class="kw">subject</span>/<span class="kw">stakeholder</span>).
-                6. <span class="ty">Each</span> <span class="kw">use</span> <span class="kw">case</span> has a meaningful name and <span class="kw">doc</span> comment describing the interaction goal.
-                7. <span class="ty">All</span> actors <span class="kw">from</span> the systemIdeaContext are inherited or redefined — no actor should silently disappear.
-                8. <span class="ty">The</span> specificationContext does not contain solution architecture elements — it should remain a black-box view of the system.
-                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
-        }
-
-        <span class="kw">metadata</span> systemRequirementSpecificationAI : <span class="ty">AI</span> <span class="kw">about</span> systemRequirementSpecification {
-            name = "sysmod-system-requirements";
-            create_prompt =
-                "1. <span class="ty">Derive</span> system requirements <span class="kw">from</span> the stakeholderNeeds, framed by the stakeholderNeeds and referencing the specificationSystem as <span class="kw">subject</span>.
-                2. <span class="ty">For</span> each <span class="kw">requirement</span>, create a <span class="kw">requirement</span> usage or definition specializing <span class="ty">ExtendedRequirement</span>. <span class="ty">Set</span> obligation (mandatory/optional), stability (stable/unstable), and a brief motivation.
-                3. <span class="ty">Ensure</span> each <span class="kw">requirement</span> is verifiable, unambiguous, and solution-neutral where possible.
-                4. <span class="ty">Group</span> requirements logically (e.g., functional, performance, safety, <span class="kw">interface</span>) using nested <span class="kw">requirement</span> usages if appropriate.
-                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the systemRequirementSpecification.
-                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the systemRequirementSpecification into the <span class="ty">SysML</span> model, find the project and redefine the inherited systemRequirementSpecification <span class="kw">requirement</span> usage.";
-            create_questions = (
-                "<span class="ty">What</span> are the key functional requirements of the system?",
-                "<span class="ty">Are</span> there non-functional requirements (performance, safety, reliability, compliance)?",
-                "<span class="ty">Which</span> requirements are mandatory and which are optional?",
-            );
-            validation_prompt =
-                "<span class="ty">Validate</span> the systemRequirementSpecification against the <span class="ty">SYSMOD</span> <span class="ty">System</span> <span class="ty">Requirements</span> concept and report findings grouped as errors, warnings, and suggestions.
-                <span class="ty">Check</span>:
-                1. <span class="ty">The</span> systemRequirementSpecification <span class="kw">requirement</span> usage is present <span class="kw">in</span> the project, framing the stakeholderNeeds.
-                2. <span class="ty">The</span> <span class="kw">subject</span> references the specificationContext soi (the specification system is the <span class="kw">subject</span> of the requirements).
-                3. <span class="ty">At</span> least one system <span class="kw">requirement</span> is defined as a nested <span class="kw">requirement</span> usage or definition.
-                4. <span class="ty">Each</span> <span class="kw">requirement</span> specializes <span class="ty">ExtendedRequirement</span> and has the obligation <span class="kw">attribute</span> set (not <span class="ty">ObligationKind</span>::none).
-                5. <span class="ty">Each</span> <span class="kw">requirement</span> has the stability <span class="kw">attribute</span> set (not <span class="ty">StabilityKind</span>::none).
-                6. <span class="ty">Each</span> <span class="kw">requirement</span> has a non-empty motivation <span class="kw">attribute</span> explaining why the <span class="kw">requirement</span> exists.
-                7. <span class="ty">Each</span> <span class="kw">requirement</span> is traceable <span class="kw">to</span> at least one <span class="kw">stakeholder</span> need (via <span class="kw">frame</span> or derive relationships, or <span class="kw">doc</span> comment reference).
-                8. <span class="ty">Each</span> <span class="kw">requirement</span> text is verifiable — check for vague qualifiers without measurable criteria (e.g., 'fast', 'easy', 'reliable' without a threshold).
-                9. <span class="ty">Each</span> <span class="kw">requirement</span> is solution-neutral — check for implementation-specific language (named technologies, specific designs) that constrain the solution unnecessarily.
-                10. <span class="ty">The</span> set of requirements covers all defined <span class="kw">use</span> cases — every <span class="kw">use</span> <span class="kw">case</span> should be reflected <span class="kw">in</span> at least one functional <span class="kw">requirement</span>.
-                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
-        }
-
-        <span class="kw">metadata</span> functionalContextAI : <span class="ty">AI</span> <span class="kw">about</span> functionalContext {
-            name = "sysmod-functional-architecture";
-            create_prompt =
-                "1. <span class="ty">If</span> a functional architecture is required, specialize solutionContext (black-box view) within functionalContext. <span class="ty">Do</span> not specialize solutionContextImpl — the functional architecture must not depend on the physical internal structure of the system.
-                2. <span class="ty">Redefine</span> the inherited functionalSystem <span class="kw">part</span> (which redefines the black-box solution soi) as the root of the functional architecture (e.g., developed with the <span class="ty">FAS</span> method). <span class="ty">It</span> inherits the system ports, so functions can be related <span class="kw">to</span> the system's external interfaces.
-                3. <span class="ty">Define</span> the top-level functions as <span class="kw">action</span> usages or <span class="kw">part</span> usages within the functionalSystem.
-                4. <span class="ty">If</span> allocations <span class="kw">to</span> the logical architecture are known, note them; formal allocations are expressed via the functional2logical <span class="kw">allocation</span> <span class="kw">in</span> the project.
-                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the functionalContext.
-                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the functionalContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited functionalContext <span class="kw">part</span> usage (note: multiplicity is [0..1]).";
-            create_questions = (
-                "<span class="ty">Is</span> a functional architecture required for this project?",
-                "<span class="ty">What</span> are the top-level functions the system must perform?",
-                "<span class="ty">Should</span> the functional architecture follow the <span class="ty">FAS</span> method or another approach?",
-            );
-            validation_prompt =
-                "<span class="ty">Validate</span> the functionalContext against the <span class="ty">SYSMOD</span> <span class="ty">Functional</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
-                <span class="ty">Check</span>:
-                1. <span class="ty">If</span> present, the functionalContext <span class="kw">part</span> usage specializes solutionContext and has multiplicity [0..1].
-                2. <span class="ty">A</span> functionalSystem <span class="kw">part</span> is present as the root of the functional decomposition, redefining the black-box solution soi.
-                3. <span class="ty">At</span> least one top-level function is defined as an <span class="kw">action</span> usage or <span class="kw">part</span> usage within the functionalSystem.
-                4. <span class="ty">Each</span> top-level function is traceable <span class="kw">to</span> at least one system <span class="kw">requirement</span> (via <span class="kw">satisfy</span>, refine, or <span class="kw">doc</span> comment reference).
-                5. <span class="ty">Functions</span> are technology-independent — check for implementation-specific naming or structure that belongs <span class="kw">in</span> the logical or product architecture.
-                6. <span class="ty">If</span> a logicalContext is present <span class="kw">in</span> the project, a functional2logical <span class="kw">allocation</span> is defined connecting the functionalContext <span class="kw">to</span> the logicalContext.
-                7. <span class="ty">The</span> functionalSystem contains only functional blocks — no physical or internal structure of the system, which belongs <span class="kw">in</span> the white-box solution, logical, or product contexts.
-                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
-        }
-
-        <span class="kw">metadata</span> logicalContextAI : <span class="ty">AI</span> <span class="kw">about</span> logicalContext {
-            name = "sysmod-logical-architecture";
-            create_prompt =
-                "1. <span class="ty">If</span> a logical architecture is required, specialize solutionContextImpl by redefining the soiImpl <span class="kw">part</span> for the logical level.
-                2. <span class="ty">Define</span> logical components as <span class="kw">part</span> usages within logicalSystem (the redefined white-box soiImpl), representing technology-independent building blocks that realize the functional architecture.
-                3. <span class="ty">If</span> allocations <span class="kw">from</span> the functional architecture are known, note them; formal allocations are expressed via the functional2logical <span class="kw">allocation</span> <span class="kw">in</span> the project.
-                4. <span class="ty">If</span> allocations <span class="kw">to</span> the product architecture are known, note them; formal allocations are expressed via the logical2product <span class="kw">allocation</span> <span class="kw">in</span> the project.
-                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the logicalContext.
-                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the logicalContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited logicalContext <span class="kw">part</span> usage (note: multiplicity is [0..1]).";
-            create_questions = (
-                "<span class="ty">Is</span> a logical architecture required for this project?",
-                "<span class="ty">What</span> are the key logical components or subsystems?",
-                "<span class="ty">Are</span> there technology-independent partitioning principles <span class="kw">to</span> apply (e.g., separation of concerns, layers)?",
-            );
-            validation_prompt =
-                "<span class="ty">Validate</span> the logicalContext against the <span class="ty">SYSMOD</span> <span class="ty">Logical</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
-                <span class="ty">Check</span>:
-                1. <span class="ty">If</span> present, the logicalContext <span class="kw">part</span> usage specializes solutionContextImpl and has multiplicity [0..1].
-                2. <span class="ty">At</span> least one logical component is defined as a <span class="kw">part</span> usage within logicalSystem.
-                3. <span class="ty">Logical</span> components are technology-independent — check for product-specific naming, vendor names, physical form factors, or deployment-specific details that belong <span class="kw">in</span> the productContext.
-                4. <span class="ty">Each</span> logical component is traceable <span class="kw">to</span> at least one function <span class="kw">from</span> the functionalContext (if present) via <span class="kw">allocation</span> or <span class="kw">doc</span> comment.
-                5. <span class="ty">If</span> a functionalContext is present <span class="kw">in</span> the project, a functional2logical <span class="kw">allocation</span> is defined connecting functionalContext <span class="kw">to</span> logicalContext.
-                6. <span class="ty">If</span> a productContext is present <span class="kw">in</span> the project, a logical2product <span class="kw">allocation</span> is defined connecting logicalContext <span class="kw">to</span> productContext.
-                7. <span class="ty">Logical</span> component interfaces are defined where components interact, using <span class="kw">port</span> and <span class="kw">interface</span> definitions.
-                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
-        }
-
-        <span class="kw">metadata</span> productContextAI : <span class="ty">AI</span> <span class="kw">about</span> productContext {
-            name = "sysmod-product-architecture";
-            create_prompt =
-                "1. <span class="ty">Specialize</span> solutionContextImpl for the product architecture by redefining the soiImpl <span class="kw">part</span> with a concrete product-level definition.
-                2. <span class="ty">Define</span> product components as <span class="kw">part</span> usages within productSystem (the redefined white-box soiImpl), representing physical or deployable building blocks (hardware, software components, assemblies).
-                3. <span class="ty">If</span> allocations <span class="kw">from</span> the logical architecture are known, note them; formal allocations are expressed via the logical2product <span class="kw">allocation</span> <span class="kw">in</span> the project.
-                4. <span class="ty">Include</span> interfaces between product components where relevant.
-                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the productContext.
-                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the productContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited productContext <span class="kw">part</span> usage.";
-            create_questions = (
-                "<span class="ty">What</span> are the main physical or deployable components of the system?",
-                "<span class="ty">Are</span> there hardware/software splits or deployment boundaries <span class="kw">to</span> model?",
-                "<span class="ty">Which</span> product components are <span class="kw">derived</span> <span class="kw">from</span> the logical architecture?",
-            );
-            validation_prompt =
-                "<span class="ty">Validate</span> the productContext against the <span class="ty">SYSMOD</span> <span class="ty">Product</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
-                <span class="ty">Check</span>:
-                1. <span class="ty">The</span> productContext <span class="kw">part</span> usage is present <span class="kw">in</span> the project and specializes solutionContextImpl.
-                2. <span class="ty">At</span> least one product component is defined as a <span class="kw">part</span> usage within productSystem.
-                3. <span class="ty">Product</span> components represent concrete, physical or deployable building blocks — check that logical or functional abstractions have been resolved <span class="kw">to</span> specific technologies, hardware types, or software components.
-                4. <span class="ty">Each</span> product component is traceable <span class="kw">to</span> at least one logical component <span class="kw">from</span> the logicalContext (if present) via the logical2product <span class="kw">allocation</span> or <span class="kw">doc</span> comment.
-                5. <span class="ty">If</span> a logicalContext is present <span class="kw">in</span> the project, a logical2product <span class="kw">allocation</span> is defined connecting logicalContext <span class="kw">to</span> productContext.
-                6. <span class="ty">Interfaces</span> between product components are defined where components interact physically or through <span class="ty">APIs</span>.
-                7. <span class="ty">All</span> system requirements are satisfied — <span class="kw">verify</span> that a <span class="kw">satisfy</span> relationship chain exists <span class="kw">from</span> the product architecture back <span class="kw">to</span> the systemRequirementSpecification (directly or via the solutionSystemImpl <span class="kw">in</span> solutionContextImpl).
-                8. <span class="ty">Every</span> dependency between two product components crosses only through a defined <span class="kw">port</span>/<span class="kw">interface</span> — flag any part-to-part reference that bypasses the published <span class="kw">interface</span>. <span class="ty">A</span> back-door dependency is both a <span class="ty">MOSA</span> violation and the exact thing that breaks module-scoped context retrieval.
-                9. <span class="ty">Each</span> component's published <span class="kw">interface</span> is specified completely enough that a neighbor — or an <span class="ty">AI</span> assistant — never needs that component's internal structure <span class="kw">to</span> use it correctly.
-                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
-        }
-
-        <span class="kw">metadata</span> subProjectsAI : <span class="ty">AI</span> <span class="kw">about</span> subProjects {
-            name = "sysmod-sub-projects";
-            create_prompt =
-                "1. <span class="ty">If</span> the project is decomposed into sub-projects, create <span class="kw">occurrence</span> definitions specializing <span class="ty">Project</span> (or <span class="ty">AIProject</span>) for each sub-project.
-                2. <span class="ty">Add</span> each sub-project as an <span class="kw">occurrence</span> usage subsetting subProjects within the parent project.
-                3. <span class="ty">Ensure</span> each sub-project has its own projectOwner, brownfieldContext, and problemStatement as appropriate.
-                4. <span class="ty">Cross</span>-reference shared artifacts (e.g., shared stakeholders or requirements) by subsetting or referencing the parent project's elements.
-                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for all sub-project definitions and their usages.
-                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert sub-projects into the <span class="ty">SysML</span> model, find the parent project and add the sub-project <span class="kw">occurrence</span> usages.";
-            create_questions = (
-                "<span class="ty">Should</span> the project be decomposed into sub-projects?",
-                "<span class="ty">What</span> are the names and scopes of the sub-projects?",
-                "<span class="ty">Do</span> the sub-projects share stakeholders or requirements with the parent project?",
-            );
-            validation_prompt =
-                "<span class="ty">Validate</span> the subProjects against the <span class="ty">SYSMOD</span> sub-project decomposition concept and report findings grouped as errors, warnings, and suggestions.
-                <span class="ty">Check</span>:
-                1. <span class="ty">Each</span> sub-project <span class="kw">occurrence</span> usage subsets the inherited subProjects and is typed by an <span class="kw">occurrence</span> definition specializing <span class="ty">Project</span> or <span class="ty">AIProject</span>.
-                2. <span class="ty">Each</span> sub-project has at least a projectOwner and a brownfieldContext defined.
-                3. <span class="ty">Each</span> sub-project has a problemStatement that is consistent with and narrower <span class="kw">in</span> scope than the parent project's problemStatement.
-                4. <span class="ty">Shared</span> stakeholders between parent and sub-projects are referenced by subsetting the parent project's <span class="kw">stakeholder</span> <span class="kw">part</span> usages rather than duplicated as independent definitions.
-                5. <span class="ty">There</span> are no overlapping scopes between sibling sub-projects — each sub-project addresses a distinct <span class="kw">part</span> of the parent problem.
-                6. <span class="ty">Each</span> sub-project has a meaningful name and <span class="kw">doc</span> comment describing its scope and relationship <span class="kw">to</span> the parent project.
-                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
-        }
-    }
-
-    <span class="cm">//</span>
     <span class="cm">// Semantic Metadata</span>
     <span class="cm">//</span>
     <span class="kw">metadata</span> <span class="kw">def</span> &lt;project&gt; <span class="ty">ProjectMetadata</span> :&gt; <span class="ty">Metaobjects</span>::<span class="ty">SemanticMetadata</span> {
@@ -3101,83 +2739,795 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseDefinition</span>;
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseUsage</span>;
     }
+}
 
-    <span class="kw">package</span> <span class="ty">SYSMODRequirementBoilerplates</span> {
+<span class="kw">package</span> <span class="ty">SYSMOD4AI</span> {
+    <span class="kw">doc</span>
+    <span class="cm">/* AI-assisted extension for SYSMOD v5. Adds machine-readable AI instructions on top of the core
+     * SYSMOD library, so an AI assistant can create, validate, and explain SYSMOD artifacts directly
+     * from this model. Kept separate from SYSMOD so the core methodology library stays free of
+     * AI-specific concerns; import this package in addition to SYSMOD only where AI assistance is wanted.
+     */</span>
+
+    <span class="kw">private</span> <span class="kw">import</span> <span class="ty">SYSMOD</span>::*;
+
+    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">AI</span> {
         <span class="kw">doc</span>
-        <span class="cm">/* Library of generic, parametric requirement patterns. Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold. */</span>
-
-        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MaxValue</span> {
+        <span class="cm">/* Machine-readable AI instructions attached to SYSMOD artifacts. perform_prompt is the entry
+         * point: an AI assistant executes it to run the fixed elicit/create/validate workflow over
+         * this metadata's own create_questions, create_prompt, and validation_prompt for the single
+         * SYSMOD element this metadata annotates. story_prompt and slide_prompt are separate,
+         * on-demand entry points that retell any element the user selects for stakeholders who do
+         * not read SysML notation: story_prompt as a plain-language narrative, slide_prompt as a
+         * single presentation slide.
+         * Each AI metadata usage documents its own "When to use" / "When not to use" section in
+         * its own doc comment, in the style of an AI-assistant skill's trigger/skip conditions, so
+         * these elements can be turned into Claude Skills or equivalent skill definitions for
+         * other LLM platforms.
+         */</span>
+        <span class="kw">attribute</span> name : <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
             <span class="kw">doc</span>
-            <span class="cm">/* The quantity must stay strictly below an upper bound. */</span>
-            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-            <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-
-            <span class="kw">require</span> <span class="kw">constraint</span> {
-                currentValue &lt; maxValue
-            }
+            <span class="cm">/* Unique identifier of the AI skill, for example, 'sysmod-problem-statement'. */</span>
         }
-        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinValue</span> {
+        <span class="kw">attribute</span> create_prompt : <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
             <span class="kw">doc</span>
-            <span class="cm">/* The quantity must stay strictly above a lower bound. */</span>
-            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-            <span class="kw">attribute</span> minValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-
-            <span class="kw">require</span> <span class="kw">constraint</span> {
-                minValue &gt; currentValue
-            }
+            <span class="cm">/* Step-by-step instructions for an AI assistant to create the annotated artifact. */</span>
         }
-        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">RangeValue</span> {
+        <span class="kw">attribute</span> create_questions : <span class="ty">ScalarValues</span>::<span class="ty">String</span> [*] {
             <span class="kw">doc</span>
-            <span class="cm">/* The quantity must stay within an inclusive lower and upper bound. */</span>
-            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-            <span class="kw">attribute</span> minValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-            <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-
-            <span class="kw">require</span> <span class="kw">constraint</span> {
-                minValue &lt;= currentValue <span class="kw">and</span> currentValue &lt;= maxValue
-            }
+            <span class="cm">/* Questions the AI assistant can ask the user to elicit missing information. */</span>
         }
-        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">ExactValue</span> {
+        <span class="kw">attribute</span> validation_prompt : <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
             <span class="kw">doc</span>
-            <span class="cm">/* The quantity must equal a specific target value. */</span>
-            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-            <span class="kw">attribute</span> targetValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-
-            <span class="kw">require</span> <span class="kw">constraint</span> {
-                currentValue == targetValue
-            }
+            <span class="cm">/* Instructions for an AI assistant to verify and validate the annotated artifact against the SYSMOD rules. */</span>
         }
-        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">ToleranceValue</span> {
+        <span class="kw">attribute</span> perform_prompt : <span class="ty">ScalarValues</span>::<span class="ty">String</span> = "<span class="ty">Perform</span> the elicit/create/validate workflow using only this metadata's own create_questions, create_prompt, and validation_prompt for this element." {
             <span class="kw">doc</span>
-            <span class="cm">/* The quantity must stay within a target value plus/minus a tolerance. */</span>
-            <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-            <span class="kw">attribute</span> targetValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-            <span class="kw">attribute</span> tolerance : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-
-            <span class="kw">require</span> <span class="kw">constraint</span> {
-                currentValue &gt;= targetValue - tolerance <span class="kw">and</span> currentValue &lt;= targetValue + tolerance
-            }
+            <span class="cm">/* Single, ready-to-run prompt that performs the elicit/create/validate workflow for the one
+             * SYSMOD element this metadata annotates, so an AI assistant can execute it directly
+             * instead of composing the three attributes itself. Every AI metadata usage inherits this
+             * default; override it only if a specific artifact needs a different orchestration.
+             */</span>
         }
-        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinAvailability</span> {
+        <span class="kw">attribute</span> story_prompt : <span class="ty">ScalarValues</span>::<span class="ty">String</span> = "<span class="ty">Explain</span> the selected element as a short natural-language story for a <span class="kw">stakeholder</span> who does not read modeling notation, grounded only <span class="kw">in</span> what is present <span class="kw">in</span> the model." {
             <span class="kw">doc</span>
-            <span class="cm">/* The ratio of uptime to total time must reach at least a minimum availability. */</span>
-            <span class="kw">attribute</span> uptime :&gt; <span class="ty">ISQ</span>::duration;
-            <span class="kw">attribute</span> totalTime :&gt; <span class="ty">ISQ</span>::duration;
-            <span class="kw">attribute</span> minAvailability :&gt; <span class="ty">ISQ</span>::duration;
-
-            <span class="kw">require</span> <span class="kw">constraint</span> {
-                uptime / totalTime &gt;= minAvailability
-            }
+            <span class="cm">/* Prompt that lets an AI assistant explain any element the user selects — not only the one this
+             * metadata annotates — as a plain-language story rather than SysML notation, for
+             * stakeholders who find the formal model hard to read. Every AI metadata usage inherits
+             * this default; override it only if a specific artifact needs a different narrative framing.
+             */</span>
         }
-        <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinReliability</span> {
+        <span class="kw">attribute</span> slide_prompt : <span class="ty">ScalarValues</span>::<span class="ty">String</span> = "<span class="ty">Create</span> a single presentation slide explaining the selected element <span class="kw">in</span> plain language for a <span class="kw">stakeholder</span> audience, with at most one supporting image if the assistant can generate one." {
             <span class="kw">doc</span>
-            <span class="cm">/* The mean time between failures must reach at least a minimum MTBF. */</span>
-            <span class="kw">attribute</span> meanTimeBetweenFailures :&gt; <span class="ty">ISQ</span>::duration;
-            <span class="kw">attribute</span> minMTBF :&gt; <span class="ty">ISQ</span>::duration;
+            <span class="cm">/* Prompt that lets an AI assistant turn any element the user selects — not only the one this
+             * metadata annotates — into a single presentation-ready slide explaining it in plain
+             * language, for direct use in a stakeholder presentation. Every AI metadata usage inherits
+             * this default; override it only if a specific artifact needs different slide content.
+             */</span>
+        }
+    }
 
-            <span class="kw">require</span> <span class="kw">constraint</span> {
-                meanTimeBetweenFailures &gt;= minMTBF
-            }
+    <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">AIProject</span> :&gt; <span class="ty">Project</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* A template that enriches Project's main artifacts with AI metadata. AIProject is not meant to
+         * be specialized by real projects — real projects stay plain #project occurrence defs (or
+         * :> Project); an AI assistant applies a given artifact's AI metadata usage here (e.g.
+         * problemStatementAI) to the correspondingly named feature on that real project, matched by
+         * feature identity, not inheritance.
+         */</span>
+        <span class="kw">metadata</span> projectAI : <span class="ty">AI</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* Scaffolds or validates the whole SYSMOD project: the root #project occurrence and,
+             * optionally, chains through all of its main artifacts in SYSMOD order.
+             *
+             * When to use:
+             * - Starting a brand-new SYSMOD project from scratch (kickoff), or the user asks to
+             *   scaffold an entire project end to end in one go.
+             * - Validating a whole project's structure and cross-artifact traceability chain,
+             *   rather than just one artifact in isolation.
+             *
+             * When not to use:
+             * - The user is working on a single artifact (e.g. only the problem statement, or
+             *   only the stakeholders) — use that artifact's own AI metadata (e.g.
+             *   problemStatementAI, projectStakeholdersAI) directly instead of going through the
+             *   whole project.
+             * - The project already exists and only the project owner needs to be identified or
+             *   changed — use projectOwnerAI.
+             */</span>
+            name = "sysmod-project";
+            create_prompt =
+                "1. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the project definition using the <span class="ty">SYSMOD</span>-defined keyword: '<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">PROJECTNAME</span> {}'
+                2. <span class="ty">Use</span> the create_prompt of the <span class="ty">AI</span> <span class="kw">metadata</span> of the projectOwner <span class="kw">to</span> create the project owner of the project.
+                3. <span class="ty">If</span> not given by the user, <span class="kw">use</span> the questions <span class="kw">to</span> get the name of the project and the location where the project should be added.
+                4. <span class="ty">Optionally</span> continue with the other engineering artifacts <span class="kw">in</span> <span class="ty">SYSMOD</span> order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, functionalContext, logicalContext, productContext) using the create_prompts of their <span class="ty">AI</span> <span class="kw">metadata</span>.";
+            create_questions = (
+                "<span class="ty">What</span> is the name of the project?", "<span class="ty">Where</span> should <span class="ty">I</span> add the project definition?", "<span class="ty">Who</span> is the project owner?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the project definition against the <span class="ty">SYSMOD</span> <span class="ty">Project</span> concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">The</span> project is defined as an <span class="kw">occurrence</span> definition annotated with the <span class="kw">#project</span> keyword or specializing <span class="ty">Project</span>.
+                2. <span class="ty">A</span> projectOwner <span class="kw">part</span> usage is present and subsets projectStakeholders.
+                3. <span class="ty">A</span> brownfieldContext <span class="kw">part</span> usage is present and typed by a <span class="ty">SystemContext</span> specialization; a brownfieldContextImpl <span class="kw">part</span> usage is present and specializes brownfieldContext.
+                4. <span class="ty">A</span> problemStatement <span class="kw">concern</span> usage is present.
+                5. <span class="ty">A</span> stakeholderNeeds <span class="kw">concern</span> usage is present and frames the problemStatement.
+                6. <span class="ty">A</span> systemIdeaContext <span class="kw">part</span> usage is present and specializes brownfieldContext; a systemIdeaContextImpl <span class="kw">part</span> usage is present and specializes systemIdeaContext and brownfieldContextImpl.
+                7. <span class="ty">A</span> specificationContext <span class="kw">part</span> usage is present and specializes systemIdeaContext; a specificationContextImpl <span class="kw">part</span> usage is present and specializes specificationContext and systemIdeaContextImpl.
+                8. <span class="ty">A</span> systemRequirementSpecification <span class="kw">requirement</span> usage is present and frames stakeholderNeeds.
+                9. <span class="ty">A</span> productContext <span class="kw">part</span> usage is present and specializes specificationContextImpl.
+                10. <span class="ty">The</span> cross-artifact traceability chain is intact: problemStatement &lt;- stakeholderNeeds &lt;- systemRequirementSpecification, and <span class="kw">satisfy</span> relationships exist at the system idea and functional, logical, and product architecture levels.
+                11. <span class="ty">If</span> both functionalContext and logicalContext are present, the functional2logical <span class="kw">allocation</span> is defined; if logicalContext is present, the logical2product <span class="kw">allocation</span> is defined.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+
+        <span class="kw">metadata</span> projectOwnerAI : <span class="ty">AI</span> <span class="kw">about</span> projectOwner {
+            <span class="kw">doc</span>
+            <span class="cm">/* Identifies or updates the single stakeholder who is in charge of the project (the
+             * project owner) — a special ExtendedStakeholder with critical risk and low effort.
+             *
+             * When to use:
+             * - The user names or asks about who owns, sponsors, or is accountable for the
+             *   project.
+             * - The project's problemStatement needs a stakeholder set and no projectOwner exists
+             *   yet.
+             *
+             * When not to use:
+             * - Identifying the broader stakeholder set beyond the owner — use
+             *   projectStakeholdersAI.
+             * - The user is describing what the owner (or anyone else) needs from the system —
+             *   use stakeholderNeedsAI, not this skill.
+             */</span>
+            name = "sysmod-project-owner";
+            create_prompt =
+                "1. <span class="ty">If</span> the user has provided a projectOwner, <span class="kw">use</span> it. <span class="ty">If</span> not, ask the user for the projectOwner using appropriate questions <span class="kw">from</span> the questions field.
+                2. <span class="ty">Create</span> a concise projectOwner description.
+                3. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the projectOwner.
+                4. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the projectOwner into the <span class="ty">SysML</span> model, find the project and the projectOwner within the project. <span class="ty">If</span> no project exists, create one and insert the projectOwner into the project redefining the inherited projectOwner <span class="kw">part</span> usage. <span class="ty">If</span> the projectOwner already exists, update it.";
+            create_questions = (
+                "<span class="ty">Who</span> is the project owner?", "<span class="ty">Who</span> is responsible for the project?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the projectOwner against the <span class="ty">SYSMOD</span> <span class="ty">Project</span> <span class="ty">Owner</span> concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">Exactly</span> one projectOwner <span class="kw">part</span> usage is present <span class="kw">in</span> the project, redefining the inherited projectOwner.
+                2. <span class="ty">The</span> projectOwner subsets projectStakeholders and is typed by an <span class="ty">ExtendedStakeholder</span> specialization.
+                3. <span class="ty">The</span> risk <span class="kw">attribute</span> is set <span class="kw">to</span> <span class="ty">LevelKind</span>::critical (the project owner always has critical risk).
+                4. <span class="ty">The</span> effort <span class="kw">attribute</span> is set <span class="kw">to</span> <span class="ty">LevelKind</span>::low (the project owner is typically easy <span class="kw">to</span> reach).
+                5. <span class="ty">The</span> categories <span class="kw">attribute</span> includes <span class="ty">StakeholderCategoryKind</span>::requirementOwner.
+                6. <span class="ty">The</span> projectOwner is referenced as the <span class="kw">stakeholder</span> of the problemStatement.
+                7. <span class="ty">A</span> meaningful name or <span class="kw">doc</span> comment identifies who the project owner is <span class="kw">in</span> the context of this project.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+
+        <span class="kw">metadata</span> brownfieldContextAI : <span class="ty">AI</span> <span class="kw">about</span> brownfieldContext {
+            <span class="kw">doc</span>
+            <span class="cm">/* Documents the existing (as-is) system and its actors before the project starts —
+             * the constraints and givens the project must work within.
+             *
+             * When to use:
+             * - The user describes an existing system, legacy system, current state, or "as-is"
+             *   situation that the project starts from.
+             * - The project is brownfield (an existing system is being changed or replaced) and
+             *   its current actors, subcomponents, or interfaces need to be captured before any
+             *   solution is proposed.
+             *
+             * When not to use:
+             * - The project is greenfield with no existing system to document — skip this skill
+             *   and go straight to problemStatementAI / systemIdeaContextAI.
+             * - The user is describing the new or changed system, its idea, or its architecture —
+             *   that is systemIdeaContextAI (idea) or functionalContextAI / logicalContextAI /
+             *   productContextAI (architecture), never this skill. Brownfield content must
+             *   contain no solution elements.
+             */</span>
+            name = "sysmod-brownfield-context";
+            create_prompt =
+                "1. <span class="ty">Analyze</span> the provided scenario and identify the brownfield system: the existing system, its relevant subcomponents, and all external actors (humans, external systems, environmental effects) that already interact with it before the project starts.
+                2. <span class="ty">Create</span> a <span class="kw">part</span> definition for the brownfield context specializing <span class="ty">SystemContext</span>.
+                3. <span class="ty">Create</span> a <span class="kw">part</span> definition for the brownfield system of interest.
+                4. <span class="ty">For</span> each identified actor, create a <span class="kw">part</span> definition <span class="kw">in</span> a subpackage named 'Actors', if not already exists.
+                5. <span class="ty">For</span> each identified actor, add a <span class="kw">part</span> usage defined by the corresponding <span class="kw">part</span> definition and subsetting the <span class="kw">part</span> usage 'actors' inherited <span class="kw">from</span> <span class="ty">SystemContext</span>.
+                6. <span class="ty">For</span> the black-box view, redefine the inherited soi <span class="kw">part</span> (within brownfieldContext) with an appropriately named and typed <span class="kw">part</span> definition. <span class="ty">For</span> the white-box view, redefine the inherited soiImpl <span class="kw">part</span> (within brownfieldContextImpl, which specializes brownfieldContext) accordingly.
+                7. <span class="ty">Ensure</span> the brownfield context reflects constraints and givens only — it must not include solution elements.
+                8. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the brownfieldContext and brownfieldContextImpl.
+                9. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the brownfieldContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited brownfieldContext and brownfieldContextImpl <span class="kw">part</span> usages. <span class="ty">If</span> the project does not exist, create one <span class="kw">first</span>.";
+            create_questions = (
+                "<span class="ty">What</span> is the name of the existing system (system of interest)?",
+                "<span class="ty">Which</span> external actors (users, operators, external systems, environments) interact with the existing system?",
+                "<span class="ty">Are</span> there any known and preset subcomponents or subsystems of the existing system that are relevant?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the brownfieldContext and brownfieldContextImpl against the <span class="ty">SYSMOD</span> <span class="ty">Brownfield</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">The</span> brownfieldContext <span class="kw">part</span> usage is present <span class="kw">in</span> the project and typed by a <span class="ty">SystemContext</span> specialization.
+                2. <span class="ty">At</span> least one actor <span class="kw">part</span> usage subsetting actors is present, representing an external entity that interacts with the existing system.
+                3. <span class="ty">The</span> soi <span class="kw">part</span> is redefined within brownfieldContext with a named <span class="kw">part</span> definition representing the existing system of interest (black-box view).
+                4. <span class="ty">The</span> brownfieldContextImpl <span class="kw">part</span> usage is present, specializes brownfieldContext, and redefines the soiImpl <span class="kw">part</span> representing the white-box view of the existing system.
+                5. <span class="ty">Actor</span>-system interfaces (actorSystemInterfaces) <span class="kw">connect</span> actor ports <span class="kw">to</span> system ports.
+                6. <span class="ty">The</span> brownfield context contains only elements that exist before the project starts — no solution-specific parts, new system ideas, or future-state components.
+                7. <span class="ty">Each</span> actor has a meaningful name and, ideally, a <span class="kw">doc</span> comment describing its role.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+
+        <span class="kw">metadata</span> problemStatementAI : <span class="ty">AI</span> <span class="kw">about</span> problemStatement {
+            <span class="kw">doc</span>
+            <span class="cm">/* Frames the problem the project is meant to solve, as a concise elevator-pitch style
+             * statement based on the brownfield system's deficiencies — never a solution.
+             *
+             * When to use:
+             * - The user wants to articulate, refine, or validate why the project exists — the
+             *   problem, pain point, or opportunity being addressed.
+             * - Starting a new project and no problem statement exists yet, or an existing one
+             *   needs to be checked against the SYSMOD rules (e.g. no premature solution
+             *   language).
+             *
+             * When not to use:
+             * - The user is describing the solution, the new system's idea, or its architecture —
+             *   use systemIdeaContextAI (or the architecture skills) instead; problemStatementAI
+             *   never describes "how", only "why".
+             * - The user wants individual stakeholder needs rather than the single overarching
+             *   problem — use stakeholderNeedsAI.
+             */</span>
+            name = "sysmod-problem-statement";
+            create_prompt =
+                "1. <span class="ty">Follow</span> the structure between engineering artifacts given by the <span class="ty">SYSMOD</span> <span class="kw">library</span>.
+                2. <span class="ty">Analyze</span> the provided scenario. <span class="ty">If</span> it is forward engineering, identify the problem statement <span class="kw">from</span> the given scenario. <span class="ty">If</span> it is reverse engineering, identify the problem statement by identifying the problem that is solved by the given system.
+                3. <span class="ty">Create</span> a concise elevator-pitch style problem statement text (typically 150-250 words).
+                4. <span class="ty">Follow</span> this format: '<span class="ty">How</span> can we...'
+                5. <span class="ty">Ensure</span> the problem statement text is based on the brownfieldContext. <span class="ty">If</span> the brownfieldContext is not available, create one that is implied by the problem statement text using the <span class="ty">AI</span> <span class="kw">metadata</span> <span class="kw">about</span> the brownfieldContext.
+                6. <span class="ty">Ensure</span> that the problem statement does not jump <span class="kw">to</span> the solution and describe it <span class="kw">in</span> advance.
+                7. <span class="ty">Ensure</span> that the <span class="kw">stakeholder</span> projectOwner is set by subsetting the corresponding <span class="kw">part</span> usage <span class="kw">in</span> the project, if given. <span class="ty">If</span> it is not available, <span class="kw">use</span> the create_prompt of the <span class="ty">AI</span> <span class="kw">metadata</span> <span class="kw">about</span> the projectOwner <span class="kw">to</span> create one.
+                8. <span class="ty">If</span> it is reverse engineering, create a <span class="kw">satisfy</span> relationship between the given system and the problem statement.
+                9. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the problemStatement.
+                10. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the problemStatement into the <span class="ty">SysML</span> model, find the project and the problemStatement within the project. <span class="ty">If</span> no project exists, create one and insert the problemStatement into the project redefining the inherited problemStatement <span class="kw">concern</span> usage. <span class="ty">If</span> the problemStatement already exists, update it.";
+            create_questions = (
+                "<span class="ty">What</span> is the core problem the system should solve?",
+                "<span class="ty">What</span> are the main deficiencies or pain points of the existing (brownfield) system?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the problemStatement against the <span class="ty">SYSMOD</span> <span class="ty">Problem</span> <span class="ty">Statement</span> concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">The</span> problemStatement <span class="kw">concern</span> usage is present <span class="kw">in</span> the project, redefining the inherited problemStatement.
+                2. <span class="ty">The</span> <span class="kw">subject</span> references the brownfieldContextImpl soiImpl (the existing system is the <span class="kw">subject</span> of the problem).
+                3. <span class="ty">The</span> projectOwner is set as the <span class="kw">stakeholder</span> of the problemStatement.
+                4. <span class="ty">The</span> priority <span class="kw">attribute</span> is set <span class="kw">to</span> <span class="ty">LevelKind</span>::critical.
+                5. <span class="ty">A</span> <span class="kw">doc</span> comment is present containing the problem statement text.
+                6. <span class="ty">The</span> problem statement text starts with '<span class="ty">How</span> can we...' or an equivalent problem-framing phrase.
+                7. <span class="ty">The</span> problem statement text describes the problem, not a solution — check for premature solution language (e.g., 'we will build', 'the new system shall', named technologies or architectures).
+                8. <span class="ty">The</span> problem statement text references the brownfield system and its deficiencies.
+                9. <span class="ty">The</span> problem statement text is concise (typically 150-250 words).
+                10. <span class="ty">If</span> it is reverse engineering, a <span class="kw">satisfy</span> relationship exists between the existing system and the problemStatement.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+
+        <span class="kw">metadata</span> projectStakeholdersAI : <span class="ty">AI</span> <span class="kw">about</span> projectStakeholders {
+            <span class="kw">doc</span>
+            <span class="cm">/* Identifies the individuals and organizations with an interest in the system
+             * (beyond the project owner) and assesses each one's risk, effort, and category.
+             *
+             * When to use:
+             * - The user asks who the users, customers, regulators, or other interested parties
+             *   are, or wants to identify or prioritize/assess stakeholders.
+             * - The brownfieldContext's actors need to be reflected as stakeholders, or a
+             *   stakeholder list needs validating for completeness.
+             *
+             * When not to use:
+             * - Identifying or updating specifically the project owner — use projectOwnerAI.
+             * - Capturing what a stakeholder needs from the system — use stakeholderNeedsAI, not
+             *   this skill.
+             * - Visualizing already-identified stakeholders on a risk/effort map — use
+             *   stakeholderPriorityMapAI once risk and effort are assessed here.
+             */</span>
+            name = "sysmod-stakeholders";
+            create_prompt =
+                "1. <span class="ty">Analyze</span> the brownfieldContext and the problemStatement and identify all relevant stakeholders (individuals or organizations with an interest <span class="kw">in</span> the system).
+                2. <span class="ty">For</span> each <span class="kw">stakeholder</span>, create a <span class="kw">part</span> definition specializing <span class="ty">ExtendedStakeholder</span>.
+                3. <span class="ty">Assess</span> and set the risk (what is the risk of failure if this <span class="kw">stakeholder</span> is ignored?), effort (how much effort is needed <span class="kw">to</span> identify their concerns?), and one or more <span class="kw">stakeholder</span> categories (user, requirementOwner, expert, other) for each <span class="kw">stakeholder</span>.
+                4. <span class="ty">Add</span> each <span class="kw">stakeholder</span> as a named <span class="kw">part</span> usage subsetting projectStakeholders inside the project, typed by the corresponding <span class="kw">stakeholder</span> definition.
+                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for all <span class="kw">stakeholder</span> definitions and their usages within the project.
+                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the stakeholders into the <span class="ty">SysML</span> model, find the project and add or update the <span class="kw">stakeholder</span> <span class="kw">part</span> usages.";
+            create_questions = (
+                "<span class="ty">Who</span> are the primary users of the system?",
+                "<span class="ty">Which</span> organizations or roles own or define the requirements?",
+                "<span class="ty">Are</span> there regulatory bodies, standards authorities, or other external parties with an interest <span class="kw">in</span> the system?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the projectStakeholders against the <span class="ty">SYSMOD</span> <span class="ty">Stakeholders</span> concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">At</span> least one <span class="kw">stakeholder</span> <span class="kw">part</span> usage (beyond the projectOwner) subsets projectStakeholders.
+                2. <span class="ty">Each</span> <span class="kw">stakeholder</span> <span class="kw">part</span> usage is typed by a <span class="kw">part</span> definition specializing <span class="ty">ExtendedStakeholder</span>.
+                3. <span class="ty">Each</span> <span class="kw">stakeholder</span> definition has the risk <span class="kw">attribute</span> set <span class="kw">to</span> a non-<span class="kw">default</span> <span class="ty">LevelKind</span> value (i.e., not <span class="ty">LevelKind</span>::none).
+                4. <span class="ty">Each</span> <span class="kw">stakeholder</span> definition has the effort <span class="kw">attribute</span> set <span class="kw">to</span> a non-<span class="kw">default</span> <span class="ty">LevelKind</span> value (i.e., not <span class="ty">LevelKind</span>::none).
+                5. <span class="ty">Each</span> <span class="kw">stakeholder</span> definition has at least one category assigned <span class="kw">from</span> <span class="ty">StakeholderCategoryKind</span>.
+                6. <span class="ty">The</span> set of stakeholders covers all actors present <span class="kw">in</span> the brownfieldContext — every actor should map <span class="kw">to</span> at least one <span class="kw">stakeholder</span>.
+                7. <span class="ty">At</span> least one <span class="kw">stakeholder</span> with category requirementOwner is present (beyond the projectOwner).
+                8. <span class="ty">Each</span> <span class="kw">stakeholder</span> has a <span class="kw">doc</span> comment or name that clearly identifies its role.
+                9. <span class="ty">No</span> two stakeholders have identical risk, effort, and category values without a distinguishing <span class="kw">doc</span> comment explaining the distinction.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+
+        <span class="kw">metadata</span> stakeholderPriorityMapAI : <span class="ty">AI</span> <span class="kw">about</span> projectStakeholders {
+            <span class="kw">doc</span>
+            <span class="cm">/* Renders the project's already-identified stakeholders as a derived risk/effort
+             * priority map — an analysis view, not a persisted model element.
+             *
+             * When to use:
+             * - The user asks to visualize, prioritize, or compare stakeholders by risk and
+             *   effort, or wants a stakeholder map or matrix.
+             * - Stakeholders already exist in projectStakeholders with risk and effort assigned
+             *   (or the user is willing to supply missing values on request).
+             *
+             * When not to use:
+             * - No stakeholders have been identified yet — use projectStakeholdersAI first.
+             * - The user wants to add, remove, or change stakeholders, or change their
+             *   risk/effort values — this skill must not introduce or alter stakeholder data,
+             *   only visualize it.
+             * - The user wants a persisted SysML model element — the map is a diagram/analysis
+             *   artifact only.
+             */</span>
+            name = "sysmod-stakeholder-priority-map";
+            create_prompt =
+                "1. <span class="ty">Use</span> the risk and effort <span class="kw">attribute</span> values of each <span class="kw">stakeholder</span> <span class="kw">in</span> projectStakeholders (typed by <span class="ty">ExtendedStakeholder</span>) <span class="kw">to</span> position it on a two-dimensional map: risk on the y axis (low <span class="kw">to</span> critical, bottom <span class="kw">to</span> top), effort on the x axis (low <span class="kw">to</span> high, left <span class="kw">to</span> right).
+                2. <span class="ty">Depict</span> each <span class="kw">stakeholder</span> as a <span class="kw">stakeholder</span> symbol labeled with its name, placed <span class="kw">in</span> the map cell that matches its risk/effort combination.
+                3. <span class="ty">If</span> two or more stakeholders share the same risk/effort combination, group their symbols within the same cell without overlapping.
+                4. <span class="ty">The</span> <span class="kw">stakeholder</span> priority map is a derived view, not a new model element — it must not introduce new stakeholders or change existing risk/effort values. <span class="ty">If</span> a <span class="kw">stakeholder</span> has no risk or effort value assigned, ask the user for it or <span class="kw">use</span> the create_prompt of projectStakeholdersAI first <span class="kw">to</span> assess it.
+                5. <span class="ty">Render</span> the map as a diagram (e.g., <span class="ty">SVG</span> or a described grid), not as <span class="ty">SysML</span> v2 textual notation, since it is an analysis artifact rather than a persisted model element.";
+            create_questions = (
+                "<span class="ty">Which</span> stakeholders (from projectStakeholders) should be included <span class="kw">in</span> the map?",
+                "<span class="ty">Do</span> all included stakeholders already have risk and effort values assigned? <span class="ty">If</span> not, what are they?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the <span class="kw">stakeholder</span> priority map against the <span class="ty">SYSMOD</span> <span class="ty">Stakeholder</span> <span class="ty">Priority</span> <span class="ty">Map</span> concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">Every</span> <span class="kw">stakeholder</span> shown <span class="kw">in</span> the map corresponds <span class="kw">to</span> an actual <span class="kw">part</span> usage subsetting projectStakeholders <span class="kw">in</span> the project — no invented stakeholders.
+                2. <span class="ty">Every</span> <span class="kw">stakeholder</span> <span class="kw">in</span> projectStakeholders with both risk and effort assigned is represented exactly once <span class="kw">in</span> the map — none silently omitted.
+                3. <span class="ty">Each</span> <span class="kw">stakeholder</span>'s position matches its risk (y axis) and effort (x axis) <span class="kw">attribute</span> values exactly.
+                4. <span class="ty">Stakeholders</span> sharing the same risk/effort cell are all visible and distinguishable, not overlapping or hidden.
+                5. <span class="ty">The</span> map does not introduce or imply risk/effort values that are not set on the underlying <span class="kw">stakeholder</span> definitions.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+
+        <span class="kw">metadata</span> stakeholderNeedsAI : <span class="ty">AI</span> <span class="kw">about</span> stakeholderNeeds {
+            <span class="kw">doc</span>
+            <span class="cm">/* Derives each stakeholder's high-level needs from the problem statement and
+             * stakeholder list — what they need the system to do or be, expressed at the intent
+             * level, not as requirements.
+             *
+             * When to use:
+             * - The user describes what stakeholders want, expect, or need from the system, in
+             *   their own words.
+             * - Stakeholders and the problem statement already exist and their needs must be
+             *   captured or validated before deriving formal requirements.
+             *
+             * When not to use:
+             * - The user is stating a verifiable, solution-neutral requirement rather than an
+             *   intent-level need — use systemRequirementSpecificationAI.
+             * - No stakeholders or problem statement exist yet — use projectStakeholdersAI /
+             *   problemStatementAI first, since needs must trace back to both.
+             */</span>
+            name = "sysmod-<span class="kw">stakeholder</span>-needs";
+            create_prompt =
+                "1. <span class="ty">Analyze</span> the projectStakeholders and the problemStatement and derive the high-level needs of each <span class="kw">stakeholder</span>.
+                2. <span class="ty">For</span> each <span class="kw">stakeholder</span> need, create a <span class="kw">concern</span> usage subsetting stakeholderNeeds, framed by the problemStatement and referencing the brownfield system (the soiImpl of brownfieldContextImpl) as its <span class="kw">subject</span>.
+                3. <span class="ty">Ensure</span> each need is expressed <span class="kw">from</span> the <span class="kw">stakeholder</span>'s perspective and describes what they need the system <span class="kw">to</span> do or be, not how.
+                4. <span class="ty">Do</span> not express needs as solution-specific requirements; keep them at the <span class="kw">stakeholder</span> intent level.
+                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the stakeholderNeeds.
+                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the stakeholderNeeds into the <span class="ty">SysML</span> model, find the project and redefine the inherited stakeholderNeeds <span class="kw">concern</span> usage. <span class="ty">If</span> the project does not exist, create one <span class="kw">first</span>.";
+            create_questions = (
+                "<span class="ty">What</span> does each <span class="kw">stakeholder</span> group need the system <span class="kw">to</span> do or be?",
+                "<span class="ty">Are</span> there any known constraints or non-functional needs (safety, cost, compliance) expressed by stakeholders?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the stakeholderNeeds against the <span class="ty">SYSMOD</span> <span class="ty">Stakeholder</span> <span class="ty">Needs</span> concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">The</span> stakeholderNeeds <span class="kw">concern</span> usage is present <span class="kw">in</span> the project, redefining the inherited stakeholderNeeds.
+                2. <span class="ty">The</span> stakeholderNeeds frames the problemStatement.
+                3. <span class="ty">The</span> <span class="kw">subject</span> references the brownfieldContextImpl soiImpl.
+                4. <span class="ty">At</span> least one <span class="kw">stakeholder</span> need is defined as a nested <span class="kw">concern</span> usage.
+                5. <span class="ty">Each</span> <span class="kw">stakeholder</span> need is traceable <span class="kw">to</span> at least one <span class="kw">stakeholder</span> <span class="kw">from</span> projectStakeholders (via <span class="kw">stakeholder</span> reference or <span class="kw">doc</span> comment attribution).
+                6. <span class="ty">Each</span> need is expressed at the <span class="kw">stakeholder</span> intent level — check for premature solution or design language (e.g., specific technologies, implementation details, design choices).
+                7. <span class="ty">The</span> set of <span class="kw">stakeholder</span> needs covers all projectStakeholders — no <span class="kw">stakeholder</span> group should be left without at least one associated need.
+                8. <span class="ty">Each</span> need has a <span class="kw">doc</span> comment or name that is understandable without reading the full model.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+
+        <span class="kw">metadata</span> systemIdeaContextAI : <span class="ty">AI</span> <span class="kw">about</span> systemIdeaContext {
+            <span class="kw">doc</span>
+            <span class="cm">/* Develops the high-level system idea — an elevator-pitch-style outline of the new or
+             * changed system that answers the problem statement, at a conceptual level with no
+             * architecture yet.
+             *
+             * When to use:
+             * - The user proposes, sketches, or asks for a high-level concept, approach, or "big
+             *   idea" for solving the problem.
+             * - A problem statement exists and the project is ready to move from "why" to a
+             *   first-cut "what".
+             *
+             * When not to use:
+             * - The user wants detailed architecture, components, or technology choices — use
+             *   functionalContextAI, logicalContextAI, or productContextAI instead; the system
+             *   idea stays conceptual.
+             * - The user is describing the existing/as-is system — use brownfieldContextAI, not
+             *   this skill.
+             * - No problemStatement exists yet — create one first with problemStatementAI.
+             */</span>
+            name = "sysmod-system-idea";
+            create_prompt =
+                "1. <span class="ty">Based</span> on the problemStatement, develop a high-level system idea: an elevator-pitch-style outline of the new or changed system that solves the stated problem.
+                2. <span class="ty">Specialize</span> brownfieldContext by redefining the soi <span class="kw">part</span> (black-box view) with a named system idea definition, within systemIdeaContext. <span class="ty">Specialize</span> systemIdeaContext and brownfieldContextImpl by redefining the soiImpl <span class="kw">part</span> (white-box view) with the matching system idea implementation, within systemIdeaContextImpl. <span class="ty">The</span> systemIdeaSystemImpl must include a <span class="kw">satisfy</span> relationship <span class="kw">to</span> the problemStatement.
+                3. <span class="ty">Add</span> any additional actors that are introduced by the system idea and are not already present <span class="kw">in</span> the brownfieldContext.
+                4. <span class="ty">Keep</span> the system idea at a conceptual level — no detailed architecture or design decisions.
+                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the systemIdeaContext and systemIdeaContextImpl.
+                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the systemIdeaContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited systemIdeaContext and systemIdeaContextImpl <span class="kw">part</span> usages. <span class="ty">If</span> the project does not exist, create one <span class="kw">first</span>.";
+            create_questions = (
+                "<span class="ty">What</span> is the high-level concept or approach for the new or changed system?",
+                "<span class="ty">Are</span> there any new actors introduced by the system idea that do not exist <span class="kw">in</span> the brownfield?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the systemIdeaContext and systemIdeaContextImpl against the <span class="ty">SYSMOD</span> <span class="ty">System</span> <span class="ty">Idea</span> concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">The</span> systemIdeaContext <span class="kw">part</span> usage is present <span class="kw">in</span> the project and specializes brownfieldContext.
+                2. <span class="ty">The</span> soi <span class="kw">part</span> is redefined within systemIdeaContext with a named system idea definition that specializes the brownfield soi.
+                3. <span class="ty">The</span> systemIdeaContextImpl <span class="kw">part</span> usage is present, specializes systemIdeaContext and brownfieldContextImpl, and redefines the soiImpl <span class="kw">part</span>, specializing the system idea soi.
+                4. <span class="ty">The</span> soiImpl contains a <span class="kw">satisfy</span> relationship <span class="kw">to</span> the problemStatement.
+                5. <span class="ty">All</span> actors <span class="kw">from</span> the brownfieldContext are inherited or explicitly redefined — no brownfield actor should silently disappear.
+                6. <span class="ty">Any</span> new actors introduced by the system idea are added as additional actor <span class="kw">part</span> usages.
+                7. <span class="ty">The</span> system idea stays at a conceptual level — check for premature architecture or design detail (e.g., specific components, protocols, or technologies named <span class="kw">in</span> the soiImpl structure).
+                8. <span class="ty">A</span> <span class="kw">doc</span> comment on the soiImpl describes the system idea <span class="kw">in</span> elevator-pitch style.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+
+        <span class="kw">metadata</span> specificationContextAI : <span class="ty">AI</span> <span class="kw">about</span> specificationContext {
+            <span class="kw">doc</span>
+            <span class="cm">/* Refines the system idea into a specification-level system with use cases
+             * describing how actors interact with it, still as a black-box/white-box context (no
+             * requirements yet).
+             *
+             * When to use:
+             * - The user wants to define or validate use cases, actor interactions, or the
+             *   specification-level system definition.
+             * - A system idea exists and is mature enough to describe concrete interactions with
+             *   actors.
+             *
+             * When not to use:
+             * - The user wants the initial high-level concept — use systemIdeaContextAI first.
+             * - The user is stating formal, verifiable requirements — use
+             *   systemRequirementSpecificationAI; this skill defines use cases and actors, not
+             *   requirement text.
+             * - The user is describing internal architecture or design — that comes later, in
+             *   functionalContextAI / logicalContextAI / productContextAI.
+             */</span>
+            name = "sysmod-specification-context";
+            create_prompt =
+                "1. <span class="ty">Specialize</span> systemIdeaContext by redefining the soi <span class="kw">part</span> (black-box view) with a specification-level system definition, within specificationContext. <span class="ty">Specialize</span> specificationContext and systemIdeaContextImpl by redefining the soiImpl <span class="kw">part</span> (white-box view) with the matching specification implementation, within specificationContextImpl.
+                2. <span class="ty">Identify</span> and add any actors or subcomponents that become visible during requirements analysis (e.g., specific interfaces, subsystems defined at the black-box level).
+                3. <span class="ty">Add</span> system <span class="kw">use</span> cases <span class="kw">to</span> the specificationContext that describe how actors interact with the system of interest at the specification level.
+                4. <span class="ty">Ensure</span> the specificationContext owns the <span class="kw">use</span> cases and that each <span class="kw">use</span> <span class="kw">case</span> references the specificationSystem as its <span class="kw">subject</span>.
+                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the specificationContext and specificationContextImpl, including actor parts and <span class="kw">use</span> <span class="kw">case</span> usages.
+                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the specificationContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited specificationContext and specificationContextImpl <span class="kw">part</span> usages.";
+            create_questions = (
+                "<span class="ty">Which</span> <span class="kw">use</span> cases describe how actors interact with the system?",
+                "<span class="ty">Are</span> there additional actors or subcomponents that become visible at the specification level?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the specificationContext and specificationContextImpl against the <span class="ty">SYSMOD</span> <span class="ty">Specification</span> <span class="ty">Context</span> concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">The</span> specificationContext <span class="kw">part</span> usage is present <span class="kw">in</span> the project and specializes systemIdeaContext.
+                2. <span class="ty">The</span> soi <span class="kw">part</span> is redefined within specificationContext with a named specification system definition that specializes the system idea soi.
+                3. <span class="ty">The</span> specificationContextImpl <span class="kw">part</span> usage is present, specializes specificationContext and systemIdeaContextImpl, and redefines the soiImpl <span class="kw">part</span>, specializing the specification soi.
+                4. <span class="ty">At</span> least one <span class="kw">use</span> <span class="kw">case</span> usage is present <span class="kw">in</span> the specificationContext, referencing the specificationSystem as its <span class="kw">subject</span>.
+                5. <span class="ty">Each</span> <span class="kw">use</span> <span class="kw">case</span> has at least one actor involved (include or extend relationships, or actor references <span class="kw">in</span> the <span class="kw">use</span> <span class="kw">case</span> <span class="kw">subject</span>/<span class="kw">stakeholder</span>).
+                6. <span class="ty">Each</span> <span class="kw">use</span> <span class="kw">case</span> has a meaningful name and <span class="kw">doc</span> comment describing the interaction goal.
+                7. <span class="ty">All</span> actors <span class="kw">from</span> the systemIdeaContext are inherited or redefined — no actor should silently disappear.
+                8. <span class="ty">The</span> specificationContext does not contain solution elements — it should remain a black-box view of the system.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+
+        <span class="kw">metadata</span> systemRequirementSpecificationAI : <span class="ty">AI</span> <span class="kw">about</span> systemRequirementSpecification {
+            <span class="kw">doc</span>
+            <span class="cm">/* Derives verifiable, solution-neutral system requirements from the stakeholder needs
+             * and specification-level use cases, each with obligation, stability, and motivation.
+             *
+             * When to use:
+             * - The user wants to state, refine, or validate formal system requirements.
+             * - Stakeholder needs and/or use cases already exist and need to be turned into
+             *   verifiable requirement statements traceable back to them.
+             *
+             * When not to use:
+             * - The user is expressing an intent-level want in their own words, not yet a
+             *   verifiable requirement — use stakeholderNeedsAI instead.
+             * - The user is proposing a design or technology choice — requirements must stay
+             *   solution-neutral; route architecture decisions to functionalContextAI /
+             *   logicalContextAI / productContextAI.
+             */</span>
+            name = "sysmod-system-requirements";
+            create_prompt =
+                "1. <span class="ty">Derive</span> system requirements <span class="kw">from</span> the stakeholderNeeds, framed by the stakeholderNeeds and referencing the specificationSystem as <span class="kw">subject</span>.
+                2. <span class="ty">For</span> each <span class="kw">requirement</span>, create a <span class="kw">requirement</span> usage or definition specializing <span class="ty">ExtendedRequirement</span>. <span class="ty">Set</span> obligation (mandatory/optional), stability (stable/unstable), and a brief motivation.
+                3. <span class="ty">Ensure</span> each <span class="kw">requirement</span> is verifiable, unambiguous, and solution-neutral where possible.
+                4. <span class="ty">Group</span> requirements logically (e.g., functional, performance, safety, <span class="kw">interface</span>) using nested <span class="kw">requirement</span> usages if appropriate.
+                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the systemRequirementSpecification.
+                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the systemRequirementSpecification into the <span class="ty">SysML</span> model, find the project and redefine the inherited systemRequirementSpecification <span class="kw">requirement</span> usage.";
+            create_questions = (
+                "<span class="ty">What</span> are the key functional requirements of the system?",
+                "<span class="ty">Are</span> there non-functional requirements (performance, safety, reliability, compliance)?",
+                "<span class="ty">Which</span> requirements are mandatory and which are optional?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the systemRequirementSpecification against the <span class="ty">SYSMOD</span> <span class="ty">System</span> <span class="ty">Requirements</span> concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">The</span> systemRequirementSpecification <span class="kw">requirement</span> usage is present <span class="kw">in</span> the project, framing the stakeholderNeeds.
+                2. <span class="ty">The</span> <span class="kw">subject</span> references the specificationContext soi (the specification system is the <span class="kw">subject</span> of the requirements).
+                3. <span class="ty">At</span> least one system <span class="kw">requirement</span> is defined as a nested <span class="kw">requirement</span> usage or definition.
+                4. <span class="ty">Each</span> <span class="kw">requirement</span> specializes <span class="ty">ExtendedRequirement</span> and has the obligation <span class="kw">attribute</span> set (not <span class="ty">ObligationKind</span>::none).
+                5. <span class="ty">Each</span> <span class="kw">requirement</span> has the stability <span class="kw">attribute</span> set (not <span class="ty">StabilityKind</span>::none).
+                6. <span class="ty">Each</span> <span class="kw">requirement</span> has a non-empty motivation <span class="kw">attribute</span> explaining why the <span class="kw">requirement</span> exists.
+                7. <span class="ty">Each</span> <span class="kw">requirement</span> is traceable <span class="kw">to</span> at least one <span class="kw">stakeholder</span> need (via <span class="kw">frame</span> or derive relationships, or <span class="kw">doc</span> comment reference).
+                8. <span class="ty">Each</span> <span class="kw">requirement</span> text is verifiable — check for vague qualifiers without measurable criteria (e.g., 'fast', 'easy', 'reliable' without a threshold).
+                9. <span class="ty">Each</span> <span class="kw">requirement</span> is solution-neutral — check for implementation-specific language (named technologies, specific designs) that constrain the solution unnecessarily.
+                10. <span class="ty">The</span> set of requirements covers all defined <span class="kw">use</span> cases — every <span class="kw">use</span> <span class="kw">case</span> should be reflected <span class="kw">in</span> at least one functional <span class="kw">requirement</span>.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+
+        <span class="kw">metadata</span> functionalContextAI : <span class="ty">AI</span> <span class="kw">about</span> functionalContext {
+            <span class="kw">doc</span>
+            <span class="cm">/* Defines the optional functional architecture — technology-independent
+             * functions/actions derived from the specification's black-box view, without
+             * depending on physical structure.
+             *
+             * When to use:
+             * - The user wants to decompose the system into functions or behaviors (e.g. using
+             *   the FAS method), independent of implementation technology.
+             * - System requirements exist and the project has decided a functional architecture
+             *   is needed (it is optional in SYSMOD).
+             *
+             * When not to use:
+             * - The project doesn't need a functional decomposition — this artifact is optional;
+             *   skip it and go straight to logicalContextAI / productContextAI if so.
+             * - The user is naming concrete technologies, components, or physical structure —
+             *   that belongs in logicalContextAI (technology-independent building blocks) or
+             *   productContextAI (concrete parts), not here.
+             */</span>
+            name = "sysmod-functional-architecture";
+            create_prompt =
+                "1. <span class="ty">If</span> a functional architecture is required, specialize specificationContext (black-box view) within functionalContext. <span class="ty">Do</span> not specialize specificationContextImpl — the functional architecture must not depend on the physical internal structure of the system.
+                2. <span class="ty">Redefine</span> the inherited functionalSystem <span class="kw">part</span> (which redefines the black-box specification soi) as the root of the functional architecture (e.g., developed with the <span class="ty">FAS</span> method). <span class="ty">It</span> inherits the system ports, so functions can be related <span class="kw">to</span> the system's external interfaces.
+                3. <span class="ty">Define</span> the top-level functions as <span class="kw">action</span> usages or <span class="kw">part</span> usages within the functionalSystem.
+                4. <span class="ty">If</span> allocations <span class="kw">to</span> the logical architecture are known, note them; formal allocations are expressed via the functional2logical <span class="kw">allocation</span> <span class="kw">in</span> the project.
+                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the functionalContext.
+                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the functionalContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited functionalContext <span class="kw">part</span> usage (note: multiplicity is [0..1]).";
+            create_questions = (
+                "<span class="ty">Is</span> a functional architecture required for this project?",
+                "<span class="ty">What</span> are the top-level functions the system must perform?",
+                "<span class="ty">Should</span> the functional architecture follow the <span class="ty">FAS</span> method or another approach?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the functionalContext against the <span class="ty">SYSMOD</span> <span class="ty">Functional</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">If</span> present, the functionalContext <span class="kw">part</span> usage specializes specificationContext.
+                2. <span class="ty">A</span> functionalSystem <span class="kw">part</span> is present as the root of the functional decomposition, redefining the black-box specification soi.
+                3. <span class="ty">At</span> least one top-level function is defined as an <span class="kw">action</span> usage or <span class="kw">part</span> usage within the functionalSystem.
+                4. <span class="ty">Each</span> top-level function is traceable <span class="kw">to</span> at least one system <span class="kw">requirement</span> (via <span class="kw">satisfy</span>, refine, or <span class="kw">doc</span> comment reference).
+                5. <span class="ty">Functions</span> are technology-independent — check for implementation-specific naming or structure that belongs <span class="kw">in</span> the logical or product architecture.
+                6. <span class="ty">If</span> a logicalContext is present <span class="kw">in</span> the project, a functional2logical <span class="kw">allocation</span> is defined connecting the functionalContext <span class="kw">to</span> the logicalContext.
+                7. <span class="ty">The</span> functionalSystem contains only functional blocks — no physical or internal structure of the system, which belongs <span class="kw">in</span> the white-box specification, logical, or product contexts.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+
+        <span class="kw">metadata</span> logicalContextAI : <span class="ty">AI</span> <span class="kw">about</span> logicalContext {
+            <span class="kw">doc</span>
+            <span class="cm">/* Defines the optional logical architecture — technology-independent building blocks
+             * that realize the functional architecture (or the requirements directly), without
+             * naming concrete technologies.
+             *
+             * When to use:
+             * - The user wants to define logical components, subsystems, or a technology-
+             *   independent partitioning of the solution.
+             * - A functional architecture (or the requirements) exists and the project has
+             *   decided a logical architecture is needed (it is optional in SYSMOD).
+             *
+             * When not to use:
+             * - The project doesn't need a logical layer — this artifact is optional; go straight
+             *   to productContextAI if so.
+             * - The user names concrete/physical components, vendors, or deployment details —
+             *   that belongs in productContextAI, not here.
+             * - The user wants functions or behaviors rather than structural building blocks —
+             *   use functionalContextAI.
+             */</span>
+            name = "sysmod-logical-architecture";
+            create_prompt =
+                "1. <span class="ty">If</span> a logical architecture is required, specialize specificationContext by redefining the soi <span class="kw">part</span> for the logical level.
+                2. <span class="ty">Define</span> logical components as <span class="kw">part</span> usages within logicalSystem (the redefined black-box soi), representing technology-independent building blocks that realize the functional architecture.
+                3. <span class="ty">If</span> allocations <span class="kw">from</span> the functional architecture are known, note them; formal allocations are expressed via the functional2logical <span class="kw">allocation</span> <span class="kw">in</span> the project.
+                4. <span class="ty">If</span> allocations <span class="kw">to</span> the product architecture are known, note them; formal allocations are expressed via the logical2product <span class="kw">allocation</span> <span class="kw">in</span> the project.
+                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the logicalContext.
+                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the logicalContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited logicalContext <span class="kw">part</span> usage (note: multiplicity is [0..1]).";
+            create_questions = (
+                "<span class="ty">Is</span> a logical architecture required for this project?",
+                "<span class="ty">What</span> are the key logical components or subsystems?",
+                "<span class="ty">Are</span> there technology-independent partitioning principles <span class="kw">to</span> apply (e.g., separation of concerns, layers)?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the logicalContext against the <span class="ty">SYSMOD</span> <span class="ty">Logical</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">If</span> present, the logicalContext <span class="kw">part</span> usage specializes specificationContext.
+                2. <span class="ty">At</span> least one logical component is defined as a <span class="kw">part</span> usage within logicalSystem.
+                3. <span class="ty">Logical</span> components are technology-independent — check for product-specific naming, vendor names, physical form factors, or deployment-specific details that belong <span class="kw">in</span> the productContext.
+                4. <span class="ty">Each</span> logical component is traceable <span class="kw">to</span> at least one function <span class="kw">from</span> the functionalContext (if present) via <span class="kw">allocation</span> or <span class="kw">doc</span> comment.
+                5. <span class="ty">If</span> a functionalContext is present <span class="kw">in</span> the project, a functional2logical <span class="kw">allocation</span> is defined connecting functionalContext <span class="kw">to</span> logicalContext.
+                6. <span class="ty">If</span> a productContext is present <span class="kw">in</span> the project, a logical2product <span class="kw">allocation</span> is defined connecting logicalContext <span class="kw">to</span> productContext.
+                7. <span class="ty">Logical</span> component interfaces are defined where components interact, using <span class="kw">port</span> and <span class="kw">interface</span> definitions.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+
+        <span class="kw">metadata</span> productContextAI : <span class="ty">AI</span> <span class="kw">about</span> productContext {
+            <span class="kw">doc</span>
+            <span class="cm">/* Defines the concrete, physical or deployable product architecture that satisfies
+             * the system requirements — the only architecture context that is not optional.
+             *
+             * When to use:
+             * - The user wants to define concrete hardware/software components, physical parts,
+             *   or deployment structure, or connect them via ports/interfaces.
+             * - System requirements exist (and, if used, logical architecture) and the project is
+             *   ready to commit to concrete building blocks.
+             *
+             * When not to use:
+             * - The user wants technology-independent structure or behavior — use
+             *   logicalContextAI or functionalContextAI instead.
+             * - Product components would need to reference each other's internals directly
+             *   rather than through a published port/interface — flag that as a MOSA violation
+             *   rather than modeling it.
+             */</span>
+            name = "sysmod-product-architecture";
+            create_prompt =
+                "1. <span class="ty">Specialize</span> specificationContextImpl for the product architecture by redefining the soiImpl <span class="kw">part</span> with a concrete product-level definition.
+                2. <span class="ty">Define</span> product components as <span class="kw">part</span> usages within productSystem (the redefined white-box soiImpl), representing physical or deployable building blocks (hardware, software components, assemblies).
+                3. <span class="ty">If</span> allocations <span class="kw">from</span> the logical architecture are known, note them; formal allocations are expressed via the logical2product <span class="kw">allocation</span> <span class="kw">in</span> the project.
+                4. <span class="ty">Include</span> interfaces between product components where relevant.
+                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the productContext.
+                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the productContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited productContext <span class="kw">part</span> usage.";
+            create_questions = (
+                "<span class="ty">What</span> are the main physical or deployable components of the system?",
+                "<span class="ty">Are</span> there hardware/software splits or deployment boundaries <span class="kw">to</span> model?",
+                "<span class="ty">Which</span> product components are <span class="kw">derived</span> <span class="kw">from</span> the logical architecture?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the productContext against the <span class="ty">SYSMOD</span> <span class="ty">Product</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">The</span> productContext <span class="kw">part</span> usage is present <span class="kw">in</span> the project and specializes specificationContextImpl.
+                2. <span class="ty">At</span> least one product component is defined as a <span class="kw">part</span> usage within productSystem.
+                3. <span class="ty">Product</span> components represent concrete, physical or deployable building blocks — check that logical or functional abstractions have been resolved <span class="kw">to</span> specific technologies, hardware types, or software components.
+                4. <span class="ty">Each</span> product component is traceable <span class="kw">to</span> at least one logical component <span class="kw">from</span> the logicalContext (if present) via the logical2product <span class="kw">allocation</span> or <span class="kw">doc</span> comment.
+                5. <span class="ty">If</span> a logicalContext is present <span class="kw">in</span> the project, a logical2product <span class="kw">allocation</span> is defined connecting logicalContext <span class="kw">to</span> productContext.
+                6. <span class="ty">Interfaces</span> between product components are defined where components interact physically or through <span class="ty">APIs</span>.
+                7. <span class="ty">All</span> system requirements are satisfied — <span class="kw">verify</span> that a <span class="kw">satisfy</span> relationship chain exists <span class="kw">from</span> the product architecture back <span class="kw">to</span> the systemRequirementSpecification.
+                8. <span class="ty">Every</span> dependency between two product components crosses only through a defined <span class="kw">port</span>/<span class="kw">interface</span> — flag any part-to-part reference that bypasses the published <span class="kw">interface</span>. <span class="ty">A</span> back-door dependency is both a <span class="ty">MOSA</span> violation and the exact thing that breaks module-scoped context retrieval.
+                9. <span class="ty">Each</span> component's published <span class="kw">interface</span> is specified completely enough that a neighbor — or an <span class="ty">AI</span> assistant — never needs that component's internal structure <span class="kw">to</span> use it correctly.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+
+        <span class="kw">metadata</span> subProjectsAI : <span class="ty">AI</span> <span class="kw">about</span> subProjects {
+            <span class="kw">doc</span>
+            <span class="cm">/* Decomposes a project into sub-projects for distinct subsystems or components, each
+             * with its own narrower-scoped project artifacts.
+             *
+             * When to use:
+             * - The user wants to split a large project into subsystem- or component-level
+             *   projects, or asks how a subsystem/component should be organized as its own
+             *   project.
+             * - The system is complex enough that separate teams or scopes need their own
+             *   project context, sharing stakeholders or requirements with the parent.
+             *
+             * When not to use:
+             * - The project is small enough to stay a single, non-decomposed project — do not
+             *   create sub-projects speculatively.
+             * - The user wants to define an artifact within the current project's own scope —
+             *   use that artifact's own AI metadata instead of creating a sub-project.
+             */</span>
+            name = "sysmod-sub-projects";
+            create_prompt =
+                "1. <span class="ty">If</span> the project is decomposed into sub-projects, create <span class="kw">occurrence</span> definitions specializing <span class="ty">Project</span> (or <span class="ty">AIProject</span>) for each sub-project.
+                2. <span class="ty">Add</span> each sub-project as an <span class="kw">occurrence</span> usage subsetting subProjects within the parent project.
+                3. <span class="ty">Ensure</span> each sub-project has its own projectOwner, brownfieldContext, and problemStatement as appropriate.
+                4. <span class="ty">Cross</span>-reference shared artifacts (e.g., shared stakeholders or requirements) by subsetting or referencing the parent project's elements.
+                5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for all sub-project definitions and their usages.
+                6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert sub-projects into the <span class="ty">SysML</span> model, find the parent project and add the sub-project <span class="kw">occurrence</span> usages.";
+            create_questions = (
+                "<span class="ty">Should</span> the project be decomposed into sub-projects?",
+                "<span class="ty">What</span> are the names and scopes of the sub-projects?",
+                "<span class="ty">Do</span> the sub-projects share stakeholders or requirements with the parent project?",
+            );
+            validation_prompt =
+                "<span class="ty">Validate</span> the subProjects against the <span class="ty">SYSMOD</span> sub-project decomposition concept and report findings grouped as errors, warnings, and suggestions.
+                <span class="ty">Check</span>:
+                1. <span class="ty">Each</span> sub-project <span class="kw">occurrence</span> usage subsets the inherited subProjects and is typed by an <span class="kw">occurrence</span> definition specializing <span class="ty">Project</span> or <span class="ty">AIProject</span>.
+                2. <span class="ty">Each</span> sub-project has at least a projectOwner and a brownfieldContext defined.
+                3. <span class="ty">Each</span> sub-project has a problemStatement that is consistent with and narrower <span class="kw">in</span> scope than the parent project's problemStatement.
+                4. <span class="ty">Shared</span> stakeholders between parent and sub-projects are referenced by subsetting the parent project's <span class="kw">stakeholder</span> <span class="kw">part</span> usages rather than duplicated as independent definitions.
+                5. <span class="ty">There</span> are no overlapping scopes between sibling sub-projects — each sub-project addresses a distinct <span class="kw">part</span> of the parent problem.
+                6. <span class="ty">Each</span> sub-project has a meaningful name and <span class="kw">doc</span> comment describing its scope and relationship <span class="kw">to</span> the parent project.
+                <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
+        }
+    }
+}
+
+<span class="kw">library</span> <span class="kw">package</span> <span class="ty">SYSMODRequirementsBoilerplates</span> {
+    <span class="kw">doc</span>
+    <span class="cm">/* Library of generic, parametric requirement patterns. Each one captures a common quantitative
+     * requirement shape as a require constraint over placeholder attributes; specialize a boilerplate
+     * and redefine its attributes to bind it to a concrete quantity and threshold.
+     */</span>
+
+    <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MaxValue</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* The quantity must stay strictly below an upper bound. */</span>
+        <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+        <span class="kw">require</span> <span class="kw">constraint</span> {
+            currentValue &lt; maxValue
+        }
+    }
+    <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinValue</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* The quantity must stay strictly above a lower bound. */</span>
+        <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> minValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+        <span class="kw">require</span> <span class="kw">constraint</span> {
+            currentValue &gt; minValue
+        }
+    }
+    <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">RangeValue</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* The quantity must stay within an inclusive lower and upper bound. */</span>
+        <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> minValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+        <span class="kw">require</span> <span class="kw">constraint</span> {
+            minValue &lt;= currentValue <span class="kw">and</span> currentValue &lt;= maxValue
+        }
+    }
+    <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">ExactValue</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* The quantity must equal a specific target value. */</span>
+        <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> targetValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+        <span class="kw">require</span> <span class="kw">constraint</span> {
+            currentValue == targetValue
+        }
+    }
+    <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">ToleranceValue</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* The quantity must stay within a target value plus/minus a tolerance. */</span>
+        <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> targetValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> tolerance : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+        <span class="kw">require</span> <span class="kw">constraint</span> {
+            currentValue &gt;= targetValue - tolerance <span class="kw">and</span> currentValue &lt;= targetValue + tolerance
+        }
+    }
+    <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinAvailability</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* The ratio of uptime to total time must reach at least a minimum availability. */</span>
+        <span class="kw">attribute</span> uptime :&gt; <span class="ty">ISQ</span>::duration;
+        <span class="kw">attribute</span> totalTime :&gt; <span class="ty">ISQ</span>::duration;
+        <span class="kw">attribute</span> minAvailability : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+
+        <span class="kw">require</span> <span class="kw">constraint</span> {
+            uptime / totalTime &gt;= minAvailability
+        }
+    }
+    <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinReliability</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* The mean time between failures must reach at least a minimum MTBF. */</span>
+        <span class="kw">attribute</span> meanTimeBetweenFailures :&gt; <span class="ty">ISQ</span>::duration;
+        <span class="kw">attribute</span> minMTBF :&gt; <span class="ty">ISQ</span>::duration;
+
+        <span class="kw">require</span> <span class="kw">constraint</span> {
+            meanTimeBetweenFailures &gt;= minMTBF
         }
     }
 }`;
@@ -3243,14 +3593,16 @@ function renderIntro(){
       <div class="slide-sub">Delegating a step to an AI assistant</div>
       <div class="content-grid content-grid--full">
         <div class="text-col text-col--wide">
-          <p>Every main artifact in the SYSMOD SysML v2 library carries AI metadata: a machine-readable skill with a name, a create_prompt, create_questions, and a validation_prompt. Use AIProject instead of Project, and an assistant can read these skills straight out of the model — creating and validating each artifact for your own project. The layer below shows each step's skill, condensed from the library.</p>
+          <p>Every main artifact in the SYSMOD SysML v2 library carries AI metadata: a machine-readable skill with a name, create_questions, a create_prompt, and a validation_prompt, plus a perform_prompt that runs all three as one ready-to-execute workflow. AIProject attaches one of these to each main artifact of Project, in SYSMOD order; an assistant matches a given artifact's AI metadata (e.g. problemStatementAI) onto the identically-named feature of your own project — a real project stays a plain Project and never specializes AIProject. Two further prompts, story_prompt and slide_prompt, let an assistant explain any selected element to non-technical stakeholders. Each skill's own doc comment also spells out exactly when to use it and when not to — the same trigger/skip framing an AI-assistant skill would use — so these elements can be turned directly into Claude Skills or equivalent definitions for other LLM platforms; see the full library appendix in the Summary for the complete text. The layer below shows each step's skill, condensed from the library.</p>
           <pre class="code-block"><span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">AI</span> {
   <span class="kw">attribute</span> name;
   <span class="kw">attribute</span> create_prompt;
   <span class="kw">attribute</span> create_questions [*];
   <span class="kw">attribute</span> validation_prompt;
+  <span class="kw">attribute</span> perform_prompt; <span class="cm">// runs create/validate as one workflow</span>
+  <span class="cm">// plus story_prompt, slide_prompt for stakeholder-facing output</span>
 }
-<span class="cm">// e.g., inside AIProject:</span>
+<span class="cm">// e.g., inside AIProject, matched onto your project by feature identity:</span>
 <span class="kw">metadata</span> problemStatementAI : <span class="ty">AI</span>
     <span class="kw">about</span> problemStatement { <span class="cm">/* prompts */</span> }</pre>
         </div>
@@ -3324,11 +3676,11 @@ function renderSummary(){
 3.  sysmod-brownfield-context
 4.  sysmod-problem-statement
 5.  sysmod-stakeholders
-6.  sysmod-stakeholder-needs
-7.  sysmod-system-idea
-8.  sysmod-specification-context
-9.  sysmod-system-requirements
-10. sysmod-solution-context
+6.  sysmod-stakeholder-priority-map
+7.  sysmod-stakeholder-needs
+8.  sysmod-system-idea
+9.  sysmod-specification-context
+10. sysmod-system-requirements
 11. sysmod-functional-architecture
 12. sysmod-logical-architecture
 13. sysmod-product-architecture

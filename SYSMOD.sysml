@@ -158,13 +158,19 @@ library package SYSMOD {
         /* Base usage for all SYSMOD projects. It is the anchor of the #project semantic metadata. */
     }
 
-    view def ProblemStatementView4Management {
+    view def ProblemStatementView {
         doc
         /* The Problem Statement View renders the elevator-pitch problem statement, i.e., the problem the system of interest is intended to solve, for the project owner and other stakeholders. 
         */
-        doc prompt 
-        /* Create a single slide presenting the problem statement and a brief explanation of the purpose of the problem statement in a systems engineering project. 
-        The audience are managers, potentially non-engineers. Make the slide attractive with visuals and colors and management arguments.  */
+        doc prompt4manager
+        /* Create a single slide presenting the problem statement including the projectOwner and a brief description of the subject brownfiel architecture. Include a brief explanation of the purpose of the problem statement in a systems engineering project. 
+        The audience are managers, potentially non-engineers. Make the slide attractive with visuals and colors and management arguments.
+Self-Check: Check if the problem statement text, the projectOwner and the brownfield architecture on the slide is identical with the text in the given model.  */
+        doc prompt4engineers
+        /* Create a single slide presenting the problem statement including the projectOwner and a brief description of the subject brownfiel architecture. Include a brief explanation of the purpose of the problem statement in a systems engineering project. 
+        The audience are engineers. Be very detailed and focus on the what and how. Add as many details as possible and useful.
+        Self-Check: Check if the problem statement text, the projectOwner and the brownfield architecture on the slide is identical with the text in the given model.  */
+
         viewpoint problemStatementViewpoint : ProblemStatementViewpoint;
     }
 

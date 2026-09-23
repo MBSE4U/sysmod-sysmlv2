@@ -41,6 +41,13 @@ library package SYSMOD {
             stakeholder projectOwner :> Project::projectOwner;
             attribute :>> priority default LevelKind::critical;
         }
+        view problemStatementView : ProblemStatementView {
+            doc
+            /* Renders the problem statement and its stakeholder for review. */
+            expose problemStatement;
+            expose projectOwner;
+            render Views::asTextualNotation;
+        }
         part projectStakeholders : ExtendedStakeholder [1..*] {
             doc
             /* Stakeholders are individuals and organizations that have an interest in the system. They have needs and are potential sources of system requirements. There is at least one stakeholder which is the project owner. */
@@ -149,6 +156,29 @@ library package SYSMOD {
     abstract occurrence projects : Project [*] {
         doc
         /* Base usage for all SYSMOD projects. It is the anchor of the #project semantic metadata. */
+    }
+
+    view def ProblemStatementView4Management {
+        doc
+        /* The Problem Statement View renders the elevator-pitch problem statement, i.e., the problem the system of interest is intended to solve, for the project owner and other stakeholders. 
+        */
+        doc prompt 
+        /* Create a single slide presenting the problem statement and a brief explanation of the purpose of the problem statement in a systems engineering project. 
+        The audience are managers, potentially non-engineers. Make the slide attractive with visuals and colors and management arguments.  */
+        viewpoint problemStatementViewpoint : ProblemStatementViewpoint;
+    }
+
+    viewpoint def ProblemStatementViewpoint {
+        doc
+        /* The Problem Statement Viewpoint addresses the stakeholders' concern of having a shared, unambiguous, and solution-free understanding of the problem the system of interest is intended to solve, before a solution is defined. */
+        frame concern problemStatementConcern : ProblemStatementConcern;
+    }
+
+    concern def ProblemStatementConcern {
+        doc
+        /* The stakeholders' need for a shared, unambiguous, and solution-free understanding of the problem the system of interest is intended to solve. */
+        subject;
+        stakeholder projectOwner;
     }
 
     //

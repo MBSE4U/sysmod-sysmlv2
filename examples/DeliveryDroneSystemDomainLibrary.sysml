@@ -23,6 +23,8 @@ library package <DDD> DeliveryDroneDomainLibrary {
      * Copyright 2026, MBSE4U, Tim Weilkiens
      */
     package Items {
+        item def Energy;
+        
         item def Parcel {
             doc /* The physical package being transported by the drone. */
         }

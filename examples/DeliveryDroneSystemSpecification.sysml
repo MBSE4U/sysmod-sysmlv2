@@ -51,77 +51,6 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
         doc
         /* The specification system as a black box; the subject of the system
          * requirements and the use cases. */
-
-        action planDelivery {
-            doc /* Assigns a parcel and its destination to a drone as a delivery task. */
-            in item order : DeliveryOrder = operatorPort.order;
-            out item task : DeliveryTask;
-        }
-        action flyToPosition : FlyToPosition;
-        action pickUpPackage {
-            doc /* Loads the assigned parcel onto the drone at the depot. */
-            in item pkg : Parcel = packagePort.pkg;
-        }
-        action chargeInFlight {
-            doc /* Recharges the drone's battery in flight when it runs low en route. */
-        }
-        action dropOffPackage {
-            doc /* Delivers the parcel to the recipient at the landing zone. */
-            out item deliveredPkg : Parcel = packagePort.pkg;
-        }
-        action flyToHomeStation {
-            doc /* Returns the empty drone to the home station after delivery. */
-        }
-        action batteryLow {
-            accept LowBatterySignal;
-        }
-        action detectLowBattery {
-            doc /* Detects that a drone's battery has fallen below the threshold for its remaining route. */
-            in item battLevel : BatteryLevel;
-            out item lowBattSignal : LowBatterySignal;
-        }
-        action assignChargerDrone {
-            doc /* Assigns a nearby charger drone to meet the low-battery drone in flight. */
-            in item lowBattSignal : LowBatterySignal;
-            in item pos : Position;
-            out item chargerAssign : ChargerAssignment;
-        }
-        action rendezvousInFlight {
-            doc /* Brings the charger drone and the low-battery drone together at a shared position. */
-            in item chargerAssign : ChargerAssignment;
-            in item pos : Position;
-            out item chargePos : ChargingPosition;
-        }
-        action transferEnergy {
-            doc /* Transfers energy from the charger drone to the low-battery drone's battery. */
-        }
-        action resumeRoute {
-            doc /* Lets the recharged drone continue its interrupted route. */
-        }
-        action requestStatus {
-            doc /* Initiates the operator's request for a fleet-wide status overview. */
-            out item req : StatusRequest;
-        }
-        action pollDrones {
-            doc /* Polls every active drone in the fleet for its current status. */
-            in item req : StatusRequest;
-            out item droneStatus : DroneStatus;
-        }
-        action reportDroneStatus {
-            doc /* Reports a single drone's position, battery level, and task status. */
-            in item sensorData : SensorData;
-            in item taskData : TaskData;
-            out item droneStatus : DroneStatus;
-        }
-        action aggregateFleetStatus {
-            doc /* Aggregates every drone's status into one fleet-wide view. */
-            in item droneStatus : DroneStatus;
-            out item fleetStatus : FleetStatus;
-        }
-        action deliverFleetStatus {
-            doc /* Delivers the aggregated fleet status to the operator. */
-            in item fleetStatus : FleetStatus;
-        }
     }
     part def DeliveryDroneSystemImpl :> DeliveryDroneSystem, DD_SYSTEMIDEA::DeliveryDroneSystemIdeaImpl {
         doc
@@ -163,7 +92,7 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
             first flyToPickup then pickUpPackage;
             first pickUpPackage then flyToDestination;
             first m1 then dropOffPackage;
-            first batteryLow then chargeInFlight;
+            first acceptBatteryLow then chargeInFlight;
             first flyToDestination then m1;
             first chargeInFlight then m1;
             first dropOffPackage then flyToHomeStation;
@@ -173,14 +102,36 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
             flow from planDelivery.task.deliverLocation to flyToDestination.pos;
             
             merge m1;
-            action planDelivery :> droneSystem.planDelivery;
-            action flyToPickup :> droneSystem.flyToPosition;
-            action pickUpPackage :> droneSystem.pickUpPackage;
-            action flyToDestination :> droneSystem.flyToPosition;
-            action dropOffPackage :> droneSystem.dropOffPackage;
-            action batteryLow :> droneSystem.batteryLow;
-            action chargeInFlight :> droneSystem.chargeInFlight;
-            action flyToHomeStation :> droneSystem.flyToHomeStation;            
+            action planDelivery {
+                doc /* Assigns a parcel and its destination to a drone as a delivery task. */
+                in item order : DeliveryOrder = operatorPort.order;
+                out item task : DeliveryTask;
+            }
+
+            action flyToPickup : FlyToPosition;
+            action pickUpPackage {
+                doc /* Loads the assigned parcel onto the drone at the depot. */
+                in item pkg : Parcel = packagePort.pkg;
+            }
+            action flyToDestination : FlyToPosition;
+            action dropOffPackage {
+                doc /* Delivers the parcel to the recipient at the landing zone. */
+                out item deliveredPkg : Parcel = packagePort.pkg;
+            }
+
+            action acceptBatteryLow {
+                out item lowBattSignal : LowBatterySignal;
+                accept LowBatterySignal;
+            }
+
+            action chargeInFlight {
+                doc /* Recharges the drone's battery in flight when it runs low en route. */
+                in item energy : Energy;
+            }
+
+            action flyToHomeStation {
+                doc /* Returns the empty drone to the home station after delivery. */
+            }
         }
         #systemUseCase use case def ChargeDrone {
             subject droneSystem : DeliveryDroneSystem;
@@ -200,14 +151,39 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
                 doc /* The low-battery drone has received enough energy in flight and has resumed its route. */
             }
 
-            first start then droneSystem.detectLowBattery;
-            first droneSystem.detectLowBattery then droneSystem.assignChargerDrone;
-            first droneSystem.assignChargerDrone then droneSystem.rendezvousInFlight;
-            first droneSystem.rendezvousInFlight then droneSystem.transferEnergy;
-            first droneSystem.transferEnergy then droneSystem.resumeRoute;
-            first droneSystem.resumeRoute then done;
+            first start then detectLowBattery;
+            first detectLowBattery then assignChargerDrone;
+            first assignChargerDrone then rendezvousInFlight;
+            first rendezvousInFlight then transferEnergy;
+            first transferEnergy then resumeRoute;
+            first resumeRoute then done;
 
-            flow from droneSystem.assignChargerDrone.chargerAssign to droneSystem.rendezvousInFlight.chargerAssign;
+            flow from assignChargerDrone.chargerAssign to rendezvousInFlight.chargerAssign;
+
+            action detectLowBattery {
+                doc /* Detects that a drone's battery has fallen below the threshold for its remaining route. */
+                in port sender;
+                item lowBattSignal : LowBatterySignal;
+                send lowBattSignal via sender;
+            }
+            action assignChargerDrone {
+                doc /* Assigns a nearby charger drone to meet the low-battery drone in flight. */
+                in item lowBattSignal : LowBatterySignal;
+                in item pos : Position;
+                out item chargerAssign : ChargerAssignment;
+            }
+            action rendezvousInFlight {
+                doc /* Brings the charger drone and the low-battery drone together at a shared position. */
+                in item chargerAssign : ChargerAssignment;
+                in item pos : Position;
+                out item chargePos : ChargingPosition;
+            }
+            action transferEnergy {
+                doc /* Transfers energy from the charger drone to the low-battery drone's battery. */
+            }
+            action resumeRoute {
+                doc /* Lets the recharged drone continue its interrupted route. */
+            }
         }
         #systemUseCase use case def ReportFleetStatus {
             subject droneSystem : DeliveryDroneSystem;
@@ -226,12 +202,38 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
                 doc /* The operator has received the current position, battery level, and task status of every active drone. */
             }
 
-            first start then droneSystem.requestStatus;
-            first droneSystem.requestStatus then droneSystem.pollDrones;
-            first droneSystem.pollDrones then droneSystem.reportDroneStatus;
-            first droneSystem.reportDroneStatus then droneSystem.aggregateFleetStatus;
-            first droneSystem.aggregateFleetStatus then droneSystem.deliverFleetStatus;
-            first droneSystem.deliverFleetStatus then done;
+            first start then requestStatus;
+            first requestStatus then pollDrones;
+            first pollDrones then reportDroneStatus;
+            first reportDroneStatus then aggregateFleetStatus;
+            first aggregateFleetStatus then deliverFleetStatus;
+            first deliverFleetStatus then done;
+
+            action requestStatus {
+                doc /* Initiates the operator's request for a fleet-wide status overview. */
+                out item req : StatusRequest;
+            }
+            action pollDrones {
+                doc /* Polls every active drone in the fleet for its current status. */
+                in item req : StatusRequest;
+                out item droneStatus : DroneStatus;
+            }
+            action reportDroneStatus {
+                doc /* Reports a single drone's position, battery level, and task status. */
+                in item sensorData : SensorData;
+                in item taskData : TaskData;
+                out item droneStatus : DroneStatus;
+            }
+            action aggregateFleetStatus {
+                doc /* Aggregates every drone's status into one fleet-wide view. */
+                in item droneStatus : DroneStatus;
+                out item fleetStatus : FleetStatus;
+            }
+            action deliverFleetStatus {
+                doc /* Delivers the aggregated fleet status to the operator. */
+                in item fleetStatus : FleetStatus;
+            }
+
         }
         #systemUseCase use case def HandleEmergencyLanding {
             subject droneSystem : DeliveryDroneSystem;

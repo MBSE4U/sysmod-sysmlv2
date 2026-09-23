@@ -51,13 +51,26 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
         }
 
         interface :Interfaces::PositionInterface 
-            connect deliveryManagement.positionPort to flightControl.positionPort;
-        part flightControl {
-            port positionPort : Interfaces::PositionPort;
+            connect deliveryManagement.pickupPositionPort to flightControl.flyToPositionPort;
+        interface :Interfaces::PositionInterface 
+            connect deliveryManagement.deliveryPositionPort to flightControl.flyToPositionPort;
 
-            bind positionPort.position = flyToPosition.pos;
+        part flightControl {
+            port flyToPositionPort : Interfaces::PositionPort {
+                out item _position = position;
+            }
+            port chargerDronePositionPort : Interfaces::PositionPort;
+            port chargerPositionPort : Interfaces::PositionPort;
+            port chargerPort : Interfaces::ChargerPort;
+
+            flow flyToPositionPort._position to flyToPosition.pos;
             perform flyToPosition;
             perform flyToHomeStation;
+            bind chargerPort.chargerAssign = rendezvousInFlight.chargerAssign;
+            bind chargerDronePositionPort.position = rendezvousInFlight.pos;
+            bind chargerPositionPort.position = rendezvousInFlight.chargePos;
+            perform rendezvousInFlight;
+            perform resumeRoute;
         }
 
         bind packagePort.pkg = packageManagement.packagePort.payload;
@@ -72,69 +85,43 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
         }
 
         part batteryManagement {
-            perform chargeInFlight;
-            perform batteryLow;
+            port energyPort : Interfaces::EnergyPort;
+            port lowBatteryPort : Interfaces::LowBatteryPort;
 
+            bind energyPort.energy = chargeInFlight.energy;
+            perform chargeInFlight;
+            
+            bind acceptBatteryLow.lowBattSignal = lowBatteryPort.lowBattSignal;
+            perform acceptBatteryLow;
             perform detectLowBattery;
+            perform transferEnergy;
         }
         
-        action detectLowBattery {
-            doc /* Detects that a drone's battery has fallen below the threshold for its remaining route. */
-            in item battLevel : BatteryLevel;
-            out item lowBattSignal : LowBatterySignal;
-        }
-        action assignChargerDrone {
-            doc /* Assigns a nearby charger drone to meet the low-battery drone in flight. */
-            in item lowBattSignal : LowBatterySignal;
-            in item pos : Position;
-            out item chargerAssign : ChargerAssignment;
-        }
-        action rendezvousInFlight {
-            doc /* Brings the charger drone and the low-battery drone together at a shared position. */
-            in item chargerAssign : ChargerAssignment;
-            in item pos : Position;
-            out item chargePos : ChargingPosition;
-        }
-        action transferEnergy {
-            doc /* Transfers energy from the charger drone to the low-battery drone's battery. */
-        }
-        action resumeRoute {
-            doc /* Lets the recharged drone continue its interrupted route. */
-        }
-        action requestStatus {
-            doc /* Initiates the operator's request for a fleet-wide status overview. */
-            out item req : StatusRequest;
-        }
-        action pollDrones {
-            doc /* Polls every active drone in the fleet for its current status. */
-            in item req : StatusRequest;
-            out item droneStatus : DroneStatus;
-        }
-
         part droneManagement {
-            port sensorPort : SensorPort;
-            port taskPort : TaskPort;
-            port droneStatusPort : ~DroneStatusPort;
+            port sensorPort : Interfaces::SensorPort;
+            port taskPort : Interfaces::TaskPort;
+            port droneStatusPort : ~Interfaces::DroneStatusPort;
 
-            flow sensorPort.sensorData to reportDroneStatus.sensorData;
-            flow taskPort.taskData to reportDroneStatus.taskData;
-            flow reportDroneStatus.droneStatus to droneStatusPort.droneStatus;
+            bind sensorPort.sensorData = reportDroneStatus.sensorData;
+            bind taskPort.taskData = reportDroneStatus.taskData;
+            bind reportDroneStatus.droneStatus = droneStatusPort.droneStatus;
             perform reportDroneStatus;
 
             perform pollDrones;
         }
 
         part fleetManagement {
-            port fleetStatusPort : FleetStatusPort;
-            port droneStatusPort : DroneStatusPort;
+            port fleetStatusPort : Interfaces::FleetStatusPort;
+            port droneStatusPort : Interfaces::DroneStatusPort;
 
             flow fleetStatusPort.fleetStatus to deliverFleetStatus.fleetStatus;
             perform deliverFleetStatus;
 
-            flow droneStatusPort.droneStatus to aggregateFleetStatus.droneStatus;
-            flow aggregateFleetStatus.fleetStatus to fleetStatusPort.fleetStatus;
-            perform aggregateFleetStatus;
-
+            bind droneStatusPort.droneStatus = aggregateFleetStatus.droneStatus;
+            bind aggregateFleetStatus.fleetStatus = fleetStatusPort.fleetStatus;
+            perform aggregateFleetStatus;            
+            perform requestStatus;
+            perform pollDrones;
         }
     }
 
@@ -143,6 +130,9 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
             end port source : ~PositionPort;
             end port target : PositionPort;
             flow source.position to target.position;
+        }
+        port def EnergyPort {
+            in item energy : Energy;
         }
         port def DeliveryPort {
             in item deliveryOrder : DeliveryOrder;
@@ -164,6 +154,12 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
         }
         port def PackagePort {
             inout item payload : Parcel;
+        }
+        port def LowBatteryPort {
+            in item lowBattSignal : LowBatterySignal;
+        }
+        port def ChargerPort {
+            in item chargerAssign : ChargerAssignment;
         }
     }
 }

@@ -301,7 +301,7 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
             attribute :>> stability = StabilityKind::stable;
             attribute :>> motivation = "Typical last-mile parcels weigh less than 5 kg.";
             attribute :>> currentValue = deliveryDrone.payloadMass;
-            attribute :>> maxValue = 5;
+            attribute :>> maxValue = 5 [SI::kg];
             frame concern :DD_STAKEHOLDERNEEDS::LowDeliveryCost;
         }
         #extendedRequirement requirement def AirCharging {

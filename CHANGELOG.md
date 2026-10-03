@@ -16,6 +16,8 @@
 - Updated example model (functional architecture): replaced the empty placeholder parts with the FAS functional blocks `deliveryManagement`, `flightControl`, `packageManagement`, `batteryManagement`, `droneManagement`, and `fleetManagement`, which perform the specification actions, are bound to the inherited system ports, and are connected via typed ports from a new `Interfaces` package (`PositionInterface`, `PositionPort`, `EnergyPort`, `DeliveryPort`, `PayloadPort`, ...). Corrected the remaining "solution" wording in its doc comments to "specification".
 - Updated the Cameo Systems Modeler file of the example model.
 - Synced the sysmod.org deck with the example model and library: Brownfield (step 5: `payloadPort`, `energyPort`, `customer`, port docs), Specification (step 7), Use Cases (step 8: current `SystemUseCase :> ConstrainedOccurrence` library snippet with `startShot`/`endShot`, and the reworked `DeliverPackage`), Functional Architecture (step 10), the `maxPayloadMass` name in steps 9 and 11, the remaining "solution" wording in the appendix's functional/logical/product context docs, and an invalid trailing comma in the appendix's `projectAI` `create_questions`.
+- Added `SYSMOD4AI` and `SYSMODRequirementsBoilerplates` to the Sysand package index (`.meta.json`), so both new library files are included in the published package, and added the version line to the `SYSMOD4AI` header.
+- Fixed the sysmod.org deck's links to the example model folder and to the SYSMOD Sysand project page.
 - The sysmod.org deck now always shows SysML v2 textual notation in full: removed all height limits and inner scroll boxes from code blocks, and the library, model, and AI slides grow with their content and scroll as a whole, so no slide is cut off.
 
 ## v5.1.2

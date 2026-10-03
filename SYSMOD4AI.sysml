@@ -20,7 +20,9 @@ package SYSMOD4AI {
      *   occurrence def (or :> Project), independent of SYSMOD4AI. An AI assistant instead applies a
      *   given AI metadata usage's prompts to the identically-named/-roled feature on that real
      *   project (e.g. AIProject::problemStatementAI's prompts apply to any project's own
-     *   problemStatement), matched by feature identity rather than by inheritance from AIProject.     *
+     *   problemStatement), matched by feature identity rather than by inheritance from AIProject.
+     *
+     * Version v5.1.3
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.

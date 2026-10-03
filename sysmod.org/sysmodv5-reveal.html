@@ -125,19 +125,12 @@
   .link-card:hover{background:var(--rule);}
   .link-card .lbl{opacity:0.6; font-weight:400; margin-right:6px;}
 
-  pre.code-block.code-block--full{max-width:none; max-height:58vh; font-size:0.78rem;}
+  pre.code-block.code-block--full{max-width:none; font-size:0.78rem;}
   pre.code-block.code-block--wide{max-width:none;}
-  section.layer-library pre.code-block--wide{max-height:400px; overflow-y:auto;}
-  pre.code-block.code-block--scroll{max-height:380px; overflow-y:auto;}
-  section.layer-model pre.code-block--wide{max-height:230px; overflow-y:auto;}
 
   section.step-h[data-step="summary"] section.layer-library .text-col--wide,
   section.step-h[data-step="summary"] section.layer-model .text-col--wide{
     width:100%; max-width:none;
-  }
-  section.step-h[data-step="summary"] section.layer-library pre.code-block--full,
-  section.step-h[data-step="summary"] section.layer-model pre.code-block--full{
-    max-height:340px; overflow-y:auto;
   }
 
   pre.code-block{
@@ -184,7 +177,13 @@
   section.layer-model{border-top-color:var(--accent-teal);}
   section.layer-model .eyebrow{color:var(--accent-teal);}
   section.layer-model .content-grid{align-items:stretch;}
-  section.layer-model .text-col--model-code{overflow-y:auto; min-height:0;}
+  section.layer-model .text-col--model-code{min-height:0;}
+  /* SysML v2 code blocks are always shown in full (no max-height). Reveal sets an inline
+     display:block on visible slides, so slides with code grow beyond the canvas and
+     scroll as a whole instead (as for layer-products). */
+  .reveal .slides section.layer-library,
+  .reveal .slides section.layer-model,
+  .reveal .slides section.layer-ai{overflow-y:auto;}
 
   /* ---------- Layer 5: AI Skill (left border = violet) ---------- */
   section.layer-ai{border-top-color:var(--accent-violet); background:#FAF8FC;}
@@ -241,9 +240,9 @@
     pre.code-block{
       font-size:0.62rem; line-height:1.42; padding:12px 14px;
       white-space:pre-wrap; word-break:break-word; overflow-wrap:anywhere;
-      max-width:100%; max-height:42vh;
+      max-width:100%;
     }
-    pre.code-block.code-block--full{font-size:0.6rem; max-height:38vh;}
+    pre.code-block.code-block--full{font-size:0.6rem;}
     .img-col img{max-height:26vh;}
     #site-header{font-size:0.6rem; padding:6px 12px;}
     #site-footer{font-size:0.52rem; padding:4px 12px;}
@@ -640,7 +639,7 @@ const steps = [
         }
     }
 }`, img:null, slot:"05-brownfield-library" },
-      model:{ text:"A simple structure for the drones and the context is predefined. operatorPort and packagePort now carry typed items from the new domain library, so what flows across the boundary is explicit.", 
+      model:{ text:"A simple structure for the drones and the context is predefined. operatorPort, payloadPort, and energyPort now carry typed items from the new domain library, so what flows across the boundary is explicit. The customer hands over and receives packages via payloadPort.",
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {    
         <span class="kw">part</span> deliveryDroneBrownfieldContext :&gt;&gt; brownfieldContext : <span class="ty">DD_BROWNFIELD::DeliveryDroneSystemContext</span> {
             <span class="kw">part</span> deliveryDroneSystem :&gt;&gt; deliveryDroneSystem, soi;
@@ -662,6 +661,10 @@ const steps = [
         <span class="kw">doc</span>
         <span class="cm">/* The human operator who monitors and commands the system. */</span>
         <span class="kw">port</span> controlPort;
+    }
+    <span class="kw">#User part</span> customer :&gt; actors {
+        <span class="kw">doc</span> <span class="cm">/* The human customer who hands over or retrieves the package. */</span>
+        <span class="kw">port</span> packagePort :&gt; actorPorts;
     }
     <span class="kw">#ExternalSystem part</span> landingZone :&gt; actors {
         <span class="kw">doc</span>
@@ -685,6 +688,9 @@ const steps = [
         <span class="kw">doc</span>
         <span class="cm">/* Exposure of the system to the environmental conditions. */</span>
     }
+    <span class="kw">interface</span> customerInterface :&gt; asis <span class="kw">connect</span> customer.packagePort <span class="kw">to</span> deliveryDroneSystem.payloadPort {
+        <span class="kw">doc</span> <span class="cm">/* Package handover interface between the customer and the system. */</span>
+    }
 }
 <span class="kw">#systemContext part def</span> <span class="ty">DeliveryDroneSystemContextImpl</span> :&gt; <span class="ty">DeliveryDroneSystemContext</span> {
     <span class="kw">doc</span>
@@ -700,13 +706,34 @@ const steps = [
     <span class="cm">/* Black-box definition of the existing delivery drone system with its
       * external interfaces. */</span>
     <span class="kw">port</span> operatorPort {
+        <span class="kw">doc</span>
+        <span class="cm">/* Interface to the operator, who sends delivery orders to the system
+          * and monitors its operation. */</span>
         <span class="kw">in item</span> order : DeliveryDroneDomainLibrary::Items::DeliveryOrder;
     }
-    <span class="kw">port</span> packagePort {
-        <span class="kw">inout item</span> pkg : DeliveryDroneDomainLibrary::Items::Parcel;
+    <span class="kw">port</span> payloadPort {
+        <span class="kw">doc</span>
+        <span class="cm">/* Package handover interface: the system receives the parcel from the
+          * sender and hands it over to the customer at the destination. */</span>
+        <span class="kw">in item</span> pkgIn : DeliveryDroneDomainLibrary::Items::Parcel;
+        <span class="kw">out item</span> pkgOut : DeliveryDroneDomainLibrary::Items::Parcel;
     }
-    <span class="kw">port</span> landingZonePort;
-    <span class="kw">port</span> environmentPort;
+    <span class="kw">port</span> landingZonePort {
+        <span class="kw">doc</span>
+        <span class="cm">/* Physical interface to the landing zone where the drones take off,
+          * land, and pick up or drop off packages. */</span>
+    }
+    <span class="kw">port</span> environmentPort {
+        <span class="kw">doc</span>
+        <span class="cm">/* Exposure to environmental conditions such as wind, rain, and
+          * temperature that act on the system. */</span>
+    }
+    <span class="kw">port</span> energyPort {
+        <span class="kw">doc</span>
+        <span class="cm">/* Electrical energy supply of the system, e.g., for charging the
+          * drone batteries at the drone docks. */</span>
+        <span class="kw">in item</span> energy : DeliveryDroneDomainLibrary::Items::Energy;
+    }
 }
 <span class="kw">part def</span> <span class="ty">DeliveryDroneSystemImpl</span> :&gt; <span class="ty">DeliveryDroneSystem</span> {
     <span class="kw">doc</span>
@@ -913,10 +940,11 @@ const steps = [
       * in Step 8 needs — planDelivery, flyToPosition, pickUpPackage,
       * dropOffPackage, chargeInFlight, requestStatus, and more — so a
       * use case only ever references a shared action, never redefines one. */</span>
+    <span class="kw">item</span> homePosition : Position;
     <span class="kw">action</span> planDelivery { <span class="kw">in item</span> order : DeliveryOrder = operatorPort.order; <span class="kw">out item</span> task : DeliveryTask; }
     <span class="kw">action</span> flyToPosition : FlyToPosition;
-    <span class="kw">action</span> pickUpPackage { <span class="kw">in item</span> pkg : Parcel = packagePort.pkg; }
-    <span class="cm">// + 13 more actions, covering charging, fleet status, and emergencies</span>
+    <span class="kw">action</span> pickUpPackage { <span class="kw">in item</span> pkg : Parcel = payloadPort.pkgIn; }
+    <span class="cm">// + 18 more actions, covering charging, fleet status, and emergencies</span>
 }
 <span class="kw">part def</span> <span class="ty">DeliveryDroneSystemImpl</span> :&gt; <span class="ty">DeliveryDroneSystem</span>, <span class="ty">DD_SYSTEMIDEA::DeliveryDroneSystemIdeaImpl</span> {
     <span class="kw">doc</span>
@@ -926,6 +954,7 @@ const steps = [
 <span class="kw">part def</span> <span class="ty">DeliveryDrone</span> :&gt; <span class="ty">DD_SYSTEMIDEA::DeliveryDrone</span> {
     <span class="kw">doc</span>
     <span class="cm">/* The delivery drone at the specification level. */</span>
+    <span class="kw">attribute</span> payloadMass : <span class="ty">ScalarValues::Real</span>;
 }`, img:"assets/07-specification-model.png", slot:"07-specification-model", diagram:"assets/07-specification-diagram.png", diagramSlot:"07-specification-diagram" }
     }
   },
@@ -934,17 +963,17 @@ const steps = [
     layers:{
       story:{ text:"The SYSMOD owl asks the team to act out every way an actor can meet this system, one scene at a time. Deliver Package: pick up, transport, recharge mid-flight if the battery runs low, drop off. Charge Drone: a low-battery drone rendezvous with a charger drone in flight and takes on just enough energy to finish the trip. Report Fleet Status: the operator checks in on every drone at once, without touching a single one. Handle Emergency Landing: something goes wrong mid-air, and the drone has to put itself down safely, package or no package. Each scene rehearses the idea before opening night — and each one, once it's acted out, becomes something the requirements have to account for.", img:"assets/08-usecases-story.jpg", slot:"08-usecases-story" },
       generic:{ subtitle: "", text:"A required interaction sequence between the system and an actor that delivers an observable outcome for that actor.", iso:"System Requirements Definition", img:null, slot:"08-usecases-generic" },
-      library:{ subtitle: "", text:"SystemContext defines actors, the system-of-interest, and the useCases collection together — a use case's subject is the system of interest. The use case adds additional attributes for documentation purposes, plus a precondition and postcondition constraint that its start and done refs assert against.",
+      library:{ subtitle: "", text:"SystemContext defines actors, the system-of-interest, and the useCases collection together — a use case's subject is the system of interest. The use case adds additional attributes for documentation purposes and inherits from the reusable ConstrainedOccurrence a precondition and postcondition constraint that its startShot and endShot refs assert against.",
       code:`<span class="kw">part</span> <span class="kw">def</span> <span class="ty">SystemContext</span> {
   <span class="kw">part</span> actors [1..*] { <span class="kw">port</span> actorPorts; }
   <span class="kw">part</span> &lt;soi&gt; systemOfInterest {
     <span class="kw">port</span> systemPorts [1..*];
   }
-  <span class="kw">use</span> <span class="kw">case</span> useCases [0..*] : UseCase {
+  <span class="kw">use</span> <span class="kw">case</span> useCases [0..*] : <span class="ty">SystemUseCase</span> {
     <span class="kw">subject</span> soi :&gt; <span class="ty">SystemContext</span>::soi;
   }
 }
-<span class="kw">use case def</span> <span class="ty">SystemUseCase</span> {
+<span class="kw">use case def</span> <span class="ty">SystemUseCase</span> :&gt; <span class="ty">ConstrainedOccurrence</span> {
     <span class="kw">doc</span> <span class="cm">/* A SYSMOD use case adds attributes for documentation purposes. */</span>
     <span class="kw">attribute</span> ucMotivation : <span class="ty">ScalarValues::String</span> {
       <span class="kw">doc</span> <span class="cm">/* The motivation that prompts the actor to initiate the use case. */</span>
@@ -955,20 +984,22 @@ const steps = [
     <span class="kw">attribute</span> ucResult : <span class="ty">ScalarValues::String</span> {
       <span class="kw">doc</span> <span class="cm">/* The outcome the use case guarantees once it completes successfully. */</span>
     }
+}
+<span class="kw">occurrence def</span> <span class="ty">ConstrainedOccurrence</span> {
     <span class="kw">constraint</span> precondition {
       <span class="kw">doc</span> <span class="cm">/* The condition that must hold before the use case starts. */</span>
     }
     <span class="kw">constraint</span> postcondition {
-      <span class="kw">doc</span> <span class="cm">/* The condition guaranteed once the use case completes successfully. */</span>
+      <span class="kw">doc</span> <span class="cm">/* The condition that is guaranteed to hold once the use case completes successfully. */</span>
     }
-    <span class="kw">ref</span> <span class="kw">use</span> <span class="kw">case</span> :&gt;&gt; start {
+    <span class="kw">ref</span> <span class="kw">occurrence</span> :&gt;&gt; startShot {
       <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; precondition;
     }
-    <span class="kw">ref</span> <span class="kw">use</span> <span class="kw">case</span> :&gt;&gt; done {
+    <span class="kw">ref</span> <span class="kw">occurrence</span> :&gt;&gt; endShot {
       <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; postcondition;
     }
 }`, img:null, slot:"08-usecases-library" },
-      model:{ text:"DeliverPackage no longer defines its own actions — every action it needs (planDelivery, pickUpPackage, chargeInFlight, dropOffPackage, and more) is now owned once by DeliveryDroneSystem itself, shared across all four use cases. DeliverPackage just orchestrates them: local actions here subset the shared ones, so the same charging behavior ChargeDrone describes on its own can't quietly drift out of sync.", 
+      model:{ text:"DeliverPackage no longer defines its own actions — every action it needs (planDelivery, pickUpPackage, chargeInFlight, dropOffPackage, and more) is now owned once by DeliveryDroneSystem itself, shared across all four use cases. DeliverPackage just orchestrates them: its successions reference the shared actions on droneSystem directly, so the same charging behavior ChargeDrone describes on its own can't quietly drift out of sync. Only the three flight legs are local actions, each subsetting the shared flyToPosition with its own target position.",
       code:`<span class="kw">#systemContext part def</span> DeliveryDroneSystemContext :&gt; DD_SYSTEMIDEA::DeliveryDroneSystemIdeaContext {
     <span class="kw">#System part</span> deliveryDroneSystem :&gt;&gt; deliveryDroneSystem : DeliveryDroneSystem;
     <span class="kw">use case</span> deliverPackage : UseCases::DeliverPackage {
@@ -978,27 +1009,40 @@ const steps = [
 }
 <span class="kw">part def</span> DeliveryDroneSystem {
     <span class="cm">// the actions every use case orchestrates, owned once, here</span>
+    <span class="kw">item</span> homePosition : Position {
+        <span class="kw">doc</span> <span class="cm">/* The position of the home base of the drone. */</span>
+    }
     <span class="kw">action</span> planDelivery {
-        <span class="kw">doc</span> <span class="cm">/* Assigns a parcel and its destination to a
-               drone as a delivery task. */</span>
+        <span class="kw">doc</span> <span class="cm">/* Turns a delivery order into a delivery task for a drone,
+               including the pickup and delivery locations. */</span>
         <span class="kw">in item</span> order : DeliveryOrder = operatorPort.order;
         <span class="kw">out item</span> task : DeliveryTask;
     }
-    <span class="kw">action</span> flyToPosition : FlyToPosition;
+    <span class="kw">action</span> flyToPosition : FlyToPosition {
+        <span class="kw">doc</span> <span class="cm">/* Flies the drone to a given target position. */</span>
+    }
     <span class="kw">action</span> pickUpPackage {
         <span class="kw">doc</span> <span class="cm">/* Loads the assigned parcel onto the
                drone at the depot. */</span>
-        <span class="kw">in item</span> pkg : Parcel = packagePort.pkg;
+        <span class="kw">in item</span> pkg : Parcel = payloadPort.pkgIn;
     }
     <span class="kw">action</span> dropOffPackage {
         <span class="kw">doc</span> <span class="cm">/* Delivers the parcel to the recipient at
                the landing zone. */</span>
-        <span class="kw">out item</span> deliveredPkg : Parcel = packagePort.pkg;
+        <span class="kw">out item</span> deliveredPkg : Parcel = payloadPort.pkgOut;
     }
-    <span class="kw">action</span> flyToHomeStation { <span class="kw">doc</span> <span class="cm">/* Returns the empty drone home. */</span> }
-    <span class="kw">action</span> batteryLow { <span class="kw">accept</span> LowBatterySignal; }
-    <span class="kw">action</span> chargeInFlight { <span class="kw">doc</span> <span class="cm">/* Recharges the battery in flight. */</span> }
-    <span class="cm">// + 10 more, covering charge-drone, fleet-status, emergency actions</span>
+    <span class="kw">action</span> acceptBatteryLow {
+        <span class="kw">doc</span> <span class="cm">/* Accepts the low-battery signal that interrupts
+               the drone's flight to its destination. */</span>
+        <span class="kw">out item</span> lowBattSignal : LowBatterySignal = acceptLowBattery.lowBattSignal;
+        <span class="kw">action</span> acceptLowBattery <span class="kw">accept</span> lowBattSignal : LowBatterySignal;
+    }
+    <span class="kw">action</span> chargeInFlight {
+        <span class="kw">doc</span> <span class="cm">/* Recharges the drone's battery in flight when
+               it runs low en route. */</span>
+        <span class="kw">in item</span> energy : Energy;
+    }
+    <span class="cm">// + 15 more, covering charge-drone, fleet-status, emergency actions</span>
 }
 
 <span class="kw">package</span> UseCases {
@@ -1022,35 +1066,35 @@ const steps = [
         <span class="kw">in item</span> order : DeliveryOrder;
         <span class="kw">in item</span> pkgIn : Parcel;
         <span class="kw">out item</span> pkgOut : Parcel;
+        <span class="kw">in item</span> energy : Energy;
 
-        <span class="kw">first</span> start <span class="kw">then</span> planDelivery;
-        <span class="kw">first</span> planDelivery <span class="kw">then</span> flyToPickup;
-        <span class="kw">first</span> flyToPickup <span class="kw">then</span> pickUpPackage;
-        <span class="kw">first</span> pickUpPackage <span class="kw">then</span> flyToDestination;
-        <span class="kw">first</span> batteryLow <span class="kw">then</span> chargeInFlight;
-        <span class="kw">merge</span> m1;
-        <span class="kw">first</span> flyToDestination <span class="kw">then</span> m1;
-        <span class="kw">first</span> chargeInFlight <span class="kw">then</span> m1;
-        <span class="kw">first</span> m1 <span class="kw">then</span> dropOffPackage;
-        <span class="kw">first</span> dropOffPackage <span class="kw">then</span> flyToHomeStation;
-        <span class="kw">first</span> flyToHomeStation <span class="kw">then</span> done;
+        <span class="kw">binding bind</span> order = droneSystem.planDelivery.order;
+        <span class="kw">binding bind</span> pkgIn = droneSystem.pickUpPackage.pkg;
+        <span class="kw">binding bind</span> pkgOut = droneSystem.dropOffPackage.deliveredPkg;
+        <span class="kw">binding bind</span> energy = droneSystem.chargeInFlight.energy;
 
-        <span class="cm">// local actions subset the shared ones on droneSystem —</span>
-        <span class="cm">// nothing is redefined, just orchestrated</span>
-        <span class="kw">action</span> planDelivery :&gt; droneSystem.planDelivery;
+        <span class="cm">// only the flight legs are local — each subsets the shared</span>
+        <span class="cm">// flyToPosition; all other steps reference droneSystem directly</span>
         <span class="kw">action</span> flyToPickup :&gt; droneSystem.flyToPosition;
-        <span class="kw">action</span> pickUpPackage :&gt; droneSystem.pickUpPackage;
-        <span class="kw">action</span> flyToDestination :&gt; droneSystem.flyToPosition;
-        <span class="kw">action</span> dropOffPackage :&gt; droneSystem.dropOffPackage;
-        <span class="kw">action</span> batteryLow :&gt; droneSystem.batteryLow;
-        <span class="kw">action</span> chargeInFlight :&gt; droneSystem.chargeInFlight;
-        <span class="kw">action</span> flyToHomeStation :&gt; droneSystem.flyToHomeStation;
+        <span class="kw">action</span> flyToDelivery :&gt; droneSystem.flyToPosition;
+        <span class="kw">action</span> flyToHome :&gt; droneSystem.flyToPosition {
+            <span class="kw">in item</span> pos : Position = droneSystem.homePosition;
+        }
 
-        <span class="kw">flow from</span> planDelivery.task.pickupLocation <span class="kw">to</span> flyToPickup.pos;
-        <span class="kw">flow from</span> planDelivery.task.deliverLocation <span class="kw">to</span> flyToDestination.pos;
-        <span class="kw">binding bind</span> order = planDelivery.order;
-        <span class="kw">binding bind</span> pkgIn = pickUpPackage.pkg;
-        <span class="kw">binding bind</span> pkgOut = dropOffPackage.deliveredPkg;
+        <span class="kw">first</span> start <span class="kw">then</span> droneSystem.planDelivery;
+        <span class="kw">first</span> droneSystem.planDelivery <span class="kw">then</span> droneSystem.flyToPosition;
+        <span class="kw">flow from</span> droneSystem.planDelivery.task.pickupLocation <span class="kw">to</span> flyToPickup.pos;
+        <span class="kw">flow from</span> droneSystem.planDelivery.task.deliverLocation <span class="kw">to</span> flyToDelivery.pos;
+        <span class="kw">first</span> flyToPickup <span class="kw">then</span> droneSystem.pickUpPackage;
+        <span class="kw">first</span> droneSystem.pickUpPackage <span class="kw">then</span> m1;
+        <span class="kw">first</span> m1 <span class="kw">then</span> flyToDelivery;
+        <span class="kw">first</span> droneSystem.acceptBatteryLow <span class="kw">then</span> droneSystem.chargeInFlight;
+        <span class="kw">first</span> flyToDelivery <span class="kw">then</span> droneSystem.dropOffPackage;
+        <span class="kw">first</span> droneSystem.chargeInFlight <span class="kw">then</span> m1;
+        <span class="kw">first</span> droneSystem.dropOffPackage <span class="kw">then</span> flyToHome;
+        <span class="kw">first</span> flyToHome <span class="kw">then</span> done;
+
+        <span class="kw">merge</span> m1;
     }
     <span class="cm">// + ChargeDrone, ReportFleetStatus,</span>
     <span class="cm">//   HandleEmergencyLanding, same pattern</span>
@@ -1094,7 +1138,7 @@ const steps = [
         currentValue &lt; maxValue
     }
 }`, img:null, slot:"09-requirements-library" },
-      model:{ text:"maxPayloadWeight is a concrete ExtendedRequirement with a mandatory obligation — one line, but it now traces all the way back to a stakeholder need. It also specializes the MaxValue boilerplate, binding currentValue and maxValue to the drone's payload mass and its 5 kg limit.",
+      model:{ text:"maxPayloadMass is a concrete ExtendedRequirement with a mandatory obligation — one line, but it now traces all the way back to a stakeholder need. It also specializes the MaxValue boilerplate, binding currentValue and maxValue to the drone's payload mass and its 5 kg limit.",
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
   <span class="kw">requirement</span> deliveryDroneSystemRequirementsSpecification :&gt;&gt; systemRequirementSpecification : <span class="ty">DD_SPECIFICATION::DeliveryDroneSystemRequirements</span> {
       <span class="kw">subject</span> deliveryDroneSystem :&gt;&gt; specificationSystem, deliveryDroneSystem :&gt; deliveryDroneSpecificationContext.deliveryDroneSystem;
@@ -1148,18 +1192,43 @@ const steps = [
     <span class="kw">allocate</span> functionalContext <span class="kw">to</span> logicalContext;
 <span class="kw">allocation</span> logical2product [0..1]
     <span class="kw">allocate</span> logicalContext <span class="kw">to</span> productContext;`, img:null, slot:"10-architecture-library" },
-      model:{ text:"The architecture is split into three separate files, one per level, each still maturing. Functional groups actions by FAS method (still mostly empty scaffolding); Logical names the technology-independent building blocks; Product redefines the concrete parts already known from the brownfield and adds real ports — a radio link and a charging contact — connecting them.", code:`<span class="kw">#systemContext part def</span> DeliveryDroneFunctionalContext :&gt; DD_SPECIFICATION::DeliveryDroneSystemContext {
+      model:{ text:"The architecture is split into three separate files, one per level, each still maturing. Functional groups the use case actions into functional blocks with the FAS method — each block performs the shared actions, exposes typed ports from its own Interfaces package, and is bound to the inherited system ports; Logical names the technology-independent building blocks; Product redefines the concrete parts already known from the brownfield and adds real ports — a radio link and a charging contact — connecting them.", code:`<span class="kw">#systemContext part def</span> DeliveryDroneFunctionalContext :&gt; DD_SPECIFICATION::DeliveryDroneSystemContext {
   <span class="kw">#System part</span> :&gt;&gt; deliveryDroneSystem : DeliveryDroneFunctionalSystem;
 }
 <span class="kw">part def</span> DeliveryDroneFunctionalSystem :&gt; DD_SPECIFICATION::DeliveryDroneSystem {
-  <span class="kw">part</span> energyManagement { }
-  <span class="kw">part</span> payloadHandling { }
-  <span class="kw">part</span> 'flight & positioning' {
-    <span class="kw">action</span> flyToPosition :&gt; flyToPosition;
+  <span class="kw">bind</span> operatorPort.order = deliveryManagement.deliveryPort.deliveryOrder;
+  <span class="kw">bind</span> energyPort.energy = batteryManagement.energyPort.energy;
+  <span class="kw">part</span> deliveryManagement {
+    <span class="kw">port</span> deliveryPort : Interfaces::DeliveryPort;
+    <span class="kw">port</span> pickupPositionPort : ~Interfaces::PositionPort;
+    <span class="kw">port</span> deliveryPositionPort : ~Interfaces::PositionPort;
+    <span class="kw">perform</span> planDelivery;
   }
-  <span class="kw">part</span> 'planning & diagnosis' { }
-  <span class="kw">part</span> 'monitoring & reporting' { }
-  <span class="kw">part</span> alerting { }
+  <span class="kw">interface</span> : Interfaces::PositionInterface
+    <span class="kw">connect</span> deliveryManagement.pickupPositionPort <span class="kw">to</span> flightControl.flyToPositionPort;
+  <span class="kw">part</span> flightControl {
+    <span class="kw">port</span> flyToPositionPort : Interfaces::PositionPort;
+    <span class="kw">perform</span> flyToPosition;
+    <span class="kw">perform</span> rendezvousInFlight;
+    <span class="kw">perform</span> resumeRoute;
+  }
+  <span class="kw">part</span> batteryManagement {
+    <span class="kw">port</span> energyPort : Interfaces::EnergyPort;
+    <span class="kw">bind</span> energyPort.energy = chargeInFlight.energy;
+    <span class="kw">perform</span> chargeInFlight;
+    <span class="kw">perform</span> detectLowBattery;
+  }
+  <span class="cm">// + packageManagement, droneManagement, fleetManagement</span>
+}
+<span class="kw">package</span> Interfaces {
+  <span class="kw">interface def</span> PositionInterface {
+    <span class="kw">end port</span> source : ~PositionPort;
+    <span class="kw">end port</span> target : PositionPort;
+    <span class="kw">flow</span> source.position <span class="kw">to</span> target.position;
+  }
+  <span class="kw">port def</span> PositionPort { <span class="kw">in item</span> position : Position; }
+  <span class="kw">port def</span> EnergyPort { <span class="kw">in item</span> energy : Energy; }
+  <span class="cm">// + DeliveryPort, PayloadPort, ChargerPort, LowBatteryPort, ...</span>
 }
 
 <span class="kw">#systemContext part def</span> DeliveryDroneLogicalContext :&gt; DD_SPECIFICATION::DeliveryDroneSystemContext {
@@ -1214,7 +1283,7 @@ const steps = [
     <span class="cm">// verify &lt;requirement&gt;</span>
   }
 }`, img:null, slot:"11-verification-library" },
-      model:{ text:"MaxPayloadTest verifies the concrete maxPayloadWeight requirement against the concrete product system — SYSMOD’s traceability chain closed end to end.", 
+      model:{ text:"MaxPayloadTest verifies the concrete maxPayloadMass requirement against the concrete product system — SYSMOD’s traceability chain closed end to end.", 
       code:`<span class="kw">verification def</span> <span class="ty">MaxPayloadTest</span> {
   <span class="kw">subject</span> testedSystem : <span class="ty">DeliveryDroneProductSystem</span>;
   <span class="kw">requirement</span> maxReq : <span class="ty">Requirements::MaxPayloadMass</span> {
@@ -2442,26 +2511,26 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
         <span class="kw">part</span> functionalContext[0..1] :&gt; specificationContext {
             <span class="kw">doc</span>
-            <span class="cm">/* The Functional Context is optional and specializes the black-box solution context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white-box solution context: a functional architecture contains only functional blocks and must not depend on the physical internal structure of the system. */</span>
+            <span class="cm">/* The Functional Context is optional and specializes the black-box specification context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white-box specification context: a functional architecture contains only functional blocks and must not depend on the physical internal structure of the system. */</span>
             <span class="kw">part</span> &lt;soi&gt; functionalSystem :&gt;&gt; specificationContext::soi {
                 <span class="kw">doc</span>
-                <span class="cm">/* The Functional System is the root element of the functional architecture. It redefines the black-box solution system and thereby inherits the context information such as the system ports, so that functions can be related to the system's external interfaces without depending on its physical internal structure. */</span>
+                <span class="cm">/* The Functional System is the root element of the functional architecture. It redefines the black-box specification system and thereby inherits the context information such as the system ports, so that functions can be related to the system's external interfaces without depending on its physical internal structure. */</span>
             }
         }
         <span class="kw">part</span> logicalContext[0..1] :&gt; specificationContext {
             <span class="kw">doc</span>
-            <span class="cm">/* The Logical Context is optional and specializes the black-box solution context. It provides the context for a logical architecture with technology-independent building blocks. */</span>
+            <span class="cm">/* The Logical Context is optional and specializes the black-box specification context. It provides the context for a logical architecture with technology-independent building blocks. */</span>
             <span class="kw">part</span> &lt;soi&gt; logicalSystem :&gt;&gt; specificationContext::soi {
                 <span class="kw">doc</span>
-                <span class="cm">/* The Logical System is the root element of the logical architecture. It redefines the white-box solution system. */</span>
+                <span class="cm">/* The Logical System is the root element of the logical architecture. It redefines the black-box specification system. */</span>
             }
         }
         <span class="kw">part</span> productContext :&gt; specificationContextImpl {
             <span class="kw">doc</span>
-            <span class="cm">/* The Product Context specializes the white-box solution context and provides the context for a product architecture with concrete, physical or deployable building blocks. */</span>
+            <span class="cm">/* The Product Context specializes the white-box specification context and provides the context for a product architecture with concrete, physical or deployable building blocks. */</span>
             <span class="kw">part</span> &lt;soiImpl&gt; productSystem :&gt;&gt; specificationContextImpl::soiImpl {
                 <span class="kw">doc</span>
-                <span class="cm">/* The Product System is the root element of the product architecture. It redefines the white-box solution system. It satisfies the system requirements. */</span>
+                <span class="cm">/* The Product System is the root element of the product architecture. It redefines the white-box specification system. It satisfies the system requirements. */</span>
                 <span class="kw">satisfy</span> systemRequirementSpecification;
 
             }
@@ -2841,7 +2910,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 3. <span class="ty">If</span> not given by the user, <span class="kw">use</span> the questions <span class="kw">to</span> get the name of the project and the location where the project should be added.
                 4. <span class="ty">Optionally</span> continue with the other engineering artifacts <span class="kw">in</span> <span class="ty">SYSMOD</span> order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, functionalContext, logicalContext, productContext) using the create_prompts of their <span class="ty">AI</span> <span class="kw">metadata</span>.";
             create_questions = (
-                "<span class="ty">What</span> is the name of the project?", "<span class="ty">Where</span> should <span class="ty">I</span> add the project definition?", "<span class="ty">Who</span> is the project owner?",
+                "<span class="ty">What</span> is the name of the project?", "<span class="ty">Where</span> should <span class="ty">I</span> add the project definition?", "<span class="ty">Who</span> is the project owner?"
             );
             validation_prompt =
                 "<span class="ty">Validate</span> the project definition against the <span class="ty">SYSMOD</span> <span class="ty">Project</span> concept and report findings grouped as errors, warnings, and suggestions.

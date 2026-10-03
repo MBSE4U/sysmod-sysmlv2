@@ -627,7 +627,7 @@ package SYSMOD4AI {
                 4. Each top-level function is traceable to at least one system requirement (via satisfy, refine, or doc comment reference).
                 5. Functions are technology-independent — check for implementation-specific naming or structure that belongs in the logical or product architecture.
                 6. If a logicalContext is present in the project, a functional2logical allocation is defined connecting the functionalContext to the logicalContext.
-                7. The functionalSystem contains only functional blocks — no physical or internal structure of the system, which belongs in the white-box speccification, logical, or product contexts.
+                7. The functionalSystem contains only functional blocks — no physical or internal structure of the system, which belongs in the white-box specification, logical, or product contexts.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 

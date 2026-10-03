@@ -55,7 +55,7 @@ examples/                                           # Delivery Drone example mod
   DeliveryDroneSystemLogicalArchitecture.sysml      # Logical architecture
   DeliveryDroneSystemProductArchitecture.sysml      # Product architecture and verification
   DeliveryDroneSystemControlStationProject.sysml    # Control station sub-project
-  DeliveryDroneSystemDomainLibrary.sysml            # Shared domain entities for the sub-project
+  DeliveryDroneSystemDomainLibrary.sysml            # Shared domain items (orders, parcels, energy, ...)
 ```
 
 ## Contributing

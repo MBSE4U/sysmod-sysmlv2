@@ -34,21 +34,26 @@ package <DD_BROWNFIELD> DeliveryDroneSystemBrownfieldArchitecture {
         #User part operator :> actors {
             doc
             /* The human operator who monitors and commands the system. */
-            port controlPort;
+            port controlPort[1] :>> actorPorts;
         }
         #User part customer :> actors {
             doc /* The human customer who hands over or retrieves the package. */
-            port packagePort :> actorPorts;
+            port packagePort[1] :>> actorPorts;
         }
         #ExternalSystem part landingZone :> actors {
             doc
             /* A marked landing zone where drones pick up and drop off packages. */
-            port dronePort;
+            port dronePort :>> actorPorts;
+        }
+        #ExternalSystem part energySupply :> actors {
+            doc
+            /* The energy supply system that provides electrical energy to the delivery drone system. */
+            port energyPort[1] :>> actorPorts;
         }
         #EnvironmentalEffect part environment :> actors {
             doc
             /* Environmental conditions acting on the system, e.g., wind and rain. */
-            port conditionsPort;
+            port conditionsPort :>> actorPorts;
         }
         interface operatorInterface :> asis connect operator.controlPort to deliveryDroneSystem.operatorPort {
             doc
@@ -64,6 +69,10 @@ package <DD_BROWNFIELD> DeliveryDroneSystemBrownfieldArchitecture {
         }
         interface customerInterface :> asis connect customer.packagePort to deliveryDroneSystem.payloadPort {
             doc /* Package handover interface between the customer and the system. */
+        }
+        interface energySupplyInterface :> asis connect energySupply.energyPort to deliveryDroneSystem.energyPort {
+            doc
+            /* Electrical energy supply interface between the energy supply system and the delivery drone system. */
         }
 
     }

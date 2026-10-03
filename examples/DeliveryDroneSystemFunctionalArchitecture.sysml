@@ -21,11 +21,12 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
      */
 
     private import SYSMOD::*;
+    private import DeliveryDroneDomainLibrary::**;
 
     #systemContext part def DeliveryDroneFunctionalContext :> DD_SPECIFICATION::DeliveryDroneSystemContext {
         doc
         /* The context of the functional architecture. It specializes the
-         * black-box solution context only: the functional architecture contains
+         * black-box specification context only: the functional architecture contains
          * functional blocks and must not depend on the physical internal
          * structure of the system. */
         #System part :>> deliveryDroneSystem : DeliveryDroneFunctionalSystem;
@@ -33,22 +34,132 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
     part def DeliveryDroneFunctionalSystem :> DD_SPECIFICATION::DeliveryDroneSystem {
         doc
         /* The root of the functional architecture, for example, developed with
-         * the FAS method. It redefines the black-box solution system and thereby
+         * the FAS method. It redefines the black-box specification system and thereby
          * inherits the system ports, so the functions can be related to the
          * system's external interfaces. */
-        part energyManagement {
-        }
-        part payloadHandling {
-        }
-        part 'flight & positioning' {
 
-            action flyToPosition :> flyToPosition;
+        bind operatorPort.order = deliveryManagement.deliveryPort.deliveryOrder;
+        bind energyPort.energy = batteryManagement.energyPort.energy;
+
+        part deliveryManagement {
+            port deliveryPort : Interfaces::DeliveryPort;
+            port pickupPositionPort : ~Interfaces::PositionPort;
+            port deliveryPositionPort : ~Interfaces::PositionPort;
+
+            bind deliveryPort.deliveryOrder = planDelivery.order;
+            bind pickupPositionPort.position = planDelivery.task.pickupLocation;
+            bind deliveryPositionPort.position = planDelivery.task.deliverLocation;
+            perform planDelivery;
         }
-        part 'planning & diagnosis' {
+
+        interface :Interfaces::PositionInterface 
+            connect deliveryManagement.pickupPositionPort to flightControl.flyToPositionPort;
+        interface :Interfaces::PositionInterface 
+            connect deliveryManagement.deliveryPositionPort to flightControl.flyToPositionPort;
+
+        part flightControl {
+            port flyToPositionPort : Interfaces::PositionPort {
+                out item _position = position;
+            }
+            port chargerDronePositionPort : Interfaces::PositionPort;
+            port chargerPositionPort : Interfaces::PositionPort;
+            port chargerPort : Interfaces::ChargerPort;
+
+            flow flyToPositionPort._position to flyToPosition.pos;
+            perform flyToPosition;
+            bind chargerPort.chargerAssign = rendezvousInFlight.chargerAssign;
+            bind chargerDronePositionPort.position = rendezvousInFlight.pos;
+            bind chargerPositionPort.position = rendezvousInFlight.chargePos;
+            perform rendezvousInFlight;
+            perform resumeRoute;
         }
-        part 'monitoring & reporting' {
+
+        bind payloadPort.pkgIn = packageManagement.payloadInPort.payload;
+        bind payloadPort.pkgOut = packageManagement.payloadOutPort.payload;
+        part packageManagement {
+            port payloadInPort : Interfaces::PayloadPort;
+            port payloadOutPort : ~Interfaces::PayloadPort;
+            
+            perform pickUpPackage;
+            perform dropOffPackage;
         }
-        part alerting {
+
+        part batteryManagement {
+            port energyPort : Interfaces::EnergyPort;
+            port lowBatteryPort : ~Interfaces::LowBatteryPort;
+
+            bind energyPort.energy = chargeInFlight.energy;
+            perform chargeInFlight;
+            
+            bind acceptBatteryLow.lowBattSignal = lowBatteryPort.lowBattSignal;
+            perform acceptBatteryLow;
+            perform detectLowBattery;
+            perform transferEnergy;
+        }
+        
+        part droneManagement {
+            port sensorPort : Interfaces::SensorPort;
+            port taskPort : Interfaces::TaskPort;
+            port droneStatusPort : ~Interfaces::DroneStatusPort;
+
+            bind sensorPort.sensorData = reportDroneStatus.sensorData;
+            bind taskPort.taskData = reportDroneStatus.taskData;
+            bind reportDroneStatus.droneStatus = droneStatusPort.droneStatus;
+            perform reportDroneStatus;
+
+            perform pollDrones;
+        }
+
+        part fleetManagement {
+            port fleetStatusPort : Interfaces::FleetStatusPort;
+            port droneStatusPort : Interfaces::DroneStatusPort;
+
+            flow fleetStatusPort.fleetStatus to deliverFleetStatus.fleetStatus;
+            perform deliverFleetStatus;
+
+            bind droneStatusPort.droneStatus = aggregateFleetStatus.droneStatus;
+            bind aggregateFleetStatus.fleetStatus = fleetStatusPort.fleetStatus;
+            perform aggregateFleetStatus;            
+            perform requestStatus;
+            perform pollDrones;
+        }
+    }
+
+    package Interfaces {
+        interface def PositionInterface {
+            end port source : ~PositionPort;
+            end port target : PositionPort;
+            flow source.position to target.position;
+        }
+        port def EnergyPort {
+            in item energy : Energy;
+        }
+        port def DeliveryPort {
+            in item deliveryOrder : DeliveryOrder;
+        }
+        port def PositionPort {
+            in item position : Position;
+        }
+        port def FleetStatusPort {
+            inout item fleetStatus : FleetStatus;
+        }
+        port def DroneStatusPort {
+            in item droneStatus : DroneStatus;
+        }
+        port def SensorPort {
+            in item sensorData : SensorData;
+        }
+        port def TaskPort {
+            in item taskData : TaskData;
+        }
+        port def PayloadPort {
+            in item payload : Parcel;
+        }
+        port def LowBatteryPort {
+            in item lowBattSignal : LowBatterySignal;
+        }
+        port def ChargerPort {
+            in item chargerAssign : ChargerAssignment;
         }
     }
 }

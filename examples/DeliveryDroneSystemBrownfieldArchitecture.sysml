@@ -36,6 +36,10 @@ package <DD_BROWNFIELD> DeliveryDroneSystemBrownfieldArchitecture {
             /* The human operator who monitors and commands the system. */
             port controlPort;
         }
+        #User part customer :> actors {
+            doc /* The human customer who hands over or retrieves the package. */
+            port packagePort :> actorPorts;
+        }
         #ExternalSystem part landingZone :> actors {
             doc
             /* A marked landing zone where drones pick up and drop off packages. */
@@ -58,6 +62,10 @@ package <DD_BROWNFIELD> DeliveryDroneSystemBrownfieldArchitecture {
             doc
             /* Exposure of the system to the environmental conditions. */
         }
+        interface customerInterface :> asis connect customer.packagePort to deliveryDroneSystem.payloadPort {
+            doc /* Package handover interface between the customer and the system. */
+        }
+
     }
     #systemContext part def DeliveryDroneSystemContextImpl :> DeliveryDroneSystemContext {
         doc
@@ -73,13 +81,34 @@ package <DD_BROWNFIELD> DeliveryDroneSystemBrownfieldArchitecture {
         /* Black-box definition of the existing delivery drone system with its
          * external interfaces. */
         port operatorPort {
+            doc
+            /* Interface to the operator, who sends delivery orders to the system
+             * and monitors its operation. */
             in item order : DeliveryDroneDomainLibrary::Items::DeliveryOrder;
         }
-        port packagePort {
-            inout item pkg : DeliveryDroneDomainLibrary::Items::Parcel;
+        port payloadPort {
+            doc
+            /* Package handover interface: the system receives the parcel from the
+             * sender and hands it over to the customer at the destination. */
+            in item pkgIn : DeliveryDroneDomainLibrary::Items::Parcel;
+            out item pkgOut : DeliveryDroneDomainLibrary::Items::Parcel;
         }
-        port landingZonePort;
-        port environmentPort;
+        port landingZonePort {
+            doc
+            /* Physical interface to the landing zone where the drones take off,
+             * land, and pick up or drop off packages. */
+        }
+        port environmentPort {
+            doc
+            /* Exposure to environmental conditions such as wind, rain, and
+             * temperature that act on the system. */
+        }
+        port energyPort {
+            doc
+            /* Electrical energy supply of the system, e.g., for charging the
+             * drone batteries at the drone docks. */
+            in item energy : DeliveryDroneDomainLibrary::Items::Energy;
+        }
     }
     part def DeliveryDroneSystemImpl :> DeliveryDroneSystem {
         doc

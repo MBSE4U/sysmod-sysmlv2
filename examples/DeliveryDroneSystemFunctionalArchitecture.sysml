@@ -39,6 +39,8 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
          * system's external interfaces. */
 
         bind operatorPort.order = deliveryManagement.deliveryPort.deliveryOrder;
+        bind energyPort.energy = batteryManagement.energyPort.energy;
+
         part deliveryManagement {
             port deliveryPort : Interfaces::DeliveryPort;
             port pickupPositionPort : ~Interfaces::PositionPort;
@@ -65,7 +67,6 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
 
             flow flyToPositionPort._position to flyToPosition.pos;
             perform flyToPosition;
-            perform flyToHomeStation;
             bind chargerPort.chargerAssign = rendezvousInFlight.chargerAssign;
             bind chargerDronePositionPort.position = rendezvousInFlight.pos;
             bind chargerPositionPort.position = rendezvousInFlight.chargePos;
@@ -73,20 +74,19 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
             perform resumeRoute;
         }
 
-        bind packagePort.pkg = packageManagement.packagePort.payload;
+        bind payloadPort.pkgIn = packageManagement.payloadInPort.payload;
+        bind payloadPort.pkgOut = packageManagement.payloadOutPort.payload;
         part packageManagement {
-            port packagePort : Interfaces::PackagePort;
+            port payloadInPort : Interfaces::PayloadPort;
+            port payloadOutPort : ~Interfaces::PayloadPort;
             
-            bind packagePort.payload = pickUpPackage.pkg;
             perform pickUpPackage;
-
-            flow dropOffPackage.deliveredPkg to packagePort.payload;
             perform dropOffPackage;
         }
 
         part batteryManagement {
             port energyPort : Interfaces::EnergyPort;
-            port lowBatteryPort : Interfaces::LowBatteryPort;
+            port lowBatteryPort : ~Interfaces::LowBatteryPort;
 
             bind energyPort.energy = chargeInFlight.energy;
             perform chargeInFlight;
@@ -152,8 +152,8 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
         port def TaskPort {
             in item taskData : TaskData;
         }
-        port def PackagePort {
-            inout item payload : Parcel;
+        port def PayloadPort {
+            in item payload : Parcel;
         }
         port def LowBatteryPort {
             in item lowBattSignal : LowBatterySignal;

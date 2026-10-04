@@ -999,7 +999,7 @@ const steps = [
       <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; postcondition;
     }
 }`, img:null, slot:"08-usecases-library" },
-      model:{ text:"DeliverPackage no longer defines its own actions — every action it needs (planDelivery, pickUpPackage, chargeInFlight, dropOffPackage, and more) is now owned once by DeliveryDroneSystem itself, shared across all four use cases. DeliverPackage just orchestrates them: its successions reference the shared actions on droneSystem directly, so the same charging behavior ChargeDrone describes on its own can't quietly drift out of sync. Only the three flight legs are local actions, each subsetting the shared flyToPosition with its own target position.",
+      model:{ text:"DeliverPackage no longer defines its own actions — every action it needs (planDelivery, pickUpPackage, chargeInFlight, dropOffPackage, and more) is now owned once by DeliveryDroneSystem itself, shared across all four use cases. Each use case performs the actions it needs in its subject (perform action ucPlanDelivery ::> planDelivery), and its successions reference those performed actions on droneSystem, so the same charging behavior ChargeDrone describes on its own can't quietly drift out of sync. Only the three flight legs are local actions, each subsetting the shared flyToPosition with its own target position.",
       code:`<span class="kw">#systemContext part def</span> DeliveryDroneSystemContext :&gt; DD_SYSTEMIDEA::DeliveryDroneSystemIdeaContext {
     <span class="kw">#system part</span> deliveryDroneSystem :&gt;&gt; deliveryDroneSystem : DeliveryDroneSystem;
     <span class="kw">use case</span> deliverPackage : UseCases::DeliverPackage {
@@ -1047,7 +1047,14 @@ const steps = [
 
 <span class="kw">package</span> UseCases {
     <span class="kw">#systemUseCase use case def</span> <span class="ty">DeliverPackage</span> {
-        <span class="kw">subject</span> droneSystem : DeliveryDroneSystem;
+        <span class="kw">subject</span> droneSystem : DeliveryDroneSystem {
+            <span class="kw">perform action</span> ucPlanDelivery ::&gt; planDelivery;
+            <span class="kw">perform action</span> ucPickUpPackage ::&gt; pickUpPackage;
+            <span class="kw">perform action</span> ucAcceptBatteryLow ::&gt; acceptBatteryLow;
+            <span class="kw">perform action</span> ucChargeInFlight ::&gt; chargeInFlight;
+            <span class="kw">perform action</span> ucFlyToPosition ::&gt; flyToPosition;
+            <span class="kw">perform action</span> ucDropOffPackage ::&gt; dropOffPackage;
+        }
         <span class="kw">objective</span> {
             <span class="kw">doc</span>
             <span class="cm">/* The operator dispatches a drone with a package.
@@ -1068,30 +1075,30 @@ const steps = [
         <span class="kw">out item</span> pkgOut : Parcel;
         <span class="kw">in item</span> energy : Energy;
 
-        <span class="kw">binding bind</span> order = droneSystem.planDelivery.order;
-        <span class="kw">binding bind</span> pkgIn = droneSystem.pickUpPackage.pkg;
-        <span class="kw">binding bind</span> pkgOut = droneSystem.dropOffPackage.deliveredPkg;
-        <span class="kw">binding bind</span> energy = droneSystem.chargeInFlight.energy;
+        <span class="kw">binding bind</span> order = droneSystem.ucPlanDelivery.order;
+        <span class="kw">binding bind</span> pkgIn = droneSystem.ucPickUpPackage.pkg;
+        <span class="kw">binding bind</span> pkgOut = droneSystem.ucDropOffPackage.deliveredPkg;
+        <span class="kw">binding bind</span> energy = droneSystem.ucChargeInFlight.energy;
 
         <span class="cm">// only the flight legs are local — each subsets the shared</span>
-        <span class="cm">// flyToPosition; all other steps reference droneSystem directly</span>
-        <span class="kw">action</span> flyToPickup :&gt; droneSystem.flyToPosition;
-        <span class="kw">action</span> flyToDelivery :&gt; droneSystem.flyToPosition;
-        <span class="kw">action</span> flyToHome :&gt; droneSystem.flyToPosition {
+        <span class="cm">// flyToPosition; all other steps reference the performed actions</span>
+        <span class="kw">action</span> flyToPickup :&gt; droneSystem.ucFlyToPosition;
+        <span class="kw">action</span> flyToDelivery :&gt; droneSystem.ucFlyToPosition;
+        <span class="kw">action</span> flyToHome :&gt; droneSystem.ucFlyToPosition {
             <span class="kw">in item</span> pos : Position = droneSystem.homePosition;
         }
 
-        <span class="kw">first</span> start <span class="kw">then</span> droneSystem.planDelivery;
-        <span class="kw">first</span> droneSystem.planDelivery <span class="kw">then</span> droneSystem.flyToPosition;
-        <span class="kw">flow from</span> droneSystem.planDelivery.task.pickupLocation <span class="kw">to</span> flyToPickup.pos;
-        <span class="kw">flow from</span> droneSystem.planDelivery.task.deliverLocation <span class="kw">to</span> flyToDelivery.pos;
-        <span class="kw">first</span> flyToPickup <span class="kw">then</span> droneSystem.pickUpPackage;
-        <span class="kw">first</span> droneSystem.pickUpPackage <span class="kw">then</span> m1;
+        <span class="kw">first</span> start <span class="kw">then</span> droneSystem.ucPlanDelivery;
+        <span class="kw">first</span> droneSystem.ucPlanDelivery <span class="kw">then</span> flyToPickup;
+        <span class="kw">flow from</span> droneSystem.ucPlanDelivery.task.pickupLocation <span class="kw">to</span> flyToPickup.pos;
+        <span class="kw">flow from</span> droneSystem.ucPlanDelivery.task.deliverLocation <span class="kw">to</span> flyToDelivery.pos;
+        <span class="kw">first</span> flyToPickup <span class="kw">then</span> droneSystem.ucPickUpPackage;
+        <span class="kw">first</span> droneSystem.ucPickUpPackage <span class="kw">then</span> m1;
         <span class="kw">first</span> m1 <span class="kw">then</span> flyToDelivery;
-        <span class="kw">first</span> droneSystem.acceptBatteryLow <span class="kw">then</span> droneSystem.chargeInFlight;
-        <span class="kw">first</span> flyToDelivery <span class="kw">then</span> droneSystem.dropOffPackage;
-        <span class="kw">first</span> droneSystem.chargeInFlight <span class="kw">then</span> m1;
-        <span class="kw">first</span> droneSystem.dropOffPackage <span class="kw">then</span> flyToHome;
+        <span class="kw">first</span> droneSystem.ucAcceptBatteryLow <span class="kw">then</span> droneSystem.ucChargeInFlight;
+        <span class="kw">first</span> flyToDelivery <span class="kw">then</span> droneSystem.ucDropOffPackage;
+        <span class="kw">first</span> droneSystem.ucChargeInFlight <span class="kw">then</span> m1;
+        <span class="kw">first</span> droneSystem.ucDropOffPackage <span class="kw">then</span> flyToHome;
         <span class="kw">first</span> flyToHome <span class="kw">then</span> done;
 
         <span class="kw">merge</span> m1;

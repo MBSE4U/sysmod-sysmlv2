@@ -14,6 +14,8 @@
 - Changed the `MaxValue` and `MinValue` boilerplates from strict to inclusive bounds (`<=` / `>=` instead of `<` / `>`), consistent with `RangeValue`, `MinAvailability`, and `MinReliability` and with the usual reading of "up to" / "at least" in requirement texts. A value exactly equal to the bound now satisfies the requirement.
 - Updated example model (specification): `MaxPayloadMass` now sets a `tolerance` of 0.1 kg on its 5 kg `MaxValue` limit.
 - Updated the sysmod.org deck (step 9 requirements library and model snippets and the "Full SYSMOD Library" appendix) to show the new `tolerance` attributes and constraints.
+- Use cases now perform the actions of their subject: each use case's `subject droneSystem` declares `perform action uc<Name> ::> <name>;` for every `DeliveryDroneSystem` action it orchestrates, and the successions, bindings, flows, and local flight legs reference these performed actions (`droneSystem.ucPlanDelivery`) instead of the system's actions directly. Updated the example model (specification) accordingly for `BookDelivery`, `DeliverPackage`, `ChargeDrone`, `ReportFleetStatus`, `HandleEmergencyLanding`, and `MonitorDroneHealth`; `DeliverPackage` now continues from `ucPlanDelivery` to the `flyToPickup` leg, and `ChargeDrone` no longer includes `detectLowBattery`.
+- Synced the sysmod.org deck (step 8 use cases) with the new `perform action` pattern in `DeliverPackage`.
 
 ## v5.1.3
 

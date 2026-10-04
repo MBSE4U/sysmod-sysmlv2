@@ -224,7 +224,9 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
     part def DeliveryDrone :> DD_SYSTEMIDEA::DeliveryDrone {
         doc
         /* The delivery drone at the specification level. */
-        attribute payloadMass : ScalarValues::Real;
+        attribute payloadMass :> ISQ::mass {
+            doc /* The mass of the parcel currently carried by the drone. */
+        }
     }
 
     package UseCases {
@@ -362,14 +364,15 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
         }
         #extendedRequirement requirement def MaxPayloadMass :> SYSMODRequirementsBoilerplates::MaxValue {
             doc
-            /* The system shall transport payloads with a mass of up to 5 kg. */
+            /* The system shall transport payloads with a mass of up to 5 kg (tolerance 0.1 kg). */
             subject deliveryDrone : DD_SPECIFICATION::DeliveryDrone;
             stakeholder logisticCompany : DD_STAKEHOLDERS::LogisticCompany;
             attribute :>> obligation = ObligationKind::mandatory;
             attribute :>> stability = StabilityKind::stable;
             attribute :>> motivation = "Typical last-mile parcels weigh less than 5 kg.";
-            attribute :>> currentValue = deliveryDrone.payloadMass;
-            attribute :>> maxValue = 5;
+            attribute :>> currentValue :> ISQ::mass = deliveryDrone.payloadMass;
+            attribute :>> maxValue :> ISQ::mass = 5 [SI::kg];
+            attribute :>> tolerance :> ISQ::mass = 0.1 [SI::kg];
             frame concern :DD_STAKEHOLDERNEEDS::LowDeliveryCost;
         }
         #extendedRequirement requirement def AirCharging {

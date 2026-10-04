@@ -26,33 +26,45 @@ library package SYSMODRequirementsBoilerplates {
 
     requirement def MaxValue {
         doc
-        /* The quantity must stay strictly below an upper bound. */
+        /*
+         * The quantity must not exceed an upper bound (inclusive).
+         * The optional tolerance (default 0.0) relaxes the bound: values up to and including maxValue + tolerance are accepted.
+         */
         attribute currentValue : ScalarValues::Real;
         attribute maxValue : ScalarValues::Real;
+        attribute tolerance : ScalarValues::Real default 0.0;
 
         require constraint {
-            currentValue < maxValue
+            currentValue <= maxValue + tolerance
         }
     }
     requirement def MinValue {
         doc
-        /* The quantity must stay strictly above a lower bound. */
+        /*
+         * The quantity must not fall below a lower bound (inclusive).
+         * The optional tolerance (default 0.0) relaxes the bound: values down to and including minValue - tolerance are accepted.
+         */
         attribute currentValue : ScalarValues::Real;
         attribute minValue : ScalarValues::Real;
+        attribute tolerance : ScalarValues::Real default 0.0;
 
         require constraint {
-            currentValue > minValue
+            currentValue >= minValue - tolerance
         }
     }
     requirement def RangeValue {
         doc
-        /* The quantity must stay within an inclusive lower and upper bound. */
+        /*
+         * The quantity must stay within an inclusive lower and upper bound.
+         * The optional tolerance (default 0.0) widens the range on both sides to [minValue - tolerance, maxValue + tolerance].
+         */
         attribute currentValue : ScalarValues::Real;
         attribute minValue : ScalarValues::Real;
         attribute maxValue : ScalarValues::Real;
+        attribute tolerance : ScalarValues::Real default 0.0;
 
         require constraint {
-            minValue <= currentValue and currentValue <= maxValue
+            minValue - tolerance <= currentValue and currentValue <= maxValue + tolerance
         }
     }
     requirement def ExactValue {
@@ -78,23 +90,31 @@ library package SYSMODRequirementsBoilerplates {
     }
     requirement def MinAvailability {
         doc
-        /* The ratio of uptime to total time must reach at least a minimum availability. */
+        /*
+         * The ratio of uptime to total time must reach at least a minimum availability.
+         * The optional tolerance (default 0.0) relaxes the bound: availabilities of at least minAvailability - tolerance are accepted.
+         */
         attribute uptime :> ISQ::duration;
         attribute totalTime :> ISQ::duration;
         attribute minAvailability : ScalarValues::Real;
+        attribute tolerance : ScalarValues::Real default 0.0;
 
         require constraint {
-            uptime / totalTime >= minAvailability
+            uptime / totalTime >= minAvailability - tolerance
         }
     }
     requirement def MinReliability {
         doc
-        /* The mean time between failures must reach at least a minimum MTBF. */
+        /*
+         * The mean time between failures must reach at least a minimum MTBF.
+         * The optional tolerance (a duration, default 0 s) relaxes the bound: an MTBF of at least minMTBF - tolerance is accepted.
+         */
         attribute meanTimeBetweenFailures :> ISQ::duration;
         attribute minMTBF :> ISQ::duration;
+        attribute tolerance :> ISQ::duration default 0.0 [SI::s];
 
         require constraint {
-            meanTimeBetweenFailures >= minMTBF
+            meanTimeBetweenFailures >= minMTBF - tolerance
         }
     }
 }

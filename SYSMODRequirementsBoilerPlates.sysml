@@ -6,7 +6,7 @@ library package SYSMODRequirementsBoilerplates {
      * Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; 
      * specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold.
      *
-     * Version v5.1.3
+     * Version v5.1.4
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.

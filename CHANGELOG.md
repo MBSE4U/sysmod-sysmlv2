@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleased
+## v5.1.4
 
 - `Project::subProjects` is no longer a derived feature computed from all `Project`-typed suboccurrences. It is now a plain `occurrence subProjects : Project [*]`, and a sub-project is added by explicitly subsetting it (`occurrence myComponentProject : MyComponentProject :> subProjects`). This makes membership in the sub-project list an explicit modeling decision and is consistent with the `subProjectsAI` prompts, which already required sub-projects to subset `subProjects`. Models that relied on the automatic derivation must add `:> subProjects` to their sub-project usages.
 - Updated example model: `controlStationProject` in `DeliveryDroneSystemProject.sysml` now explicitly subsets `subProjects`, and its doc comment and the README no longer describe the list as derived.

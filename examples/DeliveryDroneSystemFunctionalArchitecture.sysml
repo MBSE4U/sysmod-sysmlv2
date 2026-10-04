@@ -30,6 +30,22 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
          * functional blocks and must not depend on the physical internal
          * structure of the system. */
         #system part :>> deliveryDroneSystem : DeliveryDroneFunctionalSystem;
+
+        use case :>> deliverPackage : DD_SPECIFICATION::UseCases::DeliverPackage {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> chargeDrone : DD_SPECIFICATION::UseCases::ChargeDrone {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> reportFleetStatus : DD_SPECIFICATION::UseCases::ReportFleetStatus {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> handleEmergencyLanding : DD_SPECIFICATION::UseCases::HandleEmergencyLanding {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> monitorDroneHealth : DD_SPECIFICATION::UseCases::MonitorDroneHealth {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
     }
     part def DeliveryDroneFunctionalSystem :> DD_SPECIFICATION::DeliveryDroneSystem {
         doc

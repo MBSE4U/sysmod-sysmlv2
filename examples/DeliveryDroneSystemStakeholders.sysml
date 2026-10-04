@@ -35,7 +35,7 @@ package <DD_STAKEHOLDERS> DeliveryDroneSystemStakeholders {
         doc
         /* The operator who supervises the drone fleet in daily operation. Source
          * of usability and fleet-monitoring requirements. */
-        attribute :>> risk = LevelKind::medium;
+        attribute :>> risk = LevelKind::middle;
         attribute :>> effort = LevelKind::low;
         attribute :>> categories = StakeholderCategoryKind::user;
     }
@@ -54,7 +54,7 @@ package <DD_STAKEHOLDERS> DeliveryDroneSystemStakeholders {
          * operations, including airspace and safety rules. Main source of the
          * compliance and certification requirements. */
         attribute :>> risk = LevelKind::high;
-        attribute :>> effort = LevelKind::medium;
+        attribute :>> effort = LevelKind::middle;
         attribute :>> categories = StakeholderCategoryKind::requirementOwner;
     }
 }
@@ -100,6 +100,6 @@ package <DD_STAKEHOLDERNEEDS> DeliveryDroneSystemStakeholderNeeds {
         doc
         /* The logistics company needs the cost per delivery to be lower than
          * today's ground-based last-mile delivery. */
-        attribute :>> priority = LevelKind::medium;
+        attribute :>> priority = LevelKind::middle;
     }
 }

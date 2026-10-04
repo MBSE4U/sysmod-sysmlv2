@@ -14,6 +14,9 @@
 - Changed the `MaxValue` and `MinValue` boilerplates from strict to inclusive bounds (`<=` / `>=` instead of `<` / `>`), consistent with `RangeValue`, `MinAvailability`, and `MinReliability` and with the usual reading of "up to" / "at least" in requirement texts. A value exactly equal to the bound now satisfies the requirement.
 - Updated example model (specification): `MaxPayloadMass` now sets a `tolerance` of 0.1 kg on its 5 kg `MaxValue` limit.
 - Updated the sysmod.org deck (step 9 requirements library and model snippets and the "Full SYSMOD Library" appendix) to show the new `tolerance` attributes and constraints.
+- Breaking: renamed the `LevelKind` literal `medium` to `middle` (value 0.5 unchanged). Replace `LevelKind::medium` with `LevelKind::middle` in existing models.
+- Updated example model (stakeholders): `LevelKind::medium` is now `LevelKind::middle`.
+- Updated the sysmod.org deck (step 4 stakeholder library and model snippets and the "Full SYSMOD Library" appendix) to the `middle` literal.
 
 ## v5.1.3
 

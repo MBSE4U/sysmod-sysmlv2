@@ -19,7 +19,7 @@ The library provides ready-to-use SysML v2 definitions for the core SYSMOD conce
 - **Requirement Boilerplates** — `SYSMODRequirementsBoilerplates` package (top-level library package, own file) of ready-to-specialize quantitative requirement patterns (`MaxValue`, `MinValue`, `RangeValue`, `ExactValue`, `ToleranceValue`, `MinAvailability`, `MinReliability`)
 - **Use Cases** — `SystemUseCase` with motivation, trigger, and result attributes
 - **Functional, Logical & Product Architecture** — Optional architecture contexts specializing the specification context, connected by `functional2logical` and `logical2product` allocations
-- **Sub-Projects** — Derived `subProjects` list for decomposing a project into subsystem or component projects
+- **Sub-Projects** — `subProjects` list, subsetted by each sub-project usage, for decomposing a project into subsystem or component projects
 - **SYSMOD-specific keywords** — Shorthand keywords (`#project`, `#systemContext`, `#extendedStakeholder`, `#extendedConcern`, `#extendedRequirement`, `#systemUseCase`) for cleaner model notation
 - **AI metadata** — `SYSMOD4AI` package (top-level, own file, imports `SYSMOD`) providing `AIProject`, a template of AI metadata usages — one per main artifact plus a stakeholder priority map — each carrying `create_prompt`, `create_questions`, `validation_prompt`, and ready-to-run `perform_prompt`, `story_prompt`, and `slide_prompt` prompts, chained across all artifacts
 

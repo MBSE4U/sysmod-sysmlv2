@@ -2544,10 +2544,9 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             <span class="cm">/* Allocation of the logical architecture to the product architecture. */</span>
         }
 
-        <span class="kw">derived</span> <span class="kw">occurrence</span> subProjects : <span class="ty">Project</span> [*] = 
-            (suboccurrences-&gt;<span class="ty">ControlFunctions</span>::select({<span class="kw">in</span> o; o hastype <span class="ty">Project</span>})) as <span class="ty">Project</span> {
-                <span class="kw">doc</span> <span class="cm">/* List of all subProjects, for example, a standalone project for a subsystem or component of the system. */</span>
-            }
+        <span class="kw">occurrence</span> subProjects : <span class="ty">Project</span> [*] {
+            <span class="kw">doc</span> <span class="cm">/* List of all subProjects, for example, a standalone project for a subsystem or component of the system. */</span>
+        }
     }
     <span class="kw">abstract</span> <span class="kw">occurrence</span> projects : <span class="ty">Project</span> [*] {
         <span class="kw">doc</span>

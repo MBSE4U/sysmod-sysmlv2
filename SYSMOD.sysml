@@ -141,10 +141,9 @@ library package SYSMOD {
             /* Allocation of the logical architecture to the product architecture. */
         }
 
-        derived occurrence subProjects : Project [*] = 
-            (suboccurrences->ControlFunctions::select({in o; o hastype Project})) as Project {
-                doc /* List of all subProjects, for example, a standalone project for a subsystem or component of the system. */
-            }
+        occurrence subProjects : Project [*] {
+            doc /* List of all subProjects, for example, a standalone project for a subsystem or component of the system. */
+        }
     }
     abstract occurrence projects : Project [*] {
         doc

@@ -116,10 +116,9 @@ package <DD> DeliveryDrone {
         // The functional2logical and logical2product allocations are inherited from SYSMOD::Project.
 
         //------------------------- Sub-Projects
-        occurrence controlStationProject : DDCS::DeliveryDroneControlStationProject {
-            doc /* The control station is developed in a SYSMOD sub-project. As a
-                   suboccurrence of this project, it is automatically a member of
-                   the derived subProjects list. */
+        occurrence controlStationProject : DDCS::DeliveryDroneControlStationProject :> subProjects {
+            doc /* The control station is developed in a SYSMOD sub-project. It
+                   subsets the subProjects list inherited from SYSMOD::Project. */
         }
     }
 }

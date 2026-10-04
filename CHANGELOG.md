@@ -1,5 +1,11 @@
 # Change Log
 
+## Unreleased
+
+- `Project::subProjects` is no longer a derived feature computed from all `Project`-typed suboccurrences. It is now a plain `occurrence subProjects : Project [*]`, and a sub-project is added by explicitly subsetting it (`occurrence myComponentProject : MyComponentProject :> subProjects`). This makes membership in the sub-project list an explicit modeling decision and is consistent with the `subProjectsAI` prompts, which already required sub-projects to subset `subProjects`. Models that relied on the automatic derivation must add `:> subProjects` to their sub-project usages.
+- Updated example model: `controlStationProject` in `DeliveryDroneSystemProject.sysml` now explicitly subsets `subProjects`, and its doc comment and the README no longer describe the list as derived.
+- Updated the sysmod.org deck's "Full SYSMOD Library" appendix to show the non-derived `subProjects` feature.
+
 ## v5.1.3
 
 - Split the `AI` metadata definition and `AIProject` out of `SYSMOD.sysml` into a new top-level package, `SYSMOD4AI` (file `SYSMOD4AI.sysml`), which privately imports `SYSMOD`. Import it in addition to `SYSMOD` only where AI-assisted workflows are wanted — the core methodology library no longer carries any AI-specific content.

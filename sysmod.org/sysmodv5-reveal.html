@@ -1131,14 +1131,15 @@ const steps = [
     stable;
 }
 <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MaxValue</span> {
-    <span class="kw">doc</span> <span class="cm">/* The quantity must stay strictly below an upper bound. */</span>
+    <span class="kw">doc</span> <span class="cm">/* The quantity must not exceed an upper bound (inclusive), relaxed by an optional tolerance. */</span>
     <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
     <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+    <span class="kw">attribute</span> tolerance : <span class="ty">ScalarValues</span>::<span class="ty">Real</span> <span class="kw">default</span> 0.0;
     <span class="kw">require</span> <span class="kw">constraint</span> {
-        currentValue &lt; maxValue
+        currentValue &lt;= maxValue + tolerance
     }
 }`, img:null, slot:"09-requirements-library" },
-      model:{ text:"maxPayloadMass is a concrete ExtendedRequirement with a mandatory obligation — one line, but it now traces all the way back to a stakeholder need. It also specializes the MaxValue boilerplate, binding currentValue and maxValue to the drone's payload mass and its 5 kg limit.",
+      model:{ text:"maxPayloadMass is a concrete ExtendedRequirement with a mandatory obligation — one line, but it now traces all the way back to a stakeholder need. It also specializes the MaxValue boilerplate, binding currentValue, maxValue, and tolerance to the drone's payload mass, its 5 kg limit, and a 0.1 kg tolerance.",
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
   <span class="kw">requirement</span> deliveryDroneSystemRequirementsSpecification :&gt;&gt; systemRequirementSpecification : <span class="ty">DD_SPECIFICATION::DeliveryDroneSystemRequirements</span> {
       <span class="kw">subject</span> deliveryDroneSystem :&gt;&gt; specificationSystem, deliveryDroneSystem :&gt; deliveryDroneSpecificationContext.deliveryDroneSystem;
@@ -1155,12 +1156,13 @@ const steps = [
 }
 <span class="kw">#extendedRequirement requirement def</span> <span class="ty">MaxPayloadMass</span> :&gt; <span class="ty">SYSMODRequirementsBoilerplates</span>::<span class="ty">MaxValue</span> {
     <span class="kw">doc</span>
-    <span class="cm">/* The system shall transport payloads with a mass of up to 5 kg. */</span>
+    <span class="cm">/* The system shall transport payloads with a mass of up to 5 kg (tolerance 0.1 kg). */</span>
     <span class="kw">attribute</span> :&gt;&gt; obligation = <span class="ty">ObligationKind</span>::mandatory;
     <span class="kw">attribute</span> :&gt;&gt; stability = <span class="ty">StabilityKind</span>::stable;
     <span class="kw">attribute</span> :&gt;&gt; motivation = "Typical last-mile parcels weigh less than 5 kg.";
     <span class="kw">attribute</span> :&gt;&gt; currentValue = deliveryDrone.payloadMass;
     <span class="kw">attribute</span> :&gt;&gt; maxValue = 5;
+    <span class="kw">attribute</span> :&gt;&gt; tolerance = 0.1;
 }
 <span class="kw">#extendedRequirement requirement def</span> <span class="ty">AirCharging</span> {
     <span class="kw">doc</span>
@@ -3564,33 +3566,45 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
 
     <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MaxValue</span> {
         <span class="kw">doc</span>
-        <span class="cm">/* The quantity must stay strictly below an upper bound. */</span>
+        <span class="cm">/*
+         * The quantity must not exceed an upper bound (inclusive).
+         * The optional tolerance (default 0.0) relaxes the bound: values up to and including maxValue + tolerance are accepted.
+         */</span>
         <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
         <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> tolerance : <span class="ty">ScalarValues</span>::<span class="ty">Real</span> <span class="kw">default</span> 0.0;
 
         <span class="kw">require</span> <span class="kw">constraint</span> {
-            currentValue &lt; maxValue
+            currentValue &lt;= maxValue + tolerance
         }
     }
     <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinValue</span> {
         <span class="kw">doc</span>
-        <span class="cm">/* The quantity must stay strictly above a lower bound. */</span>
+        <span class="cm">/*
+         * The quantity must not fall below a lower bound (inclusive).
+         * The optional tolerance (default 0.0) relaxes the bound: values down to and including minValue - tolerance are accepted.
+         */</span>
         <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
         <span class="kw">attribute</span> minValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> tolerance : <span class="ty">ScalarValues</span>::<span class="ty">Real</span> <span class="kw">default</span> 0.0;
 
         <span class="kw">require</span> <span class="kw">constraint</span> {
-            currentValue &gt; minValue
+            currentValue &gt;= minValue - tolerance
         }
     }
     <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">RangeValue</span> {
         <span class="kw">doc</span>
-        <span class="cm">/* The quantity must stay within an inclusive lower and upper bound. */</span>
+        <span class="cm">/*
+         * The quantity must stay within an inclusive lower and upper bound.
+         * The optional tolerance (default 0.0) widens the range on both sides to [minValue - tolerance, maxValue + tolerance].
+         */</span>
         <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
         <span class="kw">attribute</span> minValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
         <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> tolerance : <span class="ty">ScalarValues</span>::<span class="ty">Real</span> <span class="kw">default</span> 0.0;
 
         <span class="kw">require</span> <span class="kw">constraint</span> {
-            minValue &lt;= currentValue <span class="kw">and</span> currentValue &lt;= maxValue
+            minValue - tolerance &lt;= currentValue <span class="kw">and</span> currentValue &lt;= maxValue + tolerance
         }
     }
     <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">ExactValue</span> {
@@ -3616,23 +3630,31 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
     }
     <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinAvailability</span> {
         <span class="kw">doc</span>
-        <span class="cm">/* The ratio of uptime to total time must reach at least a minimum availability. */</span>
+        <span class="cm">/*
+         * The ratio of uptime to total time must reach at least a minimum availability.
+         * The optional tolerance (default 0.0) relaxes the bound: availabilities of at least minAvailability - tolerance are accepted.
+         */</span>
         <span class="kw">attribute</span> uptime :&gt; <span class="ty">ISQ</span>::duration;
         <span class="kw">attribute</span> totalTime :&gt; <span class="ty">ISQ</span>::duration;
         <span class="kw">attribute</span> minAvailability : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> tolerance : <span class="ty">ScalarValues</span>::<span class="ty">Real</span> <span class="kw">default</span> 0.0;
 
         <span class="kw">require</span> <span class="kw">constraint</span> {
-            uptime / totalTime &gt;= minAvailability
+            uptime / totalTime &gt;= minAvailability - tolerance
         }
     }
     <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinReliability</span> {
         <span class="kw">doc</span>
-        <span class="cm">/* The mean time between failures must reach at least a minimum MTBF. */</span>
+        <span class="cm">/*
+         * The mean time between failures must reach at least a minimum MTBF.
+         * The optional tolerance (a duration, default 0 s) relaxes the bound: an MTBF of at least minMTBF - tolerance is accepted.
+         */</span>
         <span class="kw">attribute</span> meanTimeBetweenFailures :&gt; <span class="ty">ISQ</span>::duration;
         <span class="kw">attribute</span> minMTBF :&gt; <span class="ty">ISQ</span>::duration;
+        <span class="kw">attribute</span> tolerance :&gt; <span class="ty">ISQ</span>::duration <span class="kw">default</span> 0.0 [<span class="ty">SI</span>::s];
 
         <span class="kw">require</span> <span class="kw">constraint</span> {
-            meanTimeBetweenFailures &gt;= minMTBF
+            meanTimeBetweenFailures &gt;= minMTBF - tolerance
         }
     }
 }`;

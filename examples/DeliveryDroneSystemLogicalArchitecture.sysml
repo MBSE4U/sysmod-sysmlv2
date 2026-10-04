@@ -25,7 +25,7 @@ package <DD_LOGICAL> DeliveryDroneSystemLogicalArchitecture {
     #systemContext part def DeliveryDroneLogicalContext :> DD_SPECIFICATION::DeliveryDroneSystemContext {
         doc
         /* The context of the logical architecture. */
-        #System part :>> deliveryDroneSystem : DeliveryDroneLogicalSystem;
+        #system part :>> deliveryDroneSystem : DeliveryDroneLogicalSystem;
     }
     part def DeliveryDroneLogicalSystem :> DD_SPECIFICATION::DeliveryDroneSystem {
         doc

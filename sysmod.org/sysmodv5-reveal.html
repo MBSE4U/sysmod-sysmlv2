@@ -653,25 +653,25 @@ const steps = [
     <span class="cm">/* The black-box brownfield context: the delivery drone system as it exists at
       * the start of the project, together with the actors that already interact
       * with it. It constrains the set of possible solutions. */</span>
-    <span class="kw">#System part</span> deliveryDroneSystem : <span class="ty">DeliveryDroneSystem</span> :&gt;&gt; soi {
+    <span class="kw">#system part</span> deliveryDroneSystem : <span class="ty">DeliveryDroneSystem</span> :&gt;&gt; soi {
         <span class="kw">doc</span>
         <span class="cm">/* The existing delivery drone system as a black box. */</span>
     }
-    <span class="kw">#User part</span> operator :&gt; actors {
+    <span class="kw">#user part</span> operator :&gt; actors {
         <span class="kw">doc</span>
         <span class="cm">/* The human operator who monitors and commands the system. */</span>
         <span class="kw">port</span> controlPort;
     }
-    <span class="kw">#User part</span> customer :&gt; actors {
+    <span class="kw">#user part</span> customer :&gt; actors {
         <span class="kw">doc</span> <span class="cm">/* The human customer who hands over or retrieves the package. */</span>
         <span class="kw">port</span> packagePort :&gt; actorPorts;
     }
-    <span class="kw">#ExternalSystem part</span> landingZone :&gt; actors {
+    <span class="kw">#externalSystem part</span> landingZone :&gt; actors {
         <span class="kw">doc</span>
         <span class="cm">/* A marked landing zone where drones pick up and drop off packages. */</span>
         <span class="kw">port</span> dronePort;
     }
-    <span class="kw">#EnvironmentalEffect part</span> environment :&gt; actors {
+    <span class="kw">#environmentalEffect part</span> environment :&gt; actors {
         <span class="kw">doc</span>
         <span class="cm">/* Environmental conditions acting on the system, e.g., wind and rain. */</span>
         <span class="kw">port</span> conditionsPort;
@@ -696,7 +696,7 @@ const steps = [
     <span class="kw">doc</span>
     <span class="cm">/* The white-box brownfield context: adds the internal structure of the
       * existing delivery drone system. */</span>
-    <span class="kw">#System part</span> deliveryDroneSystemImpl : <span class="ty">DeliveryDroneSystemImpl</span> :&gt;&gt; deliveryDroneSystem {
+    <span class="kw">#system part</span> deliveryDroneSystemImpl : <span class="ty">DeliveryDroneSystemImpl</span> :&gt;&gt; deliveryDroneSystem {
         <span class="kw">doc</span>
         <span class="cm">/* The existing delivery drone system as a white box. */</span>
     }
@@ -833,13 +833,13 @@ const steps = [
     <span class="cm">/* The black-box system idea context. The system boundary, actors, and
       * interfaces are unchanged with respect to the brownfield context; the
       * idea changes the inside of the system only. */</span>
-    <span class="kw">#System part</span> deliveryDroneSystem :&gt;&gt; <span class="ty">DD_BROWNFIELD::DeliveryDroneSystemContext</span>::deliveryDroneSystem : <span class="ty">DeliveryDroneSystem</span>;
+    <span class="kw">#system part</span> deliveryDroneSystem :&gt;&gt; <span class="ty">DD_BROWNFIELD::DeliveryDroneSystemContext</span>::deliveryDroneSystem : <span class="ty">DeliveryDroneSystem</span>;
 }
 <span class="kw">#systemContext part def</span> <span class="ty">DeliveryDroneSystemIdeaContextImpl</span> :&gt; <span class="ty">DeliveryDroneSystemIdeaContext</span>, <span class="ty">DD_BROWNFIELD::DeliveryDroneSystemContextImpl</span> {
     <span class="kw">doc</span>
     <span class="cm">/* The white-box system idea context: adds the internal structure of the
       * system idea. */</span>
-    <span class="kw">#System part</span> deliveryDroneSystemImpl :&gt;&gt; <span class="ty">DD_BROWNFIELD::DeliveryDroneSystemContextImpl</span>::deliveryDroneSystemImpl, <span class="ty">DeliveryDroneSystemIdeaContext</span>::deliveryDroneSystem : <span class="ty">DeliveryDroneSystemIdeaImpl</span>;
+    <span class="kw">#system part</span> deliveryDroneSystemImpl :&gt;&gt; <span class="ty">DD_BROWNFIELD::DeliveryDroneSystemContextImpl</span>::deliveryDroneSystemImpl, <span class="ty">DeliveryDroneSystemIdeaContext</span>::deliveryDroneSystem : <span class="ty">DeliveryDroneSystemIdeaImpl</span>;
 }
 <span class="kw">part def</span> <span class="ty">DeliveryDroneSystem</span> :&gt; <span class="ty">DD_BROWNFIELD::DeliveryDroneSystem</span> {
     <span class="kw">doc</span>
@@ -918,7 +918,7 @@ const steps = [
     <span class="kw">doc</span>
     <span class="cm">/* The black-box specification context. It fixes the system boundary for
       * the requirements analysis and owns the system use cases. */</span>
-    <span class="kw">#System part</span> deliveryDroneSystem :&gt;&gt; deliveryDroneSystem : <span class="ty">DeliveryDroneSystem</span>;
+    <span class="kw">#system part</span> deliveryDroneSystem :&gt;&gt; deliveryDroneSystem : <span class="ty">DeliveryDroneSystem</span>;
     <span class="kw">use case</span> deliverPackage : UseCases::DeliverPackage {
         <span class="kw">subject</span> :&gt;&gt; droneSystem :&gt; deliveryDroneSystem;
     }
@@ -931,7 +931,7 @@ const steps = [
     <span class="kw">doc</span>
     <span class="cm">/* The white-box specification context: adds the internal structure of
       * the specification system. */</span>
-    <span class="kw">#System part</span> deliveryDroneSystemImpl :&gt;&gt; deliveryDroneSystemImpl : <span class="ty">DeliveryDroneSystemImpl</span>;
+    <span class="kw">#system part</span> deliveryDroneSystemImpl :&gt;&gt; deliveryDroneSystemImpl : <span class="ty">DeliveryDroneSystemImpl</span>;
 }
 <span class="kw">part def</span> <span class="ty">DeliveryDroneSystem</span> :&gt; <span class="ty">DD_SYSTEMIDEA::DeliveryDroneSystem</span> {
     <span class="kw">doc</span>
@@ -954,7 +954,7 @@ const steps = [
 <span class="kw">part def</span> <span class="ty">DeliveryDrone</span> :&gt; <span class="ty">DD_SYSTEMIDEA::DeliveryDrone</span> {
     <span class="kw">doc</span>
     <span class="cm">/* The delivery drone at the specification level. */</span>
-    <span class="kw">attribute</span> payloadMass : <span class="ty">ScalarValues::Real</span>;
+    <span class="kw">attribute</span> payloadMass :&gt; <span class="ty">ISQ::mass</span>;
 }`, img:"assets/07-specification-model.png", slot:"07-specification-model", diagram:"assets/07-specification-diagram.png", diagramSlot:"07-specification-diagram" }
     }
   },
@@ -1001,7 +1001,7 @@ const steps = [
 }`, img:null, slot:"08-usecases-library" },
       model:{ text:"DeliverPackage no longer defines its own actions — every action it needs (planDelivery, pickUpPackage, chargeInFlight, dropOffPackage, and more) is now owned once by DeliveryDroneSystem itself, shared across all four use cases. DeliverPackage just orchestrates them: its successions reference the shared actions on droneSystem directly, so the same charging behavior ChargeDrone describes on its own can't quietly drift out of sync. Only the three flight legs are local actions, each subsetting the shared flyToPosition with its own target position.",
       code:`<span class="kw">#systemContext part def</span> DeliveryDroneSystemContext :&gt; DD_SYSTEMIDEA::DeliveryDroneSystemIdeaContext {
-    <span class="kw">#System part</span> deliveryDroneSystem :&gt;&gt; deliveryDroneSystem : DeliveryDroneSystem;
+    <span class="kw">#system part</span> deliveryDroneSystem :&gt;&gt; deliveryDroneSystem : DeliveryDroneSystem;
     <span class="kw">use case</span> deliverPackage : UseCases::DeliverPackage {
         <span class="kw">subject</span> :&gt;&gt; droneSystem :&gt; deliveryDroneSystem;
     }
@@ -1195,7 +1195,7 @@ const steps = [
 <span class="kw">allocation</span> logical2product [0..1]
     <span class="kw">allocate</span> logicalContext <span class="kw">to</span> productContext;`, img:null, slot:"10-architecture-library" },
       model:{ text:"The architecture is split into three separate files, one per level, each still maturing. Functional groups the use case actions into functional blocks with the FAS method — each block performs the shared actions, exposes typed ports from its own Interfaces package, and is bound to the inherited system ports; Logical names the technology-independent building blocks; Product redefines the concrete parts already known from the brownfield and adds real ports — a radio link and a charging contact — connecting them.", code:`<span class="kw">#systemContext part def</span> DeliveryDroneFunctionalContext :&gt; DD_SPECIFICATION::DeliveryDroneSystemContext {
-  <span class="kw">#System part</span> :&gt;&gt; deliveryDroneSystem : DeliveryDroneFunctionalSystem;
+  <span class="kw">#system part</span> :&gt;&gt; deliveryDroneSystem : DeliveryDroneFunctionalSystem;
 }
 <span class="kw">part def</span> DeliveryDroneFunctionalSystem :&gt; DD_SPECIFICATION::DeliveryDroneSystem {
   <span class="kw">bind</span> operatorPort.order = deliveryManagement.deliveryPort.deliveryOrder;
@@ -1234,7 +1234,7 @@ const steps = [
 }
 
 <span class="kw">#systemContext part def</span> DeliveryDroneLogicalContext :&gt; DD_SPECIFICATION::DeliveryDroneSystemContext {
-  <span class="kw">#System part</span> :&gt;&gt; deliveryDroneSystem : DeliveryDroneLogicalSystem;
+  <span class="kw">#system part</span> :&gt;&gt; deliveryDroneSystem : DeliveryDroneLogicalSystem;
 }
 <span class="kw">part def</span> DeliveryDroneLogicalSystem :&gt; DD_SPECIFICATION::DeliveryDroneSystem {
   <span class="kw">part</span> flightControl {
@@ -1252,7 +1252,7 @@ const steps = [
 }
 
 <span class="kw">#systemContext part def</span> DeliveryDroneProductContext :&gt; DD_SPECIFICATION::DeliveryDroneSystemContextImpl {
-  <span class="kw">#System part</span> :&gt;&gt; deliveryDroneSystemImpl : DeliveryDroneProductSystem;
+  <span class="kw">#system part</span> :&gt;&gt; deliveryDroneSystemImpl : DeliveryDroneProductSystem;
 }
 <span class="kw">part def</span> DeliveryDroneProductSystem :&gt; DD_SPECIFICATION::DeliveryDroneSystemImpl {
   <span class="kw">part</span> :&gt;&gt; drones : DD_SPECIFICATION::DeliveryDrone {
@@ -2603,21 +2603,21 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
     }
 
     <span class="cm">// System</span>
-    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">System</span> {
+    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">system</span> {
         <span class="kw">doc</span> <span class="cm">/* System is merely a label used to tag an element. The element could play a different role in a different context. */</span>
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">PartUsage</span>;        
     }
 
     <span class="cm">// Actor Categories</span>
-    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">User</span> {
+    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">user</span> {
         <span class="kw">doc</span> <span class="cm">/* User is merely a label used to tag an element. The element could play a different role in a different context. */</span>
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">PartUsage</span>;
     }
-    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">ExternalSystem</span> {
+    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">externalSystem</span> {
         <span class="kw">doc</span> <span class="cm">/* ExternalSystem is merely a label used to tag an element. The element could play a different role in a different context. */</span>
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">PartUsage</span>;
     }
-    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">EnvironmentalEffect</span> {
+    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">environmentalEffect</span> {
         <span class="kw">doc</span> <span class="cm">/* EnvironmentalEffect is merely a label used to tag an element. The element could play a different role in a different context. */</span>
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">PartUsage</span>;
     }
@@ -2636,6 +2636,19 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         }
     }
     <span class="kw">use</span> <span class="kw">case</span> systemUseCases[*] : <span class="ty">SystemUseCase</span>;
+
+    <span class="kw">use case def</span> <span class="ty">SecondaryUseCase</span> :&gt; <span class="ty">SystemUseCase</span> {
+        <span class="kw">doc</span> <span class="cm">/* Marks a use case as a SYSMOD secondary use case: a use case that is not started directly by an actor and does not deliver a result of value to an actor on its own, but describes a part of the behavior shared by other use cases, which include it. */</span>
+    }
+    <span class="kw">use</span> <span class="kw">case</span> secondaryUseCases[*] : <span class="ty">SecondaryUseCase</span>;
+    <span class="kw">use case def</span> <span class="ty">SystemProcess</span> :&gt; <span class="ty">SystemUseCase</span> {
+        <span class="kw">doc</span> <span class="cm">/* Marks a use case as a SYSMOD system process: a use case that describes the logical and temporal order of several related system use cases that together form one overall process of the system. */</span>
+    }
+    <span class="kw">use</span> <span class="kw">case</span> systemProcesses[*] : <span class="ty">SystemProcess</span>;
+    <span class="kw">use case def</span> <span class="ty">ContinuousUseCase</span> :&gt; <span class="ty">SystemUseCase</span> {
+        <span class="kw">doc</span> <span class="cm">/* Marks a use case as a SYSMOD continuous use case: a use case whose result is delivered continuously while it runs rather than once at its end, e.g., monitoring or controlling a quantity, so it typically has no regular termination. */</span>
+    }
+    <span class="kw">use</span> <span class="kw">case</span> continuousUseCases[*] : <span class="ty">ContinuousUseCase</span>;
 
     <span class="cm">//</span>
     <span class="cm">// SYSMOD Stakeholder and Requirement Concepts</span>
@@ -2807,7 +2820,27 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         <span class="cm">/* Enables the user-defined keyword #systemUseCase. */</span>
         :&gt;&gt; baseType = systemUseCases meta <span class="ty">SysML</span>::<span class="ty">Type</span>;
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseDefinition</span>;
-        :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseUsage</span>;
+    }
+    <span class="kw">metadata</span> <span class="kw">def</span> &lt;secondaryUseCase&gt; <span class="ty">SecondaryUsageCaseMetadata</span>
+        :&gt; <span class="ty">Metaobjects</span>::<span class="ty">SemanticMetadata</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* Enables the user-defined keyword #secondaryUseCase. */</span>
+        :&gt;&gt; baseType = secondaryUseCases meta <span class="ty">SysML</span>::<span class="ty">Type</span>;
+        :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseDefinition</span>;
+    }
+    <span class="kw">metadata</span> <span class="kw">def</span> &lt;systemProcess&gt; <span class="ty">SystemProcessMetadata</span>
+        :&gt; <span class="ty">Metaobjects</span>::<span class="ty">SemanticMetadata</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* Enables the user-defined keyword #systemProcess. */</span>
+        :&gt;&gt; baseType = systemProcesses meta <span class="ty">SysML</span>::<span class="ty">Type</span>;
+        :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseDefinition</span>;
+    }
+    <span class="kw">metadata</span> <span class="kw">def</span> &lt;continuousUseCase&gt; <span class="ty">ContinuousUseCaseMetadata</span>
+        :&gt; <span class="ty">Metaobjects</span>::<span class="ty">SemanticMetadata</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* Enables the user-defined keyword #continuousUseCase. */</span>
+        :&gt;&gt; baseType = continuousUseCases meta <span class="ty">SysML</span>::<span class="ty">Type</span>;
+        :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseDefinition</span>;
     }
 }
 

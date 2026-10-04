@@ -25,7 +25,7 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
     #systemContext part def DeliveryDroneProductContext :> DD_SPECIFICATION::DeliveryDroneSystemContextImpl {
         doc
         /* The context of the product architecture. */
-        #System part :>> deliveryDroneSystemImpl : DeliveryDroneProductSystem;
+        #system part :>> deliveryDroneSystemImpl : DeliveryDroneProductSystem;
     }   
     part def DeliveryDroneProductSystem :> DD_SPECIFICATION::DeliveryDroneSystemImpl {
         doc

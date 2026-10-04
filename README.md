@@ -17,10 +17,10 @@ The library provides ready-to-use SysML v2 definitions for the core SYSMOD conce
 - **Problem Statement & Stakeholder Needs** — `ExtendedConcern`-based artifacts framing the problem and stakeholder intent, traced through to requirements
 - **Requirements** — `ExtendedRequirement` with obligation, stability, and motivation attributes
 - **Requirement Boilerplates** — `SYSMODRequirementsBoilerplates` package (top-level library package, own file) of ready-to-specialize quantitative requirement patterns (`MaxValue`, `MinValue`, `RangeValue`, `ExactValue`, `ToleranceValue`, `MinAvailability`, `MinReliability`)
-- **Use Cases** — `SystemUseCase` with motivation, trigger, and result attributes
+- **Use Cases** — `SystemUseCase` with motivation, trigger, and result attributes, plus the specializations `SecondaryUseCase`, `SystemProcess`, and `ContinuousUseCase`
 - **Functional, Logical & Product Architecture** — Optional architecture contexts specializing the specification context, connected by `functional2logical` and `logical2product` allocations
 - **Sub-Projects** — `subProjects` list, subsetted by each sub-project usage, for decomposing a project into subsystem or component projects
-- **SYSMOD-specific keywords** — Shorthand keywords (`#project`, `#systemContext`, `#extendedStakeholder`, `#extendedConcern`, `#extendedRequirement`, `#systemUseCase`) for cleaner model notation
+- **SYSMOD-specific keywords** — Shorthand keywords (`#project`, `#systemContext`, `#extendedStakeholder`, `#extendedConcern`, `#extendedRequirement`, `#systemUseCase`, `#secondaryUseCase`, `#systemProcess`, `#continuousUseCase`, plus the actor tags `#system`, `#user`, `#externalSystem`, `#environmentalEffect`) for cleaner model notation
 - **AI metadata** — `SYSMOD4AI` package (top-level, own file, imports `SYSMOD`) providing `AIProject`, a template of AI metadata usages — one per main artifact plus a stakeholder priority map — each carrying `create_prompt`, `create_questions`, `validation_prompt`, and ready-to-run `perform_prompt`, `story_prompt`, and `slide_prompt` prompts, chained across all artifacts
 
 ## Getting Started

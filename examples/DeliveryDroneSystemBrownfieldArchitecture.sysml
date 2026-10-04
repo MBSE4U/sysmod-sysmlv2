@@ -27,30 +27,30 @@ package <DD_BROWNFIELD> DeliveryDroneSystemBrownfieldArchitecture {
         /* The black-box brownfield context: the delivery drone system as it exists at
          * the start of the project, together with the actors that already interact
          * with it. It constrains the set of possible solutions. */
-        #System part deliveryDroneSystem : DeliveryDroneSystem :>> soi {
+        #system part deliveryDroneSystem : DeliveryDroneSystem :>> soi {
             doc
             /* The existing delivery drone system as a black box. */
         }
-        #User part operator :> actors {
+        #user part operator :> actors {
             doc
             /* The human operator who monitors and commands the system. */
             port controlPort[1] :>> actorPorts;
         }
-        #User part customer :> actors {
+        #user part customer :> actors {
             doc /* The human customer who hands over or retrieves the package. */
             port packagePort[1] :>> actorPorts;
         }
-        #ExternalSystem part landingZone :> actors {
+        #externalSystem part landingZone :> actors {
             doc
             /* A marked landing zone where drones pick up and drop off packages. */
             port dronePort :>> actorPorts;
         }
-        #ExternalSystem part energySupply :> actors {
+        #externalSystem part energySupply :> actors {
             doc
             /* The energy supply system that provides electrical energy to the delivery drone system. */
             port energyPort[1] :>> actorPorts;
         }
-        #EnvironmentalEffect part environment :> actors {
+        #environmentalEffect part environment :> actors {
             doc
             /* Environmental conditions acting on the system, e.g., wind and rain. */
             port conditionsPort :>> actorPorts;
@@ -80,7 +80,7 @@ package <DD_BROWNFIELD> DeliveryDroneSystemBrownfieldArchitecture {
         doc
         /* The white-box brownfield context: adds the internal structure of the
          * existing delivery drone system. */
-        #System part deliveryDroneSystemImpl : DeliveryDroneSystemImpl :>> deliveryDroneSystem {
+        #system part deliveryDroneSystemImpl : DeliveryDroneSystemImpl :>> deliveryDroneSystem {
             doc
             /* The existing delivery drone system as a white box. */
         }

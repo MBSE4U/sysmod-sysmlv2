@@ -198,21 +198,21 @@ library package SYSMOD {
     }
 
     // System
-    metadata def System {
+    metadata def system {
         doc /* System is merely a label used to tag an element. The element could play a different role in a different context. */
         :> annotatedElement : SysML::PartUsage;        
     }
 
     // Actor Categories
-    metadata def User {
+    metadata def user {
         doc /* User is merely a label used to tag an element. The element could play a different role in a different context. */
         :> annotatedElement : SysML::PartUsage;
     }
-    metadata def ExternalSystem {
+    metadata def externalSystem {
         doc /* ExternalSystem is merely a label used to tag an element. The element could play a different role in a different context. */
         :> annotatedElement : SysML::PartUsage;
     }
-    metadata def EnvironmentalEffect {
+    metadata def environmentalEffect {
         doc /* EnvironmentalEffect is merely a label used to tag an element. The element could play a different role in a different context. */
         :> annotatedElement : SysML::PartUsage;
     }
@@ -231,6 +231,19 @@ library package SYSMOD {
         }
     }
     use case systemUseCases[*] : SystemUseCase;
+
+    use case def SecondaryUseCase :> SystemUseCase {
+        doc /* Marks a use case as a SYSMOD secondary use case: a use case that is not started directly by an actor and does not deliver a result of value to an actor on its own, but describes a part of the behavior shared by other use cases, which include it. */
+    }
+    use case secondaryUseCases[*] : SecondaryUseCase;
+    use case def SystemProcess :> SystemUseCase {
+        doc /* Marks a use case as a SYSMOD system process: a use case that describes the logical and temporal order of several related system use cases that together form one overall process of the system. */
+    }
+    use case systemProcesses[*] : SystemProcess;
+    use case def ContinuousUseCase :> SystemUseCase {
+        doc /* Marks a use case as a SYSMOD continuous use case: a use case whose result is delivered continuously while it runs rather than once at its end, e.g., monitoring or controlling a quantity, so it typically has no regular termination. */
+    }
+    use case continuousUseCases[*] : ContinuousUseCase;
 
     //
     // SYSMOD Stakeholder and Requirement Concepts
@@ -402,8 +415,28 @@ library package SYSMOD {
         /* Enables the user-defined keyword #systemUseCase. */
         :>> baseType = systemUseCases meta SysML::Type;
         :> annotatedElement : SysML::UseCaseDefinition;
-        :> annotatedElement : SysML::UseCaseUsage;
     }    
+    metadata def <secondaryUseCase> SecondaryUsageCaseMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #secondaryUseCase. */
+        :>> baseType = secondaryUseCases meta SysML::Type;
+        :> annotatedElement : SysML::UseCaseDefinition;
+    }
+    metadata def <systemProcess> SystemProcessMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #systemProcess. */
+        :>> baseType = systemProcesses meta SysML::Type;
+        :> annotatedElement : SysML::UseCaseDefinition;
+    }
+    metadata def <continuousUseCase> ContinuousUseCaseMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #continuousUseCase. */
+        :>> baseType = continuousUseCases meta SysML::Type;
+        :> annotatedElement : SysML::UseCaseDefinition;
+    }
 }
 
     

@@ -341,7 +341,7 @@ library package SYSMOD {
         /* Common enumeration of levels with real values, for example, for priority calculations. */
         none = 0.0;
         low = 0.25;
-        medium = 0.5;
+        middle = 0.5;
         high = 0.75;
         critical = 1.0;
     }

@@ -492,7 +492,7 @@ const steps = [
     <span class="cm">/* Common enumeration of levels with real values, for example, for priority calculations. */</span>
     none = 0.0;
     low = 0.25;
-    medium = 0.5;
+    middle = 0.5;
     high = 0.75;
     critical = 1.0;
 }`, img:null, slot:"04-stakeholders-library" },
@@ -516,7 +516,7 @@ const steps = [
     <span class="kw">doc</span>
     <span class="kw">/* The operator who supervises the drone fleet in daily operation. Source
       * of usability and fleet-monitoring requirements. */</span>
-    <span class="kw">attribute</span> :>> risk = <span class="ty">LevelKind</span>::medium;
+    <span class="kw">attribute</span> :>> risk = <span class="ty">LevelKind</span>::middle;
     <span class="kw">attribute</span> :>> effort = <span class="ty">LevelKind</span>::low;
     <span class="kw">attribute</span> :>> categories = <span class="ty">StakeholderCategoryKind</span>::user;
 }
@@ -535,7 +535,7 @@ const steps = [
       * operations, including airspace and safety rules. Main source of the
       * compliance and certification requirements. */</span>
     <span class="kw">attribute</span> :>> risk = <span class="ty">LevelKind</span>::high;
-    <span class="kw">attribute</span> :>> effort = <span class="ty">LevelKind</span>::medium;
+    <span class="kw">attribute</span> :>> effort = <span class="ty">LevelKind</span>::middle;
     <span class="kw">attribute</span> :>> categories = <span class="ty">StakeholderCategoryKind</span>::requirementOwner;
 }`, img:"assets/03-stakeholders-model.png", slot:"03-stakeholders-model", diagram:"assets/03-stakeholders-diagram.png", diagramSlot:"03-stakeholders-diagram" }
     }
@@ -581,7 +581,7 @@ const steps = [
         <span class="kw">doc</span>
         <span class="cm">/* The logistics company needs the cost per delivery to be lower than
          * today's ground-based last-mile delivery. */</span>
-        <span class="kw">attribute</span> :&gt;&gt; priority = <span class="ty">LevelKind</span>::medium;
+        <span class="kw">attribute</span> :&gt;&gt; priority = <span class="ty">LevelKind</span>::middle;
     }
 }`, img:"assets/04-needs-model.png", slot:"04-needs-model", diagram:"assets/04-needs-diagram.png", diagramSlot:"04-needs-diagram" }
     }
@@ -2753,7 +2753,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         <span class="cm">/* Common enumeration of levels with real values, for example, for priority calculations. */</span>
         none = 0.0;
         low = 0.25;
-        medium = 0.5;
+        middle = 0.5;
         high = 0.75;
         critical = 1.0;
     }

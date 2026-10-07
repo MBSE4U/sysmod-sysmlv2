@@ -492,8 +492,9 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
             attribute :>> obligation = ObligationKind::mandatory;
             attribute :>> stability = StabilityKind::stable;
             attribute :>> motivation = "Typical last-mile parcels weigh less than 5 kg.";
-            attribute :>> currentValue = deliveryDrone.payloadMass;
-            attribute :>> maxValue = 5;
+            attribute :>> currentValue :> ISQ::mass = deliveryDrone.payloadMass;
+            attribute :>> maxValue :> ISQ::mass = 5 [SI::kg];
+            attribute :>> tolerance :> ISQ::mass = 0.1 [SI::kg];
             frame concern :DD_STAKEHOLDERNEEDS::LowDeliveryCost;
         }
         #extendedRequirement requirement def AirCharging {

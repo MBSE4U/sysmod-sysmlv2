@@ -490,12 +490,11 @@ package SYSMOD4AI {
             name = "sysmod-stakeholder-needs";
             create_prompt =
                 "1. Analyze the projectStakeholders and the problemStatement and derive the high-level needs of each stakeholder.
-                2. For each stakeholder need, create a concern usage subsetting stakeholderNeeds, framed by the problemStatement and referencing the brownfield system (the soiImpl of brownfieldContextImpl) as its subject.
-                3. Specify a subject pointing to the brownfield system as the first feature of each stakeholder need definition, typed by the brownfield system implementation definition, for example, 'subject brownfieldSystem : DD_BROWNFIELD::DeliveryDroneSystemImpl;'. In the concern usages within the project, redefine the subject and bind it to the brownfield system, for example, 'subject :>> brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;'. The subject must precede any stakeholder declaration.
-                4. Ensure each need is expressed from the stakeholder's perspective and describes what they need the system to do or be, not how.
-                5. Do not express needs as solution-specific requirements; keep them at the stakeholder intent level.
-                6. Create the SysML v2 textual notation for the stakeholderNeeds.
-                7. If the user asks to insert the stakeholderNeeds into the SysML model, find the project and redefine the inherited stakeholderNeeds concern usage. If the project does not exist, create one first.";
+                2. For each stakeholder need, create a concern definition with the brownfield system as its first parameter (subject) and a typed stakeholder parameter for each stakeholder the need comes from. Create a concern usage redefining stakeholderNeeds that binds the subject to brownfieldContextImpl.soiImpl and binds each stakeholder parameter to the corresponding part usage in projectStakeholders.
+                3. Ensure each need is expressed from the stakeholder's perspective and describes what they need the system to do or be, not how.
+                4. Do not express needs as solution-specific requirements; keep them at the stakeholder intent level.
+                5. Create the SysML v2 textual notation for the stakeholderNeeds.
+                6. If the user asks to insert the stakeholderNeeds into the SysML model, find the project and redefine the inherited stakeholderNeeds concern usage. If the project does not exist, create one first.";
             create_questions = (
                 "What does each stakeholder group need the system to do or be?",
                 "Are there any known constraints or non-functional needs (safety, cost, compliance) expressed by stakeholders?",
@@ -505,9 +504,9 @@ package SYSMOD4AI {
                 Check:
                 1. The stakeholderNeeds concern usage is present in the project, redefining the inherited stakeholderNeeds.
                 2. The stakeholderNeeds frames the problemStatement.
-                3. The subject references the brownfieldContextImpl soiImpl.
-                4. At least one stakeholder need is defined as a nested concern usage.
-                5. Each stakeholder need is traceable to at least one stakeholder from projectStakeholders (via stakeholder reference or doc comment attribution).
+                3. The subject of stakeholderNeeds references the brownfieldContextImpl soiImpl.
+                4. At least one stakeholder need is defined as a concern usage nested inside stakeholderNeeds. Each stakeholder need definition declares a subject typed by the brownfield system as its first feature, and each nested concern usage redefines that subject and binds it to the brownfieldContextImpl soiImpl, before any stakeholder declaration.
+                5. Each stakeholder need declares at least one stakeholder parameter, and each such parameter in the need usage is bound to a part usage subsetting projectStakeholders.
                 6. Each need is expressed at the stakeholder intent level — check for premature solution or design language (e.g., specific technologies, implementation details, design choices).
                 7. The set of stakeholder needs covers all projectStakeholders — no stakeholder group should be left without at least one associated need.
                 8. Each need has a doc comment or name that is understandable without reading the full model.
@@ -552,11 +551,10 @@ package SYSMOD4AI {
                 1. The systemIdeaContext part usage is present in the project and specializes brownfieldContext.
                 2. The soi part is redefined within systemIdeaContext with a named system idea definition that specializes the brownfield soi.
                 3. The systemIdeaContextImpl part usage is present, specializes systemIdeaContext and brownfieldContextImpl, and redefines the soiImpl part, specializing the system idea soi.
-                4. The soiImpl contains a satisfy relationship to the problemStatement.
-                5. All actors from the brownfieldContext are inherited or explicitly redefined — no brownfield actor should silently disappear.
-                6. Any new actors introduced by the system idea are added as additional actor part usages.
-                7. The system idea stays at a conceptual level — check for premature architecture or design detail (e.g., specific components, protocols, or technologies named in the soiImpl structure).
-                8. A doc comment on the soiImpl describes the system idea in elevator-pitch style.
+                4. All actors from the brownfieldContext are inherited or explicitly redefined — no brownfield actor should silently disappear.
+                5. Any new actors introduced by the system idea are added as additional actor part usages.
+                6. The system idea stays at a conceptual level — check for premature architecture or design detail (e.g., specific components, protocols, or technologies named in the soiImpl structure).
+                7. A doc comment on the soiImpl describes the system idea in elevator-pitch style.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -585,7 +583,7 @@ package SYSMOD4AI {
                 "1. Specialize systemIdeaContext by redefining the soi part (black-box view) with a specification-level system definition, within specificationContext. Specialize specificationContext and systemIdeaContextImpl by redefining the soiImpl part (white-box view) with the matching specification implementation, within specificationContextImpl.
                 2. Identify and add any actors or subcomponents that become visible during requirements analysis (e.g., specific interfaces, subsystems defined at the black-box level).
                 3. Add system use cases to the specificationContext that describe how actors interact with the system of interest at the specification level.
-                4. Ensure the specificationContext owns the use cases and that each use case references the specificationSystem as its subject.
+                4. Each use case definition declares the specification system as its first parameter (subject) and a typed actor parameter for each participating actor. Each use case usage in the specificationContext subsets its subject from the context's soi and binds each actor parameter to the context's actor part usage.
                 5. Create the SysML v2 textual notation for the specificationContext and specificationContextImpl, including actor parts and use case usages.
                 6. If the user asks to insert the specificationContext into the SysML model, find the project and redefine the inherited specificationContext and specificationContextImpl part usages.";
             create_questions = (
@@ -599,7 +597,7 @@ package SYSMOD4AI {
                 2. The soi part is redefined within specificationContext with a named specification system definition that specializes the system idea soi.
                 3. The specificationContextImpl part usage is present, specializes specificationContext and systemIdeaContextImpl, and redefines the soiImpl part, specializing the specification soi.
                 4. At least one use case usage is present in the specificationContext, referencing the specificationSystem as its subject.
-                5. Each use case has at least one actor involved (include or extend relationships, or actor references in the use case subject/stakeholder).
+                5. Each use case has at least one actor parameter, and in the specificationContext every actor parameter is bound to an actor part usage subsetting actors.
                 6. Each use case has a meaningful name and doc comment describing the interaction goal.
                 7. All actors from the systemIdeaContext are inherited or redefined — no actor should silently disappear.
                 8. The specificationContext does not contain solution elements — it should remain a black-box view of the system.
@@ -626,7 +624,7 @@ package SYSMOD4AI {
             name = "sysmod-system-requirements";
             create_prompt =
                 "1. Derive system requirements from the stakeholderNeeds, framed by the stakeholderNeeds and referencing the specificationSystem as subject.
-                2. For each requirement, create a requirement usage or definition specializing ExtendedRequirement. Set obligation (mandatory/optional), stability (stable/unstable), and a brief motivation.
+                2. For each requirement, create a requirement usage or definition specializing ExtendedRequirement. Set obligation (mandatory/optional), stability (stable/unstable), and a brief motivation. Declare the specification system as the first parameter (subject) and a typed stakeholder parameter for the stakeholders of the framed need. In the root requirement, bind each nested requirement usage's subject to the root subject.
                 3. Ensure each requirement is verifiable, unambiguous, and solution-neutral where possible.
                 4. Group requirements logically (e.g., functional, performance, safety, interface) using nested requirement usages if appropriate.
                 5. Create the SysML v2 textual notation for the systemRequirementSpecification.

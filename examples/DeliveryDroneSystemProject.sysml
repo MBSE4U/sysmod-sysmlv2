@@ -107,10 +107,10 @@ package <DD> DeliveryDrone {
 
         //------------------------- Specification
         part deliveryDroneSpecificationContext :>> specificationContext : DD_SPECIFICATION::DeliveryDroneSystemContext :> deliveryDroneSystemIdeaContext {
-            part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSystemIdeaContext::deliveryDroneSystem, Project::systemIdeaContext::soi;
+            part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSystemIdeaContext::deliveryDroneSystem, Project::specificationContext::soi;
         }
         part deliveryDroneSpecificationContextImpl :>> specificationContextImpl : DD_SPECIFICATION::DeliveryDroneSystemContextImpl :> deliveryDroneSpecificationContext, deliveryDroneSystemIdeaContextImpl {
-            part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSystemIdeaContextImpl::deliveryDroneSystemImpl, Project::systemIdeaContextImpl::soiImpl;
+            part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSystemIdeaContextImpl::deliveryDroneSystemImpl, Project::specificationContextImpl::soiImpl;
         }
         requirement deliveryDroneSystemRequirementsSpecification :>> systemRequirementSpecification : DD_SPECIFICATION::Requirements::DeliveryDroneSystemRequirements {
             subject deliveryDroneSystem :>> specificationSystem, deliveryDroneSystem :> deliveryDroneSpecificationContext.deliveryDroneSystem;

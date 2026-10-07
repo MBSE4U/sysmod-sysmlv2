@@ -29,7 +29,7 @@ library package SYSMOD {
 
         action defaultProcess : SYSMODProcesses::SYSMODDefaultProcess {
             doc
-            /* The default process for a SYSMOD project. */
+            /* The SYSMOD process performed by the project. It defaults to SYSMODDefaultProcess and can be redefined with a specialization of it to tailor the process. */
         }
 
         attribute purpose : ScalarValues::String {
@@ -279,7 +279,7 @@ library package SYSMOD {
             doc
             /* How much effort is involved in identifying this stakeholder's concerns and requirements? */
         }
-        derived attribute priority : ScalarValues::Real = risk * effort {
+        derived attribute attention : ScalarValues::Real = risk * effort {
             doc
             /* Priority is the product of risk and effort. */
         }
@@ -460,13 +460,29 @@ library package SYSMOD {
 
     package SYSMODProcesses {
         doc
-        /* This package contains SYSMOD process definitions. */
+        /*
+         * The SYSMOD process definitions.
+         *
+         * SYSMODDefaultProcess is the default SYSMOD workflow and is performed by every project as Project::defaultProcess.
+         * It consists of one action definition per SYSMOD step. Each step reads artifacts of the project and produces
+         * the project artifacts it is responsible for (flows to and bindings with the project features).
+         * The successions define the default order; all steps after SetupProject are optional ([0..1]), for example,
+         * SpecifyBrownfieldSystem in a greenfield project or the functional and logical architectures.
+         *
+         * Each step refines one or more ISO/IEC/IEEE 15288 processes from the package ISO15288Processes (#refinement dependencies at the end of this package).
+         * A project can tailor the process by redefining Project::defaultProcess with a specialization of SYSMODDefaultProcess.
+         */
 
         private import ModelingMetadata::refinement;
 
         action def SYSMODDefaultProcess {
             doc
-            /* The SYSMODDefaultProcess defines the default process for a SYSMOD project. It is a placeholder for a more detailed process definition. */
+            /*
+             * The default SYSMOD process: setupProject, specifyBrownfieldSystem, specifyProblemStatement, identifyStakeholders,
+             * elaborateStakeholderNeeds, pitchSystemIdea, defineSystemSpecification, createSolutionArchitectures, and verifyAndValidateRequirements, in this order.
+             * The project that performs the process is referenced by project. Outputs of the steps flow into the corresponding project features,
+             * and the inputs of the steps are bound to the project features created by earlier steps.
+             * The input parameters are the information a human or an AI assistant provides to start the process. */
             ref occurrence project :>> this : Project;
 
             in attribute projectOwnerName : ScalarValues::String {
@@ -505,7 +521,7 @@ library package SYSMOD {
             first [0..1]createSolutionArchitectures then [0..1]verifyAndValidateRequirements;
             first [0..1]verifyAndValidateRequirements then done;
 
-            flow from specifyBrownfieldSystem.brownfieldContextImpl to project.brownfieldContext;
+            flow from specifyBrownfieldSystem.brownfieldContext to project.brownfieldContext;
             flow from specifyBrownfieldSystem.brownfieldContextImpl to project.brownfieldContextImpl;
             flow from specifyProblemStatement.problemStatement to project.problemStatement;
             flow from identifyStakeholders.projectStakeholders to project.projectStakeholders;
@@ -520,7 +536,7 @@ library package SYSMOD {
             flow from createSolutionArchitectures.productContext to project.productContext;
             flow from verifyAndValidateRequirements.verificationCases to project.verificationCases;
 
-            bind project.brownfieldContext = specifyProblemStatement.brownfieldContextImpl;
+            bind project.brownfieldContextImpl = specifyProblemStatement.brownfieldContextImpl;
             bind project.brownfieldContextImpl = specifyBrownfieldSystem.brownfieldContextImpl;
             bind project.problemStatement = identifyStakeholders.problemStatement;
             bind project.problemStatement = elaborateStakeholderNeeds.problemStatement;
@@ -558,7 +574,7 @@ library package SYSMOD {
 
         action def SetupProject { 
             doc
-            /* The SetupProject action defines the steps to set up a new SYSMOD project. */
+            /* Sets up a new SYSMOD project: assigns the name of the project owner and the purpose of the project. Refines the ISO 15288 Project Planning process. */
             ref occurrence project :>> this : Project;
 
             in attribute projectOwnerName : ScalarValues::String {
@@ -576,7 +592,7 @@ library package SYSMOD {
 
         action def SpecifyBrownfieldSystem {
             doc
-            /* The SpecifyBrownfieldSystem action defines the brownfield system and its context. */
+            /* Specifies the existing (brownfield) system and its actors as black-box context (brownfieldContext) and white-box context (brownfieldContextImpl), based on a given description of the existing architecture. Optional for greenfield projects. Refines the ISO 15288 Business or Mission Analysis process. */
             in item brownfieldArchitecture : ArchitectureDescription;
             out part brownfieldContext : SystemContext;
             out part brownfieldContextImpl : SystemContext;
@@ -584,7 +600,7 @@ library package SYSMOD {
 
         action def SpecifyProblemStatement {
             doc
-            /* The SpecifyProblemStatement defines the problem statement based on the brownfield system and the stakeholder needs. */
+            /* Specifies the problem statement: a solution-free elevator pitch of the problem, with the brownfield system as subject and the project owner as stakeholder. Refines the ISO 15288 Business or Mission Analysis process. */
             in part projectOwner : ExtendedStakeholder;
             in attribute problemStatementText : ScalarValues::String {
                 doc
@@ -596,7 +612,7 @@ library package SYSMOD {
 
         action def IdentifyStakeholders {
             doc
-            /* The IdentifyStakeholders action defines the stakeholders of the project. */
+            /* Identifies the stakeholders of the project based on the problem statement and assesses their risk, effort, and categories. Refines the ISO 15288 Stakeholder Needs and Requirements Definition process. */
             in concern problemStatement : ExtendedConcern;
             out part projectStakeholders[*] : ExtendedStakeholder {
                 doc /* The stakeholders of the project are individuals and organizations that have an interest in the system. The list includes the project owner retrieved from the problemStatement.*/
@@ -605,7 +621,7 @@ library package SYSMOD {
 
         action def ElaborateStakeholderNeeds {
             doc
-            /* The ElaborateStakeholderNeeds action defines the stakeholder needs based on the problem statement and the brownfield system. */
+            /* Elaborates the needs of the stakeholders at intent level, framed by the problem statement and traced to the stakeholders they come from. Refines the ISO 15288 Stakeholder Needs and Requirements Definition process. */
             in concern problemStatement : ExtendedConcern;
             in part projectStakeholders[*] : ExtendedStakeholder;
             out concern stakeholderNeeds : ExtendedConcern;
@@ -613,7 +629,7 @@ library package SYSMOD {
 
         action def PitchSystemIdea {
             doc
-            /* The PitchSystemIdea action defines the system idea based on the problem statement and the stakeholder needs. */
+            /* Pitches the system idea: a conceptual, elevator-pitch-style outline of the new or changed system that answers the problem statement and the stakeholder needs, as black-box (systemIdeaContext) and white-box (systemIdeaContextImpl) context. Refines the ISO 15288 Business or Mission Analysis process. */
             in item systemIdeaArchitecture : ArchitectureDescription;
             in concern problemStatement : ExtendedConcern;
             in concern stakeholderNeeds : ExtendedConcern;
@@ -623,7 +639,7 @@ library package SYSMOD {
 
         action def DefineSystemSpecification {
             doc
-            /* The DefineSystemSpecification action defines the system specification based on the system idea and the stakeholder needs. */
+            /* Defines the system specification based on the system idea and the stakeholder needs: the specification contexts, the system use cases, and the system requirements. Refines the ISO 15288 System Requirements Definition process. */
             in part systemIdeaContextImpl : SystemContext;
             in concern stakeholderNeeds : ExtendedConcern;
             out part specificationContext : SystemContext;
@@ -631,16 +647,22 @@ library package SYSMOD {
             out requirement systemRequirementSpecification : ExtendedRequirement;
 
             action specifySpecificationArchitecture {
+                doc
+                /* Refines the system idea contexts into the black-box and white-box specification contexts. */
                 in part systemIdeaContextImpl : SystemContext = DefineSystemSpecification::systemIdeaContextImpl;
                 out part specificationContext : SystemContext = DefineSystemSpecification::specificationContext;
                 out part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
             }
             action identifyUseCases {
+                doc
+                /* Identifies the system use cases of the specification context that describe how the actors interact with the system. */
                 in part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
                 in concern stakeholderNeeds : ExtendedConcern = DefineSystemSpecification::stakeholderNeeds;
                 out use case systemUseCases[*] : SystemUseCase = DefineSystemSpecification::specificationContext.useCases;
             }
             action elaborateSystemRequirements {
+                doc
+                /* Elaborates the verifiable, solution-neutral system requirements that frame the stakeholder needs. */
                 in part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
                 in concern stakeholderNeeds : ExtendedConcern = DefineSystemSpecification::stakeholderNeeds;
                 out requirement systemRequirementSpecification : ExtendedRequirement = DefineSystemSpecification::systemRequirementSpecification;
@@ -649,7 +671,7 @@ library package SYSMOD {
 
         action def CreateSolutionArchitectures {
             doc
-            /* The CreateSolutionArchitectures action defines the solution architectures based on the system specification. */
+            /* Creates the solution architectures based on the white-box specification context: the optional functional and logical architectures and the product architecture. Refines the ISO 15288 System Architecture Definition process. */
             in item solutionArchitecture : ArchitectureDescription;
             in part specificationContextImpl : SystemContext;
             out part functionalContext[0..1] : SystemContext;
@@ -659,7 +681,7 @@ library package SYSMOD {
 
         action def VerifyAndValidateRequirements {
             doc
-            /* The VerifyAndValidateRequirements action verifies and validates the system requirements against the stakeholder needs and the problem statement. */
+            /* Creates the verification cases that verify the product system against the system requirements and validate it against the stakeholder needs and the problem statement. Refines the ISO 15288 Verification and Validation processes. */
             in requirement systemRequirementSpecification : ExtendedRequirement;
             in part productContext : SystemContext;
             out verification verificationCases[*];
@@ -667,7 +689,7 @@ library package SYSMOD {
 
         item def ArchitectureDescription {
             doc
-            /* The ArchitectureDescription is a architecture description of the system given by a human or AI. */
+            /* An informal description of a system architecture, given by a human or an AI assistant as input to a process step, for example, a text, sketch, or document of the existing system. */
         }
 
         //

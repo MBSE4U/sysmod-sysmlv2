@@ -6,6 +6,11 @@ library package SYSMODRequirementsBoilerplates {
      * Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; 
      * specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold.
      *
+     * The value attributes are deliberately untyped, so they accept plain numbers as well as quantity values with units.
+     * A specialization narrows all value attributes of a boilerplate to the same type, e.g.,
+     * 'attribute :>> maxValue :> ISQ::mass = 5 [SI::kg];', and sets the tolerance with the same unit, since the default
+     * tolerance 0.0 is a plain number.
+     *
      * Version v5.1.4
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,11 +33,11 @@ library package SYSMODRequirementsBoilerplates {
         doc
         /*
          * The quantity must not exceed an upper bound (inclusive).
-         * The optional tolerance (default 0.0) relaxes the bound: values up to and including maxValue + tolerance are accepted.
+         * The optional tolerance relaxes the bound: values up to and including maxValue + tolerance are accepted.
          */
-        attribute currentValue : ScalarValues::Real;
-        attribute maxValue : ScalarValues::Real;
-        attribute tolerance : ScalarValues::Real default 0.0;
+        attribute currentValue;
+        attribute maxValue;
+        attribute tolerance[0..1] default 0.0;
 
         require constraint {
             currentValue <= maxValue + tolerance
@@ -42,11 +47,11 @@ library package SYSMODRequirementsBoilerplates {
         doc
         /*
          * The quantity must not fall below a lower bound (inclusive).
-         * The optional tolerance (default 0.0) relaxes the bound: values down to and including minValue - tolerance are accepted.
+         * The optional tolerance relaxes the bound: values down to and including minValue - tolerance are accepted.
          */
-        attribute currentValue : ScalarValues::Real;
-        attribute minValue : ScalarValues::Real;
-        attribute tolerance : ScalarValues::Real default 0.0;
+        attribute currentValue;
+        attribute minValue;
+        attribute tolerance[0..1] default 0.0;
 
         require constraint {
             currentValue >= minValue - tolerance
@@ -56,12 +61,12 @@ library package SYSMODRequirementsBoilerplates {
         doc
         /*
          * The quantity must stay within an inclusive lower and upper bound.
-         * The optional tolerance (default 0.0) widens the range on both sides to [minValue - tolerance, maxValue + tolerance].
+         * The optional tolerance widens the range on both sides to [minValue - tolerance, maxValue + tolerance].
          */
-        attribute currentValue : ScalarValues::Real;
-        attribute minValue : ScalarValues::Real;
-        attribute maxValue : ScalarValues::Real;
-        attribute tolerance : ScalarValues::Real default 0.0;
+        attribute currentValue;
+        attribute minValue;
+        attribute maxValue;
+        attribute tolerance[0..1] default 0.0;
 
         require constraint {
             minValue - tolerance <= currentValue and currentValue <= maxValue + tolerance
@@ -70,8 +75,8 @@ library package SYSMODRequirementsBoilerplates {
     requirement def ExactValue {
         doc
         /* The quantity must equal a specific target value. */
-        attribute currentValue : ScalarValues::Real;
-        attribute targetValue : ScalarValues::Real;
+        attribute currentValue;
+        attribute targetValue;
 
         require constraint {
             currentValue == targetValue
@@ -80,9 +85,9 @@ library package SYSMODRequirementsBoilerplates {
     requirement def ToleranceValue {
         doc
         /* The quantity must stay within a target value plus/minus a tolerance. */
-        attribute currentValue : ScalarValues::Real;
-        attribute targetValue : ScalarValues::Real;
-        attribute tolerance : ScalarValues::Real;
+        attribute currentValue;
+        attribute targetValue;
+        attribute tolerance[0..1] default 0.0;
 
         require constraint {
             currentValue >= targetValue - tolerance and currentValue <= targetValue + tolerance
@@ -92,12 +97,12 @@ library package SYSMODRequirementsBoilerplates {
         doc
         /*
          * The ratio of uptime to total time must reach at least a minimum availability.
-         * The optional tolerance (default 0.0) relaxes the bound: availabilities of at least minAvailability - tolerance are accepted.
+         * The optional tolerance relaxes the bound: availabilities of at least minAvailability - tolerance are accepted.
          */
         attribute uptime :> ISQ::duration;
         attribute totalTime :> ISQ::duration;
         attribute minAvailability : ScalarValues::Real;
-        attribute tolerance : ScalarValues::Real default 0.0;
+        attribute tolerance[0..1] : ScalarValues::Real default 0.0;
 
         require constraint {
             uptime / totalTime >= minAvailability - tolerance
@@ -111,7 +116,7 @@ library package SYSMODRequirementsBoilerplates {
          */
         attribute meanTimeBetweenFailures :> ISQ::duration;
         attribute minMTBF :> ISQ::duration;
-        attribute tolerance :> ISQ::duration default 0.0 [SI::s];
+        attribute tolerance[0..1] :> ISQ::duration default 0 [SI::s];
 
         require constraint {
             meanTimeBetweenFailures >= minMTBF - tolerance

@@ -88,18 +88,24 @@ package <DD_STAKEHOLDERNEEDS> DeliveryDroneSystemStakeholderNeeds {
         doc
         /* The logistics company needs deliveries to arrive reliably at remote
          * places, independent of road conditions and ground infrastructure. */
+        subject brownfieldSystem : DD_BROWNFIELD::DeliveryDroneSystemImpl;
+        stakeholder logisticCompany : LogisticCompany;
         attribute :>> priority = LevelKind::high;
     }
     #extendedConcern concern def SafeOperation {
         doc
         /* The drone operator needs the fleet to operate without harm to people
          * or property, in any flight zone, including during mid-air charging. */
+        subject brownfieldSystem : DD_BROWNFIELD::DeliveryDroneSystemImpl;
+        stakeholder droneOperator : DroneOperator;
         attribute :>> priority = LevelKind::critical;
     }
     #extendedConcern concern def LowDeliveryCost {
         doc
         /* The logistics company needs the cost per delivery to be lower than
          * today's ground-based last-mile delivery. */
+        subject brownfieldSystem : DD_BROWNFIELD::DeliveryDroneSystemImpl;
+        stakeholder logisticCompany : LogisticCompany;
         attribute :>> priority = LevelKind::middle;
     }
 }

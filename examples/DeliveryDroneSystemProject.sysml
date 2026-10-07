@@ -74,9 +74,18 @@ package <DD> DeliveryDrone {
         concern :>> stakeholderNeeds {
             subject :>> brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
             frame problemStatement :>> Project::stakeholderNeeds::problemStatement :> PRJ::problemStatement;
-            concern reliableDelivery : ReliableDelivery;
-            concern safeOperation : SafeOperation;
-            concern lowDeliveryCost : LowDeliveryCost;
+            concern reliableDelivery : ReliableDelivery {
+                subject :>> brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
+                stakeholder :>> logisticCompany = PRJ::logisticCompany;
+            }
+            concern safeOperation : SafeOperation {
+                subject :>> brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
+                stakeholder :>> droneOperator = PRJ::droneOperator;
+            }
+            concern lowDeliveryCost : LowDeliveryCost {
+                subject :>> brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
+                stakeholder :>> logisticCompany = PRJ::logisticCompany;
+            }
         }
 
         //------------------------- Brownfield Architecture

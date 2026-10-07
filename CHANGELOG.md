@@ -21,6 +21,7 @@
 - Updated the sysmod.org deck (step 4 stakeholder library and model snippets and the "Full SYSMOD Library" appendix) to the `middle` literal.
 - Added a `name` attribute (`ScalarValues::String`) to `ExtendedStakeholder` to hold the name of the stakeholder.
 - Updated example models (project and control station project): all stakeholders now set their `name` (`johnFinch`, `tomSchilling`, `logisticCompany`, `droneOperator`, `recipient`, `regulator`).
+- Updated example model (stakeholder needs): `ReliableDelivery`, `SafeOperation`, and `LowDeliveryCost` now declare the brownfield system as subject and their stakeholder (`LogisticCompany` or `DroneOperator`); the concern usages in the project bind them to the project's stakeholders.
 - Updated the sysmod.org deck (step 1 and step 3 library and model snippets and the "Full SYSMOD Library" appendix) to show the new `name` attribute of `ExtendedStakeholder` and the stakeholder names of the example model.
 
 ## v5.1.3

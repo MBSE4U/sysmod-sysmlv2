@@ -491,10 +491,11 @@ package SYSMOD4AI {
             create_prompt =
                 "1. Analyze the projectStakeholders and the problemStatement and derive the high-level needs of each stakeholder.
                 2. For each stakeholder need, create a concern usage subsetting stakeholderNeeds, framed by the problemStatement and referencing the brownfield system (the soiImpl of brownfieldContextImpl) as its subject.
-                3. Ensure each need is expressed from the stakeholder's perspective and describes what they need the system to do or be, not how.
-                4. Do not express needs as solution-specific requirements; keep them at the stakeholder intent level.
-                5. Create the SysML v2 textual notation for the stakeholderNeeds.
-                6. If the user asks to insert the stakeholderNeeds into the SysML model, find the project and redefine the inherited stakeholderNeeds concern usage. If the project does not exist, create one first.";
+                3. Specify a subject pointing to the brownfield system as the first feature of each stakeholder need definition, typed by the brownfield system implementation definition, for example, 'subject brownfieldSystem : DD_BROWNFIELD::DeliveryDroneSystemImpl;'. In the concern usages within the project, redefine the subject and bind it to the brownfield system, for example, 'subject :>> brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;'. The subject must precede any stakeholder declaration.
+                4. Ensure each need is expressed from the stakeholder's perspective and describes what they need the system to do or be, not how.
+                5. Do not express needs as solution-specific requirements; keep them at the stakeholder intent level.
+                6. Create the SysML v2 textual notation for the stakeholderNeeds.
+                7. If the user asks to insert the stakeholderNeeds into the SysML model, find the project and redefine the inherited stakeholderNeeds concern usage. If the project does not exist, create one first.";
             create_questions = (
                 "What does each stakeholder group need the system to do or be?",
                 "Are there any known constraints or non-functional needs (safety, cost, compliance) expressed by stakeholders?",

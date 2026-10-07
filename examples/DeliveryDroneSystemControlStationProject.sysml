@@ -43,6 +43,7 @@ package <DDCS> DeliveryDroneControlStation {
         part tomSchilling :>> projectOwner {
             doc /* Tom Schilling leads the ground-segment team and is accountable
                    for the control station sub-project. */
+            attribute :>> name = "Tom Schilling";
         }
 
         concern :>> problemStatement {
@@ -59,6 +60,7 @@ package <DDCS> DeliveryDroneControlStation {
         part droneOperator : DroneOperator :> projectStakeholders {
             doc /* Shared with the parent Delivery Drone project: the operator is
                    the primary user of the control station. */
+            attribute :>> name = "Drone Operator";
         }
 
         //------------------------- Stakeholder Needs

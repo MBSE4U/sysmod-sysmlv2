@@ -427,6 +427,7 @@ const steps = [
   <span class="kw">part</span> johnFinch :&gt;&gt; projectOwner {
     <span class="kw">doc</span> <span class="cm">/* John Finch is the head of drone engineering at the contractor
                    and accountable for the Delivery Drone project. */</span>
+    <span class="kw">attribute</span> :&gt;&gt; name = "John Finch";
   }
 }`, img:"assets/01-kickoff-model.png", slot:"01-kickoff-model", diagram:"assets/01-kickoff-diagram.png", diagramSlot:"01-kickoff-diagram" }
     }
@@ -469,11 +470,12 @@ const steps = [
     layers:{
       story:{ text:"The SYSMOD owl hops around the table sketching four sticky notes: shipper, recipient, operator, regulator. Nobody gets to propose a solution before the people affected by it are named.", img:"assets/04-stakeholders-story.jpg", slot:"04-stakeholders-story" },
       generic:{ subtitle: "", text:"The individuals, groups, or organizations with an interest in, or affected by, the system \u2014 identified before their needs are elicited.", iso:"Stakeholder Needs & Requirements Definition", img:null, slot:"04-stakeholders-generic" },
-      library:{ subtitle: "", text:"ExtendedStakeholder adds a risk, effort, derived priority (risk × effort), and category to the plain SysML v2 stakeholder idea. Stakeholders can be ranked automatically instead of by gut feeling. The project owns a list of all stakeholders. There is at least one: the project owner.", 
+      library:{ subtitle: "", text:"ExtendedStakeholder adds a name, risk, effort, derived priority (risk × effort), and category to the plain SysML v2 stakeholder idea. Stakeholders can be ranked automatically instead of by gut feeling. The project owns a list of all stakeholders. There is at least one: the project owner.", 
       code:`<span class="kw">occurrence def</span> <span class="ty">Project</span> {
     <span class="kw">part</span> projectStakeholders : <span class="ty">ExtendedStakeholder</span> [1..*];
 }
 <span class="kw">part</span> <span class="kw">def</span> <span class="ty">ExtendedStakeholder</span> {
+  <span class="kw">attribute</span> name : <span class="ty">String</span>;
   <span class="kw">attribute</span> risk : <span class="ty">LevelKind</span>;
   <span class="kw">attribute</span> effort : <span class="ty">LevelKind</span>;
   <span class="kw">derived</span> <span class="kw">attribute</span> priority : <span class="ty">Real</span> = risk * effort;
@@ -498,10 +500,18 @@ const steps = [
 }`, img:null, slot:"04-stakeholders-library" },
       model:{ text:"LogisticCompany specializes ExtendedStakeholder and assigns concrete risk, effort, and category values — all it takes to compute its priority.",
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
-  <span class="kw">part</span> logisticCompany : <span class="ty">LogisticCompany</span> :&gt; projectStakeholders;
-  <span class="kw">part</span> droneOperator : <span class="ty">DroneOperator</span> :&gt; projectStakeholders;
-  <span class="kw">part</span> recipient : <span class="ty">Recipient</span> :&gt; projectStakeholders;
-  <span class="kw">part</span> regulator : <span class="ty">Regulator</span> :&gt; projectStakeholders;
+  <span class="kw">part</span> logisticCompany : <span class="ty">LogisticCompany</span> :&gt; projectStakeholders {
+    <span class="kw">attribute</span> :&gt;&gt; name = "Logistic Company";
+  }
+  <span class="kw">part</span> droneOperator : <span class="ty">DroneOperator</span> :&gt; projectStakeholders {
+    <span class="kw">attribute</span> :&gt;&gt; name = "Drone Operator";
+  }
+  <span class="kw">part</span> recipient : <span class="ty">Recipient</span> :&gt; projectStakeholders {
+    <span class="kw">attribute</span> :&gt;&gt; name = "Recipient";
+  }
+  <span class="kw">part</span> regulator : <span class="ty">Regulator</span> :&gt; projectStakeholders {
+    <span class="kw">attribute</span> :&gt;&gt; name = "Aviation Authority";
+  }
 }
 <span class="kw">#extendedStakeholder part def</span> <span class="ty">LogisticCompany</span> {
     <span class="kw">doc</span>
@@ -2663,6 +2673,10 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
     <span class="kw">part</span> <span class="kw">def</span> <span class="ty">ExtendedStakeholder</span> {
         <span class="kw">doc</span>
         <span class="cm">/* SYSMOD-specific stakeholder concept with attributes to assess and prioritize stakeholders. Stakeholders are individuals or organizations with an interest in the system and are potential sources of requirements. */</span>
+        <span class="kw">attribute</span> name : <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* Name of the stakeholder. */</span>
+        }
         <span class="kw">attribute</span> risk : <span class="ty">LevelKind</span> <span class="kw">default</span> <span class="ty">LevelKind</span>::none {
             <span class="kw">doc</span>
             <span class="cm">/* What is the risk of failure if I ignore this stakeholder? */</span>

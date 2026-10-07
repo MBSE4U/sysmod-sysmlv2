@@ -19,6 +19,9 @@
 - Breaking: renamed the `LevelKind` literal `medium` to `middle` (value 0.5 unchanged). Replace `LevelKind::medium` with `LevelKind::middle` in existing models.
 - Updated example model (stakeholders): `LevelKind::medium` is now `LevelKind::middle`.
 - Updated the sysmod.org deck (step 4 stakeholder library and model snippets and the "Full SYSMOD Library" appendix) to the `middle` literal.
+- Added a `name` attribute (`ScalarValues::String`) to `ExtendedStakeholder` to hold the name of the stakeholder.
+- Updated example models (project and control station project): all stakeholders now set their `name` (`johnFinch`, `tomSchilling`, `logisticCompany`, `droneOperator`, `recipient`, `regulator`).
+- Updated the sysmod.org deck (step 1 and step 3 library and model snippets and the "Full SYSMOD Library" appendix) to show the new `name` attribute of `ExtendedStakeholder` and the stakeholder names of the example model.
 
 ## v5.1.3
 

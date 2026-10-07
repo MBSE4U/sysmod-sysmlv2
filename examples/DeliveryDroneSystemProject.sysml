@@ -41,6 +41,7 @@ package <DD> DeliveryDrone {
         part johnFinch :>> projectOwner {
             doc /* John Finch is the head of drone engineering at the contractor
                    and accountable for the Delivery Drone project. */
+            attribute :>> name = "John Finch";
         }
 
         concern :>> problemStatement {
@@ -55,10 +56,18 @@ package <DD> DeliveryDrone {
 
         //------------------------- Stakeholders
         private import DD_STAKEHOLDERS::*;
-        part logisticCompany : LogisticCompany :> projectStakeholders;
-        part droneOperator : DroneOperator :> projectStakeholders;
-        part recipient : Recipient :> projectStakeholders;
-        part regulator : Regulator :> projectStakeholders;
+        part logisticCompany : LogisticCompany :> projectStakeholders {
+            attribute :>> name = "Logistic Company";
+        }
+        part droneOperator : DroneOperator :> projectStakeholders {
+            attribute :>> name = "Drone Operator";
+        }
+        part recipient : Recipient :> projectStakeholders {
+            attribute :>> name = "Recipient";
+        }
+        part regulator : Regulator :> projectStakeholders {
+            attribute :>> name = "Aviation Authority";
+        }
 
         //------------------------- Stakeholder Needs
         private import DD_STAKEHOLDERNEEDS::*;

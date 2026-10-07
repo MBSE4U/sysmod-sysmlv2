@@ -27,7 +27,7 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
         doc
         /* The black-box specification context. It fixes the system boundary for
          * the requirements analysis and owns the system use cases. */
-        #System part deliveryDroneSystem :>> deliveryDroneSystem : DeliveryDroneSystem;
+        #system part deliveryDroneSystem :>> deliveryDroneSystem : DeliveryDroneSystem;
         use case deliverPackage : UseCases::DeliverPackage {
             subject :>> droneSystem :> deliveryDroneSystem;
         }
@@ -40,12 +40,15 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
         use case handleEmergencyLanding : UseCases::HandleEmergencyLanding {
             subject :>> droneSystem :> deliveryDroneSystem;
         }
+        use case monitorDroneHealth : UseCases::MonitorDroneHealth {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
     }
     #systemContext part def DeliveryDroneSystemContextImpl :> DeliveryDroneSystemContext, DD_SYSTEMIDEA::DeliveryDroneSystemIdeaContextImpl {
         doc
         /* The white-box specification context: adds the internal structure of
          * the specification system. */
-        #System part deliveryDroneSystemImpl :>> deliveryDroneSystemImpl : DeliveryDroneSystemImpl;
+        #system part deliveryDroneSystemImpl :>> deliveryDroneSystemImpl : DeliveryDroneSystemImpl;
     }
     part def DeliveryDroneSystem :> DD_SYSTEMIDEA::DeliveryDroneSystem {
         doc
@@ -93,10 +96,16 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
                 doc /* The assignment pairing the low-battery drone with a charger drone. */
             }
         }
-        action chargeInFlight {
+        action chargeInFlight : UseCases::ChargeDrone {
             doc /* Recharges the drone's battery in flight when it runs low en route. */
-            in item energy : Energy {
-                doc /* The energy received from the charger drone. */
+        }
+        action createDeliveryOrder {
+            doc /* Creates a delivery order based on the customer's request. */
+            in item request : CustomerRequest {
+                doc /* The customer's request for a delivery. */
+            }
+            out item order : DeliveryOrder {
+                doc /* The delivery order created from the customer's request. */
             }
         }
         action deliverFleetStatus {
@@ -224,12 +233,73 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
     part def DeliveryDrone :> DD_SYSTEMIDEA::DeliveryDrone {
         doc
         /* The delivery drone at the specification level. */
-        attribute payloadMass : ScalarValues::Real;
+        attribute payloadMass :> ISQ::mass;
+
+        state droneSTM {
+            state flying {
+                doc /* The drone is in the air, either en route to a destination or hovering. */
+            }
+        }
     }
 
     package UseCases {
-        #systemUseCase use case def DeliverPackage {
+
+        #systemProcess use case def DeliveryProcess {
             subject droneSystem : DeliveryDroneSystem;
+            objective {
+                doc /* The operator dispatches a drone with a package. The drone flies to the landing zone, recharges in the air if the battery runs low, drops the package off, and returns. */
+            }
+            attribute :>> ucMotivation = "The recipient needs the package as soon as possible, and the logistics company wants to offer faster, cheaper delivery to remote places than ground transport can.";
+            attribute :>> ucTrigger = "The operator dispatches a drone with a package for a landing zone.";
+            attribute :>> ucResult = "The package is delivered to the landing zone and the drone returns safely.";
+            constraint :>> precondition {
+                doc /* A drone is available and assigned to a delivery order with a known pickup and destination location. */
+            }
+            constraint :>> postcondition {
+                doc /* The package has been dropped off at the landing zone and the drone has returned to its home station. */
+            }
+
+            include use case bookDelivery : BookDelivery;
+            include use case deliverPackage : DeliverPackage;
+            
+            first start then bookDelivery;
+            first bookDelivery then deliverPackage;
+            first deliverPackage then done;
+        }
+
+        #systemUseCase use case def BookDelivery {
+            subject droneSystem : DeliveryDroneSystem {
+                perform action ucCreateDeliveryOrder ::> createDeliveryOrder;
+            }
+            objective {
+                doc /* The operator books a delivery order for a parcel to be delivered to a landing zone. */
+            }
+            attribute :>> ucMotivation = "The customer wants to send a parcel to a recipient at a landing zone.";
+            attribute :>> ucTrigger = "The operator receives a request from the customer to deliver a parcel.";
+            attribute :>> ucResult = "A delivery order is created and assigned to an available drone.";
+            constraint :>> precondition {
+                doc /* The operator has received a valid request from the customer with the parcel details and destination. */
+            }
+            constraint :>> postcondition {
+                doc /* A delivery order is created and assigned to an available drone, ready for execution. */
+            }
+
+            in item customerRequest : CustomerRequest;
+            out item deliveryOrder : DeliveryOrder;
+
+            first start then droneSystem.ucCreateDeliveryOrder;
+            first droneSystem.ucCreateDeliveryOrder then done;
+        }
+
+        #systemUseCase use case def DeliverPackage {
+            subject droneSystem : DeliveryDroneSystem {
+                perform action ucPlanDelivery ::> planDelivery;
+                perform action ucPickUpPackage ::> pickUpPackage;
+                perform action ucAcceptBatteryLow ::> acceptBatteryLow;
+                perform action ucChargeInFlight ::> chargeInFlight;
+                perform action ucFlyToPosition ::> flyToPosition;
+                perform action ucDropOffPackage ::> dropOffPackage;
+            }
             objective {
                 doc /* The operator dispatches a drone with a package. The drone flies to the landing zone, recharges in the air if the battery runs low, drops the package off, and returns. */
             }
@@ -248,34 +318,39 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
             out item pkgOut : Parcel;
             in item energy : Energy;            
 
-            binding bind order = droneSystem.planDelivery.order;
-            binding bind pkgIn = droneSystem.pickUpPackage.pkg;
-            binding bind pkgOut = droneSystem.dropOffPackage.deliveredPkg;
-            binding bind energy = droneSystem.chargeInFlight.energy;
+            binding bind order = droneSystem.ucPlanDelivery.order;
+            binding bind pkgIn = droneSystem.ucPickUpPackage.pkg;
+            binding bind pkgOut = droneSystem.ucDropOffPackage.deliveredPkg;
+            binding bind energy = droneSystem.ucChargeInFlight.energy;
 
-            action flyToPickup :> droneSystem.flyToPosition;
-            action flyToDelivery :> droneSystem.flyToPosition;
-            action flyToHome :> droneSystem.flyToPosition {
+            action flyToPickup :> droneSystem.ucFlyToPosition;
+            action flyToDelivery :> droneSystem.ucFlyToPosition;
+            action flyToHome :> droneSystem.ucFlyToPosition {
                 in item pos : Position = droneSystem.homePosition;
             }
 
-            first start then droneSystem.planDelivery;
-            first droneSystem.planDelivery then droneSystem.flyToPosition;
-            flow from droneSystem.planDelivery.task.pickupLocation to flyToPickup.pos;
-            flow from droneSystem.planDelivery.task.deliverLocation to flyToDelivery.pos;
-            first flyToPickup then droneSystem.pickUpPackage;
-            first droneSystem.pickUpPackage then m1;
+            first start then droneSystem.ucPlanDelivery;
+            first droneSystem.ucPlanDelivery then flyToPickup;
+            flow from droneSystem.ucPlanDelivery.task.pickupLocation to flyToPickup.pos;
+            flow from droneSystem.ucPlanDelivery.task.deliverLocation to flyToDelivery.pos;
+            first flyToPickup then droneSystem.ucPickUpPackage;
+            first droneSystem.ucPickUpPackage then m1;
             first m1 then flyToDelivery;
-            first droneSystem.acceptBatteryLow then droneSystem.chargeInFlight;
-            first flyToDelivery then droneSystem.dropOffPackage;
-            first droneSystem.chargeInFlight then m1;
-            first droneSystem.dropOffPackage then flyToHome;
+            first droneSystem.ucAcceptBatteryLow then droneSystem.ucChargeInFlight;
+            first flyToDelivery then droneSystem.ucDropOffPackage;
+            first droneSystem.ucChargeInFlight then m1;
+            first droneSystem.ucDropOffPackage then flyToHome;
             first flyToHome then done;           
             
             merge m1;
         }
-        #systemUseCase use case def ChargeDrone {
-            subject droneSystem : DeliveryDroneSystem;
+        #secondaryUseCase use case def ChargeDrone {
+            subject droneSystem : DeliveryDroneSystem {
+                perform action ucAssignChargerDrone ::> assignChargerDrone;
+                perform action ucRendezvousInFlight ::> rendezvousInFlight;
+                perform action ucTransferEnergy ::> transferEnergy;
+                perform action ucResumeRoute ::> resumeRoute;
+            }
             objective {
                 doc 
                 /* A drone running low on battery meets a charger drone in flight and
@@ -283,7 +358,7 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
                  * without returning to a ground dock. */
             }
             attribute :>> ucMotivation = "The operator wants deliveries to reach remote destinations without being limited by a single battery charge, avoiding a costly detour back to a ground dock.";
-            attribute :>> ucTrigger = "A drone\'s battery falls below the threshold needed to complete its remaining route.";
+            attribute :>> ucTrigger = "A drone's battery falls below the threshold needed to complete its remaining route.";
             attribute :>> ucResult = "The low-battery drone receives enough energy in flight to safely complete its delivery.";
             constraint :>> precondition {
                 doc /* A drone's battery has fallen below the threshold needed to complete its remaining route, and a charger drone is available to rendezvous in flight. */
@@ -292,17 +367,24 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
                 doc /* The low-battery drone has received enough energy in flight and has resumed its route. */
             }
 
-            first start then droneSystem.detectLowBattery;
-            first droneSystem.detectLowBattery then droneSystem.assignChargerDrone;
-            first droneSystem.assignChargerDrone then droneSystem.rendezvousInFlight;
-            first droneSystem.rendezvousInFlight then droneSystem.transferEnergy;
-            first droneSystem.transferEnergy then droneSystem.resumeRoute;
-            first droneSystem.resumeRoute then done;
+            in item energy : Energy;
 
-            flow from droneSystem.assignChargerDrone.chargerAssign to droneSystem.rendezvousInFlight.chargerAssign;
+            first start then droneSystem.ucAssignChargerDrone;
+            first droneSystem.ucAssignChargerDrone then droneSystem.ucRendezvousInFlight;
+            first droneSystem.ucRendezvousInFlight then droneSystem.ucTransferEnergy;
+            first droneSystem.ucTransferEnergy then droneSystem.ucResumeRoute;
+            first droneSystem.ucResumeRoute then done;
+
+            flow from droneSystem.ucAssignChargerDrone.chargerAssign to droneSystem.ucRendezvousInFlight.chargerAssign;
         }
         #systemUseCase use case def ReportFleetStatus {
-            subject droneSystem : DeliveryDroneSystem;
+            subject droneSystem : DeliveryDroneSystem {
+                perform action ucRequestStatus ::> requestStatus;
+                perform action ucPollDrones ::> pollDrones;
+                perform action ucReportDroneStatus ::> reportDroneStatus;
+                perform action ucAggregateFleetStatus ::> aggregateFleetStatus;
+                perform action ucDeliverFleetStatus ::> deliverFleetStatus;
+            }
             objective {
                 doc 
                 /* The operator checks in on the entire fleet at once, without
@@ -318,15 +400,21 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
                 doc /* The operator has received the current position, battery level, and task status of every active drone. */
             }
 
-            first start then droneSystem.requestStatus;
-            first droneSystem.requestStatus then droneSystem.pollDrones;
-            first droneSystem.pollDrones then droneSystem.reportDroneStatus;
-            first droneSystem.reportDroneStatus then droneSystem.aggregateFleetStatus;
-            first droneSystem.aggregateFleetStatus then droneSystem.deliverFleetStatus;
-            first droneSystem.deliverFleetStatus then done;
+            first start then droneSystem.ucRequestStatus;
+            first droneSystem.ucRequestStatus then droneSystem.ucPollDrones;
+            first droneSystem.ucPollDrones then droneSystem.ucReportDroneStatus;
+            first droneSystem.ucReportDroneStatus then droneSystem.ucAggregateFleetStatus;
+            first droneSystem.ucAggregateFleetStatus then droneSystem.ucDeliverFleetStatus;
+            first droneSystem.ucDeliverFleetStatus then done;
         }
         #systemUseCase use case def HandleEmergencyLanding {
-            subject droneSystem : DeliveryDroneSystem;
+            subject droneSystem : DeliveryDroneSystem {
+                perform action ucDetectFault ::> detectFault;
+                perform action ucIdentifyLandingSite ::> identifyLandingSite;
+                perform action ucAlertOperator ::> alertOperator;
+                perform action ucPerformEmergencyLanding ::> performEmergencyLanding;
+                perform action ucNotifyOutcome ::> notifyOutcome;
+            }
             objective {
                 doc 
                 /* Something goes wrong mid-flight (e.g., a critical battery, rotor,
@@ -342,12 +430,48 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
             constraint :>> postcondition {
                 doc /* The drone has landed at the safest available location and the operator has been notified of the outcome. */
             }
-            first start then droneSystem.detectFault;
-            first droneSystem.detectFault then droneSystem.identifyLandingSite;
-            first droneSystem.identifyLandingSite then droneSystem.alertOperator;
-            first droneSystem.alertOperator then droneSystem.performEmergencyLanding;
-            first droneSystem.performEmergencyLanding then droneSystem.notifyOutcome;
-            first droneSystem.notifyOutcome then done;
+            first start then droneSystem.ucDetectFault;
+            first droneSystem.ucDetectFault then droneSystem.ucIdentifyLandingSite;
+            first droneSystem.ucIdentifyLandingSite then droneSystem.ucAlertOperator;
+            first droneSystem.ucAlertOperator then droneSystem.ucPerformEmergencyLanding;
+            first droneSystem.ucPerformEmergencyLanding then droneSystem.ucNotifyOutcome;
+            first droneSystem.ucNotifyOutcome then done;
+        }
+
+        #continuousUseCase use case def MonitorDroneHealth {
+            subject droneSystem : DeliveryDroneSystem {
+                perform action ucReportDroneStatus ::> reportDroneStatus;
+                perform action ucDetectLowBattery ::> detectLowBattery;
+                perform action ucDetectFault ::> detectFault;
+            }
+            objective {
+                doc /* While in flight, the drone continuously monitors its battery level and onboard health
+                    * and raises a signal as soon as its remaining route or safe flight is at risk. */
+            }
+            attribute :>> ucTrigger = "The drone takes off (state flying).";
+            attribute :>> ucResult = "Up-to-date drone status and timely low-battery and fault signals for as long as the drone is airborne.";
+
+            ref part drone : DeliveryDrone {
+                doc /* The monitored drone. */
+            }
+
+            first start then monitoringCycle;
+
+            action monitoringCycle loop {
+                doc /* One monitoring cycle: report the drone status, then check battery and onboard health in parallel.
+                     * The cycle repeats until the drone is no longer flying. */
+                first start then droneSystem.ucReportDroneStatus;
+                first droneSystem.ucReportDroneStatus then fork1;
+                fork fork1;
+                first fork1 then droneSystem.ucDetectLowBattery;
+                first fork1 then droneSystem.ucDetectFault;
+                first droneSystem.ucDetectLowBattery then join1;
+                first droneSystem.ucDetectFault then join1;
+                join join1;
+                first join1 then done;
+            } until drone.droneSTM.flying == null;
+
+            first monitoringCycle then done;
         }
     }
 
@@ -368,8 +492,9 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
             attribute :>> obligation = ObligationKind::mandatory;
             attribute :>> stability = StabilityKind::stable;
             attribute :>> motivation = "Typical last-mile parcels weigh less than 5 kg.";
-            attribute :>> currentValue = deliveryDrone.payloadMass;
-            attribute :>> maxValue = 5;
+            attribute :>> currentValue :> ISQ::mass = deliveryDrone.payloadMass;
+            attribute :>> maxValue :> ISQ::mass = 5 [SI::kg];
+            attribute :>> tolerance :> ISQ::mass = 0.1 [SI::kg];
             frame concern :DD_STAKEHOLDERNEEDS::LowDeliveryCost;
         }
         #extendedRequirement requirement def AirCharging {

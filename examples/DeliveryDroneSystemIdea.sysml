@@ -27,13 +27,13 @@ package <DD_SYSTEMIDEA> DeliveryDroneSystemIdea {
         /* The black-box system idea context. The system boundary, actors, and
          * interfaces are unchanged with respect to the brownfield context; the
          * idea changes the inside of the system only. */
-        #System part deliveryDroneSystem :>> DD_BROWNFIELD::DeliveryDroneSystemContext::deliveryDroneSystem : DeliveryDroneSystem;
+        #system part deliveryDroneSystem :>> DD_BROWNFIELD::DeliveryDroneSystemContext::deliveryDroneSystem : DeliveryDroneSystem;
     }
     #systemContext part def DeliveryDroneSystemIdeaContextImpl :> DeliveryDroneSystemIdeaContext, DD_BROWNFIELD::DeliveryDroneSystemContextImpl {
         doc
         /* The white-box system idea context: adds the internal structure of the
          * system idea. */
-        #System part deliveryDroneSystemImpl :>> DD_BROWNFIELD::DeliveryDroneSystemContextImpl::deliveryDroneSystemImpl, DeliveryDroneSystemIdeaContext::deliveryDroneSystem : DeliveryDroneSystemIdeaImpl;
+        #system part deliveryDroneSystemImpl :>> DD_BROWNFIELD::DeliveryDroneSystemContextImpl::deliveryDroneSystemImpl, DeliveryDroneSystemIdeaContext::deliveryDroneSystem : DeliveryDroneSystemIdeaImpl;
     }
     part def DeliveryDroneSystem :> DD_BROWNFIELD::DeliveryDroneSystem {
         doc

@@ -22,7 +22,7 @@ package SYSMOD4AI {
      *   project (e.g. AIProject::problemStatementAI's prompts apply to any project's own
      *   problemStatement), matched by feature identity rather than by inheritance from AIProject.
      *
-     * Version v5.1.3
+     * Version v5.1.4
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -177,6 +177,69 @@ package SYSMOD4AI {
                 10. The cross-artifact traceability chain is intact: problemStatement <- stakeholderNeeds <- systemRequirementSpecification, and satisfy relationships exist at the system idea and functional, logical, and product architecture levels.
                 11. If both functionalContext and logicalContext are present, the functional2logical allocation is defined; if logicalContext is present, the logical2product allocation is defined.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        }
+
+        metadata defaultProcessAI : AI about defaultProcess {
+            doc
+            /* Guides the user step by step through the SYSMOD default process
+             * (SYSMODProcesses::SYSMODDefaultProcess) and reports where a project stands in it:
+             * setupProject, specifyBrownfieldSystem, specifyProblemStatement, identifyStakeholders,
+             * elaborateStakeholderNeeds, pitchSystemIdea, defineSystemSpecification,
+             * createSolutionArchitectures, and verifyAndValidateRequirements.
+             *
+             * When to use:
+             * - The user asks what to do next in a SYSMOD project, how far the project has
+             *   progressed, or wants to be walked through the SYSMOD steps in order.
+             * - The user wants to run the whole SYSMOD process step by step, with a review
+             *   point after each step, rather than scaffolding everything in one go.
+             * - The user asks how the SYSMOD steps relate to the ISO/IEC/IEEE 15288 processes.
+             *
+             * When not to use:
+             * - The user wants to scaffold or validate the project structure as a whole in one
+             *   go — use projectAI.
+             * - The user is working on a single artifact — use that artifact's own AI metadata
+             *   (e.g. problemStatementAI, projectStakeholdersAI) directly.
+             * - The user wants to define a project-specific process from scratch rather than
+             *   follow or tailor the SYSMOD default process — this skill does not design new
+             *   process models.
+             */
+            name = "sysmod-default-process";
+            create_prompt =
+                "1. Read the SYSMODDefaultProcess action definition in SYSMOD::SYSMODProcesses and its steps in succession order: setupProject, specifyBrownfieldSystem, specifyProblemStatement, identifyStakeholders, elaborateStakeholderNeeds, pitchSystemIdea, defineSystemSpecification, createSolutionArchitectures, verifyAndValidateRequirements.
+                2. Find the project. If no project exists, start with setupProject.
+                3. Determine the current position in the process: for each step, check whether its outputs (the project features it flows into) already exist in the project and are valid. The first step whose outputs are missing or invalid is the next step.
+                4. Execute the next step by delegating to the AI metadata of the project features it produces, using their create_questions, create_prompt, and validation_prompt:
+                   - setupProject: projectAI and projectOwnerAI; set the project's purpose and the projectOwner's name from the process inputs projectPurpose and projectOwnerName.
+                   - specifyBrownfieldSystem: brownfieldContextAI, using the process input brownfieldArchitecture (a description of the existing system).
+                   - specifyProblemStatement: problemStatementAI, using the process input problemStatementText and the projectOwner.
+                   - identifyStakeholders: projectStakeholdersAI; optionally stakeholderPriorityMapAI.
+                   - elaborateStakeholderNeeds: stakeholderNeedsAI.
+                   - pitchSystemIdea: systemIdeaContextAI, using the process input systemIdeaArchitecture.
+                   - defineSystemSpecification: specificationContextAI (specification architecture and use cases), then systemRequirementSpecificationAI.
+                   - createSolutionArchitectures: functionalContextAI and logicalContextAI (both optional), then productContextAI, using the process input solutionArchitecture.
+                   - verifyAndValidateRequirements: create verification case usages subsetting the project's verificationCases, with the productSystem (productContext.soiImpl) as subject, each verifying one or more requirements of the systemRequirementSpecification.
+                5. Respect the inputs of each step as defined by the bindings of SYSMODDefaultProcess: a step must only start when the project features it reads exist (e.g. elaborateStakeholderNeeds needs the problemStatement and the projectStakeholders).
+                6. Steps after setupProject are optional ([0..1] successions). Skip a step only when it does not apply (e.g. specifyBrownfieldSystem for a pure greenfield project, or the functional and logical architectures), and tell the user which step was skipped and why.
+                7. After each step, show the user the result and the step's validation findings, and ask whether to continue with the next step, revise the current one, or stop.
+                8. If the user asks how a step relates to ISO/IEC/IEEE 15288, answer from the #refinement dependencies in SYSMODProcesses (e.g. DefineSystemSpecification refines ISO15288Processes::SystemRequirementsDefinition).
+                9. Do not redefine the project's defaultProcess action usage unless the user explicitly asks to tailor the process; if so, redefine defaultProcess in the project with a specialization of SYSMODDefaultProcess and document every deviation in a doc comment.";
+            create_questions = (
+                "Which project should the process be applied to?",
+                "Is it a greenfield project or does an existing (brownfield) system exist?",
+                "Should I run all steps one after another, or only the next step?",
+                "Which optional steps (brownfield system, functional architecture, logical architecture) should be skipped?",
+            );
+            validation_prompt =
+                "Validate the project's progress against the SYSMOD default process and report findings grouped as errors, warnings, and suggestions.
+                Check:
+                1. For each step of SYSMODDefaultProcess, report its status: done (outputs exist and pass the validation_prompt of the corresponding AI metadata), in progress (outputs exist but have validation errors), skipped, or open.
+                2. No step is done while one of its inputs is missing or invalid (e.g. stakeholderNeeds without a problemStatement, systemRequirementSpecification without stakeholderNeeds, productContext without a specificationContextImpl).
+                3. setupProject: the project has a purpose and the projectOwner has a name.
+                4. Only optional steps are skipped (specifyBrownfieldSystem for greenfield projects, the functional and logical architectures); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, productContext) are not skipped.
+                5. verifyAndValidateRequirements: verification case usages exist with the productSystem as subject, and every requirement of the systemRequirementSpecification is verified by at least one verification case.
+                6. If the project redefines defaultProcess, the redefinition is typed by a specialization of SYSMODDefaultProcess and documents its deviations from the default process.
+                7. Name the next step to perform and the AI metadata to use for it.
+                Report each finding with the step name, the affected element, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
         metadata projectOwnerAI : AI about projectOwner {
@@ -427,7 +490,7 @@ package SYSMOD4AI {
             name = "sysmod-stakeholder-needs";
             create_prompt =
                 "1. Analyze the projectStakeholders and the problemStatement and derive the high-level needs of each stakeholder.
-                2. For each stakeholder need, create a concern usage subsetting stakeholderNeeds, framed by the problemStatement and referencing the brownfield system (the soiImpl of brownfieldContextImpl) as its subject.
+                2. For each stakeholder need, create a concern definition with the brownfield system as its first parameter (subject) and a typed stakeholder parameter for each stakeholder the need comes from. Create a concern usage redefining stakeholderNeeds that binds the subject to brownfieldContextImpl.soiImpl and binds each stakeholder parameter to the corresponding part usage in projectStakeholders.
                 3. Ensure each need is expressed from the stakeholder's perspective and describes what they need the system to do or be, not how.
                 4. Do not express needs as solution-specific requirements; keep them at the stakeholder intent level.
                 5. Create the SysML v2 textual notation for the stakeholderNeeds.
@@ -441,9 +504,9 @@ package SYSMOD4AI {
                 Check:
                 1. The stakeholderNeeds concern usage is present in the project, redefining the inherited stakeholderNeeds.
                 2. The stakeholderNeeds frames the problemStatement.
-                3. The subject references the brownfieldContextImpl soiImpl.
-                4. At least one stakeholder need is defined as a nested concern usage.
-                5. Each stakeholder need is traceable to at least one stakeholder from projectStakeholders (via stakeholder reference or doc comment attribution).
+                3. The subject of stakeholderNeeds references the brownfieldContextImpl soiImpl.
+                4. At least one stakeholder need is defined as a concern usage nested inside stakeholderNeeds. Each stakeholder need definition declares a subject typed by the brownfield system as its first feature, and each nested concern usage redefines that subject and binds it to the brownfieldContextImpl soiImpl, before any stakeholder declaration.
+                5. Each stakeholder need declares at least one stakeholder parameter, and each such parameter in the need usage is bound to a part usage subsetting projectStakeholders.
                 6. Each need is expressed at the stakeholder intent level — check for premature solution or design language (e.g., specific technologies, implementation details, design choices).
                 7. The set of stakeholder needs covers all projectStakeholders — no stakeholder group should be left without at least one associated need.
                 8. Each need has a doc comment or name that is understandable without reading the full model.
@@ -488,11 +551,10 @@ package SYSMOD4AI {
                 1. The systemIdeaContext part usage is present in the project and specializes brownfieldContext.
                 2. The soi part is redefined within systemIdeaContext with a named system idea definition that specializes the brownfield soi.
                 3. The systemIdeaContextImpl part usage is present, specializes systemIdeaContext and brownfieldContextImpl, and redefines the soiImpl part, specializing the system idea soi.
-                4. The soiImpl contains a satisfy relationship to the problemStatement.
-                5. All actors from the brownfieldContext are inherited or explicitly redefined — no brownfield actor should silently disappear.
-                6. Any new actors introduced by the system idea are added as additional actor part usages.
-                7. The system idea stays at a conceptual level — check for premature architecture or design detail (e.g., specific components, protocols, or technologies named in the soiImpl structure).
-                8. A doc comment on the soiImpl describes the system idea in elevator-pitch style.
+                4. All actors from the brownfieldContext are inherited or explicitly redefined — no brownfield actor should silently disappear.
+                5. Any new actors introduced by the system idea are added as additional actor part usages.
+                6. The system idea stays at a conceptual level — check for premature architecture or design detail (e.g., specific components, protocols, or technologies named in the soiImpl structure).
+                7. A doc comment on the soiImpl describes the system idea in elevator-pitch style.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -521,7 +583,7 @@ package SYSMOD4AI {
                 "1. Specialize systemIdeaContext by redefining the soi part (black-box view) with a specification-level system definition, within specificationContext. Specialize specificationContext and systemIdeaContextImpl by redefining the soiImpl part (white-box view) with the matching specification implementation, within specificationContextImpl.
                 2. Identify and add any actors or subcomponents that become visible during requirements analysis (e.g., specific interfaces, subsystems defined at the black-box level).
                 3. Add system use cases to the specificationContext that describe how actors interact with the system of interest at the specification level.
-                4. Ensure the specificationContext owns the use cases and that each use case references the specificationSystem as its subject.
+                4. Each use case definition declares the specification system as its first parameter (subject) and a typed actor parameter for each participating actor. Each use case usage in the specificationContext subsets its subject from the context's soi and binds each actor parameter to the context's actor part usage.
                 5. Create the SysML v2 textual notation for the specificationContext and specificationContextImpl, including actor parts and use case usages.
                 6. If the user asks to insert the specificationContext into the SysML model, find the project and redefine the inherited specificationContext and specificationContextImpl part usages.";
             create_questions = (
@@ -535,7 +597,7 @@ package SYSMOD4AI {
                 2. The soi part is redefined within specificationContext with a named specification system definition that specializes the system idea soi.
                 3. The specificationContextImpl part usage is present, specializes specificationContext and systemIdeaContextImpl, and redefines the soiImpl part, specializing the specification soi.
                 4. At least one use case usage is present in the specificationContext, referencing the specificationSystem as its subject.
-                5. Each use case has at least one actor involved (include or extend relationships, or actor references in the use case subject/stakeholder).
+                5. Each use case has at least one actor parameter, and in the specificationContext every actor parameter is bound to an actor part usage subsetting actors.
                 6. Each use case has a meaningful name and doc comment describing the interaction goal.
                 7. All actors from the systemIdeaContext are inherited or redefined — no actor should silently disappear.
                 8. The specificationContext does not contain solution elements — it should remain a black-box view of the system.
@@ -562,7 +624,7 @@ package SYSMOD4AI {
             name = "sysmod-system-requirements";
             create_prompt =
                 "1. Derive system requirements from the stakeholderNeeds, framed by the stakeholderNeeds and referencing the specificationSystem as subject.
-                2. For each requirement, create a requirement usage or definition specializing ExtendedRequirement. Set obligation (mandatory/optional), stability (stable/unstable), and a brief motivation.
+                2. For each requirement, create a requirement usage or definition specializing ExtendedRequirement. Set obligation (mandatory/optional), stability (stable/unstable), and a brief motivation. Declare the specification system as the first parameter (subject) and a typed stakeholder parameter for the stakeholders of the framed need. In the root requirement, bind each nested requirement usage's subject to the root subject.
                 3. Ensure each requirement is verifiable, unambiguous, and solution-neutral where possible.
                 4. Group requirements logically (e.g., functional, performance, safety, interface) using nested requirement usages if appropriate.
                 5. Create the SysML v2 textual notation for the systemRequirementSpecification.

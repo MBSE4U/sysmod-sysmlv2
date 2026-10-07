@@ -427,6 +427,7 @@ const steps = [
   <span class="kw">part</span> johnFinch :&gt;&gt; projectOwner {
     <span class="kw">doc</span> <span class="cm">/* John Finch is the head of drone engineering at the contractor
                    and accountable for the Delivery Drone project. */</span>
+    <span class="kw">attribute</span> :&gt;&gt; name = "John Finch";
   }
 }`, img:"assets/01-kickoff-model.png", slot:"01-kickoff-model", diagram:"assets/01-kickoff-diagram.png", diagramSlot:"01-kickoff-diagram" }
     }
@@ -469,14 +470,15 @@ const steps = [
     layers:{
       story:{ text:"The SYSMOD owl hops around the table sketching four sticky notes: shipper, recipient, operator, regulator. Nobody gets to propose a solution before the people affected by it are named.", img:"assets/04-stakeholders-story.jpg", slot:"04-stakeholders-story" },
       generic:{ subtitle: "", text:"The individuals, groups, or organizations with an interest in, or affected by, the system \u2014 identified before their needs are elicited.", iso:"Stakeholder Needs & Requirements Definition", img:null, slot:"04-stakeholders-generic" },
-      library:{ subtitle: "", text:"ExtendedStakeholder adds a risk, effort, derived priority (risk × effort), and category to the plain SysML v2 stakeholder idea. Stakeholders can be ranked automatically instead of by gut feeling. The project owns a list of all stakeholders. There is at least one: the project owner.", 
+      library:{ subtitle: "", text:"ExtendedStakeholder adds a name, risk, effort, derived attention (risk × effort), and category to the plain SysML v2 stakeholder idea. Stakeholders can be ranked automatically instead of by gut feeling. The project owns a list of all stakeholders. There is at least one: the project owner.", 
       code:`<span class="kw">occurrence def</span> <span class="ty">Project</span> {
     <span class="kw">part</span> projectStakeholders : <span class="ty">ExtendedStakeholder</span> [1..*];
 }
 <span class="kw">part</span> <span class="kw">def</span> <span class="ty">ExtendedStakeholder</span> {
+  <span class="kw">attribute</span> name : <span class="ty">String</span>;
   <span class="kw">attribute</span> risk : <span class="ty">LevelKind</span>;
   <span class="kw">attribute</span> effort : <span class="ty">LevelKind</span>;
-  <span class="kw">derived</span> <span class="kw">attribute</span> priority : <span class="ty">Real</span> = risk * effort;
+  <span class="kw">derived</span> <span class="kw">attribute</span> attention : <span class="ty">Real</span> = risk * effort;
   <span class="kw">attribute</span> categories : <span class="ty">StakeholderCategoryKind</span> [*];
 }
 <span class="kw">enum def</span> StakeholderCategoryKind {
@@ -492,16 +494,24 @@ const steps = [
     <span class="cm">/* Common enumeration of levels with real values, for example, for priority calculations. */</span>
     none = 0.0;
     low = 0.25;
-    medium = 0.5;
+    middle = 0.5;
     high = 0.75;
     critical = 1.0;
 }`, img:null, slot:"04-stakeholders-library" },
-      model:{ text:"LogisticCompany specializes ExtendedStakeholder and assigns concrete risk, effort, and category values — all it takes to compute its priority.",
+      model:{ text:"LogisticCompany specializes ExtendedStakeholder and assigns concrete risk, effort, and category values — all it takes to compute its attention.",
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
-  <span class="kw">part</span> logisticCompany : <span class="ty">LogisticCompany</span> :&gt; projectStakeholders;
-  <span class="kw">part</span> droneOperator : <span class="ty">DroneOperator</span> :&gt; projectStakeholders;
-  <span class="kw">part</span> recipient : <span class="ty">Recipient</span> :&gt; projectStakeholders;
-  <span class="kw">part</span> regulator : <span class="ty">Regulator</span> :&gt; projectStakeholders;
+  <span class="kw">part</span> logisticCompany : <span class="ty">LogisticCompany</span> :&gt; projectStakeholders {
+    <span class="kw">attribute</span> :&gt;&gt; name = "Logistic Company";
+  }
+  <span class="kw">part</span> droneOperator : <span class="ty">DroneOperator</span> :&gt; projectStakeholders {
+    <span class="kw">attribute</span> :&gt;&gt; name = "Drone Operator";
+  }
+  <span class="kw">part</span> recipient : <span class="ty">Recipient</span> :&gt; projectStakeholders {
+    <span class="kw">attribute</span> :&gt;&gt; name = "Recipient";
+  }
+  <span class="kw">part</span> regulator : <span class="ty">Regulator</span> :&gt; projectStakeholders {
+    <span class="kw">attribute</span> :&gt;&gt; name = "Aviation Authority";
+  }
 }
 <span class="kw">#extendedStakeholder part def</span> <span class="ty">LogisticCompany</span> {
     <span class="kw">doc</span>
@@ -516,7 +526,7 @@ const steps = [
     <span class="kw">doc</span>
     <span class="kw">/* The operator who supervises the drone fleet in daily operation. Source
       * of usability and fleet-monitoring requirements. */</span>
-    <span class="kw">attribute</span> :>> risk = <span class="ty">LevelKind</span>::medium;
+    <span class="kw">attribute</span> :>> risk = <span class="ty">LevelKind</span>::middle;
     <span class="kw">attribute</span> :>> effort = <span class="ty">LevelKind</span>::low;
     <span class="kw">attribute</span> :>> categories = <span class="ty">StakeholderCategoryKind</span>::user;
 }
@@ -535,7 +545,7 @@ const steps = [
       * operations, including airspace and safety rules. Main source of the
       * compliance and certification requirements. */</span>
     <span class="kw">attribute</span> :>> risk = <span class="ty">LevelKind</span>::high;
-    <span class="kw">attribute</span> :>> effort = <span class="ty">LevelKind</span>::medium;
+    <span class="kw">attribute</span> :>> effort = <span class="ty">LevelKind</span>::middle;
     <span class="kw">attribute</span> :>> categories = <span class="ty">StakeholderCategoryKind</span>::requirementOwner;
 }`, img:"assets/03-stakeholders-model.png", slot:"03-stakeholders-model", diagram:"assets/03-stakeholders-diagram.png", diagramSlot:"03-stakeholders-diagram" }
     }
@@ -556,32 +566,47 @@ const steps = [
       <span class="kw">frame</span> problemStatement;
     }
 }`, img:null, slot:"04-needs-library" },
-      model:{ text:"Each concrete need subsets the library’s stakeholderNeeds and stays intent-level — reliable, safe, and cheap, not yet how.", 
+      model:{ text:"Each concrete need is nested in the library’s stakeholderNeeds, names its stakeholder, has the brownfield system as subject, and stays intent-level — reliable, safe, and cheap, not yet how.", 
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
   <span class="kw">concern</span> :&gt;&gt; stakeholderNeeds {
             <span class="kw">subject</span> :&gt;&gt; brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
             <span class="kw">frame</span> problemStatement :>> <span class="ty">Project</span>::stakeholderNeeds::problemStatement :> <span class="ty">PRJ</span>::problemStatement;
-            <span class="kw">concern</span> reliableDelivery : <span class="ty">ReliableDelivery</span>;
-            <span class="kw">concern</span> safeOperation : <span class="ty">SafeOperation</span>;
-            <span class="kw">concern</span> lowDeliveryCost : <span class="ty">LowDeliveryCost</span>;
+            <span class="kw">concern</span> reliableDelivery : <span class="ty">ReliableDelivery</span> {
+                <span class="kw">subject</span> :&gt;&gt; brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
+                <span class="kw">stakeholder</span> :&gt;&gt; logisticCompany = <span class="ty">PRJ</span>::logisticCompany;
+            }
+            <span class="kw">concern</span> safeOperation : <span class="ty">SafeOperation</span> {
+                <span class="kw">subject</span> :&gt;&gt; brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
+                <span class="kw">stakeholder</span> :&gt;&gt; droneOperator = <span class="ty">PRJ</span>::droneOperator;
+            }
+            <span class="kw">concern</span> lowDeliveryCost : <span class="ty">LowDeliveryCost</span> {
+                <span class="kw">subject</span> :&gt;&gt; brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
+                <span class="kw">stakeholder</span> :&gt;&gt; logisticCompany = <span class="ty">PRJ</span>::logisticCompany;
+            }
         }
     <span class="kw">#extendedConcern concern def</span> <span class="ty">ReliableDelivery</span> {
         <span class="kw">doc</span>
         <span class="cm">/* The logistics company needs deliveries to arrive reliably at remote
          * places, independent of road conditions and ground infrastructure. */</span>
+        <span class="kw">subject</span> brownfieldSystem : <span class="ty">DD_BROWNFIELD</span>::<span class="ty">DeliveryDroneSystemImpl</span>;
+        <span class="kw">stakeholder</span> logisticCompany : <span class="ty">LogisticCompany</span>;
         <span class="kw">attribute</span> :&gt;&gt; priority = <span class="ty">LevelKind</span>::high;
     }
     <span class="kw">#extendedConcern concern def</span> <span class="ty">SafeOperation</span> {
         <span class="kw">doc</span>
         <span class="cm">/* The drone operator needs the fleet to operate without harm to people
          * or property, in any flight zone, including during mid-air charging. */</span>
+        <span class="kw">subject</span> brownfieldSystem : <span class="ty">DD_BROWNFIELD</span>::<span class="ty">DeliveryDroneSystemImpl</span>;
+        <span class="kw">stakeholder</span> droneOperator : <span class="ty">DroneOperator</span>;
         <span class="kw">attribute</span> :&gt;&gt; priority = <span class="ty">LevelKind</span>::critical;
     }
     <span class="kw">#extendedConcern concern def</span> <span class="ty">LowDeliveryCost</span> {
         <span class="kw">doc</span>
         <span class="cm">/* The logistics company needs the cost per delivery to be lower than
          * today's ground-based last-mile delivery. */</span>
-        <span class="kw">attribute</span> :&gt;&gt; priority = <span class="ty">LevelKind</span>::medium;
+        <span class="kw">subject</span> brownfieldSystem : <span class="ty">DD_BROWNFIELD</span>::<span class="ty">DeliveryDroneSystemImpl</span>;
+        <span class="kw">stakeholder</span> logisticCompany : <span class="ty">LogisticCompany</span>;
+        <span class="kw">attribute</span> :&gt;&gt; priority = <span class="ty">LevelKind</span>::middle;
     }
 }`, img:"assets/04-needs-model.png", slot:"04-needs-model", diagram:"assets/04-needs-diagram.png", diagramSlot:"04-needs-diagram" }
     }
@@ -653,25 +678,25 @@ const steps = [
     <span class="cm">/* The black-box brownfield context: the delivery drone system as it exists at
       * the start of the project, together with the actors that already interact
       * with it. It constrains the set of possible solutions. */</span>
-    <span class="kw">#System part</span> deliveryDroneSystem : <span class="ty">DeliveryDroneSystem</span> :&gt;&gt; soi {
+    <span class="kw">#system part</span> deliveryDroneSystem : <span class="ty">DeliveryDroneSystem</span> :&gt;&gt; soi {
         <span class="kw">doc</span>
         <span class="cm">/* The existing delivery drone system as a black box. */</span>
     }
-    <span class="kw">#User part</span> operator :&gt; actors {
+    <span class="kw">#user part</span> operator :&gt; actors {
         <span class="kw">doc</span>
         <span class="cm">/* The human operator who monitors and commands the system. */</span>
         <span class="kw">port</span> controlPort;
     }
-    <span class="kw">#User part</span> customer :&gt; actors {
+    <span class="kw">#user part</span> customer :&gt; actors {
         <span class="kw">doc</span> <span class="cm">/* The human customer who hands over or retrieves the package. */</span>
         <span class="kw">port</span> packagePort :&gt; actorPorts;
     }
-    <span class="kw">#ExternalSystem part</span> landingZone :&gt; actors {
+    <span class="kw">#externalSystem part</span> landingZone :&gt; actors {
         <span class="kw">doc</span>
         <span class="cm">/* A marked landing zone where drones pick up and drop off packages. */</span>
         <span class="kw">port</span> dronePort;
     }
-    <span class="kw">#EnvironmentalEffect part</span> environment :&gt; actors {
+    <span class="kw">#environmentalEffect part</span> environment :&gt; actors {
         <span class="kw">doc</span>
         <span class="cm">/* Environmental conditions acting on the system, e.g., wind and rain. */</span>
         <span class="kw">port</span> conditionsPort;
@@ -696,7 +721,7 @@ const steps = [
     <span class="kw">doc</span>
     <span class="cm">/* The white-box brownfield context: adds the internal structure of the
       * existing delivery drone system. */</span>
-    <span class="kw">#System part</span> deliveryDroneSystemImpl : <span class="ty">DeliveryDroneSystemImpl</span> :&gt;&gt; deliveryDroneSystem {
+    <span class="kw">#system part</span> deliveryDroneSystemImpl : <span class="ty">DeliveryDroneSystemImpl</span> :&gt;&gt; deliveryDroneSystem {
         <span class="kw">doc</span>
         <span class="cm">/* The existing delivery drone system as a white box. */</span>
     }
@@ -833,13 +858,13 @@ const steps = [
     <span class="cm">/* The black-box system idea context. The system boundary, actors, and
       * interfaces are unchanged with respect to the brownfield context; the
       * idea changes the inside of the system only. */</span>
-    <span class="kw">#System part</span> deliveryDroneSystem :&gt;&gt; <span class="ty">DD_BROWNFIELD::DeliveryDroneSystemContext</span>::deliveryDroneSystem : <span class="ty">DeliveryDroneSystem</span>;
+    <span class="kw">#system part</span> deliveryDroneSystem :&gt;&gt; <span class="ty">DD_BROWNFIELD::DeliveryDroneSystemContext</span>::deliveryDroneSystem : <span class="ty">DeliveryDroneSystem</span>;
 }
 <span class="kw">#systemContext part def</span> <span class="ty">DeliveryDroneSystemIdeaContextImpl</span> :&gt; <span class="ty">DeliveryDroneSystemIdeaContext</span>, <span class="ty">DD_BROWNFIELD::DeliveryDroneSystemContextImpl</span> {
     <span class="kw">doc</span>
     <span class="cm">/* The white-box system idea context: adds the internal structure of the
       * system idea. */</span>
-    <span class="kw">#System part</span> deliveryDroneSystemImpl :&gt;&gt; <span class="ty">DD_BROWNFIELD::DeliveryDroneSystemContextImpl</span>::deliveryDroneSystemImpl, <span class="ty">DeliveryDroneSystemIdeaContext</span>::deliveryDroneSystem : <span class="ty">DeliveryDroneSystemIdeaImpl</span>;
+    <span class="kw">#system part</span> deliveryDroneSystemImpl :&gt;&gt; <span class="ty">DD_BROWNFIELD::DeliveryDroneSystemContextImpl</span>::deliveryDroneSystemImpl, <span class="ty">DeliveryDroneSystemIdeaContext</span>::deliveryDroneSystem : <span class="ty">DeliveryDroneSystemIdeaImpl</span>;
 }
 <span class="kw">part def</span> <span class="ty">DeliveryDroneSystem</span> :&gt; <span class="ty">DD_BROWNFIELD::DeliveryDroneSystem</span> {
     <span class="kw">doc</span>
@@ -908,17 +933,17 @@ const steps = [
       model:{ text:"Redefining soi with a doc comment fixes what “the system” now means. The context now owns all four use cases, each just typed and bound to an external definition — the detail is in Step 8. DeliveryDroneSystem itself grew into the shared owner of every action any use case needs.", 
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
   <span class="kw">part</span> deliveryDroneSpecificationContext :&gt;&gt; specificationContext : <span class="ty">DD_SPECIFICATION::DeliveryDroneSystemContext</span> :&gt; deliveryDroneSystemIdeaContext {
-      <span class="kw">part</span> deliveryDroneSystem :&gt;&gt; deliveryDroneSystem, deliveryDroneSystemIdeaContext::deliveryDroneSystem, <span class="ty">Project</span>::systemIdeaContext::soi;
+      <span class="kw">part</span> deliveryDroneSystem :&gt;&gt; deliveryDroneSystem, deliveryDroneSystemIdeaContext::deliveryDroneSystem, <span class="ty">Project</span>::specificationContext::soi;
   }
   <span class="kw">part</span> deliveryDroneSpecificationContextImpl :&gt;&gt; specificationContextImpl : <span class="ty">DD_SPECIFICATION::DeliveryDroneSystemContextImpl</span> :&gt; deliveryDroneSpecificationContext, deliveryDroneSystemIdeaContextImpl {
-      <span class="kw">part</span> deliveryDroneSystemImpl :&gt;&gt; deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSystemIdeaContextImpl::deliveryDroneSystemImpl, <span class="ty">Project</span>::systemIdeaContextImpl::soiImpl;
+      <span class="kw">part</span> deliveryDroneSystemImpl :&gt;&gt; deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSystemIdeaContextImpl::deliveryDroneSystemImpl, <span class="ty">Project</span>::specificationContextImpl::soiImpl;
   }
 }
 <span class="kw">#systemContext part def</span> <span class="ty">DeliveryDroneSystemContext</span> :&gt; <span class="ty">DD_SYSTEMIDEA::DeliveryDroneSystemIdeaContext</span> {
     <span class="kw">doc</span>
     <span class="cm">/* The black-box specification context. It fixes the system boundary for
       * the requirements analysis and owns the system use cases. */</span>
-    <span class="kw">#System part</span> deliveryDroneSystem :&gt;&gt; deliveryDroneSystem : <span class="ty">DeliveryDroneSystem</span>;
+    <span class="kw">#system part</span> deliveryDroneSystem :&gt;&gt; deliveryDroneSystem : <span class="ty">DeliveryDroneSystem</span>;
     <span class="kw">use case</span> deliverPackage : UseCases::DeliverPackage {
         <span class="kw">subject</span> :&gt;&gt; droneSystem :&gt; deliveryDroneSystem;
     }
@@ -931,7 +956,7 @@ const steps = [
     <span class="kw">doc</span>
     <span class="cm">/* The white-box specification context: adds the internal structure of
       * the specification system. */</span>
-    <span class="kw">#System part</span> deliveryDroneSystemImpl :&gt;&gt; deliveryDroneSystemImpl : <span class="ty">DeliveryDroneSystemImpl</span>;
+    <span class="kw">#system part</span> deliveryDroneSystemImpl :&gt;&gt; deliveryDroneSystemImpl : <span class="ty">DeliveryDroneSystemImpl</span>;
 }
 <span class="kw">part def</span> <span class="ty">DeliveryDroneSystem</span> :&gt; <span class="ty">DD_SYSTEMIDEA::DeliveryDroneSystem</span> {
     <span class="kw">doc</span>
@@ -954,7 +979,7 @@ const steps = [
 <span class="kw">part def</span> <span class="ty">DeliveryDrone</span> :&gt; <span class="ty">DD_SYSTEMIDEA::DeliveryDrone</span> {
     <span class="kw">doc</span>
     <span class="cm">/* The delivery drone at the specification level. */</span>
-    <span class="kw">attribute</span> payloadMass : <span class="ty">ScalarValues::Real</span>;
+    <span class="kw">attribute</span> payloadMass :&gt; <span class="ty">ISQ::mass</span>;
 }`, img:"assets/07-specification-model.png", slot:"07-specification-model", diagram:"assets/07-specification-diagram.png", diagramSlot:"07-specification-diagram" }
     }
   },
@@ -999,9 +1024,9 @@ const steps = [
       <span class="kw">assert</span> <span class="kw">constraint</span> :&gt; postcondition;
     }
 }`, img:null, slot:"08-usecases-library" },
-      model:{ text:"DeliverPackage no longer defines its own actions — every action it needs (planDelivery, pickUpPackage, chargeInFlight, dropOffPackage, and more) is now owned once by DeliveryDroneSystem itself, shared across all four use cases. DeliverPackage just orchestrates them: its successions reference the shared actions on droneSystem directly, so the same charging behavior ChargeDrone describes on its own can't quietly drift out of sync. Only the three flight legs are local actions, each subsetting the shared flyToPosition with its own target position.",
+      model:{ text:"DeliverPackage no longer defines its own actions — every action it needs (planDelivery, pickUpPackage, chargeInFlight, dropOffPackage, and more) is now owned once by DeliveryDroneSystem itself, shared across all four use cases. Each use case performs the actions it needs in its subject (perform action ucPlanDelivery ::> planDelivery), and its successions reference those performed actions on droneSystem, so the same charging behavior ChargeDrone describes on its own can't quietly drift out of sync. Only the three flight legs are local actions, each subsetting the shared flyToPosition with its own target position.",
       code:`<span class="kw">#systemContext part def</span> DeliveryDroneSystemContext :&gt; DD_SYSTEMIDEA::DeliveryDroneSystemIdeaContext {
-    <span class="kw">#System part</span> deliveryDroneSystem :&gt;&gt; deliveryDroneSystem : DeliveryDroneSystem;
+    <span class="kw">#system part</span> deliveryDroneSystem :&gt;&gt; deliveryDroneSystem : DeliveryDroneSystem;
     <span class="kw">use case</span> deliverPackage : UseCases::DeliverPackage {
         <span class="kw">subject</span> :&gt;&gt; droneSystem :&gt; deliveryDroneSystem;
     }
@@ -1047,7 +1072,14 @@ const steps = [
 
 <span class="kw">package</span> UseCases {
     <span class="kw">#systemUseCase use case def</span> <span class="ty">DeliverPackage</span> {
-        <span class="kw">subject</span> droneSystem : DeliveryDroneSystem;
+        <span class="kw">subject</span> droneSystem : DeliveryDroneSystem {
+            <span class="kw">perform action</span> ucPlanDelivery ::&gt; planDelivery;
+            <span class="kw">perform action</span> ucPickUpPackage ::&gt; pickUpPackage;
+            <span class="kw">perform action</span> ucAcceptBatteryLow ::&gt; acceptBatteryLow;
+            <span class="kw">perform action</span> ucChargeInFlight ::&gt; chargeInFlight;
+            <span class="kw">perform action</span> ucFlyToPosition ::&gt; flyToPosition;
+            <span class="kw">perform action</span> ucDropOffPackage ::&gt; dropOffPackage;
+        }
         <span class="kw">objective</span> {
             <span class="kw">doc</span>
             <span class="cm">/* The operator dispatches a drone with a package.
@@ -1068,30 +1100,30 @@ const steps = [
         <span class="kw">out item</span> pkgOut : Parcel;
         <span class="kw">in item</span> energy : Energy;
 
-        <span class="kw">binding bind</span> order = droneSystem.planDelivery.order;
-        <span class="kw">binding bind</span> pkgIn = droneSystem.pickUpPackage.pkg;
-        <span class="kw">binding bind</span> pkgOut = droneSystem.dropOffPackage.deliveredPkg;
-        <span class="kw">binding bind</span> energy = droneSystem.chargeInFlight.energy;
+        <span class="kw">binding bind</span> order = droneSystem.ucPlanDelivery.order;
+        <span class="kw">binding bind</span> pkgIn = droneSystem.ucPickUpPackage.pkg;
+        <span class="kw">binding bind</span> pkgOut = droneSystem.ucDropOffPackage.deliveredPkg;
+        <span class="kw">binding bind</span> energy = droneSystem.ucChargeInFlight.energy;
 
         <span class="cm">// only the flight legs are local — each subsets the shared</span>
-        <span class="cm">// flyToPosition; all other steps reference droneSystem directly</span>
-        <span class="kw">action</span> flyToPickup :&gt; droneSystem.flyToPosition;
-        <span class="kw">action</span> flyToDelivery :&gt; droneSystem.flyToPosition;
-        <span class="kw">action</span> flyToHome :&gt; droneSystem.flyToPosition {
+        <span class="cm">// flyToPosition; all other steps reference the performed actions</span>
+        <span class="kw">action</span> flyToPickup :&gt; droneSystem.ucFlyToPosition;
+        <span class="kw">action</span> flyToDelivery :&gt; droneSystem.ucFlyToPosition;
+        <span class="kw">action</span> flyToHome :&gt; droneSystem.ucFlyToPosition {
             <span class="kw">in item</span> pos : Position = droneSystem.homePosition;
         }
 
-        <span class="kw">first</span> start <span class="kw">then</span> droneSystem.planDelivery;
-        <span class="kw">first</span> droneSystem.planDelivery <span class="kw">then</span> droneSystem.flyToPosition;
-        <span class="kw">flow from</span> droneSystem.planDelivery.task.pickupLocation <span class="kw">to</span> flyToPickup.pos;
-        <span class="kw">flow from</span> droneSystem.planDelivery.task.deliverLocation <span class="kw">to</span> flyToDelivery.pos;
-        <span class="kw">first</span> flyToPickup <span class="kw">then</span> droneSystem.pickUpPackage;
-        <span class="kw">first</span> droneSystem.pickUpPackage <span class="kw">then</span> m1;
+        <span class="kw">first</span> start <span class="kw">then</span> droneSystem.ucPlanDelivery;
+        <span class="kw">first</span> droneSystem.ucPlanDelivery <span class="kw">then</span> flyToPickup;
+        <span class="kw">flow from</span> droneSystem.ucPlanDelivery.task.pickupLocation <span class="kw">to</span> flyToPickup.pos;
+        <span class="kw">flow from</span> droneSystem.ucPlanDelivery.task.deliverLocation <span class="kw">to</span> flyToDelivery.pos;
+        <span class="kw">first</span> flyToPickup <span class="kw">then</span> droneSystem.ucPickUpPackage;
+        <span class="kw">first</span> droneSystem.ucPickUpPackage <span class="kw">then</span> m1;
         <span class="kw">first</span> m1 <span class="kw">then</span> flyToDelivery;
-        <span class="kw">first</span> droneSystem.acceptBatteryLow <span class="kw">then</span> droneSystem.chargeInFlight;
-        <span class="kw">first</span> flyToDelivery <span class="kw">then</span> droneSystem.dropOffPackage;
-        <span class="kw">first</span> droneSystem.chargeInFlight <span class="kw">then</span> m1;
-        <span class="kw">first</span> droneSystem.dropOffPackage <span class="kw">then</span> flyToHome;
+        <span class="kw">first</span> droneSystem.ucAcceptBatteryLow <span class="kw">then</span> droneSystem.ucChargeInFlight;
+        <span class="kw">first</span> flyToDelivery <span class="kw">then</span> droneSystem.ucDropOffPackage;
+        <span class="kw">first</span> droneSystem.ucChargeInFlight <span class="kw">then</span> m1;
+        <span class="kw">first</span> droneSystem.ucDropOffPackage <span class="kw">then</span> flyToHome;
         <span class="kw">first</span> flyToHome <span class="kw">then</span> done;
 
         <span class="kw">merge</span> m1;
@@ -1131,14 +1163,15 @@ const steps = [
     stable;
 }
 <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MaxValue</span> {
-    <span class="kw">doc</span> <span class="cm">/* The quantity must stay strictly below an upper bound. */</span>
-    <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-    <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+    <span class="kw">doc</span> <span class="cm">/* The quantity must not exceed an upper bound (inclusive), relaxed by an optional tolerance. */</span>
+    <span class="kw">attribute</span> currentValue;
+    <span class="kw">attribute</span> maxValue;
+    <span class="kw">attribute</span> tolerance[0..1] <span class="kw">default</span> 0.0;
     <span class="kw">require</span> <span class="kw">constraint</span> {
-        currentValue &lt; maxValue
+        currentValue &lt;= maxValue + tolerance
     }
 }`, img:null, slot:"09-requirements-library" },
-      model:{ text:"maxPayloadMass is a concrete ExtendedRequirement with a mandatory obligation — one line, but it now traces all the way back to a stakeholder need. It also specializes the MaxValue boilerplate, binding currentValue and maxValue to the drone's payload mass and its 5 kg limit.",
+      model:{ text:"maxPayloadMass is a concrete ExtendedRequirement with a mandatory obligation — one line, but it now traces all the way back to a stakeholder need. It also specializes the MaxValue boilerplate, narrowing currentValue, maxValue, and tolerance to masses and binding them to the drone's payload mass, its 5 kg limit, and a 0.1 kg tolerance.",
       code:`<span class="kw">#project</span> <span class="kw">occurrence</span> <span class="kw">def</span> <span class="ty">&lt;PRJ&gt; 'Delivery Drone Project'</span> {
   <span class="kw">requirement</span> deliveryDroneSystemRequirementsSpecification :&gt;&gt; systemRequirementSpecification : <span class="ty">DD_SPECIFICATION::DeliveryDroneSystemRequirements</span> {
       <span class="kw">subject</span> deliveryDroneSystem :&gt;&gt; specificationSystem, deliveryDroneSystem :&gt; deliveryDroneSpecificationContext.deliveryDroneSystem;
@@ -1155,12 +1188,13 @@ const steps = [
 }
 <span class="kw">#extendedRequirement requirement def</span> <span class="ty">MaxPayloadMass</span> :&gt; <span class="ty">SYSMODRequirementsBoilerplates</span>::<span class="ty">MaxValue</span> {
     <span class="kw">doc</span>
-    <span class="cm">/* The system shall transport payloads with a mass of up to 5 kg. */</span>
+    <span class="cm">/* The system shall transport payloads with a mass of up to 5 kg (tolerance 0.1 kg). */</span>
     <span class="kw">attribute</span> :&gt;&gt; obligation = <span class="ty">ObligationKind</span>::mandatory;
     <span class="kw">attribute</span> :&gt;&gt; stability = <span class="ty">StabilityKind</span>::stable;
     <span class="kw">attribute</span> :&gt;&gt; motivation = "Typical last-mile parcels weigh less than 5 kg.";
-    <span class="kw">attribute</span> :&gt;&gt; currentValue = deliveryDrone.payloadMass;
-    <span class="kw">attribute</span> :&gt;&gt; maxValue = 5;
+    <span class="kw">attribute</span> :&gt;&gt; currentValue :&gt; <span class="ty">ISQ</span>::mass = deliveryDrone.payloadMass;
+    <span class="kw">attribute</span> :&gt;&gt; maxValue :&gt; <span class="ty">ISQ</span>::mass = 5 [<span class="ty">SI</span>::kg];
+    <span class="kw">attribute</span> :&gt;&gt; tolerance :&gt; <span class="ty">ISQ</span>::mass = 0.1 [<span class="ty">SI</span>::kg];
 }
 <span class="kw">#extendedRequirement requirement def</span> <span class="ty">AirCharging</span> {
     <span class="kw">doc</span>
@@ -1193,7 +1227,7 @@ const steps = [
 <span class="kw">allocation</span> logical2product [0..1]
     <span class="kw">allocate</span> logicalContext <span class="kw">to</span> productContext;`, img:null, slot:"10-architecture-library" },
       model:{ text:"The architecture is split into three separate files, one per level, each still maturing. Functional groups the use case actions into functional blocks with the FAS method — each block performs the shared actions, exposes typed ports from its own Interfaces package, and is bound to the inherited system ports; Logical names the technology-independent building blocks; Product redefines the concrete parts already known from the brownfield and adds real ports — a radio link and a charging contact — connecting them.", code:`<span class="kw">#systemContext part def</span> DeliveryDroneFunctionalContext :&gt; DD_SPECIFICATION::DeliveryDroneSystemContext {
-  <span class="kw">#System part</span> :&gt;&gt; deliveryDroneSystem : DeliveryDroneFunctionalSystem;
+  <span class="kw">#system part</span> :&gt;&gt; deliveryDroneSystem : DeliveryDroneFunctionalSystem;
 }
 <span class="kw">part def</span> DeliveryDroneFunctionalSystem :&gt; DD_SPECIFICATION::DeliveryDroneSystem {
   <span class="kw">bind</span> operatorPort.order = deliveryManagement.deliveryPort.deliveryOrder;
@@ -1232,7 +1266,7 @@ const steps = [
 }
 
 <span class="kw">#systemContext part def</span> DeliveryDroneLogicalContext :&gt; DD_SPECIFICATION::DeliveryDroneSystemContext {
-  <span class="kw">#System part</span> :&gt;&gt; deliveryDroneSystem : DeliveryDroneLogicalSystem;
+  <span class="kw">#system part</span> :&gt;&gt; deliveryDroneSystem : DeliveryDroneLogicalSystem;
 }
 <span class="kw">part def</span> DeliveryDroneLogicalSystem :&gt; DD_SPECIFICATION::DeliveryDroneSystem {
   <span class="kw">part</span> flightControl {
@@ -1250,7 +1284,7 @@ const steps = [
 }
 
 <span class="kw">#systemContext part def</span> DeliveryDroneProductContext :&gt; DD_SPECIFICATION::DeliveryDroneSystemContextImpl {
-  <span class="kw">#System part</span> :&gt;&gt; deliveryDroneSystemImpl : DeliveryDroneProductSystem;
+  <span class="kw">#system part</span> :&gt;&gt; deliveryDroneSystemImpl : DeliveryDroneProductSystem;
 }
 <span class="kw">part def</span> DeliveryDroneProductSystem :&gt; DD_SPECIFICATION::DeliveryDroneSystemImpl {
   <span class="kw">part</span> :&gt;&gt; drones : DD_SPECIFICATION::DeliveryDrone {
@@ -1649,10 +1683,15 @@ const aiSkills = {
      problemStatement and derive the high-level
      needs of each stakeholder.
   2. For each stakeholder need, create a concern
-     usage subsetting stakeholderNeeds, framed by
-     the problemStatement and referencing the
-     brownfield system (the soiImpl of
-     brownfieldContextImpl) as its subject.
+     definition with the brownfield system as its
+     first parameter (subject) and a typed
+     stakeholder parameter for each stakeholder the
+     need comes from. Create a concern usage
+     subsetting stakeholderNeeds that binds the
+     subject to brownfieldContextImpl.soiImpl and
+     binds each stakeholder parameter to the
+     corresponding part usage in
+     projectStakeholders.
   3. Ensure each need is expressed from the
      stakeholder's perspective and describes what
      they need the system to do or be, not how.
@@ -1683,14 +1722,20 @@ const aiSkills = {
      the project, redefining the inherited
      stakeholderNeeds.
   2. The stakeholderNeeds frames the problemStatement.
-  3. The subject references the brownfieldContextImpl
-     soiImpl.
+  3. The subject of stakeholderNeeds references the
+     brownfieldContextImpl soiImpl.
   4. At least one stakeholder need is defined as a
-     nested concern usage.
-  5. Each stakeholder need is traceable to at least
-     one stakeholder from projectStakeholders (via
-     stakeholder reference or doc comment
-     attribution).
+     concern usage nested inside stakeholderNeeds.
+     Each stakeholder need definition declares a
+     subject typed by the brownfield system as its
+     first feature, and each nested concern usage
+     redefines that subject and binds it to the
+     brownfieldContextImpl soiImpl, before any
+     stakeholder declaration.
+  5. Each stakeholder need declares at least one
+     stakeholder parameter, and each such parameter
+     in the need usage is bound to a part usage
+     subsetting projectStakeholders.
   6. Each need is expressed at the stakeholder intent
      level — check for premature solution or design
      language (e.g., specific technologies,
@@ -1843,19 +1888,17 @@ const aiSkills = {
      specializes systemIdeaContext and
      brownfieldContextImpl, and redefines the
      soiImpl part, specializing the system idea soi.
-  4. The soiImpl contains a satisfy relationship to
-     the problemStatement.
-  5. All actors from the brownfieldContext are
+  4. All actors from the brownfieldContext are
      inherited or explicitly redefined — no
      brownfield actor should silently disappear.
-  6. Any new actors introduced by the system idea are
+  5. Any new actors introduced by the system idea are
      added as additional actor part usages.
-  7. The system idea stays at a conceptual level —
+  6. The system idea stays at a conceptual level —
      check for premature architecture or design
      detail (e.g., specific components, protocols,
      or technologies named in the soiImpl
      structure).
-  8. A doc comment on the soiImpl describes the
+  7. A doc comment on the soiImpl describes the
      system idea in elevator-pitch style.
   Report each finding with the element name, the
   violated SYSMOD rule, and a concrete suggestion
@@ -1882,9 +1925,13 @@ const aiSkills = {
   3. Add system use cases to the specificationContext
      that describe how actors interact with the
      system of interest at the specification level.
-  4. Ensure the specificationContext owns the use
-     cases and that each use case references the
-     specificationSystem as its subject.
+  4. Each use case definition declares the
+     specification system as its first parameter
+     (subject) and a typed actor parameter for each
+     participating actor. Each use case usage in the
+     specificationContext subsets its subject from
+     the context's soi and binds each actor
+     parameter to the context's actor part usage.
   5. Create the SysML v2 textual notation for the
      specificationContext and
      specificationContextImpl, including actor parts
@@ -1923,10 +1970,10 @@ const aiSkills = {
   4. At least one use case usage is present in the
      specificationContext, referencing the
      specificationSystem as its subject.
-  5. Each use case has at least one actor involved
-     (include or extend relationships, or actor
-     references in the use case subject/
-     stakeholder).
+  5. Each use case has at least one actor parameter,
+     and in the specificationContext every actor
+     parameter is bound to an actor part usage
+     subsetting actors.
   6. Each use case has a meaningful name and doc
      comment describing the interaction goal.
   7. All actors from the systemIdeaContext are
@@ -1960,9 +2007,13 @@ const aiSkills = {
   3. Add system use cases to the specificationContext
      that describe how actors interact with the
      system of interest at the specification level.
-  4. Ensure the specificationContext owns the use
-     cases and that each use case references the
-     specificationSystem as its subject.
+  4. Each use case definition declares the
+     specification system as its first parameter
+     (subject) and a typed actor parameter for each
+     participating actor. Each use case usage in the
+     specificationContext subsets its subject from
+     the context's soi and binds each actor
+     parameter to the context's actor part usage.
   5. Create the SysML v2 textual notation for the
      specificationContext and
      specificationContextImpl, including actor parts
@@ -2001,10 +2052,10 @@ const aiSkills = {
   4. At least one use case usage is present in the
      specificationContext, referencing the
      specificationSystem as its subject.
-  5. Each use case has at least one actor involved
-     (include or extend relationships, or actor
-     references in the use case subject/
-     stakeholder).
+  5. Each use case has at least one actor parameter,
+     and in the specificationContext every actor
+     parameter is bound to an actor part usage
+     subsetting actors.
   6. Each use case has a meaningful name and doc
      comment describing the interaction goal.
   7. All actors from the systemIdeaContext are
@@ -2032,6 +2083,12 @@ const aiSkills = {
      ExtendedRequirement. Set obligation
      (mandatory/optional), stability
      (stable/unstable), and a brief motivation.
+     Declare the specification system as the first
+     parameter (subject) and a typed stakeholder
+     parameter for the stakeholders of the framed
+     need. In the root requirement, bind each nested
+     requirement usage's subject to the root
+     subject.
   3. Ensure each requirement is verifiable,
      unambiguous, and solution-neutral where
      possible.
@@ -2078,7 +2135,9 @@ const aiSkills = {
      exists.
   7. Each requirement is traceable to at least one
      stakeholder need (via frame or derive
-     relationships, or doc comment reference).
+     relationships, or doc comment reference) via a
+     frame relationship to a stakeholder need and at
+     least one stakeholder parameter.
   8. Each requirement text is verifiable — check for
      vague qualifiers without measurable criteria
      (e.g., 'fast', 'easy', 'reliable' without a
@@ -2406,7 +2465,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
     <span class="cm">/* 
      * Definition of SYSMOD v5 for SysML v2
      *
-     * Version v5.1.3
+     * Version v5.1.4
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -2544,10 +2603,9 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             <span class="cm">/* Allocation of the logical architecture to the product architecture. */</span>
         }
 
-        <span class="kw">derived</span> <span class="kw">occurrence</span> subProjects : <span class="ty">Project</span> [*] = 
-            (suboccurrences-&gt;<span class="ty">ControlFunctions</span>::select({<span class="kw">in</span> o; o hastype <span class="ty">Project</span>})) as <span class="ty">Project</span> {
-                <span class="kw">doc</span> <span class="cm">/* List of all subProjects, for example, a standalone project for a subsystem or component of the system. */</span>
-            }
+        <span class="kw">occurrence</span> subProjects : <span class="ty">Project</span> [*] {
+            <span class="kw">doc</span> <span class="cm">/* List of all subProjects, for example, a standalone project for a subsystem or component of the system. */</span>
+        }
     }
     <span class="kw">abstract</span> <span class="kw">occurrence</span> projects : <span class="ty">Project</span> [*] {
         <span class="kw">doc</span>
@@ -2602,21 +2660,21 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
     }
 
     <span class="cm">// System</span>
-    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">System</span> {
+    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">system</span> {
         <span class="kw">doc</span> <span class="cm">/* System is merely a label used to tag an element. The element could play a different role in a different context. */</span>
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">PartUsage</span>;        
     }
 
     <span class="cm">// Actor Categories</span>
-    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">User</span> {
+    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">user</span> {
         <span class="kw">doc</span> <span class="cm">/* User is merely a label used to tag an element. The element could play a different role in a different context. */</span>
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">PartUsage</span>;
     }
-    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">ExternalSystem</span> {
+    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">externalSystem</span> {
         <span class="kw">doc</span> <span class="cm">/* ExternalSystem is merely a label used to tag an element. The element could play a different role in a different context. */</span>
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">PartUsage</span>;
     }
-    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">EnvironmentalEffect</span> {
+    <span class="kw">metadata</span> <span class="kw">def</span> <span class="ty">environmentalEffect</span> {
         <span class="kw">doc</span> <span class="cm">/* EnvironmentalEffect is merely a label used to tag an element. The element could play a different role in a different context. */</span>
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">PartUsage</span>;
     }
@@ -2636,12 +2694,29 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
     }
     <span class="kw">use</span> <span class="kw">case</span> systemUseCases[*] : <span class="ty">SystemUseCase</span>;
 
+    <span class="kw">use case def</span> <span class="ty">SecondaryUseCase</span> :&gt; <span class="ty">SystemUseCase</span> {
+        <span class="kw">doc</span> <span class="cm">/* Marks a use case as a SYSMOD secondary use case: a use case that is not started directly by an actor and does not deliver a result of value to an actor on its own, but describes a part of the behavior shared by other use cases, which include it. */</span>
+    }
+    <span class="kw">use</span> <span class="kw">case</span> secondaryUseCases[*] : <span class="ty">SecondaryUseCase</span>;
+    <span class="kw">use case def</span> <span class="ty">SystemProcess</span> :&gt; <span class="ty">SystemUseCase</span> {
+        <span class="kw">doc</span> <span class="cm">/* Marks a use case as a SYSMOD system process: a use case that describes the logical and temporal order of several related system use cases that together form one overall process of the system. */</span>
+    }
+    <span class="kw">use</span> <span class="kw">case</span> systemProcesses[*] : <span class="ty">SystemProcess</span>;
+    <span class="kw">use case def</span> <span class="ty">ContinuousUseCase</span> :&gt; <span class="ty">SystemUseCase</span> {
+        <span class="kw">doc</span> <span class="cm">/* Marks a use case as a SYSMOD continuous use case: a use case whose result is delivered continuously while it runs rather than once at its end, e.g., monitoring or controlling a quantity, so it typically has no regular termination. */</span>
+    }
+    <span class="kw">use</span> <span class="kw">case</span> continuousUseCases[*] : <span class="ty">ContinuousUseCase</span>;
+
     <span class="cm">//</span>
     <span class="cm">// SYSMOD Stakeholder and Requirement Concepts</span>
     <span class="cm">//</span>
     <span class="kw">part</span> <span class="kw">def</span> <span class="ty">ExtendedStakeholder</span> {
         <span class="kw">doc</span>
         <span class="cm">/* SYSMOD-specific stakeholder concept with attributes to assess and prioritize stakeholders. Stakeholders are individuals or organizations with an interest in the system and are potential sources of requirements. */</span>
+        <span class="kw">attribute</span> name : <span class="ty">ScalarValues</span>::<span class="ty">String</span> {
+            <span class="kw">doc</span>
+            <span class="cm">/* Name of the stakeholder. */</span>
+        }
         <span class="kw">attribute</span> risk : <span class="ty">LevelKind</span> <span class="kw">default</span> <span class="ty">LevelKind</span>::none {
             <span class="kw">doc</span>
             <span class="cm">/* What is the risk of failure if I ignore this stakeholder? */</span>
@@ -2650,7 +2725,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             <span class="kw">doc</span>
             <span class="cm">/* How much effort is involved in identifying this stakeholder's concerns and requirements? */</span>
         }
-        <span class="kw">derived</span> <span class="kw">attribute</span> priority : <span class="ty">ScalarValues</span>::<span class="ty">Real</span> = risk * effort {
+        <span class="kw">derived</span> <span class="kw">attribute</span> attention : <span class="ty">ScalarValues</span>::<span class="ty">Real</span> = risk * effort {
             <span class="kw">doc</span>
             <span class="cm">/* Priority is the product of risk and effort. */</span>
         }
@@ -2732,7 +2807,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         <span class="cm">/* Common enumeration of levels with real values, for example, for priority calculations. */</span>
         none = 0.0;
         low = 0.25;
-        medium = 0.5;
+        middle = 0.5;
         high = 0.75;
         critical = 1.0;
     }
@@ -2806,7 +2881,27 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
         <span class="cm">/* Enables the user-defined keyword #systemUseCase. */</span>
         :&gt;&gt; baseType = systemUseCases meta <span class="ty">SysML</span>::<span class="ty">Type</span>;
         :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseDefinition</span>;
-        :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseUsage</span>;
+    }
+    <span class="kw">metadata</span> <span class="kw">def</span> &lt;secondaryUseCase&gt; <span class="ty">SecondaryUsageCaseMetadata</span>
+        :&gt; <span class="ty">Metaobjects</span>::<span class="ty">SemanticMetadata</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* Enables the user-defined keyword #secondaryUseCase. */</span>
+        :&gt;&gt; baseType = secondaryUseCases meta <span class="ty">SysML</span>::<span class="ty">Type</span>;
+        :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseDefinition</span>;
+    }
+    <span class="kw">metadata</span> <span class="kw">def</span> &lt;systemProcess&gt; <span class="ty">SystemProcessMetadata</span>
+        :&gt; <span class="ty">Metaobjects</span>::<span class="ty">SemanticMetadata</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* Enables the user-defined keyword #systemProcess. */</span>
+        :&gt;&gt; baseType = systemProcesses meta <span class="ty">SysML</span>::<span class="ty">Type</span>;
+        :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseDefinition</span>;
+    }
+    <span class="kw">metadata</span> <span class="kw">def</span> &lt;continuousUseCase&gt; <span class="ty">ContinuousUseCaseMetadata</span>
+        :&gt; <span class="ty">Metaobjects</span>::<span class="ty">SemanticMetadata</span> {
+        <span class="kw">doc</span>
+        <span class="cm">/* Enables the user-defined keyword #continuousUseCase. */</span>
+        :&gt;&gt; baseType = continuousUseCases meta <span class="ty">SysML</span>::<span class="ty">Type</span>;
+        :&gt; annotatedElement : <span class="ty">SysML</span>::<span class="ty">UseCaseDefinition</span>;
     }
 }
 
@@ -2817,7 +2912,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
      * from this model. Kept separate from SYSMOD so the core methodology library stays free of
      * AI-specific concerns; import this package in addition to SYSMOD only where AI assistance is wanted.
      *
-     * Version v5.1.3
+     * Version v5.1.4
      */</span>
 
     <span class="kw">private</span> <span class="kw">import</span> <span class="ty">SYSMOD</span>::*;
@@ -3178,7 +3273,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             name = "sysmod-<span class="kw">stakeholder</span>-needs";
             create_prompt =
                 "1. <span class="ty">Analyze</span> the projectStakeholders and the problemStatement and derive the high-level needs of each <span class="kw">stakeholder</span>.
-                2. <span class="ty">For</span> each <span class="kw">stakeholder</span> need, create a <span class="kw">concern</span> usage subsetting stakeholderNeeds, framed by the problemStatement and referencing the brownfield system (the soiImpl of brownfieldContextImpl) as its <span class="kw">subject</span>.
+                2. <span class="ty">For</span> each <span class="kw">stakeholder</span> need, create a <span class="kw">concern</span> definition with the brownfield system as its <span class="kw">first</span> parameter (<span class="kw">subject</span>) and a typed <span class="kw">stakeholder</span> parameter for each <span class="kw">stakeholder</span> the need comes <span class="kw">from</span>. <span class="ty">Create</span> a <span class="kw">concern</span> usage subsetting stakeholderNeeds that binds the <span class="kw">subject</span> <span class="kw">to</span> brownfieldContextImpl.soiImpl and binds each <span class="kw">stakeholder</span> parameter <span class="kw">to</span> the corresponding <span class="kw">part</span> usage <span class="kw">in</span> projectStakeholders.
                 3. <span class="ty">Ensure</span> each need is expressed <span class="kw">from</span> the <span class="kw">stakeholder</span>'s perspective and describes what they need the system <span class="kw">to</span> do or be, not how.
                 4. <span class="ty">Do</span> not express needs as solution-specific requirements; keep them at the <span class="kw">stakeholder</span> intent level.
                 5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the stakeholderNeeds.
@@ -3192,9 +3287,9 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 <span class="ty">Check</span>:
                 1. <span class="ty">The</span> stakeholderNeeds <span class="kw">concern</span> usage is present <span class="kw">in</span> the project, redefining the inherited stakeholderNeeds.
                 2. <span class="ty">The</span> stakeholderNeeds frames the problemStatement.
-                3. <span class="ty">The</span> <span class="kw">subject</span> references the brownfieldContextImpl soiImpl.
-                4. <span class="ty">At</span> least one <span class="kw">stakeholder</span> need is defined as a nested <span class="kw">concern</span> usage.
-                5. <span class="ty">Each</span> <span class="kw">stakeholder</span> need is traceable <span class="kw">to</span> at least one <span class="kw">stakeholder</span> <span class="kw">from</span> projectStakeholders (via <span class="kw">stakeholder</span> reference or <span class="kw">doc</span> comment attribution).
+                3. <span class="ty">The</span> <span class="kw">subject</span> of stakeholderNeeds references the brownfieldContextImpl soiImpl.
+                4. <span class="ty">At</span> least one <span class="kw">stakeholder</span> need is defined as a <span class="kw">concern</span> usage nested inside stakeholderNeeds. <span class="ty">Each</span> <span class="kw">stakeholder</span> need definition declares a <span class="kw">subject</span> typed by the brownfield system as its <span class="kw">first</span> feature, and each nested <span class="kw">concern</span> usage redefines that <span class="kw">subject</span> and binds it <span class="kw">to</span> the brownfieldContextImpl soiImpl, before any <span class="kw">stakeholder</span> declaration.
+                5. <span class="ty">Each</span> <span class="kw">stakeholder</span> need declares at least one <span class="kw">stakeholder</span> parameter, and each such parameter <span class="kw">in</span> the need usage is bound <span class="kw">to</span> a <span class="kw">part</span> usage subsetting projectStakeholders.
                 6. <span class="ty">Each</span> need is expressed at the <span class="kw">stakeholder</span> intent level — check for premature solution or design language (e.g., specific technologies, implementation details, design choices).
                 7. <span class="ty">The</span> set of <span class="kw">stakeholder</span> needs covers all projectStakeholders — no <span class="kw">stakeholder</span> group should be left without at least one associated need.
                 8. <span class="ty">Each</span> need has a <span class="kw">doc</span> comment or name that is understandable without reading the full model.
@@ -3239,11 +3334,10 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 1. <span class="ty">The</span> systemIdeaContext <span class="kw">part</span> usage is present <span class="kw">in</span> the project and specializes brownfieldContext.
                 2. <span class="ty">The</span> soi <span class="kw">part</span> is redefined within systemIdeaContext with a named system idea definition that specializes the brownfield soi.
                 3. <span class="ty">The</span> systemIdeaContextImpl <span class="kw">part</span> usage is present, specializes systemIdeaContext and brownfieldContextImpl, and redefines the soiImpl <span class="kw">part</span>, specializing the system idea soi.
-                4. <span class="ty">The</span> soiImpl contains a <span class="kw">satisfy</span> relationship <span class="kw">to</span> the problemStatement.
-                5. <span class="ty">All</span> actors <span class="kw">from</span> the brownfieldContext are inherited or explicitly redefined — no brownfield actor should silently disappear.
-                6. <span class="ty">Any</span> new actors introduced by the system idea are added as additional actor <span class="kw">part</span> usages.
-                7. <span class="ty">The</span> system idea stays at a conceptual level — check for premature architecture or design detail (e.g., specific components, protocols, or technologies named <span class="kw">in</span> the soiImpl structure).
-                8. <span class="ty">A</span> <span class="kw">doc</span> comment on the soiImpl describes the system idea <span class="kw">in</span> elevator-pitch style.
+                4. <span class="ty">All</span> actors <span class="kw">from</span> the brownfieldContext are inherited or explicitly redefined — no brownfield actor should silently disappear.
+                5. <span class="ty">Any</span> new actors introduced by the system idea are added as additional actor <span class="kw">part</span> usages.
+                6. <span class="ty">The</span> system idea stays at a conceptual level — check for premature architecture or design detail (e.g., specific components, protocols, or technologies named <span class="kw">in</span> the soiImpl structure).
+                7. <span class="ty">A</span> <span class="kw">doc</span> comment on the soiImpl describes the system idea <span class="kw">in</span> elevator-pitch style.
                 <span class="ty">Report</span> each finding with the element name, the violated <span class="ty">SYSMOD</span> rule, and a concrete suggestion for correction.";
         }
 
@@ -3272,7 +3366,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 "1. <span class="ty">Specialize</span> systemIdeaContext by redefining the soi <span class="kw">part</span> (black-box view) with a specification-level system definition, within specificationContext. <span class="ty">Specialize</span> specificationContext and systemIdeaContextImpl by redefining the soiImpl <span class="kw">part</span> (white-box view) with the matching specification implementation, within specificationContextImpl.
                 2. <span class="ty">Identify</span> and add any actors or subcomponents that become visible during requirements analysis (e.g., specific interfaces, subsystems defined at the black-box level).
                 3. <span class="ty">Add</span> system <span class="kw">use</span> cases <span class="kw">to</span> the specificationContext that describe how actors interact with the system of interest at the specification level.
-                4. <span class="ty">Ensure</span> the specificationContext owns the <span class="kw">use</span> cases and that each <span class="kw">use</span> <span class="kw">case</span> references the specificationSystem as its <span class="kw">subject</span>.
+                4. <span class="ty">Each</span> <span class="kw">use</span> <span class="kw">case</span> definition declares the specification system as its <span class="kw">first</span> parameter (<span class="kw">subject</span>) and a typed actor parameter for each participating actor. <span class="ty">Each</span> <span class="kw">use</span> <span class="kw">case</span> usage <span class="kw">in</span> the specificationContext subsets its <span class="kw">subject</span> <span class="kw">from</span> the context's soi and binds each actor parameter <span class="kw">to</span> the context's actor <span class="kw">part</span> usage.
                 5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the specificationContext and specificationContextImpl, including actor parts and <span class="kw">use</span> <span class="kw">case</span> usages.
                 6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the specificationContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited specificationContext and specificationContextImpl <span class="kw">part</span> usages.";
             create_questions = (
@@ -3286,7 +3380,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 2. <span class="ty">The</span> soi <span class="kw">part</span> is redefined within specificationContext with a named specification system definition that specializes the system idea soi.
                 3. <span class="ty">The</span> specificationContextImpl <span class="kw">part</span> usage is present, specializes specificationContext and systemIdeaContextImpl, and redefines the soiImpl <span class="kw">part</span>, specializing the specification soi.
                 4. <span class="ty">At</span> least one <span class="kw">use</span> <span class="kw">case</span> usage is present <span class="kw">in</span> the specificationContext, referencing the specificationSystem as its <span class="kw">subject</span>.
-                5. <span class="ty">Each</span> <span class="kw">use</span> <span class="kw">case</span> has at least one actor involved (include or extend relationships, or actor references <span class="kw">in</span> the <span class="kw">use</span> <span class="kw">case</span> <span class="kw">subject</span>/<span class="kw">stakeholder</span>).
+                5. <span class="ty">Each</span> <span class="kw">use</span> <span class="kw">case</span> has at least one actor parameter, and <span class="kw">in</span> the specificationContext every actor parameter is bound <span class="kw">to</span> an actor <span class="kw">part</span> usage subsetting actors.
                 6. <span class="ty">Each</span> <span class="kw">use</span> <span class="kw">case</span> has a meaningful name and <span class="kw">doc</span> comment describing the interaction goal.
                 7. <span class="ty">All</span> actors <span class="kw">from</span> the systemIdeaContext are inherited or redefined — no actor should silently disappear.
                 8. <span class="ty">The</span> specificationContext does not contain solution elements — it should remain a black-box view of the system.
@@ -3313,7 +3407,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             name = "sysmod-system-requirements";
             create_prompt =
                 "1. <span class="ty">Derive</span> system requirements <span class="kw">from</span> the stakeholderNeeds, framed by the stakeholderNeeds and referencing the specificationSystem as <span class="kw">subject</span>.
-                2. <span class="ty">For</span> each <span class="kw">requirement</span>, create a <span class="kw">requirement</span> usage or definition specializing <span class="ty">ExtendedRequirement</span>. <span class="ty">Set</span> obligation (mandatory/optional), stability (stable/unstable), and a brief motivation.
+                2. <span class="ty">For</span> each <span class="kw">requirement</span>, create a <span class="kw">requirement</span> usage or definition specializing <span class="ty">ExtendedRequirement</span>. <span class="ty">Set</span> obligation (mandatory/optional), stability (stable/unstable), and a brief motivation. <span class="ty">Declare</span> the specification system as the <span class="kw">first</span> parameter (<span class="kw">subject</span>) and a typed <span class="kw">stakeholder</span> parameter for the stakeholders of the framed need. <span class="ty">In</span> the root <span class="kw">requirement</span>, <span class="kw">bind</span> each nested <span class="kw">requirement</span> usage's <span class="kw">subject</span> <span class="kw">to</span> the root <span class="kw">subject</span>.
                 3. <span class="ty">Ensure</span> each <span class="kw">requirement</span> is verifiable, unambiguous, and solution-neutral where possible.
                 4. <span class="ty">Group</span> requirements logically (e.g., functional, performance, safety, <span class="kw">interface</span>) using nested <span class="kw">requirement</span> usages if appropriate.
                 5. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the systemRequirementSpecification.
@@ -3332,7 +3426,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 4. <span class="ty">Each</span> <span class="kw">requirement</span> specializes <span class="ty">ExtendedRequirement</span> and has the obligation <span class="kw">attribute</span> set (not <span class="ty">ObligationKind</span>::none).
                 5. <span class="ty">Each</span> <span class="kw">requirement</span> has the stability <span class="kw">attribute</span> set (not <span class="ty">StabilityKind</span>::none).
                 6. <span class="ty">Each</span> <span class="kw">requirement</span> has a non-empty motivation <span class="kw">attribute</span> explaining why the <span class="kw">requirement</span> exists.
-                7. <span class="ty">Each</span> <span class="kw">requirement</span> is traceable <span class="kw">to</span> at least one <span class="kw">stakeholder</span> need (via <span class="kw">frame</span> or derive relationships, or <span class="kw">doc</span> comment reference).
+                7. <span class="ty">Each</span> <span class="kw">requirement</span> is traceable <span class="kw">to</span> at least one <span class="kw">stakeholder</span> need (via <span class="kw">frame</span> or derive relationships, or <span class="kw">doc</span> comment reference) via a <span class="kw">frame</span> relationship <span class="kw">to</span> a <span class="kw">stakeholder</span> need and at least one <span class="kw">stakeholder</span> parameter.
                 8. <span class="ty">Each</span> <span class="kw">requirement</span> text is verifiable — check for vague qualifiers without measurable criteria (e.g., 'fast', 'easy', 'reliable' without a threshold).
                 9. <span class="ty">Each</span> <span class="kw">requirement</span> is solution-neutral — check for implementation-specific language (named technologies, specific designs) that constrain the solution unnecessarily.
                 10. <span class="ty">The</span> set of requirements covers all defined <span class="kw">use</span> cases — every <span class="kw">use</span> <span class="kw">case</span> should be reflected <span class="kw">in</span> at least one functional <span class="kw">requirement</span>.
@@ -3527,45 +3621,62 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
      * requirement shape as a require constraint over placeholder attributes; specialize a boilerplate
      * and redefine its attributes to bind it to a concrete quantity and threshold.
      *
-     * Version v5.1.3
+     * The value attributes are deliberately untyped, so they accept plain numbers as well as quantity values with units.
+     * A specialization narrows all value attributes of a boilerplate to the same type, e.g.,
+     * 'attribute :>> maxValue :> ISQ::mass = 5 [SI::kg];', and sets the tolerance with the same unit, since the default
+     * tolerance 0.0 is a plain number.
+     *
+     * Version v5.1.4
      */</span>
 
     <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MaxValue</span> {
         <span class="kw">doc</span>
-        <span class="cm">/* The quantity must stay strictly below an upper bound. */</span>
-        <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-        <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="cm">/*
+         * The quantity must not exceed an upper bound (inclusive).
+         * The optional tolerance relaxes the bound: values up to and including maxValue + tolerance are accepted.
+         */</span>
+        <span class="kw">attribute</span> currentValue;
+        <span class="kw">attribute</span> maxValue;
+        <span class="kw">attribute</span> tolerance[0..1] <span class="kw">default</span> 0.0;
 
         <span class="kw">require</span> <span class="kw">constraint</span> {
-            currentValue &lt; maxValue
+            currentValue &lt;= maxValue + tolerance
         }
     }
     <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinValue</span> {
         <span class="kw">doc</span>
-        <span class="cm">/* The quantity must stay strictly above a lower bound. */</span>
-        <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-        <span class="kw">attribute</span> minValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="cm">/*
+         * The quantity must not fall below a lower bound (inclusive).
+         * The optional tolerance relaxes the bound: values down to and including minValue - tolerance are accepted.
+         */</span>
+        <span class="kw">attribute</span> currentValue;
+        <span class="kw">attribute</span> minValue;
+        <span class="kw">attribute</span> tolerance[0..1] <span class="kw">default</span> 0.0;
 
         <span class="kw">require</span> <span class="kw">constraint</span> {
-            currentValue &gt; minValue
+            currentValue &gt;= minValue - tolerance
         }
     }
     <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">RangeValue</span> {
         <span class="kw">doc</span>
-        <span class="cm">/* The quantity must stay within an inclusive lower and upper bound. */</span>
-        <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-        <span class="kw">attribute</span> minValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-        <span class="kw">attribute</span> maxValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="cm">/*
+         * The quantity must stay within an inclusive lower and upper bound.
+         * The optional tolerance widens the range on both sides to [minValue - tolerance, maxValue + tolerance].
+         */</span>
+        <span class="kw">attribute</span> currentValue;
+        <span class="kw">attribute</span> minValue;
+        <span class="kw">attribute</span> maxValue;
+        <span class="kw">attribute</span> tolerance[0..1] <span class="kw">default</span> 0.0;
 
         <span class="kw">require</span> <span class="kw">constraint</span> {
-            minValue &lt;= currentValue <span class="kw">and</span> currentValue &lt;= maxValue
+            minValue - tolerance &lt;= currentValue <span class="kw">and</span> currentValue &lt;= maxValue + tolerance
         }
     }
     <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">ExactValue</span> {
         <span class="kw">doc</span>
         <span class="cm">/* The quantity must equal a specific target value. */</span>
-        <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-        <span class="kw">attribute</span> targetValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> currentValue;
+        <span class="kw">attribute</span> targetValue;
 
         <span class="kw">require</span> <span class="kw">constraint</span> {
             currentValue == targetValue
@@ -3574,9 +3685,9 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
     <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">ToleranceValue</span> {
         <span class="kw">doc</span>
         <span class="cm">/* The quantity must stay within a target value plus/minus a tolerance. */</span>
-        <span class="kw">attribute</span> currentValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-        <span class="kw">attribute</span> targetValue : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
-        <span class="kw">attribute</span> tolerance : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> currentValue;
+        <span class="kw">attribute</span> targetValue;
+        <span class="kw">attribute</span> tolerance[0..1] <span class="kw">default</span> 0.0;
 
         <span class="kw">require</span> <span class="kw">constraint</span> {
             currentValue &gt;= targetValue - tolerance <span class="kw">and</span> currentValue &lt;= targetValue + tolerance
@@ -3584,23 +3695,31 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
     }
     <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinAvailability</span> {
         <span class="kw">doc</span>
-        <span class="cm">/* The ratio of uptime to total time must reach at least a minimum availability. */</span>
+        <span class="cm">/*
+         * The ratio of uptime to total time must reach at least a minimum availability.
+         * The optional tolerance relaxes the bound: availabilities of at least minAvailability - tolerance are accepted.
+         */</span>
         <span class="kw">attribute</span> uptime :&gt; <span class="ty">ISQ</span>::duration;
         <span class="kw">attribute</span> totalTime :&gt; <span class="ty">ISQ</span>::duration;
         <span class="kw">attribute</span> minAvailability : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>;
+        <span class="kw">attribute</span> tolerance[0..1] : <span class="ty">ScalarValues</span>::<span class="ty">Real</span> <span class="kw">default</span> 0.0;
 
         <span class="kw">require</span> <span class="kw">constraint</span> {
-            uptime / totalTime &gt;= minAvailability
+            uptime / totalTime &gt;= minAvailability - tolerance
         }
     }
     <span class="kw">requirement</span> <span class="kw">def</span> <span class="ty">MinReliability</span> {
         <span class="kw">doc</span>
-        <span class="cm">/* The mean time between failures must reach at least a minimum MTBF. */</span>
+        <span class="cm">/*
+         * The mean time between failures must reach at least a minimum MTBF.
+         * The optional tolerance (a duration, default 0 s) relaxes the bound: an MTBF of at least minMTBF - tolerance is accepted.
+         */</span>
         <span class="kw">attribute</span> meanTimeBetweenFailures :&gt; <span class="ty">ISQ</span>::duration;
         <span class="kw">attribute</span> minMTBF :&gt; <span class="ty">ISQ</span>::duration;
+        <span class="kw">attribute</span> tolerance[0..1] :&gt; <span class="ty">ISQ</span>::duration <span class="kw">default</span> 0 [<span class="ty">SI</span>::s];
 
         <span class="kw">require</span> <span class="kw">constraint</span> {
-            meanTimeBetweenFailures &gt;= minMTBF
+            meanTimeBetweenFailures &gt;= minMTBF - tolerance
         }
     }
 }`;

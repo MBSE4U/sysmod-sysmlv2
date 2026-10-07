@@ -41,6 +41,7 @@ package <DD> DeliveryDrone {
         part johnFinch :>> projectOwner {
             doc /* John Finch is the head of drone engineering at the contractor
                    and accountable for the Delivery Drone project. */
+            attribute :>> name = "John Finch";
         }
 
         concern :>> problemStatement {
@@ -55,19 +56,36 @@ package <DD> DeliveryDrone {
 
         //------------------------- Stakeholders
         private import DD_STAKEHOLDERS::*;
-        part logisticCompany : LogisticCompany :> projectStakeholders;
-        part droneOperator : DroneOperator :> projectStakeholders;
-        part recipient : Recipient :> projectStakeholders;
-        part regulator : Regulator :> projectStakeholders;
+        part logisticCompany : LogisticCompany :> projectStakeholders {
+            attribute :>> name = "Logistic Company";
+        }
+        part droneOperator : DroneOperator :> projectStakeholders {
+            attribute :>> name = "Drone Operator";
+        }
+        part recipient : Recipient :> projectStakeholders {
+            attribute :>> name = "Recipient";
+        }
+        part regulator : Regulator :> projectStakeholders {
+            attribute :>> name = "Aviation Authority";
+        }
 
         //------------------------- Stakeholder Needs
         private import DD_STAKEHOLDERNEEDS::*;
         concern :>> stakeholderNeeds {
             subject :>> brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
             frame problemStatement :>> Project::stakeholderNeeds::problemStatement :> PRJ::problemStatement;
-            concern reliableDelivery : ReliableDelivery;
-            concern safeOperation : SafeOperation;
-            concern lowDeliveryCost : LowDeliveryCost;
+            concern reliableDelivery : ReliableDelivery {
+                subject :>> brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
+                stakeholder :>> logisticCompany = PRJ::logisticCompany;
+            }
+            concern safeOperation : SafeOperation {
+                subject :>> brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
+                stakeholder :>> droneOperator = PRJ::droneOperator;
+            }
+            concern lowDeliveryCost : LowDeliveryCost {
+                subject :>> brownfieldSystem = deliveryDroneBrownfieldContextImpl.deliveryDroneSystemImpl;
+                stakeholder :>> logisticCompany = PRJ::logisticCompany;
+            }
         }
 
         //------------------------- Brownfield Architecture
@@ -89,10 +107,10 @@ package <DD> DeliveryDrone {
 
         //------------------------- Specification
         part deliveryDroneSpecificationContext :>> specificationContext : DD_SPECIFICATION::DeliveryDroneSystemContext :> deliveryDroneSystemIdeaContext {
-            part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSystemIdeaContext::deliveryDroneSystem, Project::systemIdeaContext::soi;
+            part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSystemIdeaContext::deliveryDroneSystem, Project::specificationContext::soi;
         }
         part deliveryDroneSpecificationContextImpl :>> specificationContextImpl : DD_SPECIFICATION::DeliveryDroneSystemContextImpl :> deliveryDroneSpecificationContext, deliveryDroneSystemIdeaContextImpl {
-            part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSystemIdeaContextImpl::deliveryDroneSystemImpl, Project::systemIdeaContextImpl::soiImpl;
+            part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSystemIdeaContextImpl::deliveryDroneSystemImpl, Project::specificationContextImpl::soiImpl;
         }
         requirement deliveryDroneSystemRequirementsSpecification :>> systemRequirementSpecification : DD_SPECIFICATION::Requirements::DeliveryDroneSystemRequirements {
             subject deliveryDroneSystem :>> specificationSystem, deliveryDroneSystem :> deliveryDroneSpecificationContext.deliveryDroneSystem;
@@ -116,10 +134,9 @@ package <DD> DeliveryDrone {
         // The functional2logical and logical2product allocations are inherited from SYSMOD::Project.
 
         //------------------------- Sub-Projects
-        occurrence controlStationProject : DDCS::DeliveryDroneControlStationProject {
-            doc /* The control station is developed in a SYSMOD sub-project. As a
-                   suboccurrence of this project, it is automatically a member of
-                   the derived subProjects list. */
+        occurrence controlStationProject : DDCS::DeliveryDroneControlStationProject :> subProjects {
+            doc /* The control station is developed in a SYSMOD sub-project. It
+                   subsets the subProjects list inherited from SYSMOD::Project. */
         }
     }
 }

@@ -29,7 +29,23 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
          * black-box specification context only: the functional architecture contains
          * functional blocks and must not depend on the physical internal
          * structure of the system. */
-        #System part :>> deliveryDroneSystem : DeliveryDroneFunctionalSystem;
+        #system part :>> deliveryDroneSystem : DeliveryDroneFunctionalSystem;
+
+        use case :>> deliverPackage : DD_SPECIFICATION::UseCases::DeliverPackage {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> chargeDrone : DD_SPECIFICATION::UseCases::ChargeDrone {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> reportFleetStatus : DD_SPECIFICATION::UseCases::ReportFleetStatus {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> handleEmergencyLanding : DD_SPECIFICATION::UseCases::HandleEmergencyLanding {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> monitorDroneHealth : DD_SPECIFICATION::UseCases::MonitorDroneHealth {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
     }
     part def DeliveryDroneFunctionalSystem :> DD_SPECIFICATION::DeliveryDroneSystem {
         doc
@@ -50,6 +66,7 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
             bind pickupPositionPort.position = planDelivery.task.pickupLocation;
             bind deliveryPositionPort.position = planDelivery.task.deliverLocation;
             perform planDelivery;
+            perform createDeliveryOrder;
         }
 
         interface :Interfaces::PositionInterface 

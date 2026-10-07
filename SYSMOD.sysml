@@ -3,7 +3,7 @@ library package SYSMOD {
     /* 
      * Definition of SYSMOD v5 for SysML v2
      *
-     * Version v5.1.3
+     * Version v5.1.4
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -24,8 +24,18 @@ library package SYSMOD {
     // SYSMOD Project which links all the main artifacts together within a shared context.
     //
     occurrence def Project {
-        doc
+        doc 
         /* The Project provides a context for all main engineering artifacts used for this specific project and sets cross relationships. */
+
+        action defaultProcess : SYSMODProcesses::SYSMODDefaultProcess {
+            doc
+            /* The SYSMOD process performed by the project. It defaults to SYSMODDefaultProcess and can be redefined with a specialization of it to tailor the process. */
+        }
+
+        attribute purpose : ScalarValues::String {
+            doc
+            /* The purpose of the project is a brief description of the purpose of the project. */
+        }
 
         part projectOwner :> projectStakeholders {
             doc
@@ -132,6 +142,12 @@ library package SYSMOD {
 
             }
         }
+        verification verificationCases[*] {
+            doc
+            /* The verification cases verify and validate the system requirements. */
+            subject productSystem :> productContext.soiImpl;
+        }
+
         allocation functional2logical [0..1] allocate functionalContext to logicalContext {
             doc
             /* Allocation of the functional architecture to the logical architecture. */
@@ -141,10 +157,9 @@ library package SYSMOD {
             /* Allocation of the logical architecture to the product architecture. */
         }
 
-        derived occurrence subProjects : Project [*] = 
-            (suboccurrences->ControlFunctions::select({in o; o hastype Project})) as Project {
-                doc /* List of all subProjects, for example, a standalone project for a subsystem or component of the system. */
-            }
+        occurrence subProjects : Project [*] {
+            doc /* List of all subProjects, for example, a standalone project for a subsystem or component of the system. */
+        }
     }
     abstract occurrence projects : Project [*] {
         doc
@@ -199,21 +214,21 @@ library package SYSMOD {
     }
 
     // System
-    metadata def System {
+    metadata def system {
         doc /* System is merely a label used to tag an element. The element could play a different role in a different context. */
         :> annotatedElement : SysML::PartUsage;        
     }
 
     // Actor Categories
-    metadata def User {
+    metadata def user {
         doc /* User is merely a label used to tag an element. The element could play a different role in a different context. */
         :> annotatedElement : SysML::PartUsage;
     }
-    metadata def ExternalSystem {
+    metadata def externalSystem {
         doc /* ExternalSystem is merely a label used to tag an element. The element could play a different role in a different context. */
         :> annotatedElement : SysML::PartUsage;
     }
-    metadata def EnvironmentalEffect {
+    metadata def environmentalEffect {
         doc /* EnvironmentalEffect is merely a label used to tag an element. The element could play a different role in a different context. */
         :> annotatedElement : SysML::PartUsage;
     }
@@ -233,12 +248,29 @@ library package SYSMOD {
     }
     use case systemUseCases[*] : SystemUseCase;
 
+    use case def SecondaryUseCase :> SystemUseCase {
+        doc /* Marks a use case as a SYSMOD secondary use case: a use case that is not started directly by an actor and does not deliver a result of value to an actor on its own, but describes a part of the behavior shared by other use cases, which include it. */
+    }
+    use case secondaryUseCases[*] : SecondaryUseCase;
+    use case def SystemProcess :> SystemUseCase {
+        doc /* Marks a use case as a SYSMOD system process: a use case that describes the logical and temporal order of several related system use cases that together form one overall process of the system. */
+    }
+    use case systemProcesses[*] : SystemProcess;
+    use case def ContinuousUseCase :> SystemUseCase {
+        doc /* Marks a use case as a SYSMOD continuous use case: a use case whose result is delivered continuously while it runs rather than once at its end, e.g., monitoring or controlling a quantity, so it typically has no regular termination. */
+    }
+    use case continuousUseCases[*] : ContinuousUseCase;
+
     //
     // SYSMOD Stakeholder and Requirement Concepts
     //
     part def ExtendedStakeholder {
         doc
         /* SYSMOD-specific stakeholder concept with attributes to assess and prioritize stakeholders. Stakeholders are individuals or organizations with an interest in the system and are potential sources of requirements. */
+        attribute name : ScalarValues::String {
+            doc
+            /* Name of the stakeholder. */
+        }
         attribute risk : LevelKind default LevelKind::none {
             doc
             /* What is the risk of failure if I ignore this stakeholder? */
@@ -247,7 +279,7 @@ library package SYSMOD {
             doc
             /* How much effort is involved in identifying this stakeholder's concerns and requirements? */
         }
-        derived attribute priority : ScalarValues::Real = risk * effort {
+        derived attribute attention : ScalarValues::Real = risk * effort {
             doc
             /* Priority is the product of risk and effort. */
         }
@@ -329,7 +361,7 @@ library package SYSMOD {
         /* Common enumeration of levels with real values, for example, for priority calculations. */
         none = 0.0;
         low = 0.25;
-        medium = 0.5;
+        middle = 0.5;
         high = 0.75;
         critical = 1.0;
     }
@@ -403,8 +435,417 @@ library package SYSMOD {
         /* Enables the user-defined keyword #systemUseCase. */
         :>> baseType = systemUseCases meta SysML::Type;
         :> annotatedElement : SysML::UseCaseDefinition;
-        :> annotatedElement : SysML::UseCaseUsage;
     }    
+    metadata def <secondaryUseCase> SecondaryUsageCaseMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #secondaryUseCase. */
+        :>> baseType = secondaryUseCases meta SysML::Type;
+        :> annotatedElement : SysML::UseCaseDefinition;
+    }
+    metadata def <systemProcess> SystemProcessMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #systemProcess. */
+        :>> baseType = systemProcesses meta SysML::Type;
+        :> annotatedElement : SysML::UseCaseDefinition;
+    }
+    metadata def <continuousUseCase> ContinuousUseCaseMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #continuousUseCase. */
+        :>> baseType = continuousUseCases meta SysML::Type;
+        :> annotatedElement : SysML::UseCaseDefinition;
+    }
+
+    package SYSMODProcesses {
+        doc
+        /*
+         * The SYSMOD process definitions.
+         *
+         * SYSMODDefaultProcess is the default SYSMOD workflow and is performed by every project as Project::defaultProcess.
+         * It consists of one action definition per SYSMOD step. Each step reads artifacts of the project and produces
+         * the project artifacts it is responsible for (flows to and bindings with the project features).
+         * The successions define the default order; all steps after SetupProject are optional ([0..1]), for example,
+         * SpecifyBrownfieldSystem in a greenfield project or the functional and logical architectures.
+         *
+         * Each step refines one or more ISO/IEC/IEEE 15288 processes from the package ISO15288Processes (#refinement dependencies at the end of this package).
+         * A project can tailor the process by redefining Project::defaultProcess with a specialization of SYSMODDefaultProcess.
+         */
+
+        private import ModelingMetadata::refinement;
+
+        action def SYSMODDefaultProcess {
+            doc
+            /*
+             * The default SYSMOD process: setupProject, specifyBrownfieldSystem, specifyProblemStatement, identifyStakeholders,
+             * elaborateStakeholderNeeds, pitchSystemIdea, defineSystemSpecification, createSolutionArchitectures, and verifyAndValidateRequirements, in this order.
+             * The project that performs the process is referenced by project. Outputs of the steps flow into the corresponding project features,
+             * and the inputs of the steps are bound to the project features created by earlier steps.
+             * The input parameters are the information a human or an AI assistant provides to start the process. */
+            ref occurrence project :>> this : Project;
+
+            in attribute projectOwnerName : ScalarValues::String {
+                doc
+                /* The project owner is the stakeholder who is in charge of the project. */
+            }
+            in attribute projectPurpose : ScalarValues::String {
+                doc
+                /* The project purpose is a brief description of the purpose of the project. */
+            }
+            in item brownfieldArchitecture : ArchitectureDescription {
+                doc
+                /* The brownfield architecture is a description of the existing system. */
+            }
+            in attribute problemStatementText : ScalarValues::String {
+                doc
+                /* The problem statement is a brief description of the problem the system of interest is intended to solve. */
+            }
+            in item systemIdeaArchitecture : ArchitectureDescription {
+                doc
+                /* The system idea architecture is a description of the proposed system. */
+            }
+            in item solutionArchitecture : ArchitectureDescription {
+                doc
+                /* The solution architecture is a description of the solution system. */
+            }
+
+            first start then setupProject;
+            first [0..1]setupProject then [0..1]specifyBrownfieldSystem;
+            first [0..1]specifyBrownfieldSystem then [0..1]specifyProblemStatement;
+            first [0..1]specifyProblemStatement then [0..1]identifyStakeholders;
+            first [0..1]identifyStakeholders then [0..1]elaborateStakeholderNeeds;
+            first [0..1]elaborateStakeholderNeeds then [0..1]pitchSystemIdea;
+            first [0..1]pitchSystemIdea then [0..1]defineSystemSpecification;
+            first [0..1]defineSystemSpecification then [0..1]createSolutionArchitectures;
+            first [0..1]createSolutionArchitectures then [0..1]verifyAndValidateRequirements;
+            first [0..1]verifyAndValidateRequirements then done;
+
+            flow from specifyBrownfieldSystem.brownfieldContext to project.brownfieldContext;
+            flow from specifyBrownfieldSystem.brownfieldContextImpl to project.brownfieldContextImpl;
+            flow from specifyProblemStatement.problemStatement to project.problemStatement;
+            flow from identifyStakeholders.projectStakeholders to project.projectStakeholders;
+            flow from elaborateStakeholderNeeds.stakeholderNeeds to project.stakeholderNeeds;
+            flow from pitchSystemIdea.systemIdeaContext to project.systemIdeaContext;
+            flow from pitchSystemIdea.systemIdeaContextImpl to project.systemIdeaContextImpl;
+            flow from defineSystemSpecification.specificationContext to project.specificationContext;
+            flow from defineSystemSpecification.specificationContextImpl to project.specificationContextImpl;
+            flow from defineSystemSpecification.systemRequirementSpecification to project.systemRequirementSpecification;
+            flow from createSolutionArchitectures.functionalContext to project.functionalContext;
+            flow from createSolutionArchitectures.logicalContext to project.logicalContext;
+            flow from createSolutionArchitectures.productContext to project.productContext;
+            flow from verifyAndValidateRequirements.verificationCases to project.verificationCases;
+
+            bind project.brownfieldContextImpl = specifyProblemStatement.brownfieldContextImpl;
+            bind project.brownfieldContextImpl = specifyBrownfieldSystem.brownfieldContextImpl;
+            bind project.problemStatement = identifyStakeholders.problemStatement;
+            bind project.problemStatement = elaborateStakeholderNeeds.problemStatement;
+            bind project.projectStakeholders = elaborateStakeholderNeeds.projectStakeholders;
+            bind project.problemStatement = pitchSystemIdea.problemStatement;
+            bind project.stakeholderNeeds = pitchSystemIdea.stakeholderNeeds;
+            bind project.systemIdeaContextImpl = defineSystemSpecification.systemIdeaContextImpl;
+            bind project.stakeholderNeeds = defineSystemSpecification.stakeholderNeeds;
+            bind project.specificationContextImpl = createSolutionArchitectures.specificationContextImpl;
+            bind project.systemRequirementSpecification = verifyAndValidateRequirements.systemRequirementSpecification;
+            bind project.productContext = verifyAndValidateRequirements.productContext;
+
+            action setupProject : SetupProject {
+                in attribute projectOwnerName = SYSMODDefaultProcess::projectOwnerName;
+                in attribute projectPurpose = SYSMODDefaultProcess::projectPurpose;
+            }
+            action specifyBrownfieldSystem : SpecifyBrownfieldSystem {
+                in item brownfieldArchitecture = SYSMODDefaultProcess::brownfieldArchitecture;
+            }
+            action specifyProblemStatement : SpecifyProblemStatement {
+                in part projectOwner = SYSMODDefaultProcess::project.projectOwner;
+                in attribute problemStatementText = SYSMODDefaultProcess::problemStatementText;
+            }
+            action identifyStakeholders : IdentifyStakeholders;
+            action elaborateStakeholderNeeds : ElaborateStakeholderNeeds;
+            action pitchSystemIdea : PitchSystemIdea {
+                in item systemIdeaArchitecture = SYSMODDefaultProcess::systemIdeaArchitecture;
+            }
+            action defineSystemSpecification : DefineSystemSpecification;
+            action createSolutionArchitectures : CreateSolutionArchitectures {
+                in item solutionArchitecture = SYSMODDefaultProcess::solutionArchitecture;
+            }
+            action verifyAndValidateRequirements : VerifyAndValidateRequirements;
+        }
+
+        action def SetupProject { 
+            doc
+            /* Sets up a new SYSMOD project: assigns the name of the project owner and the purpose of the project. Refines the ISO 15288 Project Planning process. */
+            ref occurrence project :>> this : Project;
+
+            in attribute projectOwnerName : ScalarValues::String {
+                doc
+                /* The project owner is the stakeholder who is in charge of the project. */
+            }
+            in attribute projectPurpose : ScalarValues::String {
+                doc
+                /* The project purpose is a brief description of the purpose of the project. */
+            }
+
+            assign project.projectOwner.name := projectOwnerName;
+            assign project.purpose := projectPurpose;
+        }
+
+        action def SpecifyBrownfieldSystem {
+            doc
+            /* Specifies the existing (brownfield) system and its actors as black-box context (brownfieldContext) and white-box context (brownfieldContextImpl), based on a given description of the existing architecture. Optional for greenfield projects. Refines the ISO 15288 Business or Mission Analysis process. */
+            in item brownfieldArchitecture : ArchitectureDescription;
+            out part brownfieldContext : SystemContext;
+            out part brownfieldContextImpl : SystemContext;
+        }
+
+        action def SpecifyProblemStatement {
+            doc
+            /* Specifies the problem statement: a solution-free elevator pitch of the problem, with the brownfield system as subject and the project owner as stakeholder. Refines the ISO 15288 Business or Mission Analysis process. */
+            in part projectOwner : ExtendedStakeholder;
+            in attribute problemStatementText : ScalarValues::String {
+                doc
+                /* The problem statement is a brief description of the problem the system of interest is intended to solve. */
+            }
+            in part brownfieldContextImpl : SystemContext;
+            out concern problemStatement : ExtendedConcern;
+        }
+
+        action def IdentifyStakeholders {
+            doc
+            /* Identifies the stakeholders of the project based on the problem statement and assesses their risk, effort, and categories. Refines the ISO 15288 Stakeholder Needs and Requirements Definition process. */
+            in concern problemStatement : ExtendedConcern;
+            out part projectStakeholders[*] : ExtendedStakeholder {
+                doc /* The stakeholders of the project are individuals and organizations that have an interest in the system. The list includes the project owner retrieved from the problemStatement.*/
+            }
+        }
+
+        action def ElaborateStakeholderNeeds {
+            doc
+            /* Elaborates the needs of the stakeholders at intent level, framed by the problem statement and traced to the stakeholders they come from. Refines the ISO 15288 Stakeholder Needs and Requirements Definition process. */
+            in concern problemStatement : ExtendedConcern;
+            in part projectStakeholders[*] : ExtendedStakeholder;
+            out concern stakeholderNeeds : ExtendedConcern;
+        }
+
+        action def PitchSystemIdea {
+            doc
+            /* Pitches the system idea: a conceptual, elevator-pitch-style outline of the new or changed system that answers the problem statement and the stakeholder needs, as black-box (systemIdeaContext) and white-box (systemIdeaContextImpl) context. Refines the ISO 15288 Business or Mission Analysis process. */
+            in item systemIdeaArchitecture : ArchitectureDescription;
+            in concern problemStatement : ExtendedConcern;
+            in concern stakeholderNeeds : ExtendedConcern;
+            out part systemIdeaContext : SystemContext;
+            out part systemIdeaContextImpl : SystemContext;
+        }
+
+        action def DefineSystemSpecification {
+            doc
+            /* Defines the system specification based on the system idea and the stakeholder needs: the specification contexts, the system use cases, and the system requirements. Refines the ISO 15288 System Requirements Definition process. */
+            in part systemIdeaContextImpl : SystemContext;
+            in concern stakeholderNeeds : ExtendedConcern;
+            out part specificationContext : SystemContext;
+            out part specificationContextImpl : SystemContext;
+            out requirement systemRequirementSpecification : ExtendedRequirement;
+
+            action specifySpecificationArchitecture {
+                doc
+                /* Refines the system idea contexts into the black-box and white-box specification contexts. */
+                in part systemIdeaContextImpl : SystemContext = DefineSystemSpecification::systemIdeaContextImpl;
+                out part specificationContext : SystemContext = DefineSystemSpecification::specificationContext;
+                out part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
+            }
+            action identifyUseCases {
+                doc
+                /* Identifies the system use cases of the specification context that describe how the actors interact with the system. */
+                in part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
+                in concern stakeholderNeeds : ExtendedConcern = DefineSystemSpecification::stakeholderNeeds;
+                out use case systemUseCases[*] : SystemUseCase = DefineSystemSpecification::specificationContext.useCases;
+            }
+            action elaborateSystemRequirements {
+                doc
+                /* Elaborates the verifiable, solution-neutral system requirements that frame the stakeholder needs. */
+                in part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
+                in concern stakeholderNeeds : ExtendedConcern = DefineSystemSpecification::stakeholderNeeds;
+                out requirement systemRequirementSpecification : ExtendedRequirement = DefineSystemSpecification::systemRequirementSpecification;
+            }
+        }
+
+        action def CreateSolutionArchitectures {
+            doc
+            /* Creates the solution architectures based on the white-box specification context: the optional functional and logical architectures and the product architecture. Refines the ISO 15288 System Architecture Definition process. */
+            in item solutionArchitecture : ArchitectureDescription;
+            in part specificationContextImpl : SystemContext;
+            out part functionalContext[0..1] : SystemContext;
+            out part logicalContext[0..1] : SystemContext;
+            out part productContext : SystemContext;
+        }
+
+        action def VerifyAndValidateRequirements {
+            doc
+            /* Creates the verification cases that verify the product system against the system requirements and validate it against the stakeholder needs and the problem statement. Refines the ISO 15288 Verification and Validation processes. */
+            in requirement systemRequirementSpecification : ExtendedRequirement;
+            in part productContext : SystemContext;
+            out verification verificationCases[*];
+        }
+
+        item def ArchitectureDescription {
+            doc
+            /* An informal description of a system architecture, given by a human or an AI assistant as input to a process step, for example, a text, sketch, or document of the existing system. */
+        }
+
+        //
+        // Refinement of the ISO 15288 processes by the SYSMOD processes
+        //
+        #refinement dependency SetupProject to ISO15288Processes::ProjectPlanning;
+        #refinement dependency SpecifyBrownfieldSystem to ISO15288Processes::BusinessOrMissionAnalysis;
+        #refinement dependency SpecifyProblemStatement to ISO15288Processes::BusinessOrMissionAnalysis;
+        #refinement dependency IdentifyStakeholders to ISO15288Processes::StakeholderNeedsAndRequirementsDefinition;
+        #refinement dependency ElaborateStakeholderNeeds to ISO15288Processes::StakeholderNeedsAndRequirementsDefinition;
+        #refinement dependency PitchSystemIdea to ISO15288Processes::BusinessOrMissionAnalysis;
+        #refinement dependency DefineSystemSpecification to ISO15288Processes::SystemRequirementsDefinition;
+        #refinement dependency CreateSolutionArchitectures to ISO15288Processes::SystemArchitectureDefinition;
+        #refinement dependency VerifyAndValidateRequirements to ISO15288Processes::Verification;
+        #refinement dependency VerifyAndValidateRequirements to ISO15288Processes::Validation;
+    }
+
+    package ISO15288Processes {
+        doc /* Package containing the 30 system life cycle processes of ISO/IEC/IEEE 15288, grouped into agreement, organizational project-enabling, technical management, and technical processes. */
+
+        //
+        // Agreement Processes
+        //
+        action def Acquisition {
+            doc
+            /* The Acquisition process obtains a product or service in accordance with the acquirer's requirements. */
+        }
+        action def Supply {
+            doc
+            /* The Supply process provides an acquirer with a product or service that meets agreed requirements. */
+        }
+
+        //
+        // Organizational Project-Enabling Processes
+        //
+        action def LifeCycleModelManagement {
+            doc
+            /* The Life Cycle Model Management process defines, maintains, and assures availability of policies, life cycle processes, life cycle models, and procedures for use by the organization. */
+        }
+        action def InfrastructureManagement {
+            doc
+            /* The Infrastructure Management process provides the infrastructure and services to projects to support organization and project objectives throughout the life cycle. */
+        }
+        action def PortfolioManagement {
+            doc
+            /* The Portfolio Management process initiates and sustains necessary, sufficient, and suitable projects in order to meet the strategic objectives of the organization. */
+        }
+        action def HumanResourceManagement {
+            doc
+            /* The Human Resource Management process provides the organization with necessary human resources and maintains their competencies consistent with business needs. */
+        }
+        action def QualityManagement {
+            doc
+            /* The Quality Management process assures that products, services, and implementations of the life cycle processes meet the organization's quality objectives and achieve customer satisfaction. */
+        }
+        action def KnowledgeManagement {
+            doc
+            /* The Knowledge Management process creates the capability and assets that enable the organization to exploit opportunities to re-apply existing knowledge. */
+        }
+
+        //
+        // Technical Management Processes
+        //
+        action def ProjectPlanning {
+            doc
+            /* The Project Planning process produces and coordinates effective and workable plans. */
+        }
+        action def ProjectAssessmentAndControl {
+            doc
+            /* The Project Assessment and Control process assesses if the plans are aligned and feasible, determines the status of the project, technical, and process performance, and directs execution to help ensure that the performance is according to plans and schedules, within projected budgets, and satisfies technical objectives. */
+        }
+        action def DecisionManagement {
+            doc
+            /* The Decision Management process provides a structured, analytical framework for objectively identifying, characterizing, and evaluating a set of alternatives for a decision at any point in the life cycle and selecting the most beneficial course of action. */
+        }
+        action def RiskManagement {
+            doc
+            /* The Risk Management process continually identifies, analyzes, treats, and monitors risks. */
+        }
+        action def ConfigurationManagement {
+            doc
+            /* The Configuration Management process manages and controls system elements and configurations over the life cycle. */
+        }
+        action def InformationManagement {
+            doc
+            /* The Information Management process generates, obtains, confirms, transforms, retains, retrieves, disseminates, and disposes of information to designated stakeholders. */
+        }
+        action def Measurement {
+            doc
+            /* The Measurement process collects, analyzes, and reports objective data and information to support effective management and demonstrate the quality of the products, services, and processes. */
+        }
+        action def QualityAssurance {
+            doc
+            /* The Quality Assurance process helps ensure the effective application of the organization's Quality Management process to the project. */
+        }
+
+        //
+        // Technical Processes
+        //
+        action def BusinessOrMissionAnalysis {
+            doc
+            /* The Business or Mission Analysis process defines the business or mission problem or opportunity, characterizes the solution space, and determines potential solution class(es) that can address a problem or take advantage of an opportunity. */
+        }
+        action def StakeholderNeedsAndRequirementsDefinition {
+            doc
+            /* The Stakeholder Needs and Requirements Definition process defines the stakeholder requirements for a system that can provide the capabilities needed by users and other stakeholders in a defined environment. */
+        }
+        action def SystemRequirementsDefinition {
+            doc
+            /* The System Requirements Definition process transforms the stakeholder, user-oriented view of desired capabilities into a technical view of a solution that meets the operational needs of the user. */
+        }
+        action def SystemArchitectureDefinition {
+            doc
+            /* The System Architecture Definition process generates system architecture alternatives, selects one or more alternatives that address stakeholder concerns and system requirements, and expresses this in consistent views and models. */
+        }
+        action def DesignDefinition {
+            doc
+            /* The Design Definition process provides sufficient detailed data and information about the system and its elements to enable the implementation consistent with the architectural entities as defined in the models and views of the system architecture. */
+        }
+        action def SystemAnalysis {
+            doc
+            /* The System Analysis process provides a rigorous basis of data and information for technical understanding to aid decision-making across the life cycle. */
+        }
+        action def Implementation {
+            doc
+            /* The Implementation process realizes a specified system element. */
+        }
+        action def Integration {
+            doc
+            /* The Integration process synthesizes a set of system elements into a realized system that satisfies the system requirements, architecture, and design. */
+        }
+        action def Verification {
+            doc
+            /* The Verification process provides objective evidence that a system or system element fulfills its specified requirements and characteristics. */
+        }
+        action def Transition {
+            doc
+            /* The Transition process establishes a capability for a system to provide services specified by stakeholder requirements in the operational environment. */
+        }
+        action def Validation {
+            doc
+            /* The Validation process provides objective evidence that the system, when in use, fulfills its business or mission objectives and stakeholder requirements, achieving its intended use in its intended operational environment. */
+        }
+        action def Operation {
+            doc
+            /* The Operation process uses the system to deliver its services. */
+        }
+        action def Maintenance {
+            doc
+            /* The Maintenance process sustains the capability of the system to provide a service. */
+        }
+        action def Disposal {
+            doc
+            /* The Disposal process ends the existence of a system element or system for a specified intended use, appropriately handling replaced or retired elements. */
+        }
+    }
 }
 
     

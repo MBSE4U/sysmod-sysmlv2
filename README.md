@@ -40,6 +40,22 @@ package MyProject {
 
 For AI-assisted creation and validation, additionally import `SYSMOD4AI` and apply `AIProject`'s AI metadata usages (e.g. `AIProject::problemStatementAI`) to the identically-named/-roled feature on your own project.
 
+## AI Quick Start
+
+You don't need a special plugin or skill to use SYSMOD with an AI assistant. The prompts are part of the library: every main artifact of a project carries AI metadata in `SYSMOD4AI.sysml` with questions to ask, instructions to create the artifact, and rules to validate it. `AIProject::defaultProcessAI` walks you through the whole SYSMOD process step by step and uses the AI metadata of each artifact on the way.
+
+Give an AI assistant that can read GitHub repositories the following prompt and answer its questions:
+
+```text
+Perform the prompts in AIProject::defaultProcessAI in the file SYSMOD4AI.sysml of the GitHub repository MBSE4U/sysmod-sysmlv2 (branch main), which is based on the SYSMOD methodology in the file SYSMOD.sysml of the same repository.
+```
+
+Each AI metadata usage also has a `story_prompt` and a `slide_prompt` that explain the model in plain language for stakeholders who don't read SysML. For example, once the assistant has created a model of a camera drone:
+
+```text
+Create a PowerPoint slide deck of the camera drone using the story and slide prompts in SYSMOD4AI, telling the whole story of the system by walking through SYSMOD. The target audience is clients.
+```
+
 ## Repository Structure
 
 ```

@@ -23,23 +23,6 @@ library package <DDD> DeliveryDroneDomainLibrary {
      * Copyright 2026, MBSE4U, Tim Weilkiens
      */
     package Items {
-        item def Parcel {
-            doc /* The physical package being transported by the drone. */
-        }
-        item def DeliveryOrder {
-            doc /* The client's request specifying what to deliver and where. */
-        }
-        item def DeliveryTask {
-            doc /* A concrete delivery assignment given to a specific drone. */
-            item pickupLocation : Position;
-            item deliverLocation : Position;
-        }
-        item def Position {
-            doc /* A drone position.  */
-        }
-        item def LowBatterySignal {
-            doc /* An indication that a drone's battery is too low to complete its route. */
-        }
         item def BatteryLevel {
             doc /* The current charge level of a drone's battery. */
         }
@@ -49,20 +32,28 @@ library package <DDD> DeliveryDroneDomainLibrary {
         item def ChargingPosition {
             doc /* The shared in-flight position where two drones meet to transfer energy. */
         }
-        item def StatusRequest {
-            doc /* A request from the operator for the fleet's current status. */
+        item def CustomerRequest {
+            doc /* The customer's request for a delivery. */
+        }
+        item def DeliveryOrder {
+            doc /* The client's request specifying what to deliver and where. */
+        }
+        item def DeliveryTask {
+            doc /* A concrete delivery assignment given to a specific drone. */
+            item pickupLocation : Position;
+            item deliverLocation : Position;
         }
         item def DroneStatus {
             doc /* The position, battery level, and task status of a single drone. */
         }
-        item def SensorData {
-            doc /* Raw onboard sensor readings from a drone. */
+        item def EmergencyNotice {
+            doc /* A notification informing the operator of an in-progress emergency. */
         }
-        item def TaskData {
-            doc /* Information about a drone's currently assigned task. */
+        item def Energy {
+            doc /* The energy used by a drone. */
         }
-        item def FleetStatus {
-            doc /* The combined status of every active drone in the fleet. */
+        item def EnvData {
+            doc /* Environmental data, such as terrain and obstacles, near the drone. */
         }
         item def FaultData {
             doc /* Raw data indicating a malfunction detected on board a drone. */
@@ -70,17 +61,32 @@ library package <DDD> DeliveryDroneDomainLibrary {
         item def FaultSignal {
             doc /* A signal indicating that a drone has a critical fault. */
         }
-        item def EnvData {
-            doc /* Environmental data, such as terrain and obstacles, near the drone. */
+        item def FleetStatus {
+            doc /* The combined status of every active drone in the fleet. */
         }
-        item def EmergencyNotice {
-            doc /* A notification informing the operator of an in-progress emergency. */
+        item def IncidentReport {
+            doc /* A record of the emergency landing and its outcome. */
         }
         item def LandingOutcome {
             doc /* The result of an emergency landing, including whether the parcel was delivered. */
         }
-        item def IncidentReport {
-            doc /* A record of the emergency landing and its outcome. */
+        item def LowBatterySignal {
+            doc /* An indication that a drone's battery is too low to complete its route. */
+        }
+        item def Parcel {
+            doc /* The physical package being transported by the drone. */
+        }
+        item def Position {
+            doc /* A drone position.  */
+        }
+        item def SensorData {
+            doc /* Raw onboard sensor readings from a drone. */
+        }
+        item def StatusRequest {
+            doc /* A request from the operator for the fleet's current status. */
+        }
+        item def TaskData {
+            doc /* Information about a drone's currently assigned task. */
         }
     }
     package Behavior {

@@ -3,7 +3,7 @@ library package SYSMOD {
     /* 
      * Definition of SYSMOD v5 for SysML v2
      *
-     * Version v5.1.3 
+     * Version v5.1.4
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -24,8 +24,18 @@ library package SYSMOD {
     // SYSMOD Project which links all the main artifacts together within a shared context.
     //
     occurrence def Project {
-        doc
+        doc 
         /* The Project provides a context for all main engineering artifacts used for this specific project and sets cross relationships. */
+
+        action defaultProcess : SYSMODProcesses::SYSMODDefaultProcess {
+            doc
+            /* The SYSMOD process performed by the project. It defaults to SYSMODDefaultProcess and can be redefined with a specialization of it to tailor the process. */
+        }
+
+        attribute purpose : ScalarValues::String {
+            doc
+            /* The purpose of the project is a brief description of the purpose of the project. */
+        }
 
         part projectOwner :> projectStakeholders {
             doc
@@ -108,7 +118,7 @@ library package SYSMOD {
         }
         part functionalContext[0..1] :> specificationContext {
             doc
-            /* The Functional Context is optional and specializes the black-box specification context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white-box solution context: a functional architecture contains only functional blocks and must not depend on the physical internal structure of the system. */
+            /* The Functional Context is optional and specializes the black-box specification context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white-box specification context: a functional architecture contains only functional blocks and must not depend on the physical internal structure of the system. */
             part <soi> functionalSystem :>> specificationContext::soi {
                 doc
                 /* The Functional System is the root element of the functional architecture. It redefines the black-box specification system and thereby inherits the context information such as the system ports, so that functions can be related to the system's external interfaces without depending on its physical internal structure. */
@@ -132,6 +142,12 @@ library package SYSMOD {
 
             }
         }
+        verification verificationCases[*] {
+            doc
+            /* The verification cases verify and validate the system requirements. */
+            subject productSystem :> productContext.soiImpl;
+        }
+
         allocation functional2logical [0..1] allocate functionalContext to logicalContext {
             doc
             /* Allocation of the functional architecture to the logical architecture. */
@@ -141,10 +157,9 @@ library package SYSMOD {
             /* Allocation of the logical architecture to the product architecture. */
         }
 
-        derived occurrence subProjects : Project [*] = 
-            (suboccurrences->ControlFunctions::select({in o; o hastype Project})) as Project {
-                doc /* List of all subProjects, for example, a standalone project for a subsystem or component of the system. */
-            }
+        occurrence subProjects : Project [*] {
+            doc /* List of all subProjects, for example, a standalone project for a subsystem or component of the system. */
+        }
     }
     abstract occurrence projects : Project [*] {
         doc
@@ -199,21 +214,21 @@ library package SYSMOD {
     }
 
     // System
-    metadata def System {
+    metadata def system {
         doc /* System is merely a label used to tag an element. The element could play a different role in a different context. */
         :> annotatedElement : SysML::PartUsage;        
     }
 
     // Actor Categories
-    metadata def User {
+    metadata def user {
         doc /* User is merely a label used to tag an element. The element could play a different role in a different context. */
         :> annotatedElement : SysML::PartUsage;
     }
-    metadata def ExternalSystem {
+    metadata def externalSystem {
         doc /* ExternalSystem is merely a label used to tag an element. The element could play a different role in a different context. */
         :> annotatedElement : SysML::PartUsage;
     }
-    metadata def EnvironmentalEffect {
+    metadata def environmentalEffect {
         doc /* EnvironmentalEffect is merely a label used to tag an element. The element could play a different role in a different context. */
         :> annotatedElement : SysML::PartUsage;
     }
@@ -233,12 +248,29 @@ library package SYSMOD {
     }
     use case systemUseCases[*] : SystemUseCase;
 
+    use case def SecondaryUseCase :> SystemUseCase {
+        doc /* Marks a use case as a SYSMOD secondary use case: a use case that is not started directly by an actor and does not deliver a result of value to an actor on its own, but describes a part of the behavior shared by other use cases, which include it. */
+    }
+    use case secondaryUseCases[*] : SecondaryUseCase;
+    use case def SystemProcess :> SystemUseCase {
+        doc /* Marks a use case as a SYSMOD system process: a use case that describes the logical and temporal order of several related system use cases that together form one overall process of the system. */
+    }
+    use case systemProcesses[*] : SystemProcess;
+    use case def ContinuousUseCase :> SystemUseCase {
+        doc /* Marks a use case as a SYSMOD continuous use case: a use case whose result is delivered continuously while it runs rather than once at its end, e.g., monitoring or controlling a quantity, so it typically has no regular termination. */
+    }
+    use case continuousUseCases[*] : ContinuousUseCase;
+
     //
     // SYSMOD Stakeholder and Requirement Concepts
     //
     part def ExtendedStakeholder {
         doc
         /* SYSMOD-specific stakeholder concept with attributes to assess and prioritize stakeholders. Stakeholders are individuals or organizations with an interest in the system and are potential sources of requirements. */
+        attribute name : ScalarValues::String {
+            doc
+            /* Name of the stakeholder. */
+        }
         attribute risk : LevelKind default LevelKind::none {
             doc
             /* What is the risk of failure if I ignore this stakeholder? */
@@ -247,7 +279,7 @@ library package SYSMOD {
             doc
             /* How much effort is involved in identifying this stakeholder's concerns and requirements? */
         }
-        derived attribute priority : ScalarValues::Real = risk * effort {
+        derived attribute attention : ScalarValues::Real = risk * effort {
             doc
             /* Priority is the product of risk and effort. */
         }
@@ -329,7 +361,7 @@ library package SYSMOD {
         /* Common enumeration of levels with real values, for example, for priority calculations. */
         none = 0.0;
         low = 0.25;
-        medium = 0.5;
+        middle = 0.5;
         high = 0.75;
         critical = 1.0;
     }
@@ -373,399 +405,459 @@ library package SYSMOD {
     }
 
     //
-    // AI
+    // Semantic Metadata
     //
-    metadata def AI {
+    metadata def <project> ProjectMetadata :> Metaobjects::SemanticMetadata {
         doc
-        /* Machine-readable AI instructions attached to SYSMOD artifacts. An AI assistant can use the
-         * create_prompt to create the annotated artifact, the create_questions to elicit missing
-         * information from the user, and the validation_prompt to check an existing artifact against
-         * the SYSMOD rules.
-         */
-        attribute name : ScalarValues::String {
-            doc
-            /* Unique identifier of the AI skill, for example, 'sysmod-problem-statement'. */
-        }
-        attribute create_prompt : ScalarValues::String {
-            doc
-            /* Step-by-step instructions for an AI assistant to create the annotated artifact. */
-        }
-        attribute create_questions : ScalarValues::String [*] {
-            doc
-            /* Questions the AI assistant can ask the user to elicit missing information. */
-        }
-        attribute validation_prompt : ScalarValues::String {
-            doc
-            /* Instructions for an AI assistant to validate the annotated artifact against the SYSMOD rules. */
-        }
+        /* Enables the user-defined keyword #project to mark occurrence definitions and usages as SYSMOD projects. */
+        :>> baseType = projects meta SysML::Type;
+        :> annotatedElement : SysML::OccurrenceDefinition;
+        :> annotatedElement : SysML::OccurrenceUsage;
+    }
+    metadata def <systemContext> SystemContextMetadata :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #systemContext to mark part definitions and usages as SYSMOD system contexts. */
+        :>> baseType = systemContexts meta SysML::Type;
+        :> annotatedElement : SysML::PartDefinition;
+        :> annotatedElement : SysML::PartUsage;
+    }
+    metadata def <extendedStakeholder> StakeholderMetadata :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #extendedStakeholder to mark part definitions and usages as SYSMOD stakeholders. */
+        :>> baseType = stakeholders meta SysML::Type;
+        :> annotatedElement : SysML::PartDefinition;
+        :> annotatedElement : SysML::PartUsage;
+    }
+    metadata def <extendedConcern> ExtendedConcernMetadata :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #extendedConcern to mark concern definitions and usages as SYSMOD concerns. */
+        :>> baseType = extendedConcerns meta SysML::Type;
+        :> annotatedElement : SysML::ConcernDefinition;
+        :> annotatedElement : SysML::ConcernUsage;
+    }
+    metadata def <extendedRequirement> ExtendedRequirementMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #extendedRequirement to mark requirement definitions and usages as SYSMOD requirements. */
+        :>> baseType = extendedRequirements meta SysML::Type;
+        :> annotatedElement : SysML::RequirementDefinition;
+        :> annotatedElement : SysML::RequirementUsage;
+    }
+    metadata def <systemUseCase> SystemUseCaseMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #systemUseCase. */
+        :>> baseType = systemUseCases meta SysML::Type;
+        :> annotatedElement : SysML::UseCaseDefinition;
+    }    
+    metadata def <secondaryUseCase> SecondaryUsageCaseMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #secondaryUseCase. */
+        :>> baseType = secondaryUseCases meta SysML::Type;
+        :> annotatedElement : SysML::UseCaseDefinition;
+    }
+    metadata def <systemProcess> SystemProcessMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #systemProcess. */
+        :>> baseType = systemProcesses meta SysML::Type;
+        :> annotatedElement : SysML::UseCaseDefinition;
+    }
+    metadata def <continuousUseCase> ContinuousUseCaseMetadata
+        :> Metaobjects::SemanticMetadata {
+        doc
+        /* Enables the user-defined keyword #continuousUseCase. */
+        :>> baseType = continuousUseCases meta SysML::Type;
+        :> annotatedElement : SysML::UseCaseDefinition;
     }
 
-    occurrence def AIProject :> Project {
+    package SYSMODProcesses {
         doc
-        /* A SYSMOD Project enriched with AI metadata. Use AIProject instead of Project to enable AI-assisted
-         * creation and validation of the engineering artifacts. Each main artifact carries an AI metadata
-         * usage with prompts and questions; chained in SYSMOD order, they form a complete AI-assisted workflow.
+        /*
+         * The SYSMOD process definitions.
+         *
+         * SYSMODDefaultProcess is the default SYSMOD workflow and is performed by every project as Project::defaultProcess.
+         * It consists of one action definition per SYSMOD step. Each step reads artifacts of the project and produces
+         * the project artifacts it is responsible for (flows to and bindings with the project features).
+         * The successions define the default order; all steps after SetupProject are optional ([0..1]), for example,
+         * SpecifyBrownfieldSystem in a greenfield project or the functional and logical architectures.
+         *
+         * Each step refines one or more ISO/IEC/IEEE 15288 processes from the package ISO15288Processes (#refinement dependencies at the end of this package).
+         * A project can tailor the process by redefining Project::defaultProcess with a specialization of SYSMODDefaultProcess.
          */
-        metadata projectAI : AI {
-            name = "sysmod-project";
-            create_prompt =
-                "1. Create the SysML v2 textual notation for the project definition using the SYSMOD-defined keyword: '#project occurrence def PROJECTNAME {}'
-                2. Use the create_prompt of the AI metadata of the projectOwner to create the project owner of the project.
-                3. If not given by the user, use the questions to get the name of the project and the location where the project should be added.
-                4. Optionally continue with the other engineering artifacts in SYSMOD order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, functionalContext, logicalContext, productContext) using the create_prompts of their AI metadata.";
-            create_questions = (
-                "What is the name of the project?", "Where should I add the project definition?",
-            );
-            validation_prompt =
-                "Validate the project definition against the SYSMOD Project concept and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. The project is defined as an occurrence definition annotated with the #project keyword or specializing Project.
-                2. A projectOwner part usage is present and subsets projectStakeholders.
-                3. A brownfieldContext part usage is present and typed by a SystemContext specialization; a brownfieldContextImpl part usage is present and specializes brownfieldContext.
-                4. A problemStatement concern usage is present.
-                5. A stakeholderNeeds concern usage is present and frames the problemStatement.
-                6. A systemIdeaContext part usage is present and specializes brownfieldContext; a systemIdeaContextImpl part usage is present and specializes systemIdeaContext and brownfieldContextImpl.
-                7. A specificationContext part usage is present and specializes systemIdeaContext; a specificationContextImpl part usage is present and specializes specificationContext and systemIdeaContextImpl.
-                8. A systemRequirementSpecification requirement usage is present and frames stakeholderNeeds.
-                9. A productContext part usage is present and specializes specificationContextImpl.
-                10. The cross-artifact traceability chain is intact: problemStatement <- stakeholderNeeds <- systemRequirementSpecification, and satisfy relationships exist at the system idea and solution levels.
-                11. If both functionalContext and logicalContext are present, the functional2logical allocation is defined; if logicalContext is present, the logical2product allocation is defined.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+
+        private import ModelingMetadata::refinement;
+
+        action def SYSMODDefaultProcess {
+            doc
+            /*
+             * The default SYSMOD process: setupProject, specifyBrownfieldSystem, specifyProblemStatement, identifyStakeholders,
+             * elaborateStakeholderNeeds, pitchSystemIdea, defineSystemSpecification, createSolutionArchitectures, and verifyAndValidateRequirements, in this order.
+             * The project that performs the process is referenced by project. Outputs of the steps flow into the corresponding project features,
+             * and the inputs of the steps are bound to the project features created by earlier steps.
+             * The input parameters are the information a human or an AI assistant provides to start the process. */
+            ref occurrence project :>> this : Project;
+
+            in attribute projectOwnerName : ScalarValues::String {
+                doc
+                /* The project owner is the stakeholder who is in charge of the project. */
+            }
+            in attribute projectPurpose : ScalarValues::String {
+                doc
+                /* The project purpose is a brief description of the purpose of the project. */
+            }
+            in item brownfieldArchitecture : ArchitectureDescription {
+                doc
+                /* The brownfield architecture is a description of the existing system. */
+            }
+            in attribute problemStatementText : ScalarValues::String {
+                doc
+                /* The problem statement is a brief description of the problem the system of interest is intended to solve. */
+            }
+            in item systemIdeaArchitecture : ArchitectureDescription {
+                doc
+                /* The system idea architecture is a description of the proposed system. */
+            }
+            in item solutionArchitecture : ArchitectureDescription {
+                doc
+                /* The solution architecture is a description of the solution system. */
+            }
+
+            first start then setupProject;
+            first [0..1]setupProject then [0..1]specifyBrownfieldSystem;
+            first [0..1]specifyBrownfieldSystem then [0..1]specifyProblemStatement;
+            first [0..1]specifyProblemStatement then [0..1]identifyStakeholders;
+            first [0..1]identifyStakeholders then [0..1]elaborateStakeholderNeeds;
+            first [0..1]elaborateStakeholderNeeds then [0..1]pitchSystemIdea;
+            first [0..1]pitchSystemIdea then [0..1]defineSystemSpecification;
+            first [0..1]defineSystemSpecification then [0..1]createSolutionArchitectures;
+            first [0..1]createSolutionArchitectures then [0..1]verifyAndValidateRequirements;
+            first [0..1]verifyAndValidateRequirements then done;
+
+            flow from specifyBrownfieldSystem.brownfieldContext to project.brownfieldContext;
+            flow from specifyBrownfieldSystem.brownfieldContextImpl to project.brownfieldContextImpl;
+            flow from specifyProblemStatement.problemStatement to project.problemStatement;
+            flow from identifyStakeholders.projectStakeholders to project.projectStakeholders;
+            flow from elaborateStakeholderNeeds.stakeholderNeeds to project.stakeholderNeeds;
+            flow from pitchSystemIdea.systemIdeaContext to project.systemIdeaContext;
+            flow from pitchSystemIdea.systemIdeaContextImpl to project.systemIdeaContextImpl;
+            flow from defineSystemSpecification.specificationContext to project.specificationContext;
+            flow from defineSystemSpecification.specificationContextImpl to project.specificationContextImpl;
+            flow from defineSystemSpecification.systemRequirementSpecification to project.systemRequirementSpecification;
+            flow from createSolutionArchitectures.functionalContext to project.functionalContext;
+            flow from createSolutionArchitectures.logicalContext to project.logicalContext;
+            flow from createSolutionArchitectures.productContext to project.productContext;
+            flow from verifyAndValidateRequirements.verificationCases to project.verificationCases;
+
+            bind project.brownfieldContextImpl = specifyProblemStatement.brownfieldContextImpl;
+            bind project.brownfieldContextImpl = specifyBrownfieldSystem.brownfieldContextImpl;
+            bind project.problemStatement = identifyStakeholders.problemStatement;
+            bind project.problemStatement = elaborateStakeholderNeeds.problemStatement;
+            bind project.projectStakeholders = elaborateStakeholderNeeds.projectStakeholders;
+            bind project.problemStatement = pitchSystemIdea.problemStatement;
+            bind project.stakeholderNeeds = pitchSystemIdea.stakeholderNeeds;
+            bind project.systemIdeaContextImpl = defineSystemSpecification.systemIdeaContextImpl;
+            bind project.stakeholderNeeds = defineSystemSpecification.stakeholderNeeds;
+            bind project.specificationContextImpl = createSolutionArchitectures.specificationContextImpl;
+            bind project.systemRequirementSpecification = verifyAndValidateRequirements.systemRequirementSpecification;
+            bind project.productContext = verifyAndValidateRequirements.productContext;
+
+            action setupProject : SetupProject {
+                in attribute projectOwnerName = SYSMODDefaultProcess::projectOwnerName;
+                in attribute projectPurpose = SYSMODDefaultProcess::projectPurpose;
+            }
+            action specifyBrownfieldSystem : SpecifyBrownfieldSystem {
+                in item brownfieldArchitecture = SYSMODDefaultProcess::brownfieldArchitecture;
+            }
+            action specifyProblemStatement : SpecifyProblemStatement {
+                in part projectOwner = SYSMODDefaultProcess::project.projectOwner;
+                in attribute problemStatementText = SYSMODDefaultProcess::problemStatementText;
+            }
+            action identifyStakeholders : IdentifyStakeholders;
+            action elaborateStakeholderNeeds : ElaborateStakeholderNeeds;
+            action pitchSystemIdea : PitchSystemIdea {
+                in item systemIdeaArchitecture = SYSMODDefaultProcess::systemIdeaArchitecture;
+            }
+            action defineSystemSpecification : DefineSystemSpecification;
+            action createSolutionArchitectures : CreateSolutionArchitectures {
+                in item solutionArchitecture = SYSMODDefaultProcess::solutionArchitecture;
+            }
+            action verifyAndValidateRequirements : VerifyAndValidateRequirements;
         }
 
-        metadata projectOwnerAI : AI about projectOwner {
-            name = "sysmod-project-owner";
-            create_prompt =
-                "1. If the user has provided a projectOwner, use it. If not, ask the user for the projectOwner using appropriate questions from the questions field.
-                2. Create a concise projectOwner description.
-                3. Create the SysML v2 textual notation for the projectOwner.
-                4. If the user asks to insert the projectOwner into the SysML model, find the project and the projectOwner within the project. If no project exists, create one and insert the projectOwner into the project redefining the inherited projectOwner part usage. If the projectOwner already exists, update it.";
-            create_questions = (
-                "Who is the project owner?", "Who is responsible for the project?",
-            );
-            validation_prompt =
-                "Validate the projectOwner against the SYSMOD Project Owner concept and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. Exactly one projectOwner part usage is present in the project, redefining the inherited projectOwner.
-                2. The projectOwner subsets projectStakeholders and is typed by an ExtendedStakeholder specialization.
-                3. The risk attribute is set to LevelKind::critical (the project owner always has critical risk).
-                4. The effort attribute is set to LevelKind::low (the project owner is typically easy to reach).
-                5. The categories attribute includes StakeholderCategoryKind::requirementOwner.
-                6. The projectOwner is referenced as the stakeholder of the problemStatement.
-                7. A meaningful name or doc comment identifies who the project owner is in the context of this project.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        action def SetupProject { 
+            doc
+            /* Sets up a new SYSMOD project: assigns the name of the project owner and the purpose of the project. Refines the ISO 15288 Project Planning process. */
+            ref occurrence project :>> this : Project;
+
+            in attribute projectOwnerName : ScalarValues::String {
+                doc
+                /* The project owner is the stakeholder who is in charge of the project. */
+            }
+            in attribute projectPurpose : ScalarValues::String {
+                doc
+                /* The project purpose is a brief description of the purpose of the project. */
+            }
+
+            assign project.projectOwner.name := projectOwnerName;
+            assign project.purpose := projectPurpose;
         }
 
-        metadata brownfieldContextAI : AI about brownfieldContext {
-            name = "sysmod-brownfield-context";
-            create_prompt =
-                "1. Analyze the provided scenario and identify the brownfield system: the existing system, its relevant subcomponents, and all external actors (humans, external systems, environmental effects) that already interact with it before the project starts.
-                2. Create a part definition for the brownfield system of interest specializing SystemContext.
-                3. For each identified actor, add a part usage subsetting the inherited actors part.
-                4. For the black-box view, redefine the inherited soi part (within brownfieldContext) with an appropriately named and typed part definition. For the white-box view, redefine the inherited soiImpl part (within brownfieldContextImpl, which specializes brownfieldContext) accordingly.
-                5. Ensure the brownfield context reflects constraints and givens only — it must not include solution elements.
-                6. Create the SysML v2 textual notation for the brownfieldContext and brownfieldContextImpl.
-                7. If the user asks to insert the brownfieldContext into the SysML model, find the project and redefine the inherited brownfieldContext and brownfieldContextImpl part usages. If the project does not exist, create one first.";
-            create_questions = (
-                "What is the name of the existing system (system of interest)?",
-                "Which external actors (users, operators, external systems, environments) interact with the existing system?",
-                "Are there any known subcomponents or subsystems of the existing system that are relevant?",
-            );
-            validation_prompt =
-                "Validate the brownfieldContext and brownfieldContextImpl against the SYSMOD Brownfield Architecture concept and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. The brownfieldContext part usage is present in the project and typed by a SystemContext specialization.
-                2. At least one actor part usage subsetting actors is present, representing an external entity that interacts with the existing system.
-                3. The soi part is redefined within brownfieldContext with a named part definition representing the existing system of interest (black-box view).
-                4. The brownfieldContextImpl part usage is present, specializes brownfieldContext, and redefines the soiImpl part representing the white-box view of the existing system.
-                5. Actor-system interfaces (actorSystemInterfaces) connect actor ports to system ports.
-                6. The brownfield context contains only elements that exist before the project starts — no solution-specific parts, new system ideas, or future-state components.
-                7. Each actor has a meaningful name and, ideally, a doc comment describing its role.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        action def SpecifyBrownfieldSystem {
+            doc
+            /* Specifies the existing (brownfield) system and its actors as black-box context (brownfieldContext) and white-box context (brownfieldContextImpl), based on a given description of the existing architecture. Optional for greenfield projects. Refines the ISO 15288 Business or Mission Analysis process. */
+            in item brownfieldArchitecture : ArchitectureDescription;
+            out part brownfieldContext : SystemContext;
+            out part brownfieldContextImpl : SystemContext;
         }
 
-        metadata problemStatementAI : AI about problemStatement {
-            name = "sysmod-problem-statement";
-            create_prompt =
-                "1. Follow the structure between engineering artifacts given by the SYSMOD library.
-                2. Analyze the provided scenario. If it is forward engineering, identify the problem statement from the given scenario. If it is reverse engineering, identify the problem statement by identifying the problem that is solved by the given system.
-                3. Create a concise elevator-pitch style problem statement text (typically 150-250 words).
-                4. Follow this format: 'How can we...'
-                5. Ensure the problem statement text is based on the brownfieldContext. If the brownfieldContext is not available, create one that is implied by the problem statement text using the AI metadata about the brownfieldContext.
-                6. Ensure that the problem statement does not jump to the solution and describe it in advance.
-                7. Ensure that the stakeholder projectOwner is set by subsetting the corresponding part usage in the project, if given. If it is not available, use the create_prompt of the AI metadata about the projectOwner to create one.
-                8. If it is reverse engineering, create a satisfy relationship between the given system and the problem statement.
-                9. Create the SysML v2 textual notation for the problemStatement.
-                10. If the user asks to insert the problemStatement into the SysML model, find the project and the problemStatement within the project. If no project exists, create one and insert the problemStatement into the project redefining the inherited problemStatement concern usage. If the problemStatement already exists, update it.";
-            create_questions = (
-                "What is the core problem the system should solve?",
-                "What are the main deficiencies or pain points of the existing (brownfield) system?",
-            );
-            validation_prompt =
-                "Validate the problemStatement against the SYSMOD Problem Statement concept and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. The problemStatement concern usage is present in the project, redefining the inherited problemStatement.
-                2. The subject references the brownfieldContextImpl soiImpl (the existing system is the subject of the problem).
-                3. The projectOwner is set as the stakeholder of the problemStatement.
-                4. The priority attribute is set to LevelKind::critical.
-                5. A doc comment is present containing the problem statement text.
-                6. The problem statement text starts with 'How can we...' or an equivalent problem-framing phrase.
-                7. The problem statement text describes the problem, not a solution — check for premature solution language (e.g., 'we will build', 'the new system shall', named technologies or architectures).
-                8. The problem statement text references the brownfield system and its deficiencies.
-                9. The problem statement text is concise (typically 150-250 words).
-                10. If it is reverse engineering, a satisfy relationship exists between the existing system and the problemStatement.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        action def SpecifyProblemStatement {
+            doc
+            /* Specifies the problem statement: a solution-free elevator pitch of the problem, with the brownfield system as subject and the project owner as stakeholder. Refines the ISO 15288 Business or Mission Analysis process. */
+            in part projectOwner : ExtendedStakeholder;
+            in attribute problemStatementText : ScalarValues::String {
+                doc
+                /* The problem statement is a brief description of the problem the system of interest is intended to solve. */
+            }
+            in part brownfieldContextImpl : SystemContext;
+            out concern problemStatement : ExtendedConcern;
         }
 
-        metadata projectStakeholdersAI : AI about projectStakeholders {
-            name = "sysmod-stakeholders";
-            create_prompt =
-                "1. Analyze the brownfieldContext and the problemStatement and identify all relevant stakeholders (individuals or organizations with an interest in the system).
-                2. For each stakeholder, create a part definition specializing ExtendedStakeholder.
-                3. Assess and set the risk (what is the risk of failure if this stakeholder is ignored?), effort (how much effort is needed to identify their concerns?), and one or more stakeholder categories (user, requirementOwner, expert, other) for each stakeholder.
-                4. Add each stakeholder as a named part usage subsetting projectStakeholders inside the project, typed by the corresponding stakeholder definition.
-                5. Create the SysML v2 textual notation for all stakeholder definitions and their usages within the project.
-                6. If the user asks to insert the stakeholders into the SysML model, find the project and add or update the stakeholder part usages.";
-            create_questions = (
-                "Who are the primary users of the system?",
-                "Which organizations or roles own or define the requirements?",
-                "Are there regulatory bodies, standards authorities, or other external parties with an interest in the system?",
-            );
-            validation_prompt =
-                "Validate the projectStakeholders against the SYSMOD Stakeholders concept and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. At least one stakeholder part usage (beyond the projectOwner) subsets projectStakeholders.
-                2. Each stakeholder part usage is typed by a part definition specializing ExtendedStakeholder.
-                3. Each stakeholder definition has the risk attribute set to a non-default LevelKind value (i.e., not LevelKind::none).
-                4. Each stakeholder definition has the effort attribute set to a non-default LevelKind value (i.e., not LevelKind::none).
-                5. Each stakeholder definition has at least one category assigned from StakeholderCategoryKind.
-                6. The set of stakeholders covers all actors present in the brownfieldContext — every actor should map to at least one stakeholder.
-                7. At least one stakeholder with category requirementOwner is present (beyond the projectOwner).
-                8. Each stakeholder has a doc comment or name that clearly identifies its role.
-                9. No two stakeholders have identical risk, effort, and category values without a distinguishing doc comment explaining the distinction.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        action def IdentifyStakeholders {
+            doc
+            /* Identifies the stakeholders of the project based on the problem statement and assesses their risk, effort, and categories. Refines the ISO 15288 Stakeholder Needs and Requirements Definition process. */
+            in concern problemStatement : ExtendedConcern;
+            out part projectStakeholders[*] : ExtendedStakeholder {
+                doc /* The stakeholders of the project are individuals and organizations that have an interest in the system. The list includes the project owner retrieved from the problemStatement.*/
+            }
         }
 
-        metadata stakeholderNeedsAI : AI about stakeholderNeeds {
-            name = "sysmod-stakeholder-needs";
-            create_prompt =
-                "1. Analyze the projectStakeholders and the problemStatement and derive the high-level needs of each stakeholder.
-                2. For each stakeholder need, create a concern usage subsetting stakeholderNeeds, framed by the problemStatement and referencing the brownfield system (the soiImpl of brownfieldContextImpl) as its subject.
-                3. Ensure each need is expressed from the stakeholder's perspective and describes what they need the system to do or be, not how.
-                4. Do not express needs as solution-specific requirements; keep them at the stakeholder intent level.
-                5. Create the SysML v2 textual notation for the stakeholderNeeds.
-                6. If the user asks to insert the stakeholderNeeds into the SysML model, find the project and redefine the inherited stakeholderNeeds concern usage. If the project does not exist, create one first.";
-            create_questions = (
-                "What does each stakeholder group need the system to do or be?",
-                "Are there any known constraints or non-functional needs (safety, cost, compliance) expressed by stakeholders?",
-            );
-            validation_prompt =
-                "Validate the stakeholderNeeds against the SYSMOD Stakeholder Needs concept and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. The stakeholderNeeds concern usage is present in the project, redefining the inherited stakeholderNeeds.
-                2. The stakeholderNeeds frames the problemStatement.
-                3. The subject references the brownfieldContextImpl soiImpl.
-                4. At least one stakeholder need is defined as a nested concern usage.
-                5. Each stakeholder need is traceable to at least one stakeholder from projectStakeholders (via stakeholder reference or doc comment attribution).
-                6. Each need is expressed at the stakeholder intent level — check for premature solution or design language (e.g., specific technologies, implementation details, design choices).
-                7. The set of stakeholder needs covers all projectStakeholders — no stakeholder group should be left without at least one associated need.
-                8. Each need has a doc comment or name that is understandable without reading the full model.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        action def ElaborateStakeholderNeeds {
+            doc
+            /* Elaborates the needs of the stakeholders at intent level, framed by the problem statement and traced to the stakeholders they come from. Refines the ISO 15288 Stakeholder Needs and Requirements Definition process. */
+            in concern problemStatement : ExtendedConcern;
+            in part projectStakeholders[*] : ExtendedStakeholder;
+            out concern stakeholderNeeds : ExtendedConcern;
         }
 
-        metadata systemIdeaContextAI : AI about systemIdeaContext {
-            name = "sysmod-system-idea";
-            create_prompt =
-                "1. Based on the problemStatement, develop a high-level system idea: an elevator-pitch-style outline of the new or changed system that solves the stated problem.
-                2. Specialize brownfieldContext by redefining the soi part (black-box view) with a named system idea definition, within systemIdeaContext. Specialize systemIdeaContext and brownfieldContextImpl by redefining the soiImpl part (white-box view) with the matching system idea implementation, within systemIdeaContextImpl. The systemIdeaSystemImpl must include a satisfy relationship to the problemStatement.
-                3. Add any additional actors that are introduced by the system idea and are not already present in the brownfieldContext.
-                4. Keep the system idea at a conceptual level — no detailed architecture or design decisions.
-                5. Create the SysML v2 textual notation for the systemIdeaContext and systemIdeaContextImpl.
-                6. If the user asks to insert the systemIdeaContext into the SysML model, find the project and redefine the inherited systemIdeaContext and systemIdeaContextImpl part usages. If the project does not exist, create one first.";
-            create_questions = (
-                "What is the high-level concept or approach for the new or changed system?",
-                "Are there any new actors introduced by the system idea that do not exist in the brownfield?",
-            );
-            validation_prompt =
-                "Validate the systemIdeaContext and systemIdeaContextImpl against the SYSMOD System Idea concept and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. The systemIdeaContext part usage is present in the project and specializes brownfieldContext.
-                2. The soi part is redefined within systemIdeaContext with a named system idea definition that specializes the brownfield soi.
-                3. The systemIdeaContextImpl part usage is present, specializes systemIdeaContext and brownfieldContextImpl, and redefines the soiImpl part, specializing the system idea soi.
-                4. The soiImpl contains a satisfy relationship to the problemStatement.
-                5. All actors from the brownfieldContext are inherited or explicitly redefined — no brownfield actor should silently disappear.
-                6. Any new actors introduced by the system idea are added as additional actor part usages.
-                7. The system idea stays at a conceptual level — check for premature architecture or design detail (e.g., specific components, protocols, or technologies named in the soiImpl structure).
-                8. A doc comment on the soiImpl describes the system idea in elevator-pitch style.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        action def PitchSystemIdea {
+            doc
+            /* Pitches the system idea: a conceptual, elevator-pitch-style outline of the new or changed system that answers the problem statement and the stakeholder needs, as black-box (systemIdeaContext) and white-box (systemIdeaContextImpl) context. Refines the ISO 15288 Business or Mission Analysis process. */
+            in item systemIdeaArchitecture : ArchitectureDescription;
+            in concern problemStatement : ExtendedConcern;
+            in concern stakeholderNeeds : ExtendedConcern;
+            out part systemIdeaContext : SystemContext;
+            out part systemIdeaContextImpl : SystemContext;
         }
 
-        metadata specificationContextAI : AI about specificationContext {
-            name = "sysmod-specification-context";
-            create_prompt =
-                "1. Specialize systemIdeaContext by redefining the soi part (black-box view) with a specification-level system definition, within specificationContext. Specialize specificationContext and systemIdeaContextImpl by redefining the soiImpl part (white-box view) with the matching specification implementation, within specificationContextImpl.
-                2. Identify and add any actors or subcomponents that become visible during requirements analysis (e.g., specific interfaces, subsystems defined at the black-box level).
-                3. Add system use cases to the specificationContext that describe how actors interact with the system of interest at the specification level.
-                4. Ensure the specificationContext owns the use cases and that each use case references the specificationSystem as its subject.
-                5. Create the SysML v2 textual notation for the specificationContext and specificationContextImpl, including actor parts and use case usages.
-                6. If the user asks to insert the specificationContext into the SysML model, find the project and redefine the inherited specificationContext and specificationContextImpl part usages.";
-            create_questions = (
-                "Which use cases describe how actors interact with the system?",
-                "Are there additional actors or subcomponents that become visible at the specification level?",
-            );
-            validation_prompt =
-                "Validate the specificationContext and specificationContextImpl against the SYSMOD Specification Context concept and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. The specificationContext part usage is present in the project and specializes systemIdeaContext.
-                2. The soi part is redefined within specificationContext with a named specification system definition that specializes the system idea soi.
-                3. The specificationContextImpl part usage is present, specializes specificationContext and systemIdeaContextImpl, and redefines the soiImpl part, specializing the specification soi.
-                4. At least one use case usage is present in the specificationContext, referencing the specificationSystem as its subject.
-                5. Each use case has at least one actor involved (include or extend relationships, or actor references in the use case subject/stakeholder).
-                6. Each use case has a meaningful name and doc comment describing the interaction goal.
-                7. All actors from the systemIdeaContext are inherited or redefined — no actor should silently disappear.
-                8. The specificationContext does not contain solution elements — it should remain a black-box view of the system.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        action def DefineSystemSpecification {
+            doc
+            /* Defines the system specification based on the system idea and the stakeholder needs: the specification contexts, the system use cases, and the system requirements. Refines the ISO 15288 System Requirements Definition process. */
+            in part systemIdeaContextImpl : SystemContext;
+            in concern stakeholderNeeds : ExtendedConcern;
+            out part specificationContext : SystemContext;
+            out part specificationContextImpl : SystemContext;
+            out requirement systemRequirementSpecification : ExtendedRequirement;
+
+            action specifySpecificationArchitecture {
+                doc
+                /* Refines the system idea contexts into the black-box and white-box specification contexts. */
+                in part systemIdeaContextImpl : SystemContext = DefineSystemSpecification::systemIdeaContextImpl;
+                out part specificationContext : SystemContext = DefineSystemSpecification::specificationContext;
+                out part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
+            }
+            action identifyUseCases {
+                doc
+                /* Identifies the system use cases of the specification context that describe how the actors interact with the system. */
+                in part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
+                in concern stakeholderNeeds : ExtendedConcern = DefineSystemSpecification::stakeholderNeeds;
+                out use case systemUseCases[*] : SystemUseCase = DefineSystemSpecification::specificationContext.useCases;
+            }
+            action elaborateSystemRequirements {
+                doc
+                /* Elaborates the verifiable, solution-neutral system requirements that frame the stakeholder needs. */
+                in part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
+                in concern stakeholderNeeds : ExtendedConcern = DefineSystemSpecification::stakeholderNeeds;
+                out requirement systemRequirementSpecification : ExtendedRequirement = DefineSystemSpecification::systemRequirementSpecification;
+            }
         }
 
-        metadata systemRequirementSpecificationAI : AI about systemRequirementSpecification {
-            name = "sysmod-system-requirements";
-            create_prompt =
-                "1. Derive system requirements from the stakeholderNeeds, framed by the stakeholderNeeds and referencing the specificationSystem as subject.
-                2. For each requirement, create a requirement usage or definition specializing ExtendedRequirement. Set obligation (mandatory/optional), stability (stable/unstable), and a brief motivation.
-                3. Ensure each requirement is verifiable, unambiguous, and solution-neutral where possible.
-                4. Group requirements logically (e.g., functional, performance, safety, interface) using nested requirement usages if appropriate.
-                5. Create the SysML v2 textual notation for the systemRequirementSpecification.
-                6. If the user asks to insert the systemRequirementSpecification into the SysML model, find the project and redefine the inherited systemRequirementSpecification requirement usage.";
-            create_questions = (
-                "What are the key functional requirements of the system?",
-                "Are there non-functional requirements (performance, safety, reliability, compliance)?",
-                "Which requirements are mandatory and which are optional?",
-            );
-            validation_prompt =
-                "Validate the systemRequirementSpecification against the SYSMOD System Requirements concept and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. The systemRequirementSpecification requirement usage is present in the project, framing the stakeholderNeeds.
-                2. The subject references the specificationContext soi (the specification system is the subject of the requirements).
-                3. At least one system requirement is defined as a nested requirement usage or definition.
-                4. Each requirement specializes ExtendedRequirement and has the obligation attribute set (not ObligationKind::none).
-                5. Each requirement has the stability attribute set (not StabilityKind::none).
-                6. Each requirement has a non-empty motivation attribute explaining why the requirement exists.
-                7. Each requirement is traceable to at least one stakeholder need (via frame or derive relationships, or doc comment reference).
-                8. Each requirement text is verifiable — check for vague qualifiers without measurable criteria (e.g., 'fast', 'easy', 'reliable' without a threshold).
-                9. Each requirement is solution-neutral — check for implementation-specific language (named technologies, specific designs) that constrain the solution unnecessarily.
-                10. The set of requirements covers all defined use cases — every use case should be reflected in at least one functional requirement.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        action def CreateSolutionArchitectures {
+            doc
+            /* Creates the solution architectures based on the white-box specification context: the optional functional and logical architectures and the product architecture. Refines the ISO 15288 System Architecture Definition process. */
+            in item solutionArchitecture : ArchitectureDescription;
+            in part specificationContextImpl : SystemContext;
+            out part functionalContext[0..1] : SystemContext;
+            out part logicalContext[0..1] : SystemContext;
+            out part productContext : SystemContext;
         }
 
-        metadata functionalContextAI : AI about functionalContext {
-            name = "sysmod-functional-architecture";
-            create_prompt =
-                "1. If a functional architecture is required, specialize specificationContext (black-box view) within functionalContext. Do not specialize specificationContextImpl — the functional architecture must not depend on the physical internal structure of the system.
-                2. Redefine the inherited functionalSystem part (which redefines the black-box solution soi) as the root of the functional architecture (e.g., developed with the FAS method). It inherits the system ports, so functions can be related to the system's external interfaces.
-                3. Define the top-level functions as action usages or part usages within the functionalSystem.
-                4. If allocations to the logical architecture are known, note them; formal allocations are expressed via the functional2logical allocation in the project.
-                5. Create the SysML v2 textual notation for the functionalContext.
-                6. If the user asks to insert the functionalContext into the SysML model, find the project and redefine the inherited functionalContext part usage (note: multiplicity is [0..1]).";
-            create_questions = (
-                "Is a functional architecture required for this project?",
-                "What are the top-level functions the system must perform?",
-                "Should the functional architecture follow the FAS method or another approach?",
-            );
-            validation_prompt =
-                "Validate the functionalContext against the SYSMOD Functional Architecture concept and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. If present, the functionalContext part usage specializes specificationContext.
-                2. A functionalSystem part is present as the root of the functional decomposition, redefining the black-box solution soi.
-                3. At least one top-level function is defined as an action usage or part usage within the functionalSystem.
-                4. Each top-level function is traceable to at least one system requirement (via satisfy, refine, or doc comment reference).
-                5. Functions are technology-independent — check for implementation-specific naming or structure that belongs in the logical or product architecture.
-                6. If a logicalContext is present in the project, a functional2logical allocation is defined connecting the functionalContext to the logicalContext.
-                7. The functionalSystem contains only functional blocks — no physical or internal structure of the system, which belongs in the white-box solution, logical, or product contexts.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        action def VerifyAndValidateRequirements {
+            doc
+            /* Creates the verification cases that verify the product system against the system requirements and validate it against the stakeholder needs and the problem statement. Refines the ISO 15288 Verification and Validation processes. */
+            in requirement systemRequirementSpecification : ExtendedRequirement;
+            in part productContext : SystemContext;
+            out verification verificationCases[*];
         }
 
-        metadata logicalContextAI : AI about logicalContext {
-            name = "sysmod-logical-architecture";
-            create_prompt =
-                "1. If a logical architecture is required, specialize specificationContext by redefining the soi part for the logical level.
-                2. Define logical components as part usages within logicalSystem (the redefined black-box soi), representing technology-independent building blocks that realize the functional architecture.
-                3. If allocations from the functional architecture are known, note them; formal allocations are expressed via the functional2logical allocation in the project.
-                4. If allocations to the product architecture are known, note them; formal allocations are expressed via the logical2product allocation in the project.
-                5. Create the SysML v2 textual notation for the logicalContext.
-                6. If the user asks to insert the logicalContext into the SysML model, find the project and redefine the inherited logicalContext part usage (note: multiplicity is [0..1]).";
-            create_questions = (
-                "Is a logical architecture required for this project?",
-                "What are the key logical components or subsystems?",
-                "Are there technology-independent partitioning principles to apply (e.g., separation of concerns, layers)?",
-            );
-            validation_prompt =
-                "Validate the logicalContext against the SYSMOD Logical Architecture concept and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. If present, the logicalContext part usage specializes specificationContext.
-                2. At least one logical component is defined as a part usage within logicalSystem.
-                3. Logical components are technology-independent — check for product-specific naming, vendor names, physical form factors, or deployment-specific details that belong in the productContext.
-                4. Each logical component is traceable to at least one function from the functionalContext (if present) via allocation or doc comment.
-                5. If a functionalContext is present in the project, a functional2logical allocation is defined connecting functionalContext to logicalContext.
-                6. If a productContext is present in the project, a logical2product allocation is defined connecting logicalContext to productContext.
-                7. Logical component interfaces are defined where components interact, using port and interface definitions.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        item def ArchitectureDescription {
+            doc
+            /* An informal description of a system architecture, given by a human or an AI assistant as input to a process step, for example, a text, sketch, or document of the existing system. */
         }
 
-        metadata productContextAI : AI about productContext {
-            name = "sysmod-product-architecture";
-            create_prompt =
-                "1. Specialize specificationContextImpl for the product architecture by redefining the soiImpl part with a concrete product-level definition.
-                2. Define product components as part usages within productSystem (the redefined white-box soiImpl), representing physical or deployable building blocks (hardware, software components, assemblies).
-                3. If allocations from the logical architecture are known, note them; formal allocations are expressed via the logical2product allocation in the project.
-                4. Include interfaces between product components where relevant.
-                5. Create the SysML v2 textual notation for the productContext.
-                6. If the user asks to insert the productContext into the SysML model, find the project and redefine the inherited productContext part usage.";
-            create_questions = (
-                "What are the main physical or deployable components of the system?",
-                "Are there hardware/software splits or deployment boundaries to model?",
-                "Which product components are derived from the logical architecture?",
-            );
-            validation_prompt =
-                "Validate the productContext against the SYSMOD Product Architecture concept and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. The productContext part usage is present in the project and specializes specificationContextImpl.
-                2. At least one product component is defined as a part usage within productSystem.
-                3. Product components represent concrete, physical or deployable building blocks — check that logical or functional abstractions have been resolved to specific technologies, hardware types, or software components.
-                4. Each product component is traceable to at least one logical component from the logicalContext (if present) via the logical2product allocation or doc comment.
-                5. If a logicalContext is present in the project, a logical2product allocation is defined connecting logicalContext to productContext.
-                6. Interfaces between product components are defined where components interact physically or through APIs.
-                7. All system requirements are satisfied — verify that a satisfy relationship chain exists from the product architecture back to the systemRequirementSpecification.
-                8. Every dependency between two product components crosses only through a defined port/interface — flag any part-to-part reference that bypasses the published interface. A back-door dependency is both a MOSA violation and the exact thing that breaks module-scoped context retrieval.
-                9. Each component's published interface is specified completely enough that a neighbor — or an AI assistant — never needs that component's internal structure to use it correctly.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
-        }
-
-        metadata subProjectsAI : AI about subProjects {
-            name = "sysmod-sub-projects";
-            create_prompt =
-                "1. If the project is decomposed into sub-projects, create occurrence definitions specializing Project (or AIProject) for each sub-project.
-                2. Add each sub-project as an occurrence usage subsetting subProjects within the parent project.
-                3. Ensure each sub-project has its own projectOwner, brownfieldContext, and problemStatement as appropriate.
-                4. Cross-reference shared artifacts (e.g., shared stakeholders or requirements) by subsetting or referencing the parent project's elements.
-                5. Create the SysML v2 textual notation for all sub-project definitions and their usages.
-                6. If the user asks to insert sub-projects into the SysML model, find the parent project and add the sub-project occurrence usages.";
-            create_questions = (
-                "Should the project be decomposed into sub-projects?",
-                "What are the names and scopes of the sub-projects?",
-                "Do the sub-projects share stakeholders or requirements with the parent project?",
-            );
-            validation_prompt =
-                "Validate the subProjects against the SYSMOD sub-project decomposition concept and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. Each sub-project occurrence usage subsets the inherited subProjects and is typed by an occurrence definition specializing Project or AIProject.
-                2. Each sub-project has at least a projectOwner and a brownfieldContext defined.
-                3. Each sub-project has a problemStatement that is consistent with and narrower in scope than the parent project's problemStatement.
-                4. Shared stakeholders between parent and sub-projects are referenced by subsetting the parent project's stakeholder part usages rather than duplicated as independent definitions.
-                5. There are no overlapping scopes between sibling sub-projects — each sub-project addresses a distinct part of the parent problem.
-                6. Each sub-project has a meaningful name and doc comment describing its scope and relationship to the parent project.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
-        }
+        //
+        // Refinement of the ISO 15288 processes by the SYSMOD processes
+        //
+        #refinement dependency SetupProject to ISO15288Processes::ProjectPlanning;
+        #refinement dependency SpecifyBrownfieldSystem to ISO15288Processes::BusinessOrMissionAnalysis;
+        #refinement dependency SpecifyProblemStatement to ISO15288Processes::BusinessOrMissionAnalysis;
+        #refinement dependency IdentifyStakeholders to ISO15288Processes::StakeholderNeedsAndRequirementsDefinition;
+        #refinement dependency ElaborateStakeholderNeeds to ISO15288Processes::StakeholderNeedsAndRequirementsDefinition;
+        #refinement dependency PitchSystemIdea to ISO15288Processes::BusinessOrMissionAnalysis;
+        #refinement dependency DefineSystemSpecification to ISO15288Processes::SystemRequirementsDefinition;
+        #refinement dependency CreateSolutionArchitectures to ISO15288Processes::SystemArchitectureDefinition;
+        #refinement dependency VerifyAndValidateRequirements to ISO15288Processes::Verification;
+        #refinement dependency VerifyAndValidateRequirements to ISO15288Processes::Validation;
     }
+
+    package ISO15288Processes {
+        doc /* Package containing the 30 system life cycle processes of ISO/IEC/IEEE 15288, grouped into agreement, organizational project-enabling, technical management, and technical processes. */
+
+        //
+        // Agreement Processes
+        //
+        action def Acquisition {
+            doc
+            /* The Acquisition process obtains a product or service in accordance with the acquirer's requirements. */
+        }
+        action def Supply {
+            doc
+            /* The Supply process provides an acquirer with a product or service that meets agreed requirements. */
+        }
+
+        //
+        // Organizational Project-Enabling Processes
+        //
+        action def LifeCycleModelManagement {
+            doc
+            /* The Life Cycle Model Management process defines, maintains, and assures availability of policies, life cycle processes, life cycle models, and procedures for use by the organization. */
+        }
+        action def InfrastructureManagement {
+            doc
+            /* The Infrastructure Management process provides the infrastructure and services to projects to support organization and project objectives throughout the life cycle. */
+        }
+        action def PortfolioManagement {
+            doc
+            /* The Portfolio Management process initiates and sustains necessary, sufficient, and suitable projects in order to meet the strategic objectives of the organization. */
+        }
+        action def HumanResourceManagement {
+            doc
+            /* The Human Resource Management process provides the organization with necessary human resources and maintains their competencies consistent with business needs. */
+        }
+        action def QualityManagement {
+            doc
+            /* The Quality Management process assures that products, services, and implementations of the life cycle processes meet the organization's quality objectives and achieve customer satisfaction. */
+        }
+        action def KnowledgeManagement {
+            doc
+            /* The Knowledge Management process creates the capability and assets that enable the organization to exploit opportunities to re-apply existing knowledge. */
+        }
+
+        //
+        // Technical Management Processes
+        //
+        action def ProjectPlanning {
+            doc
+            /* The Project Planning process produces and coordinates effective and workable plans. */
+        }
+        action def ProjectAssessmentAndControl {
+            doc
+            /* The Project Assessment and Control process assesses if the plans are aligned and feasible, determines the status of the project, technical, and process performance, and directs execution to help ensure that the performance is according to plans and schedules, within projected budgets, and satisfies technical objectives. */
+        }
+        action def DecisionManagement {
+            doc
+            /* The Decision Management process provides a structured, analytical framework for objectively identifying, characterizing, and evaluating a set of alternatives for a decision at any point in the life cycle and selecting the most beneficial course of action. */
+        }
+        action def RiskManagement {
+            doc
+            /* The Risk Management process continually identifies, analyzes, treats, and monitors risks. */
+        }
+        action def ConfigurationManagement {
+            doc
+            /* The Configuration Management process manages and controls system elements and configurations over the life cycle. */
+        }
+        action def InformationManagement {
+            doc
+            /* The Information Management process generates, obtains, confirms, transforms, retains, retrieves, disseminates, and disposes of information to designated stakeholders. */
+        }
+        action def Measurement {
+            doc
+            /* The Measurement process collects, analyzes, and reports objective data and information to support effective management and demonstrate the quality of the products, services, and processes. */
+        }
+        action def QualityAssurance {
+            doc
+            /* The Quality Assurance process helps ensure the effective application of the organization's Quality Management process to the project. */
+        }
+
+        //
+        // Technical Processes
+        //
+        action def BusinessOrMissionAnalysis {
+            doc
+            /* The Business or Mission Analysis process defines the business or mission problem or opportunity, characterizes the solution space, and determines potential solution class(es) that can address a problem or take advantage of an opportunity. */
+        }
+        action def StakeholderNeedsAndRequirementsDefinition {
+            doc
+            /* The Stakeholder Needs and Requirements Definition process defines the stakeholder requirements for a system that can provide the capabilities needed by users and other stakeholders in a defined environment. */
+        }
+        action def SystemRequirementsDefinition {
+            doc
+            /* The System Requirements Definition process transforms the stakeholder, user-oriented view of desired capabilities into a technical view of a solution that meets the operational needs of the user. */
+        }
+        action def SystemArchitectureDefinition {
+            doc
+            /* The System Architecture Definition process generates system architecture alternatives, selects one or more alternatives that address stakeholder concerns and system requirements, and expresses this in consistent views and models. */
+        }
+        action def DesignDefinition {
+            doc
+            /* The Design Definition process provides sufficient detailed data and information about the system and its elements to enable the implementation consistent with the architectural entities as defined in the models and views of the system architecture. */
+        }
+        action def SystemAnalysis {
+            doc
+            /* The System Analysis process provides a rigorous basis of data and information for technical understanding to aid decision-making across the life cycle. */
+        }
+        action def Implementation {
+            doc
+            /* The Implementation process realizes a specified system element. */
+        }
+        action def Integration {
+            doc
+            /* The Integration process synthesizes a set of system elements into a realized system that satisfies the system requirements, architecture, and design. */
+        }
+        action def Verification {
+            doc
+            /* The Verification process provides objective evidence that a system or system element fulfills its specified requirements and characteristics. */
+        }
+        action def Transition {
+            doc
+            /* The Transition process establishes a capability for a system to provide services specified by stakeholder requirements in the operational environment. */
+        }
+        action def Validation {
+            doc
+            /* The Validation process provides objective evidence that the system, when in use, fulfills its business or mission objectives and stakeholder requirements, achieving its intended use in its intended operational environment. */
+        }
+        action def Operation {
+            doc
+            /* The Operation process uses the system to deliver its services. */
+        }
+        action def Maintenance {
+            doc
+            /* The Maintenance process sustains the capability of the system to provide a service. */
+        }
+        action def Disposal {
+            doc
+            /* The Disposal process ends the existence of a system element or system for a specified intended use, appropriately handling replaced or retired elements. */
 
     //
     // Semantic Metadata
@@ -894,3 +986,5 @@ library package SYSMODRequirementBoilerplates {
         }
     }
 }
+
+    

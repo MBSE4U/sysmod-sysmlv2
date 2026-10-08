@@ -25,7 +25,24 @@ package <DD_LOGICAL> DeliveryDroneSystemLogicalArchitecture {
     #systemContext part def DeliveryDroneLogicalContext :> DD_SPECIFICATION::DeliveryDroneSystemContext {
         doc
         /* The context of the logical architecture. */
-        #System part :>> deliveryDroneSystem : DeliveryDroneLogicalSystem;
+        #system part :>> deliveryDroneSystem : DeliveryDroneLogicalSystem;
+
+        use case :>> deliverPackage : DD_SPECIFICATION::UseCases::DeliverPackage {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> chargeDrone : DD_SPECIFICATION::UseCases::ChargeDrone {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> reportFleetStatus : DD_SPECIFICATION::UseCases::ReportFleetStatus {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> handleEmergencyLanding : DD_SPECIFICATION::UseCases::HandleEmergencyLanding {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> monitorDroneHealth : DD_SPECIFICATION::UseCases::MonitorDroneHealth {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+
     }
     part def DeliveryDroneLogicalSystem :> DD_SPECIFICATION::DeliveryDroneSystem {
         doc

@@ -43,6 +43,7 @@ package <DDCS> DeliveryDroneControlStation {
         part tomSchilling :>> projectOwner {
             doc /* Tom Schilling leads the ground-segment team and is accountable
                    for the control station sub-project. */
+            attribute :>> name = "Tom Schilling";
         }
 
         concern :>> problemStatement {
@@ -59,6 +60,7 @@ package <DDCS> DeliveryDroneControlStation {
         part droneOperator : DroneOperator :> projectStakeholders {
             doc /* Shared with the parent Delivery Drone project: the operator is
                    the primary user of the control station. */
+            attribute :>> name = "Drone Operator";
         }
 
         //------------------------- Stakeholder Needs
@@ -91,10 +93,10 @@ package <DDCS> DeliveryDroneControlStation {
         doc
         /* The black-box brownfield context of the existing control station,
          * built for manually piloted drones. */
-        #System part controlStation : ControlStation :>> soi {
+        #system part controlStation : ControlStation :>> soi {
             doc /* The existing control station as a black box. */
         }
-        #User part operator :> actors {
+        #user part operator :> actors {
             doc /* The operator manually piloting one drone at a time. */
             port stationPort;
         }
@@ -105,7 +107,7 @@ package <DDCS> DeliveryDroneControlStation {
     #systemContext part def ControlStationContextImpl :> ControlStationContext {
         doc
         /* The white-box brownfield context of the existing control station. */
-        #System part controlStationImpl : ControlStationImpl :>> controlStation {
+        #system part controlStationImpl : ControlStationImpl :>> controlStation {
             doc /* The existing control station as a white box. */
         }
     }

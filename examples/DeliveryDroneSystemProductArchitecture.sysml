@@ -25,7 +25,24 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
     #systemContext part def DeliveryDroneProductContext :> DD_SPECIFICATION::DeliveryDroneSystemContextImpl {
         doc
         /* The context of the product architecture. */
-        #System part :>> deliveryDroneSystemImpl : DeliveryDroneProductSystem;
+        #system part :>> deliveryDroneSystemImpl : DeliveryDroneProductSystem;
+
+        use case :>> deliverPackage : DD_SPECIFICATION::UseCases::DeliverPackage {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> chargeDrone : DD_SPECIFICATION::UseCases::ChargeDrone {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> reportFleetStatus : DD_SPECIFICATION::UseCases::ReportFleetStatus {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> handleEmergencyLanding : DD_SPECIFICATION::UseCases::HandleEmergencyLanding {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+        use case :>> monitorDroneHealth : DD_SPECIFICATION::UseCases::MonitorDroneHealth {
+            subject :>> droneSystem :> deliveryDroneSystem;
+        }
+  
     }   
     part def DeliveryDroneProductSystem :> DD_SPECIFICATION::DeliveryDroneSystemImpl {
         doc

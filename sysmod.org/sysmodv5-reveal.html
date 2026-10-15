@@ -1397,7 +1397,7 @@ const aiSkills = {
   create_questions = (
     <span class="ty">"What is the name of the project?"</span>,
     <span class="ty">"Where should I add the project definition?"</span>,
-    <span class="ty">"Who is the project owner?"</span>,
+    <span class="ty">"Who is the project owner?"</span>
   );
   validation_prompt =
     <span class="ty">"Validate the project definition against the
@@ -1501,7 +1501,7 @@ const aiSkills = {
   create_questions = (
     <span class="ty">"What is the core problem the system should solve?"</span>,
     <span class="ty">"What are the main deficiencies or pain points
-     of the existing (brownfield) system?"</span>,
+     of the existing (brownfield) system?"</span>
   );
   validation_prompt =
     <span class="ty">"Validate the problemStatement against the SYSMOD
@@ -1576,7 +1576,7 @@ const aiSkills = {
      the requirements?"</span>,
     <span class="ty">"Are there regulatory bodies, standards
      authorities, or other external parties with an
-     interest in the system?"</span>,
+     interest in the system?"</span>
   );
   validation_prompt =
     <span class="ty">"Validate the projectStakeholders against
@@ -1644,7 +1644,7 @@ const aiSkills = {
      should be included in the map?"</span>,
     <span class="ty">"Do all included stakeholders already have risk
      and effort values assigned? If not, what are
-     they?"</span>,
+     they?"</span>
   );
   validation_prompt =
     <span class="ty">"Validate the stakeholder priority map against
@@ -1710,7 +1710,7 @@ const aiSkills = {
      system to do or be?"</span>,
     <span class="ty">"Are there any known constraints or
      non-functional needs (safety, cost, compliance)
-     expressed by stakeholders?"</span>,
+     expressed by stakeholders?"</span>
   );
   validation_prompt =
     <span class="ty">"Validate the stakeholderNeeds against the
@@ -1798,7 +1798,7 @@ const aiSkills = {
      the existing system?"</span>,
     <span class="ty">"Are there any known and preset subcomponents
      or subsystems of the existing system that are
-     relevant?"</span>,
+     relevant?"</span>
   );
   validation_prompt =
     <span class="ty">"Validate the brownfieldContext and
@@ -1871,7 +1871,7 @@ const aiSkills = {
      for the new or changed system?"</span>,
     <span class="ty">"Are there any new actors introduced by the
      system idea that do not exist in the
-     brownfield?"</span>,
+     brownfield?"</span>
   );
   validation_prompt =
     <span class="ty">"Validate the systemIdeaContext and
@@ -1946,7 +1946,7 @@ const aiSkills = {
      with the system?"</span>,
     <span class="ty">"Are there additional actors or subcomponents
      that become visible at the specification
-     level?"</span>,
+     level?"</span>
   );
   validation_prompt =
     <span class="ty">"Validate the specificationContext and
@@ -2028,7 +2028,7 @@ const aiSkills = {
      with the system?"</span>,
     <span class="ty">"Are there additional actors or subcomponents
      that become visible at the specification
-     level?"</span>,
+     level?"</span>
   );
   validation_prompt =
     <span class="ty">"Validate the specificationContext and
@@ -2109,7 +2109,7 @@ const aiSkills = {
      (performance, safety, reliability,
      compliance)?"</span>,
     <span class="ty">"Which requirements are mandatory and which
-     are optional?"</span>,
+     are optional?"</span>
   );
   validation_prompt =
     <span class="ty">"Validate the systemRequirementSpecification
@@ -2193,7 +2193,7 @@ const aiSkills = {
     <span class="ty">"What are the top-level functions the system
      must perform?"</span>,
     <span class="ty">"Should the functional architecture follow the
-     FAS method or another approach?"</span>,
+     FAS method or another approach?"</span>
   );
   validation_prompt =
     <span class="ty">"Validate the functionalContext against the
@@ -2266,7 +2266,7 @@ const aiSkills = {
      subsystems?"</span>,
     <span class="ty">"Are there technology-independent
      partitioning principles to apply (e.g.,
-     separation of concerns, layers)?"</span>,
+     separation of concerns, layers)?"</span>
   );
   validation_prompt =
     <span class="ty">"Validate the logicalContext against the SYSMOD
@@ -2331,7 +2331,7 @@ const aiSkills = {
     <span class="ty">"Are there hardware/software splits or
      deployment boundaries to model?"</span>,
     <span class="ty">"Which product components are derived from
-     the logical architecture?"</span>,
+     the logical architecture?"</span>
   );
   validation_prompt =
     <span class="ty">"Validate the productContext against the
@@ -3050,7 +3050,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 3. <span class="ty">Create</span> the <span class="ty">SysML</span> v2 textual notation for the projectOwner.
                 4. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the projectOwner into the <span class="ty">SysML</span> model, find the project and the projectOwner within the project. <span class="ty">If</span> no project exists, create one and insert the projectOwner into the project redefining the inherited projectOwner <span class="kw">part</span> usage. <span class="ty">If</span> the projectOwner already exists, update it.";
             create_questions = (
-                "<span class="ty">Who</span> is the project owner?", "<span class="ty">Who</span> is responsible for the project?",
+                "<span class="ty">Who</span> is the project owner?", "<span class="ty">Who</span> is responsible for the project?"
             );
             validation_prompt =
                 "<span class="ty">Validate</span> the projectOwner against the <span class="ty">SYSMOD</span> <span class="ty">Project</span> <span class="ty">Owner</span> concept and report findings grouped as errors, warnings, and suggestions.
@@ -3099,7 +3099,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             create_questions = (
                 "<span class="ty">What</span> is the name of the existing system (system of interest)?",
                 "<span class="ty">Which</span> external actors (users, operators, external systems, environments) interact with the existing system?",
-                "<span class="ty">Are</span> there any known and preset subcomponents or subsystems of the existing system that are relevant?",
+                "<span class="ty">Are</span> there any known and preset subcomponents or subsystems of the existing system that are relevant?"
             );
             validation_prompt =
                 "<span class="ty">Validate</span> the brownfieldContext and brownfieldContextImpl against the <span class="ty">SYSMOD</span> <span class="ty">Brownfield</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
@@ -3147,7 +3147,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 10. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the problemStatement into the <span class="ty">SysML</span> model, find the project and the problemStatement within the project. <span class="ty">If</span> no project exists, create one and insert the problemStatement into the project redefining the inherited problemStatement <span class="kw">concern</span> usage. <span class="ty">If</span> the problemStatement already exists, update it.";
             create_questions = (
                 "<span class="ty">What</span> is the core problem the system should solve?",
-                "<span class="ty">What</span> are the main deficiencies or pain points of the existing (brownfield) system?",
+                "<span class="ty">What</span> are the main deficiencies or pain points of the existing (brownfield) system?"
             );
             validation_prompt =
                 "<span class="ty">Validate</span> the problemStatement against the <span class="ty">SYSMOD</span> <span class="ty">Problem</span> <span class="ty">Statement</span> concept and report findings grouped as errors, warnings, and suggestions.
@@ -3194,7 +3194,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             create_questions = (
                 "<span class="ty">Who</span> are the primary users of the system?",
                 "<span class="ty">Which</span> organizations or roles own or define the requirements?",
-                "<span class="ty">Are</span> there regulatory bodies, standards authorities, or other external parties with an interest <span class="kw">in</span> the system?",
+                "<span class="ty">Are</span> there regulatory bodies, standards authorities, or other external parties with an interest <span class="kw">in</span> the system?"
             );
             validation_prompt =
                 "<span class="ty">Validate</span> the projectStakeholders against the <span class="ty">SYSMOD</span> <span class="ty">Stakeholders</span> concept and report findings grouped as errors, warnings, and suggestions.
@@ -3239,7 +3239,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 5. <span class="ty">Render</span> the map as a diagram (e.g., <span class="ty">SVG</span> or a described grid), not as <span class="ty">SysML</span> v2 textual notation, since it is an analysis artifact rather than a persisted model element.";
             create_questions = (
                 "<span class="ty">Which</span> stakeholders (from projectStakeholders) should be included <span class="kw">in</span> the map?",
-                "<span class="ty">Do</span> all included stakeholders already have risk and effort values assigned? <span class="ty">If</span> not, what are they?",
+                "<span class="ty">Do</span> all included stakeholders already have risk and effort values assigned? <span class="ty">If</span> not, what are they?"
             );
             validation_prompt =
                 "<span class="ty">Validate</span> the <span class="kw">stakeholder</span> priority map against the <span class="ty">SYSMOD</span> <span class="ty">Stakeholder</span> <span class="ty">Priority</span> <span class="ty">Map</span> concept and report findings grouped as errors, warnings, and suggestions.
@@ -3280,7 +3280,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the stakeholderNeeds into the <span class="ty">SysML</span> model, find the project and redefine the inherited stakeholderNeeds <span class="kw">concern</span> usage. <span class="ty">If</span> the project does not exist, create one <span class="kw">first</span>.";
             create_questions = (
                 "<span class="ty">What</span> does each <span class="kw">stakeholder</span> group need the system <span class="kw">to</span> do or be?",
-                "<span class="ty">Are</span> there any known constraints or non-functional needs (safety, cost, compliance) expressed by stakeholders?",
+                "<span class="ty">Are</span> there any known constraints or non-functional needs (safety, cost, compliance) expressed by stakeholders?"
             );
             validation_prompt =
                 "<span class="ty">Validate</span> the stakeholderNeeds against the <span class="ty">SYSMOD</span> <span class="ty">Stakeholder</span> <span class="ty">Needs</span> concept and report findings grouped as errors, warnings, and suggestions.
@@ -3326,7 +3326,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the systemIdeaContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited systemIdeaContext and systemIdeaContextImpl <span class="kw">part</span> usages. <span class="ty">If</span> the project does not exist, create one <span class="kw">first</span>.";
             create_questions = (
                 "<span class="ty">What</span> is the high-level concept or approach for the new or changed system?",
-                "<span class="ty">Are</span> there any new actors introduced by the system idea that do not exist <span class="kw">in</span> the brownfield?",
+                "<span class="ty">Are</span> there any new actors introduced by the system idea that do not exist <span class="kw">in</span> the brownfield?"
             );
             validation_prompt =
                 "<span class="ty">Validate</span> the systemIdeaContext and systemIdeaContextImpl against the <span class="ty">SYSMOD</span> <span class="ty">System</span> <span class="ty">Idea</span> concept and report findings grouped as errors, warnings, and suggestions.
@@ -3371,7 +3371,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
                 6. <span class="ty">If</span> the user asks <span class="kw">to</span> insert the specificationContext into the <span class="ty">SysML</span> model, find the project and redefine the inherited specificationContext and specificationContextImpl <span class="kw">part</span> usages.";
             create_questions = (
                 "<span class="ty">Which</span> <span class="kw">use</span> cases describe how actors interact with the system?",
-                "<span class="ty">Are</span> there additional actors or subcomponents that become visible at the specification level?",
+                "<span class="ty">Are</span> there additional actors or subcomponents that become visible at the specification level?"
             );
             validation_prompt =
                 "<span class="ty">Validate</span> the specificationContext and specificationContextImpl against the <span class="ty">SYSMOD</span> <span class="ty">Specification</span> <span class="ty">Context</span> concept and report findings grouped as errors, warnings, and suggestions.
@@ -3415,7 +3415,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             create_questions = (
                 "<span class="ty">What</span> are the key functional requirements of the system?",
                 "<span class="ty">Are</span> there non-functional requirements (performance, safety, reliability, compliance)?",
-                "<span class="ty">Which</span> requirements are mandatory and which are optional?",
+                "<span class="ty">Which</span> requirements are mandatory and which are optional?"
             );
             validation_prompt =
                 "<span class="ty">Validate</span> the systemRequirementSpecification against the <span class="ty">SYSMOD</span> <span class="ty">System</span> <span class="ty">Requirements</span> concept and report findings grouped as errors, warnings, and suggestions.
@@ -3463,7 +3463,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             create_questions = (
                 "<span class="ty">Is</span> a functional architecture required for this project?",
                 "<span class="ty">What</span> are the top-level functions the system must perform?",
-                "<span class="ty">Should</span> the functional architecture follow the <span class="ty">FAS</span> method or another approach?",
+                "<span class="ty">Should</span> the functional architecture follow the <span class="ty">FAS</span> method or another approach?"
             );
             validation_prompt =
                 "<span class="ty">Validate</span> the functionalContext against the <span class="ty">SYSMOD</span> <span class="ty">Functional</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
@@ -3553,7 +3553,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             create_questions = (
                 "<span class="ty">What</span> are the main physical or deployable components of the system?",
                 "<span class="ty">Are</span> there hardware/software splits or deployment boundaries <span class="kw">to</span> model?",
-                "<span class="ty">Which</span> product components are <span class="kw">derived</span> <span class="kw">from</span> the logical architecture?",
+                "<span class="ty">Which</span> product components are <span class="kw">derived</span> <span class="kw">from</span> the logical architecture?"
             );
             validation_prompt =
                 "<span class="ty">Validate</span> the productContext against the <span class="ty">SYSMOD</span> <span class="ty">Product</span> <span class="ty">Architecture</span> concept and report findings grouped as errors, warnings, and suggestions.
@@ -3599,7 +3599,7 @@ const fullLibraryCode = `<span class="kw">library</span> <span class="kw">packag
             create_questions = (
                 "<span class="ty">Should</span> the project be decomposed into sub-projects?",
                 "<span class="ty">What</span> are the names and scopes of the sub-projects?",
-                "<span class="ty">Do</span> the sub-projects share stakeholders or requirements with the parent project?",
+                "<span class="ty">Do</span> the sub-projects share stakeholders or requirements with the parent project?"
             );
             validation_prompt =
                 "<span class="ty">Validate</span> the subProjects against the <span class="ty">SYSMOD</span> sub-project decomposition concept and report findings grouped as errors, warnings, and suggestions.

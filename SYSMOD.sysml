@@ -390,20 +390,6 @@ library package SYSMOD {
     }
     occurrence constrainedOccurrences[*] : ConstrainedOccurrence;
 
-    package SYSMODViews {
-        view def ProjectView;
-        view def ArchitectureView;
-        view def RequirementsView;
-        view def UseCaseOverviewView;
-        view def UseCaseView;
-
-        view def SystemContextView :> StandardViewDefinitions::InterconnectionView {
-            filter @SysML::PartUsage or @SysML::PortUsage or @SysML::InterfaceUsage or @SysML::ConnectionUsage or @SysML::UseCaseUsage;
-            filter not (@KerML::Element::isLibraryElement);
-            render Views::asInterconnectionDiagram;
-        }
-    }
-
     //
     // Semantic Metadata
     //
@@ -486,7 +472,6 @@ library package SYSMOD {
          * Each step refines one or more ISO/IEC/IEEE 15288 processes from the package ISO15288Processes (#refinement dependencies at the end of this package).
          * A project can tailor the process by redefining Project::defaultProcess with a specialization of SYSMODDefaultProcess.
          */
-
         private import ModelingMetadata::refinement;
 
         action def SYSMODDefaultProcess {
@@ -564,26 +549,31 @@ library package SYSMOD {
             bind project.productContext = verifyAndValidateRequirements.productContext;
 
             action setupProject : SetupProject {
+                @StepStatus;
                 in attribute projectOwnerName = SYSMODDefaultProcess::projectOwnerName;
                 in attribute projectPurpose = SYSMODDefaultProcess::projectPurpose;
             }
             action specifyBrownfieldSystem : SpecifyBrownfieldSystem {
+                @StepStatus;
                 in item brownfieldArchitecture = SYSMODDefaultProcess::brownfieldArchitecture;
             }
             action specifyProblemStatement : SpecifyProblemStatement {
+                @StepStatus;
                 in part projectOwner = SYSMODDefaultProcess::project.projectOwner;
                 in attribute problemStatementText = SYSMODDefaultProcess::problemStatementText;
             }
-            action identifyStakeholders : IdentifyStakeholders;
-            action elaborateStakeholderNeeds : ElaborateStakeholderNeeds;
+            action identifyStakeholders : IdentifyStakeholders { @StepStatus; }
+            action elaborateStakeholderNeeds : ElaborateStakeholderNeeds { @StepStatus; }
             action pitchSystemIdea : PitchSystemIdea {
+                @StepStatus;
                 in item systemIdeaArchitecture = SYSMODDefaultProcess::systemIdeaArchitecture;
             }
-            action defineSystemSpecification : DefineSystemSpecification;
+            action defineSystemSpecification : DefineSystemSpecification { @StepStatus; } 
             action createSolutionArchitectures : CreateSolutionArchitectures {
+                @StepStatus;
                 in item solutionArchitecture = SYSMODDefaultProcess::solutionArchitecture;
             }
-            action verifyAndValidateRequirements : VerifyAndValidateRequirements;
+            action verifyAndValidateRequirements : VerifyAndValidateRequirements { @StepStatus; }
         }
 
         action def SetupProject { 
@@ -719,6 +709,19 @@ library package SYSMOD {
         #refinement dependency CreateSolutionArchitectures to ISO15288Processes::SystemArchitectureDefinition;
         #refinement dependency VerifyAndValidateRequirements to ISO15288Processes::Verification;
         #refinement dependency VerifyAndValidateRequirements to ISO15288Processes::Validation;
+
+        //
+        // Additional Elements
+        //
+        enum def StepStatusKind { open; inProgress; done; skipped; }
+        attribute def Percentage :> ScalarValues::Real {
+            assert constraint { self >= 0.0 and self <= 1.0 }
+        }
+        metadata def StepStatus {
+            attribute status : StepStatusKind default StepStatusKind::open;
+            attribute percentage : Percentage default (0.0);
+            :> annotatedElement : SysML::ActionUsage;
+        }        
     }
 
     package ISO15288Processes {
@@ -858,133 +861,6 @@ library package SYSMOD {
         action def Disposal {
             doc
             /* The Disposal process ends the existence of a system element or system for a specified intended use, appropriately handling replaced or retired elements. */
-
-    //
-    // Semantic Metadata
-    //
-    metadata def <project> ProjectMetadata :> Metaobjects::SemanticMetadata {
-        doc
-        /* Enables the user-defined keyword #project to mark occurrence definitions and usages as SYSMOD projects. */
-        :>> baseType = projects meta SysML::Type;
-        :> annotatedElement : SysML::OccurrenceDefinition;
-        :> annotatedElement : SysML::OccurrenceUsage;
-    }
-    metadata def <systemContext> SystemContextMetadata :> Metaobjects::SemanticMetadata {
-        doc
-        /* Enables the user-defined keyword #systemContext to mark part definitions and usages as SYSMOD system contexts. */
-        :>> baseType = systemContexts meta SysML::Type;
-        :> annotatedElement : SysML::PartDefinition;
-        :> annotatedElement : SysML::PartUsage;
-    }
-    metadata def <extendedStakeholder> StakeholderMetadata :> Metaobjects::SemanticMetadata {
-        doc
-        /* Enables the user-defined keyword #extendedStakeholder to mark part definitions and usages as SYSMOD stakeholders. */
-        :>> baseType = stakeholders meta SysML::Type;
-        :> annotatedElement : SysML::PartDefinition;
-        :> annotatedElement : SysML::PartUsage;
-    }
-    metadata def <extendedConcern> ExtendedConcernMetadata :> Metaobjects::SemanticMetadata {
-        doc
-        /* Enables the user-defined keyword #extendedConcern to mark concern definitions and usages as SYSMOD concerns. */
-        :>> baseType = extendedConcerns meta SysML::Type;
-        :> annotatedElement : SysML::ConcernDefinition;
-        :> annotatedElement : SysML::ConcernUsage;
-    }
-    metadata def <extendedRequirement> ExtendedRequirementMetadata
-        :> Metaobjects::SemanticMetadata {
-        doc
-        /* Enables the user-defined keyword #extendedRequirement to mark requirement definitions and usages as SYSMOD requirements. */
-        :>> baseType = extendedRequirements meta SysML::Type;
-        :> annotatedElement : SysML::RequirementDefinition;
-        :> annotatedElement : SysML::RequirementUsage;
-    }
-    metadata def <systemUseCase> SystemUseCaseMetadata
-        :> Metaobjects::SemanticMetadata {
-        doc
-        /* Enables the user-defined keyword #systemUseCase. */
-        :>> baseType = systemUseCases meta SysML::Type;
-        :> annotatedElement : SysML::UseCaseDefinition;
-        :> annotatedElement : SysML::UseCaseUsage;
-    }    
-}
-
-library package SYSMODRequirementBoilerplates {
-    doc
-    /* Library of generic, parametric requirement patterns. Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold. */
-
-    requirement def MaxValue {
-        doc
-        /* The quantity must stay strictly below an upper bound. */
-        attribute currentValue : ScalarValues::Real;
-        attribute maxValue : ScalarValues::Real;
-
-        require constraint {
-            currentValue < maxValue
-        }
-    }
-    requirement def MinValue {
-        doc
-        /* The quantity must stay strictly above a lower bound. */
-        attribute currentValue : ScalarValues::Real;
-        attribute minValue : ScalarValues::Real;
-
-        require constraint {
-            currentValue > minValue
-        }
-    }
-    requirement def RangeValue {
-        doc
-        /* The quantity must stay within an inclusive lower and upper bound. */
-        attribute currentValue : ScalarValues::Real;
-        attribute minValue : ScalarValues::Real;
-        attribute maxValue : ScalarValues::Real;
-
-        require constraint {
-            minValue <= currentValue and currentValue <= maxValue
-        }
-    }
-    requirement def ExactValue {
-        doc
-        /* The quantity must equal a specific target value. */
-        attribute currentValue : ScalarValues::Real;
-        attribute targetValue : ScalarValues::Real;
-
-        require constraint {
-            currentValue == targetValue
-        }
-    }
-    requirement def ToleranceValue {
-        doc
-        /* The quantity must stay within a target value plus/minus a tolerance. */
-        attribute currentValue : ScalarValues::Real;
-        attribute targetValue : ScalarValues::Real;
-        attribute tolerance : ScalarValues::Real;
-
-        require constraint {
-            currentValue >= targetValue - tolerance and currentValue <= targetValue + tolerance
-        }
-    }
-    requirement def MinAvailability {
-        doc
-        /* The ratio of uptime to total time must reach at least a minimum availability. */
-        attribute uptime :> ISQ::duration;
-        attribute totalTime :> ISQ::duration;
-        attribute minAvailability : ScalarValues::Real;
-
-        require constraint {
-            uptime / totalTime >= minAvailability
-        }
-    }
-    requirement def MinReliability {
-        doc
-        /* The mean time between failures must reach at least a minimum MTBF. */
-        attribute meanTimeBetweenFailures :> ISQ::duration;
-        attribute minMTBF :> ISQ::duration;
-
-        require constraint {
-            meanTimeBetweenFailures >= minMTBF
         }
     }
 }
-
-    

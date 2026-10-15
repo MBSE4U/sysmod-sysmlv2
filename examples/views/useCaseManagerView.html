@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delivery Drone Use Cases</title>
+<!-- Rendering of DD::PRJ::useCaseManagerView : SYSMODViews::AIUseCase4ManagersView (render as4Managers).
+     Exposed: DD_SPECIFICATION::UseCases::*, filtered by @SysML::UseCaseDefinition. -->
+<style>
+  :root { --bg:#f4f5f7; --slide:#ffffff; --ink:#1b1f24; --muted:#5b6370; --accent:#1f6feb; --line:#e3e6ea; --warn:#b35900; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg:#0f1115; --slide:#181b21; --ink:#e8eaed; --muted:#a0a7b2; --accent:#5b9dff; --line:#2a2f37; --warn:#f0a050; }
+  }
+  :root[data-theme="dark"] { --bg:#0f1115; --slide:#181b21; --ink:#e8eaed; --muted:#a0a7b2; --accent:#5b9dff; --line:#2a2f37; --warn:#f0a050; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:"Segoe UI", Helvetica, Arial, sans-serif; display:flex; justify-content:center; padding:24px 16px; }
+  .slide { width:100%; max-width:1100px; aspect-ratio:16/9; background:var(--slide); border:1px solid var(--line); border-radius:10px; padding:40px 48px; display:flex; flex-direction:column; gap:22px; }
+  h1 { margin:0; font-size:30px; }
+  .sub { margin:4px 0 0; color:var(--muted); font-size:16px; }
+  .cols { display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; flex:1; }
+  .card { border-top:4px solid var(--accent); padding-top:12px; }
+  .card h2 { margin:0 0 8px; font-size:18px; }
+  .card p { margin:0 0 8px; font-size:15px; line-height:1.45; }
+  .card .uc { color:var(--muted); font-size:13px; }
+  .decide { border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:6px; padding:14px 18px; }
+  .decide h2 { margin:0 0 6px; font-size:17px; }
+  .decide ul { margin:0; padding-left:20px; font-size:15px; line-height:1.5; }
+  @media (max-width:760px) { .slide { aspect-ratio:auto; padding:24px 18px; } .cols { grid-template-columns:1fr; } h1 { font-size:24px; } }
+</style>
+</head>
+<body>
+<section class="slide">
+  <div>
+    <h1>What the Delivery Drone System must do</h1>
+    <p class="sub">Seven use cases define the service: one core delivery flow plus the capabilities that make it safe and scalable.</p>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <h2>1 · Deliver parcels</h2>
+      <p>The operator books a customer's parcel and dispatches a drone. It flies to the landing zone, drops the parcel off and returns home.</p>
+      <p><strong>Value:</strong> faster, cheaper last-mile delivery to remote places than ground transport.</p>
+      <p class="uc">DeliveryProcess · BookDelivery · DeliverPackage</p>
+    </div>
+    <div class="card">
+      <h2>2 · Extend range</h2>
+      <p>A drone with low battery meets a charger drone in flight and recharges without returning to a ground dock.</p>
+      <p><strong>Value:</strong> reach destinations beyond a single battery charge. This is the key differentiator.</p>
+      <p class="uc">ChargeDrone</p>
+    </div>
+    <div class="card">
+      <h2>3 · Operate safely at scale</h2>
+      <p>Drones watch their own health continuously and land safely on a critical fault. One operator sees the status of the whole fleet at once.</p>
+      <p><strong>Value:</strong> protects people, parcels and drones; few operators can run many drones.</p>
+      <p class="uc">MonitorDroneHealth · HandleEmergencyLanding · ReportFleetStatus</p>
+    </div>
+  </div>
+  <div class="decide">
+    <h2>Decisions this enables</h2>
+    <ul>
+      <li><strong>In-flight charging</strong> carries the business case for remote delivery. Fund an early feasibility test before committing to remote markets.</li>
+      <li><strong>Safety use cases are not optional.</strong> Plan for them in scope and budget from day one, because they are the basis for approval and trust.</li>
+      <li><strong>Drones per operator</strong> is the main operating-cost lever. Set a target ratio early, as it drives the fleet-status and automation requirements.</li>
+    </ul>
+  </div>
+</section>
+</body>
+</html>

@@ -138,5 +138,18 @@ package <DD> DeliveryDrone {
             doc /* The control station is developed in a SYSMOD sub-project. It
                    subsets the subProjects list inherited from SYSMOD::Project. */
         }
+
+        //
+        // Views
+        //
+        private import SYSMODViews::*;
+
+        view useCaseView : AIUseCaseView {
+            expose DD_SPECIFICATION::UseCases::*;
+        }
+        view useCaseManagerView : AIUseCase4ManagersView {
+            expose DD_SPECIFICATION::UseCases::*;
+        }
+
     }
 }

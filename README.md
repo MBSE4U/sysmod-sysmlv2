@@ -2,6 +2,8 @@
 
 SysML v2 library implementing the [SYSMOD methodology](https://mbse4u.com/sysmod) for Model-Based Systems Engineering (MBSE).
 
+Documentation: [sysmod.org](https://sysmod.org) — the SYSMOD documentation website, maintained by [mbse4u.com](https://mbse4u.com) and no longer part of this repository.
+
 Source: [github.com/mbse4u/sysmod-sysmlv2](https://github.com/mbse4u/sysmod-sysmlv2)
 
 Sysand project: [sysand.com/projects/mbse4u/sysmod](https://sysand.com/projects/mbse4u/sysmod/) — Sysand is a package registry for publishing, versioning, and discovering reusable SysML v2 libraries.

@@ -2,6 +2,7 @@
 
 ## v5.1.4
 
+- Removed the `sysmod.org` folder (the HTML documentation deck `sysmodv5-reveal.html` and its images) from the repository. The documentation is now maintained by the website mbse4u.com and is still available at https://sysmod.org. The README links to it.
 - Added the SYSMOD use case specializations `SecondaryUseCase`, `SystemProcess`, and `ContinuousUseCase` (each specializing `SystemUseCase`, with `secondaryUseCases`, `systemProcesses`, and `continuousUseCases` usages) and the matching keywords `#secondaryUseCase`, `#systemProcess`, and `#continuousUseCase`.
 - Breaking: the actor-tagging metadata definitions are now lower camel case, so their keywords match the other SYSMOD keywords: `System` → `system`, `User` → `user`, `ExternalSystem` → `externalSystem`, `EnvironmentalEffect` → `environmentalEffect`. Replace `#System`, `#User`, `#ExternalSystem`, and `#EnvironmentalEffect` with the lower-case forms in existing models.
 - The `#systemUseCase` keyword (`SystemUseCaseMetadata`) now applies to use case definitions only, no longer to use case usages.

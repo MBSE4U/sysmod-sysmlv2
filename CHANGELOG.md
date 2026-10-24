@@ -2,6 +2,12 @@
 
 ## v5.1.4
 
+- `SYSMODViews` stakeholder roles (`Acquirer`, `ProductManager`, …) now specialize `ExtendedStakeholder`, so a project stakeholder can play a role by multiple typing, e.g., `part johnFinch : ProductManager :>> projectOwner`. The `ProductManager` doc states that the `projectOwner` typically plays this role, and the `ProblemSolutionViewpoint` doc names its stakeholders (the `ProductManager` and the `Acquirer`).
+- Added the concern `MissionGoalsAndMeasures` (ISO/IEC/IEEE 15288 Business or Mission Analysis: mission, goals, objectives, and measures of success), framed by the `ProblemSolutionViewpoint`.
+- Documented in the `Concerns` package that the `Project` is the entity of interest (ISO/IEC/IEEE 42010) of all `SYSMODViews` concerns, while the system of interest is reached through the system contexts of the `Project`.
+- `Project::stakeholderNeeds` is now typed by `ExtendedConcern` and `Project::systemRequirementSpecification` by `ExtendedRequirement`, so they conform to the element constraints of the requirements, verification, and agreement viewpoints.
+- `IdentifyStakeholders` now also refines the ISO/IEC/IEEE 15288 Business or Mission Analysis process (identification of the major stakeholders is one of its outcomes).
+- Updated example model: `johnFinch` plays the `ProductManager` role, `logisticCompany` the `Acquirer` role, and `DeliveryDroneSystemRequirements` specializes `ExtendedRequirement`.
 - Removed the `sysmod.org` folder (the HTML documentation deck `sysmodv5-reveal.html` and its images) from the repository. The documentation is now maintained by the website mbse4u.com and is still available at https://sysmod.org. The README links to it.
 - Added the SYSMOD use case specializations `SecondaryUseCase`, `SystemProcess`, and `ContinuousUseCase` (each specializing `SystemUseCase`, with `secondaryUseCases`, `systemProcesses`, and `continuousUseCases` usages) and the matching keywords `#secondaryUseCase`, `#systemProcess`, and `#continuousUseCase`.
 - Breaking: the actor-tagging metadata definitions are now lower camel case, so their keywords match the other SYSMOD keywords: `System` → `system`, `User` → `user`, `ExternalSystem` → `externalSystem`, `EnvironmentalEffect` → `environmentalEffect`. Replace `#System`, `#User`, `#ExternalSystem`, and `#EnvironmentalEffect` with the lower-case forms in existing models.

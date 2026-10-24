@@ -83,7 +83,7 @@ library package SYSMOD {
             doc
             /* Stakeholders are individuals and organizations that have an interest in the system. They have needs and are potential sources of system requirements. There is at least one stakeholder which is the project owner. */
         }
-        concern stakeholderNeeds {
+        concern stakeholderNeeds : ExtendedConcern {
             doc
             /* The concern stakeholderNeeds is the root element for all stakeholder needs which will be translated into system requirements. The needs are based on the brownfield system (white-box view) and frame the problem statement. */
             subject brownfieldSystem :> Project::brownfieldContextImpl.soiImpl;
@@ -138,7 +138,7 @@ library package SYSMOD {
                 /* The white-box view of the specification system including its internal structure. */
             }
         }
-        requirement systemRequirementSpecification {
+        requirement systemRequirementSpecification : ExtendedRequirement {
             doc
             /* The System Requirement Specification is the root element for system requirements. They frame the stakeholder needs. */
             subject specificationSystem :> specificationContext.soi;
@@ -644,7 +644,7 @@ library package SYSMOD {
 
         action def IdentifyStakeholders {
             doc
-            /* Identifies the stakeholders of the project based on the problem statement and assesses their risk, effort, and categories. Refines the ISO 15288 Stakeholder Needs and Requirements Definition process. */
+            /* Identifies the stakeholders of the project based on the problem statement and assesses their risk, effort, and categories. Refines the ISO 15288 Business or Mission Analysis process (identification of the major stakeholders) and the Stakeholder Needs and Requirements Definition process. */
             in concern problemStatement : ExtendedConcern;
             out part projectStakeholders[*] : ExtendedStakeholder {
                 doc /* The stakeholders of the project are individuals and organizations that have an interest in the system. The list includes the project owner retrieved from the problemStatement.*/
@@ -731,6 +731,7 @@ library package SYSMOD {
         #refinement dependency SpecifyBrownfieldSystem to ISO15288Processes::BusinessOrMissionAnalysis;
         #refinement dependency SpecifyProblemStatement to ISO15288Processes::BusinessOrMissionAnalysis;
         #refinement dependency IdentifyStakeholders to ISO15288Processes::StakeholderNeedsAndRequirementsDefinition;
+        #refinement dependency IdentifyStakeholders to ISO15288Processes::BusinessOrMissionAnalysis;
         #refinement dependency ElaborateStakeholderNeeds to ISO15288Processes::StakeholderNeedsAndRequirementsDefinition;
         #refinement dependency PitchSystemIdea to ISO15288Processes::BusinessOrMissionAnalysis;
         #refinement dependency DefineSystemSpecification to ISO15288Processes::SystemRequirementsDefinition;

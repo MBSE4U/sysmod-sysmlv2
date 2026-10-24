@@ -476,7 +476,7 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
     }
 
     package Requirements {
-        requirement def DeliveryDroneSystemRequirements {
+        requirement def DeliveryDroneSystemRequirements :> ExtendedRequirement {
             doc
             /* Root of the delivery drone system requirements. */
             subject deliveryDroneSystem : DD_SPECIFICATION::DeliveryDroneSystem;

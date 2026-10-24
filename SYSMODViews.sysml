@@ -25,64 +25,68 @@ library package SYSMODViews {
         doc /* Typical stakeholders of a systems engineering project that have concerns framed by the SYSMOD viewpoints.
              * ISO/IEC/IEEE 15288 defines processes, not roles. The stakeholders are derived from the roles
              * that are responsible for the respective life cycle processes.
+             * Each role specializes ExtendedStakeholder, so that a project stakeholder can play one or more roles by
+             * multiple typing, e.g., part johnFinch : ProductManager :>> projectOwner, or
+             * part logisticCompany : LogisticCompany, Acquirer :> projectStakeholders.
              */
 
         // Agreement processes
-        part def Acquirer {
+        part def Acquirer :> ExtendedStakeholder {
             doc /* Organization or person that acquires or procures the system from a supplier (ISO/IEC/IEEE 15288 Acquisition process). */
         }
-        part def Supplier {
+        part def Supplier :> ExtendedStakeholder {
             doc /* Organization or person that provides the system to an acquirer (ISO/IEC/IEEE 15288 Supply process). */
         }
 
         // Organizational project-enabling processes
-        part def PortfolioManager {
+        part def PortfolioManager :> ExtendedStakeholder {
             doc /* Responsible for initiating, sustaining, and terminating projects in line with the organization's strategy (ISO/IEC/IEEE 15288 Portfolio Management process). */
         }
-        part def QualityManager {
+        part def QualityManager :> ExtendedStakeholder {
             doc /* Responsible for ensuring that products, services, and processes meet the organization's quality objectives (ISO/IEC/IEEE 15288 Quality Management process). */
         }
 
         // Technical management processes
-        part def ProjectManager {
+        part def ProjectManager :> ExtendedStakeholder {
             doc /* Responsible for planning, assessing, and controlling the project, e.g., schedule, cost, resources, and progress (ISO/IEC/IEEE 15288 Project Planning and Project Assessment and Control processes). */
         }
-        part def RiskManager {
+        part def RiskManager :> ExtendedStakeholder {
             doc /* Responsible for identifying, analyzing, treating, and monitoring risks (ISO/IEC/IEEE 15288 Risk Management process). */
         }
-        part def ConfigurationManager {
+        part def ConfigurationManager :> ExtendedStakeholder {
             doc /* Responsible for managing and controlling system elements, configurations, and baselines over the life cycle (ISO/IEC/IEEE 15288 Configuration Management process). */
         }
 
         // Technical processes
-        part def ProductManager {
-            doc /* Responsible for the business or mission problem or opportunity, the solution space, and the product's success on the market (ISO/IEC/IEEE 15288 Business or Mission Analysis process). */
+        part def ProductManager :> ExtendedStakeholder {
+            doc /* Responsible for the business or mission problem or opportunity, the solution space, and the product's success on the market (ISO/IEC/IEEE 15288 Business or Mission Analysis process).
+                 * In a SYSMOD project, the projectOwner typically plays this role, since the projectOwner is the stakeholder of the problemStatement. */
         }
-        part def RequirementsEngineer {
+        part def RequirementsEngineer :> ExtendedStakeholder {
             doc /* Responsible for eliciting stakeholder needs and defining stakeholder and system requirements (ISO/IEC/IEEE 15288 Stakeholder Needs and Requirements Definition and System Requirements Definition processes). */
         }
-        part def SystemArchitect {
+        part def SystemArchitect :> ExtendedStakeholder {
             doc /* Responsible for the system architecture, i.e., the fundamental concepts and properties of the system and the integration of problem and solution across several levels (ISO/IEC/IEEE 15288 Architecture Definition process). */
         }
-        part def DesignEngineer {
+        part def DesignEngineer :> ExtendedStakeholder {
             doc /* Responsible for the detailed design of system elements so that they can be implemented (ISO/IEC/IEEE 15288 Design Definition and Implementation processes). */
         }
-        part def SystemAnalyst {
+        part def SystemAnalyst :> ExtendedStakeholder {
             doc /* Responsible for providing a rigorous basis of data and information for technical decisions, e.g., by simulations and trade studies (ISO/IEC/IEEE 15288 System Analysis process). */
         }
-        part def IntegrationEngineer {
+        part def IntegrationEngineer :> ExtendedStakeholder {
             doc /* Responsible for assembling the system elements into a realized system (ISO/IEC/IEEE 15288 Integration process). */
         }
-        part def VerificationEngineer {
+        part def VerificationEngineer :> ExtendedStakeholder {
             doc /* Responsible for providing objective evidence that the system fulfills its specified requirements (ISO/IEC/IEEE 15288 Verification process). */
         }
-        part def ValidationEngineer {
+        part def ValidationEngineer :> ExtendedStakeholder {
             doc /* Responsible for providing objective evidence that the system fulfills its intended use in its intended operational environment (ISO/IEC/IEEE 15288 Validation process). */
         }
-        part def Operator {
+        part def Operator :> ExtendedStakeholder {
             doc /* Uses the system to deliver its services (ISO/IEC/IEEE 15288 Operation process). */
         }
-        part def Maintainer {
+        part def Maintainer :> ExtendedStakeholder {
             doc /* Sustains the capability of the system to provide its services (ISO/IEC/IEEE 15288 Maintenance and Disposal processes). */
         }
     }
@@ -90,6 +94,11 @@ library package SYSMODViews {
         private import Stakeholders::*;
         doc /* Concerns of the SYSMOD stakeholders, i.e., their interests in the system and the project.
              * The concerns are derived from the outcomes of the ISO/IEC/IEEE 15288 life cycle processes.
+             *
+             * Entity of interest: the subject of all concerns is the SYSMOD Project (projectOfInterest). In the sense of
+             * ISO/IEC/IEEE 42010, the Project is the entity of interest of the SYSMOD architecture description framework.
+             * The system of interest is reached through the system contexts of the Project, e.g., the problemStatement
+             * has the brownfield system (brownfieldContextImpl.soiImpl) as its own subject.
              */
 
         // Agreement processes
@@ -147,6 +156,16 @@ library package SYSMODViews {
         concern def ProblemSolutionPitch {
             doc /* What is the problem to be solved and what is the solution idea? Pitch both concisely
                  * to decision makers. (ISO/IEC/IEEE 15288 Business or Mission Analysis process)
+                 */
+            subject projectOfInterest : Project;
+            stakeholder productManager : ProductManager;
+            stakeholder acquirer : Acquirer;
+        }
+        concern def MissionGoalsAndMeasures {
+            doc /* Which mission, goals, and objectives does the project pursue, and by which measures of success
+                 * is it decided whether the problem is solved? (ISO/IEC/IEEE 15288 Business or Mission Analysis process)
+                 * In SYSMOD, the goals are stated with the problemStatement and become measurable in the
+                 * systemRequirementSpecification, e.g., with the SYSMODRequirementsBoilerplates.
                  */
             subject projectOfInterest : Project;
             stakeholder productManager : ProductManager;
@@ -341,9 +360,12 @@ library package SYSMODViews {
         viewpoint def ProblemSolutionViewpoint {
             doc /* Shows the problemStatement with its projectOwner and the brownfieldContext,
                  * and the systemIdeaContext that answers the problem.
+                 * The stakeholders are those of the framed concerns: the ProductManager, a role typically played by
+                 * the projectOwner, and the Acquirer, who has the problem and must agree with the problemStatement.
                  */
             subject theView;
             frame concern cpsp : ProblemSolutionPitch;
+            frame concern cmgm : MissionGoalsAndMeasures;
             require constraint onlyProblemSolutionElements {
                 (theView as SysML::ViewUsage).exposedElement->forAll {
                     in e; e istype ExtendedConcern or e istype ExtendedStakeholder or e istype SystemContext

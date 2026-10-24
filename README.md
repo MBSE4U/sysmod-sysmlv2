@@ -64,6 +64,9 @@ Create a PowerPoint slide deck of the camera drone using the story and slide pro
 SYSMOD.sysml                                        # The core SYSMOD library
 SYSMOD4AI.sysml                                     # AI-assisted extension (AI metadata, AIProject) — imports SYSMOD
 SYSMODRequirementsBoilerPlates.sysml                # Reusable quantitative requirement patterns (MaxValue, MinValue, ...)
+SYSMODViews.sysml                                   # Stakeholders, concerns, viewpoints, and views (ISO/IEC/IEEE 42010)
+SYSMODViews.md                                      # Generated, read-only documentation of SYSMODViews.sysml
+scripts/generate_views_doc.py                       # Generates SYSMODViews.md (run after changing the library)
 examples/                                           # Delivery Drone example model
   DeliveryDroneSystemProject.sysml                  # Project definition tying all artifacts together
   DeliveryDroneSystemStakeholders.sysml             # Stakeholders and stakeholder needs

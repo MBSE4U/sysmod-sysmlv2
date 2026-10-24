@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="360" viewBox="0 0 1000 360" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::verificationMatrixView : SYSMODViews::VerificationMatrixView (render asElementTable).
+       Exposed: DD_SPECIFICATION::Requirements::** and DD_VV::* (hypothetical view usage; not yet declared in the project),
+       filtered by @SysML::VerificationCaseUsage or @SysML::RequirementUsage or @ExtendedRequirementMetadata.
+       Rows are the two leaf system requirements; the only verification case in the model is MaxPayloadTest.
+       Illustrative example. -->
+  <rect width="1000" height="360" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] verificationMatrixView : VerificationMatrixView — requirements × verification cases</text>
+
+  <!-- Table background -->
+  <rect x="20" y="50" width="960" height="54" fill="#eef2f7"/>
+  <rect x="20" y="104" width="960" height="56" fill="#ffffff"/>
+  <rect x="20" y="160" width="960" height="56" fill="#f7f9fc"/>
+  <g stroke="#333" stroke-width="1">
+    <rect x="20" y="50" width="960" height="166" fill="none" stroke-width="1.5"/>
+    <line x1="20" y1="104" x2="980" y2="104"/>
+    <line x1="20" y1="160" x2="980" y2="160"/>
+    <line x1="260" y1="50" x2="260" y2="216"/>
+    <line x1="600" y1="50" x2="600" y2="216" stroke-width="1.5"/>
+    <line x1="760" y1="50" x2="760" y2="216" stroke-width="1.5"/>
+  </g>
+
+  <!-- Header -->
+  <g font-size="12" font-weight="600" fill="#222">
+    <text x="28" y="94">System requirement</text>
+    <text x="268" y="94">Text</text>
+    <text x="768" y="94">Coverage</text>
+  </g>
+  <g text-anchor="middle">
+    <text x="680" y="68" font-size="11" fill="#555">«verification def»</text>
+    <text x="680" y="85" font-size="13" font-weight="600" fill="#111">MaxPayloadTest</text>
+    <text x="680" y="99" font-size="11" fill="#555">DD_VV</text>
+  </g>
+
+  <!-- Row: maxPayloadMass -->
+  <text x="28" y="122" font-size="11" fill="#555">«extendedRequirement»</text>
+  <text x="28" y="139" font-size="13" fill="#111">maxPayloadMass</text>
+  <text x="28" y="154" font-size="11" fill="#555">: MaxPayloadMass</text>
+  <g font-size="12" fill="#222">
+    <text x="268" y="126">The system shall transport payloads with a mass</text>
+    <text x="268" y="142">of up to 5 kg.</text>
+    <text x="768" y="126">verified by 1 case</text>
+    <text x="768" y="142" font-size="11" fill="#555">verdict = PassIf(maxReq.result)</text>
+  </g>
+  <text x="680" y="138" font-size="22" font-weight="600" fill="#2f6fb0" text-anchor="middle">✓</text>
+  <text x="680" y="154" font-size="11" fill="#555" text-anchor="middle">verify maxReq</text>
+
+  <!-- Row: airCharging -->
+  <text x="28" y="178" font-size="11" fill="#555">«extendedRequirement»</text>
+  <text x="28" y="195" font-size="13" fill="#111">airCharging</text>
+  <text x="28" y="210" font-size="11" fill="#555">: AirCharging</text>
+  <g font-size="12" fill="#222">
+    <text x="268" y="182">A drone shall be able to recharge its battery</text>
+    <text x="268" y="198">during flight.</text>
+    <text x="768" y="182" font-weight="600">not verified</text>
+    <text x="768" y="198" font-size="11" fill="#555">no verification case in the model</text>
+  </g>
+
+  <!-- Summary -->
+  <g font-size="12" fill="#555">
+    <text x="20" y="246">Verification coverage: 1 of 2 system requirements (50 %). The root DeliveryDroneSystemRequirements is not listed as a row.</text>
+    <text x="20" y="264">MaxPayloadTest (subject testedSystem : DeliveryDroneProductSystem) is a verification def and not yet a verificationCases usage of the project.</text>
+    <text x="20" y="290">✓ = the verification case's objective verifies the requirement; empty cell = no verify relationship.</text>
+  </g>
+
+  <text x="20" y="352" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
+</svg>

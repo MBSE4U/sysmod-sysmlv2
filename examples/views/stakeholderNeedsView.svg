@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600" viewBox="0 0 1000 600" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::stakeholderNeedsView : SYSMODViews::StakeholderNeedsView (render asTreeDiagram).
+       Exposed (assumed usage, not in the model): DD::PRJ::stakeholderNeeds with its nested needs and the
+       projectStakeholders they come from, filtered by @SysML::ConcernUsage or @ExtendedConcernMetadata or @StakeholderMetadata.
+       recipient, regulator, and johnFinch pass the filter but have no needs yet and are omitted for brevity.
+       Illustrative example. -->
+  <defs>
+    <marker id="open" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10" fill="none" stroke="#333" stroke-width="1.2"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="600" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] stakeholderNeedsView : StakeholderNeedsView — Delivery Drone stakeholder needs</text>
+
+  <!-- frame relationship -->
+  <line x1="400" y1="110" x2="320" y2="110" stroke="#333" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#open)"/>
+  <text x="360" y="102" font-size="11" fill="#555" text-anchor="middle">«frame»</text>
+
+  <!-- Membership edges -->
+  <g stroke="#333" stroke-width="1.5" fill="none">
+    <line x1="600" y1="184" x2="600" y2="200"/>
+    <line x1="170" y1="200" x2="830" y2="200"/>
+    <line x1="170" y1="200" x2="170" y2="230"/>
+    <line x1="500" y1="200" x2="500" y2="230"/>
+    <line x1="830" y1="200" x2="830" y2="230"/>
+  </g>
+  <g stroke="#333" stroke-width="1.5" fill="#ffffff">
+    <circle cx="600" cy="177" r="7"/>
+    <line x1="593" y1="177" x2="607" y2="177"/>
+    <line x1="600" y1="170" x2="600" y2="184"/>
+  </g>
+
+  <!-- stakeholder edges -->
+  <g stroke="#333" stroke-width="1.5" fill="none">
+    <line x1="170" y1="380" x2="290" y2="450"/>
+    <line x1="500" y1="380" x2="380" y2="450"/>
+    <line x1="830" y1="380" x2="830" y2="450"/>
+  </g>
+  <g font-size="11" fill="#555">
+    <text x="222" y="420" text-anchor="end">«stakeholder»</text>
+    <text x="448" y="420">«stakeholder»</text>
+    <text x="842" y="420">«stakeholder»</text>
+  </g>
+
+  <!-- problemStatement (framed) -->
+  <rect x="20" y="50" width="300" height="110" rx="8" fill="#ffffff" stroke="#333" stroke-width="1.5"/>
+  <text x="170" y="70" font-size="11" fill="#555" text-anchor="middle">«concern»</text>
+  <text x="170" y="88" font-size="14" font-weight="600" fill="#111" text-anchor="middle">problemStatement</text>
+  <line x1="20" y1="98" x2="320" y2="98" stroke="#333" stroke-width="1.5"/>
+  <g font-size="12" fill="#222">
+    <text x="34" y="116">priority = critical</text>
+    <text x="34" y="134" fill="#555">How can we deliver small packages to</text>
+    <text x="34" y="150" fill="#555">remote places faster and at lower cost …</text>
+  </g>
+
+  <!-- stakeholderNeeds root -->
+  <rect x="400" y="50" width="400" height="120" rx="8" fill="#f7f9fc" stroke="#333" stroke-width="2"/>
+  <text x="600" y="70" font-size="11" fill="#555" text-anchor="middle">«concern»</text>
+  <text x="600" y="90" font-size="15" font-weight="600" fill="#222" text-anchor="middle">stakeholderNeeds : ExtendedConcern</text>
+  <text x="600" y="107" font-size="12" fill="#555" text-anchor="middle">:&gt;&gt; Project::stakeholderNeeds</text>
+  <line x1="400" y1="117" x2="800" y2="117" stroke="#333" stroke-width="1.5"/>
+  <g font-size="12" fill="#222">
+    <text x="414" y="137">subject brownfieldSystem = …deliveryDroneSystemImpl</text>
+    <text x="414" y="156">frame problemStatement</text>
+  </g>
+
+  <!-- Needs -->
+  <g stroke="#333" stroke-width="1.5" fill="#ffffff">
+    <rect x="20" y="230" width="300" height="150" rx="8"/>
+    <rect x="350" y="230" width="300" height="150" rx="8"/>
+    <rect x="680" y="230" width="300" height="150" rx="8"/>
+    <line x1="20" y1="278" x2="320" y2="278"/>
+    <line x1="350" y1="278" x2="650" y2="278"/>
+    <line x1="680" y1="278" x2="980" y2="278"/>
+  </g>
+  <g font-size="11" fill="#555" text-anchor="middle">
+    <text x="170" y="250">«concern»</text>
+    <text x="500" y="250">«concern»</text>
+    <text x="830" y="250">«concern»</text>
+  </g>
+  <g font-size="13" font-weight="600" fill="#111" text-anchor="middle">
+    <text x="170" y="268">reliableDelivery : ReliableDelivery</text>
+    <text x="500" y="268">lowDeliveryCost : LowDeliveryCost</text>
+    <text x="830" y="268">safeOperation : SafeOperation</text>
+  </g>
+  <g font-size="12" fill="#222">
+    <text x="34" y="296">priority = high</text>
+    <text x="364" y="296">priority = middle</text>
+    <text x="694" y="296">priority = <tspan fill="#2f6fb0" font-weight="600">critical</tspan></text>
+  </g>
+  <g font-size="12" fill="#555">
+    <text x="34" y="316">The logistics company needs deliveries</text>
+    <text x="34" y="332">to arrive reliably at remote places,</text>
+    <text x="34" y="348">independent of road conditions and</text>
+    <text x="34" y="364">ground infrastructure.</text>
+
+    <text x="364" y="316">The logistics company needs the cost</text>
+    <text x="364" y="332">per delivery to be lower than today's</text>
+    <text x="364" y="348">ground-based last-mile delivery.</text>
+
+    <text x="694" y="316">The drone operator needs the fleet to</text>
+    <text x="694" y="332">operate without harm to people or</text>
+    <text x="694" y="348">property, in any flight zone, including</text>
+    <text x="694" y="364">during mid-air charging.</text>
+  </g>
+
+  <!-- Stakeholders -->
+  <g stroke="#333" stroke-width="1.5" fill="#ffffff">
+    <rect x="185" y="450" width="300" height="112" rx="8"/>
+    <rect x="680" y="450" width="300" height="112" rx="8"/>
+    <line x1="185" y1="515" x2="485" y2="515"/>
+    <line x1="680" y1="515" x2="980" y2="515"/>
+  </g>
+  <g font-size="11" fill="#555" text-anchor="middle">
+    <text x="335" y="470">«part»</text>
+    <text x="830" y="470">«part»</text>
+  </g>
+  <g font-size="14" font-weight="600" fill="#111" text-anchor="middle">
+    <text x="335" y="488">logisticCompany</text>
+    <text x="830" y="488">droneOperator</text>
+  </g>
+  <g font-size="12" fill="#555" text-anchor="middle">
+    <text x="335" y="505">: LogisticCompany, Acquirer</text>
+    <text x="830" y="505">: DroneOperator</text>
+  </g>
+  <g font-size="12" fill="#222">
+    <text x="199" y="533">name = "Logistic Company"</text>
+    <text x="199" y="550">risk = high, effort = low</text>
+    <text x="694" y="533">name = "Drone Operator"</text>
+    <text x="694" y="550">risk = middle, effort = low</text>
+  </g>
+
+  <text x="20" y="592" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
+</svg>

@@ -1,0 +1,172 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="660" viewBox="0 0 1000 660" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::functionalArchitectureView : SYSMODViews::FunctionalArchitectureView (render asInterconnectionDiagram).
+       Exposed: DD::PRJ::deliveryDroneFunctionalContext (DD_FUNCTIONAL_ARCHITECTURE::DeliveryDroneFunctionalContext).
+       Shown: the actors and interfaces inherited from the brownfield context, the system ports, the functional
+       blocks of DeliveryDroneFunctionalSystem with their ports, and the two PositionInterface connections.
+       Binding connectors (e.g. operatorPort.order = deliveryManagement.deliveryPort.deliveryOrder) are not
+       connection or interface usages and are therefore filtered out; performed actions are not shown.
+       Illustrative example only; the view usage is not (yet) part of the example model. -->
+  <rect width="1000" height="660" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] functionalArchitectureView : FunctionalArchitectureView — Delivery Drone functional architecture</text>
+
+  <!-- Context -->
+  <rect x="10" y="42" width="980" height="570" fill="#f7f9fc" stroke="#333" stroke-width="1.5"/>
+  <text x="22" y="60" font-size="11" fill="#555">«systemContext»</text>
+  <text x="22" y="77" font-size="14" font-weight="600" fill="#222">deliveryDroneFunctionalContext : DeliveryDroneFunctionalContext</text>
+
+  <!-- System of interest -->
+  <rect x="262" y="100" width="476" height="490" fill="#ffffff" stroke="#2f6fb0" stroke-width="2"/>
+  <text x="274" y="118" font-size="11" fill="#555">«system»</text>
+  <text x="274" y="135" font-size="13" font-weight="600" fill="#222">deliveryDroneSystem : DeliveryDroneFunctionalSystem</text>
+
+  <!-- Interfaces actor - system -->
+  <g stroke="#333" stroke-width="1.5">
+    <line x1="147" y1="300" x2="257" y2="300"/>
+    <line x1="147" y1="438" x2="257" y2="438"/>
+    <line x1="743" y1="140" x2="853" y2="140"/>
+    <line x1="743" y1="305" x2="853" y2="305"/>
+    <line x1="743" y1="440" x2="853" y2="440"/>
+  </g>
+  <g font-size="10" fill="#555">
+    <text x="254" y="294" text-anchor="end">operatorPort</text>
+    <text x="254" y="432" text-anchor="end">payloadPort</text>
+    <text x="746" y="134">landingZonePort</text>
+    <text x="746" y="299">energyPort</text>
+    <text x="746" y="434">environmentPort</text>
+  </g>
+  <g font-size="10" fill="#222" text-anchor="middle">
+    <text x="202" y="314">operatorInterface</text>
+    <text x="202" y="452">customerInterface</text>
+    <text x="798" y="154">landingZoneInterface</text>
+    <text x="798" y="319">energySupplyInterface</text>
+    <text x="798" y="454">environmentInterface</text>
+  </g>
+
+  <!-- Actors -->
+  <g fill="#ffffff" stroke="#333" stroke-width="1.5">
+    <rect x="22" y="260" width="120" height="80"/>
+    <rect x="22" y="398" width="120" height="80"/>
+    <rect x="858" y="100" width="120" height="80"/>
+    <rect x="858" y="265" width="120" height="80"/>
+    <rect x="858" y="400" width="120" height="80"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="82" y="280" font-size="11" fill="#555">«user»</text>
+    <text x="82" y="297" font-size="13" font-weight="600" fill="#111">operator</text>
+    <text x="82" y="418" font-size="11" fill="#555">«user»</text>
+    <text x="82" y="435" font-size="13" font-weight="600" fill="#111">customer</text>
+    <text x="918" y="120" font-size="11" fill="#555">«externalSystem»</text>
+    <text x="918" y="137" font-size="13" font-weight="600" fill="#111">landingZone</text>
+    <text x="918" y="285" font-size="11" fill="#555">«externalSystem»</text>
+    <text x="918" y="302" font-size="13" font-weight="600" fill="#111">energySupply</text>
+    <text x="918" y="420" font-size="10" fill="#555">«environmentalEffect»</text>
+    <text x="918" y="437" font-size="13" font-weight="600" fill="#111">environment</text>
+  </g>
+  <g font-size="10" fill="#555">
+    <text x="134" y="322" text-anchor="end">controlPort</text>
+    <text x="134" y="460" text-anchor="end">packagePort</text>
+    <text x="866" y="162">dronePort</text>
+    <text x="866" y="327">energyPort</text>
+    <text x="866" y="462">conditionsPort</text>
+  </g>
+
+  <!-- Functional blocks -->
+  <g fill="#ffffff" stroke="#333" stroke-width="1.5">
+    <rect x="277" y="160" width="170" height="130"/>
+    <rect x="553" y="160" width="170" height="130"/>
+    <rect x="277" y="315" width="170" height="110"/>
+    <rect x="553" y="315" width="170" height="110"/>
+    <rect x="277" y="450" width="170" height="120"/>
+    <rect x="553" y="450" width="170" height="120"/>
+  </g>
+  <g font-size="11" fill="#555">
+    <text x="287" y="178">«part»</text>
+    <text x="563" y="178">«part»</text>
+    <text x="287" y="333">«part»</text>
+    <text x="563" y="333">«part»</text>
+    <text x="287" y="468">«part»</text>
+    <text x="563" y="468">«part»</text>
+  </g>
+  <g font-size="13" font-weight="600" fill="#111">
+    <text x="287" y="195">deliveryManagement</text>
+    <text x="563" y="195">flightControl</text>
+    <text x="287" y="350">packageManagement</text>
+    <text x="563" y="350">batteryManagement</text>
+    <text x="287" y="485">fleetManagement</text>
+    <text x="563" y="485">droneManagement</text>
+  </g>
+
+  <!-- Internal interfaces (PositionInterface) -->
+  <g stroke="#333" stroke-width="1.5">
+    <line x1="452" y1="225" x2="548" y2="240"/>
+    <line x1="452" y1="255" x2="548" y2="240"/>
+  </g>
+  <g font-size="10" fill="#222" text-anchor="middle">
+    <text x="500" y="219">:PositionInterface</text>
+    <text x="500" y="268">:PositionInterface</text>
+  </g>
+
+  <!-- Ports (squares on borders) -->
+  <g fill="#ffffff" stroke="#333" stroke-width="1.5">
+    <!-- system ports -->
+    <rect x="257" y="295" width="10" height="10"/>
+    <rect x="257" y="433" width="10" height="10"/>
+    <rect x="733" y="135" width="10" height="10"/>
+    <rect x="733" y="300" width="10" height="10"/>
+    <rect x="733" y="435" width="10" height="10"/>
+    <!-- actor ports -->
+    <rect x="137" y="295" width="10" height="10"/>
+    <rect x="137" y="433" width="10" height="10"/>
+    <rect x="853" y="135" width="10" height="10"/>
+    <rect x="853" y="300" width="10" height="10"/>
+    <rect x="853" y="435" width="10" height="10"/>
+    <!-- deliveryManagement -->
+    <rect x="272" y="270" width="10" height="10"/>
+    <rect x="442" y="220" width="10" height="10"/>
+    <rect x="442" y="250" width="10" height="10"/>
+    <!-- flightControl -->
+    <rect x="548" y="235" width="10" height="10"/>
+    <rect x="718" y="205" width="10" height="10"/>
+    <rect x="718" y="245" width="10" height="10"/>
+    <rect x="718" y="270" width="10" height="10"/>
+    <!-- packageManagement -->
+    <rect x="272" y="360" width="10" height="10"/>
+    <rect x="272" y="390" width="10" height="10"/>
+    <!-- batteryManagement -->
+    <rect x="718" y="360" width="10" height="10"/>
+    <rect x="718" y="390" width="10" height="10"/>
+    <!-- fleetManagement -->
+    <rect x="272" y="505" width="10" height="10"/>
+    <rect x="442" y="535" width="10" height="10"/>
+    <!-- droneManagement -->
+    <rect x="548" y="535" width="10" height="10"/>
+    <rect x="718" y="500" width="10" height="10"/>
+    <rect x="718" y="530" width="10" height="10"/>
+  </g>
+  <g font-size="10" fill="#555">
+    <text x="287" y="279">deliveryPort</text>
+    <text x="437" y="229" text-anchor="end">pickupPositionPort</text>
+    <text x="437" y="259" text-anchor="end">deliveryPositionPort</text>
+
+    <text x="563" y="232">flyToPositionPort</text>
+    <text x="713" y="214" text-anchor="end">chargerDronePositionPort</text>
+    <text x="713" y="254" text-anchor="end">chargerPositionPort</text>
+    <text x="713" y="279" text-anchor="end">chargerPort</text>
+
+    <text x="287" y="369">payloadInPort</text>
+    <text x="287" y="399">payloadOutPort</text>
+
+    <text x="713" y="369" text-anchor="end">energyPort</text>
+    <text x="713" y="399" text-anchor="end">lowBatteryPort</text>
+
+    <text x="287" y="514">fleetStatusPort</text>
+    <text x="437" y="544" text-anchor="end">droneStatusPort</text>
+
+    <text x="563" y="544">droneStatusPort</text>
+    <text x="713" y="509" text-anchor="end">sensorPort</text>
+    <text x="713" y="539" text-anchor="end">taskPort</text>
+  </g>
+
+  <text x="20" y="652" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
+</svg>

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="640" viewBox="0 0 1000 640" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::useCaseManagerView : SYSMODViews::AIUseCase4ManagersView (render as4Managers).
+       Exposed: DD_SPECIFICATION::UseCases::*, filtered by @SysML::UseCaseDefinition.
+       A single 16:9 management slide generated from the create_prompt of as4Managers; same content as useCaseManagerView.html.
+       Illustrative example of an AI rendering. -->
+  <rect width="1000" height="640" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] useCaseManagerView : AIUseCase4ManagersView — Delivery Drone use cases for managers</text>
+
+  <!-- Slide (16:9) -->
+  <rect x="20" y="44" width="960" height="540" rx="8" fill="#ffffff" stroke="#333" stroke-width="1.5"/>
+
+  <text x="50" y="94" font-size="28" font-weight="600" fill="#111">What the Delivery Drone System must do</text>
+  <text x="50" y="122" font-size="15" fill="#555">Seven use cases define the service: one core delivery flow plus the capabilities that make it safe and scalable.</text>
+
+  <!-- Cards -->
+  <g fill="#2f6fb0">
+    <rect x="50" y="145" width="280" height="4"/>
+    <rect x="360" y="145" width="280" height="4"/>
+    <rect x="670" y="145" width="280" height="4"/>
+  </g>
+
+  <g font-size="14" fill="#222">
+    <text x="50" y="176" font-size="17" font-weight="600" fill="#111">1 · Deliver parcels</text>
+    <text x="50" y="202">The operator books a customer's</text>
+    <text x="50" y="222">parcel and dispatches a drone. It</text>
+    <text x="50" y="242">flies to the landing zone, drops the</text>
+    <text x="50" y="262">parcel off and returns home.</text>
+    <text x="50" y="292"><tspan font-weight="600">Value:</tspan> faster, cheaper last-mile</text>
+    <text x="50" y="312">delivery to remote places than</text>
+    <text x="50" y="332">ground transport.</text>
+    <text x="50" y="362" font-size="12" fill="#555">DeliveryProcess · BookDelivery ·</text>
+    <text x="50" y="378" font-size="12" fill="#555">DeliverPackage</text>
+
+    <text x="360" y="176" font-size="17" font-weight="600" fill="#111">2 · Extend range</text>
+    <text x="360" y="202">A drone with low battery meets a</text>
+    <text x="360" y="222">charger drone in flight and</text>
+    <text x="360" y="242">recharges without returning to a</text>
+    <text x="360" y="262">ground dock.</text>
+    <text x="360" y="292"><tspan font-weight="600">Value:</tspan> reach destinations beyond a</text>
+    <text x="360" y="312">single battery charge. This is the</text>
+    <text x="360" y="332">key differentiator.</text>
+    <text x="360" y="362" font-size="12" fill="#555">ChargeDrone</text>
+
+    <text x="670" y="176" font-size="17" font-weight="600" fill="#111">3 · Operate safely at scale</text>
+    <text x="670" y="202">Drones watch their own health</text>
+    <text x="670" y="222">continuously and land safely on a</text>
+    <text x="670" y="242">critical fault. One operator sees the</text>
+    <text x="670" y="262">status of the whole fleet at once.</text>
+    <text x="670" y="292"><tspan font-weight="600">Value:</tspan> protects people, parcels</text>
+    <text x="670" y="312">and drones; few operators can run</text>
+    <text x="670" y="332">many drones.</text>
+    <text x="670" y="362" font-size="12" fill="#555">MonitorDroneHealth ·</text>
+    <text x="670" y="378" font-size="12" fill="#555">HandleEmergencyLanding · ReportFleetStatus</text>
+  </g>
+
+  <!-- Decisions -->
+  <rect x="50" y="400" width="900" height="176" rx="6" fill="#f7f9fc" stroke="#333" stroke-width="1"/>
+  <rect x="50" y="400" width="5" height="176" fill="#333"/>
+  <text x="72" y="428" font-size="16" font-weight="600" fill="#111">Decisions this enables</text>
+  <g font-size="14" fill="#222">
+    <text x="72" y="454">•</text>
+    <text x="88" y="454"><tspan font-weight="600">In-flight charging</tspan> carries the business case for remote delivery. Fund an early feasibility test before</text>
+    <text x="88" y="473">committing to remote markets.</text>
+    <text x="72" y="500">•</text>
+    <text x="88" y="500"><tspan font-weight="600">Safety use cases are not optional.</tspan> Plan for them in scope and budget from day one, because they are</text>
+    <text x="88" y="519">the basis for approval and trust.</text>
+    <text x="72" y="546">•</text>
+    <text x="88" y="546"><tspan font-weight="600">Drones per operator</tspan> is the main operating-cost lever. Set a target ratio early, as it drives the</text>
+    <text x="88" y="565">fleet-status and automation requirements.</text>
+  </g>
+
+  <text x="20" y="632" font-size="11" fill="#777">Illustrative AI rendering based on the Delivery Drone example model.</text>
+</svg>

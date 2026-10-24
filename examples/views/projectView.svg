@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="480" viewBox="0 0 1000 480" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::projectCoverView : SYSMODViews::ProjectView (render asTreeDiagram).
+       Exposed: DD::PRJ ('Delivery Drone Project') via "expose this" (inherited from SYSMOD::Project), filtered by @ProjectMetadata.
+       Shows the project with its purpose, projectOwner, and subProjects as an owned-membership tree.
+       The purpose attribute has no value in the example model. Illustrative example. -->
+  <rect width="1000" height="480" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] projectCoverView : ProjectView — Delivery Drone Project</text>
+
+  <!-- Membership edges (owner end marked with circled plus) -->
+  <g stroke="#333" stroke-width="1.5" fill="none">
+    <line x1="500" y1="232" x2="500" y2="262"/>
+    <line x1="175" y1="262" x2="835" y2="262"/>
+    <line x1="175" y1="262" x2="175" y2="290"/>
+    <line x1="500" y1="262" x2="500" y2="290"/>
+    <line x1="835" y1="262" x2="835" y2="290"/>
+  </g>
+  <g stroke="#333" stroke-width="1.5" fill="#ffffff">
+    <circle cx="500" cy="225" r="7"/>
+    <line x1="493" y1="225" x2="507" y2="225"/>
+    <line x1="500" y1="218" x2="500" y2="232"/>
+  </g>
+
+  <!-- Root: the project -->
+  <rect x="270" y="50" width="460" height="168" rx="8" fill="#f7f9fc" stroke="#333" stroke-width="2"/>
+  <text x="500" y="70" font-size="11" fill="#555" text-anchor="middle">«#project occurrence def»</text>
+  <text x="500" y="90" font-size="15" font-weight="600" fill="#222" text-anchor="middle">&lt;PRJ&gt; 'Delivery Drone Project'</text>
+  <line x1="270" y1="100" x2="730" y2="100" stroke="#333" stroke-width="1.5"/>
+  <text x="500" y="116" font-size="11" font-style="italic" fill="#555" text-anchor="middle">doc</text>
+  <g font-size="12" fill="#222">
+    <text x="284" y="134">Project Charter: Delivery Drone</text>
+    <text x="284" y="150">Client: A logistics company wants to speed up last-mile</text>
+    <text x="284" y="166">deliveries to remote places and reduce delivery costs.</text>
+    <text x="284" y="182">Contractor: AmperDrones, an established drone manufacturer, …</text>
+    <text x="284" y="198">Goal: An autonomous drone system that delivers small packages …</text>
+  </g>
+
+  <!-- Child: purpose -->
+  <rect x="40" y="290" width="270" height="130" rx="8" fill="#ffffff" stroke="#333" stroke-width="1.5"/>
+  <text x="175" y="310" font-size="11" fill="#555" text-anchor="middle">«attribute»</text>
+  <text x="175" y="328" font-size="14" font-weight="600" fill="#111" text-anchor="middle">purpose : String</text>
+  <line x1="40" y1="340" x2="310" y2="340" stroke="#333" stroke-width="1.5"/>
+  <text x="175" y="356" font-size="11" font-style="italic" fill="#555" text-anchor="middle">value</text>
+  <text x="54" y="376" font-size="12" fill="#555">— not assigned in the model —</text>
+  <text x="54" y="398" font-size="12" fill="#555">doc: a brief description of the</text>
+  <text x="54" y="413" font-size="12" fill="#555">purpose of the project.</text>
+
+  <!-- Child: project owner -->
+  <rect x="365" y="290" width="270" height="148" rx="8" fill="#ffffff" stroke="#333" stroke-width="1.5"/>
+  <text x="500" y="310" font-size="11" fill="#555" text-anchor="middle">«part»</text>
+  <text x="500" y="328" font-size="14" font-weight="600" fill="#111" text-anchor="middle">johnFinch : ProductManager</text>
+  <text x="500" y="345" font-size="12" fill="#555" text-anchor="middle">:&gt;&gt; projectOwner</text>
+  <line x1="365" y1="355" x2="635" y2="355" stroke="#333" stroke-width="1.5"/>
+  <text x="500" y="371" font-size="11" font-style="italic" fill="#555" text-anchor="middle">attributes</text>
+  <g font-size="12" fill="#222">
+    <text x="379" y="390">name = <tspan fill="#2f6fb0">"John Finch"</tspan></text>
+    <text x="379" y="407">risk = critical (default)</text>
+    <text x="379" y="424">effort = low (default)</text>
+  </g>
+
+  <!-- Child: sub-project -->
+  <rect x="690" y="290" width="290" height="148" rx="8" fill="#ffffff" stroke="#333" stroke-width="1.5"/>
+  <text x="835" y="310" font-size="11" fill="#555" text-anchor="middle">«occurrence»</text>
+  <text x="835" y="328" font-size="14" font-weight="600" fill="#111" text-anchor="middle">controlStationProject</text>
+  <text x="835" y="345" font-size="12" fill="#555" text-anchor="middle">: DeliveryDroneControlStationProject</text>
+  <text x="835" y="361" font-size="12" fill="#555" text-anchor="middle">:&gt; subProjects</text>
+  <line x1="690" y1="370" x2="980" y2="370" stroke="#333" stroke-width="1.5"/>
+  <text x="835" y="386" font-size="11" font-style="italic" fill="#555" text-anchor="middle">doc</text>
+  <g font-size="12" fill="#222">
+    <text x="704" y="405">The control station is developed in a</text>
+    <text x="704" y="421">SYSMOD sub-project. It subsets the …</text>
+  </g>
+
+  <text x="20" y="472" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
+</svg>

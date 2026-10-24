@@ -66,7 +66,7 @@ library package SYSMODViews {
             doc /* Responsible for eliciting stakeholder needs and defining stakeholder and system requirements (ISO/IEC/IEEE 15288 Stakeholder Needs and Requirements Definition and System Requirements Definition processes). */
         }
         part def SystemArchitect :> ExtendedStakeholder {
-            doc /* Responsible for the system architecture, i.e., the fundamental concepts and properties of the system and the integration of problem and solution across several levels (ISO/IEC/IEEE 15288 Architecture Definition process). */
+            doc /* Responsible for the system architecture, i.e., the fundamental concepts and properties of the system and the integration of problem and solution across several levels (ISO/IEC/IEEE 15288 System Architecture Definition process). */
         }
         part def DesignEngineer :> ExtendedStakeholder {
             doc /* Responsible for the detailed design of system elements so that they can be implemented (ISO/IEC/IEEE 15288 Design Definition and Implementation processes). */
@@ -182,7 +182,7 @@ library package SYSMODViews {
         }
         concern def ProblemSolutionIntegration {
             doc /* How are the problem artifacts, e.g., requirements and use cases, integrated with the solution artifacts,
-                 * e.g., the architecture, across several levels of the system hierarchy? (ISO/IEC/IEEE 15288 Architecture Definition process)
+                 * e.g., the architecture, across several levels of the system hierarchy? (ISO/IEC/IEEE 15288 System Architecture Definition process)
                  */
             subject projectOfInterest : Project;
             stakeholder systemArchitect : SystemArchitect;

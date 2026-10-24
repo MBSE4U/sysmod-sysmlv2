@@ -27,6 +27,9 @@ library package SYSMOD {
         doc 
         /* The Project provides a context for all main engineering artifacts used for this specific project and sets cross relationships. */
 
+        //
+        // Project Cover
+        //
         action defaultProcess : SYSMODProcesses::SYSMODDefaultProcess {
             doc
             /* The SYSMOD process performed by the project. It defaults to SYSMODDefaultProcess and can be redefined with a specialization of it to tailor the process. */
@@ -44,6 +47,20 @@ library package SYSMOD {
             attribute :>> effort default LevelKind::low;
             attribute :>> categories default StakeholderCategoryKind::requirementOwner;
         }
+        view projectCoverView : SYSMODViews::ProjectView { 
+            doc
+            /* The Project Cover view shows the project with its purpose, project owner, and the main engineering artifacts. */
+            expose this;
+        }
+        view projectCoverAIView : SYSMODViews::ProjectAIView {
+            doc
+            /* The Project Cover view is an AI-generated management summary of the project. It exposes the project itself, i.e., its purpose, project owner, and the main engineering artifacts. */
+            expose this;
+        }
+
+        //
+        // Problem Statement
+        //
         concern problemStatement : ExtendedConcern {
             doc
             /* The Problem Statement is an elevator pitch that describes the problem the system of interest is intended to solve. It is based on the brownfield system. The problem statement does not specify a solution. The project owner is the stakeholder of the problem statement. */
@@ -51,6 +68,17 @@ library package SYSMOD {
             stakeholder projectOwner :> Project::projectOwner;
             attribute :>> priority default LevelKind::critical;
         }
+        view problemStatementView : SYSMODViews::ProblemStatementView {
+            doc
+            /* The Problem Statement view shows the problem statement with its project owner and the brownfield system. */
+            expose problemStatement;
+        }
+        view problemStatementAIView : SYSMODViews::ProblemStatementAIView {
+            doc
+            /* The Problem Statement view is an AI-generated summary of the problem statement. It exposes the problem statement itself, i.e., its project owner and the brownfield system. */
+            expose problemStatement;
+        }
+
         part projectStakeholders : ExtendedStakeholder [1..*] {
             doc
             /* Stakeholders are individuals and organizations that have an interest in the system. They have needs and are potential sources of system requirements. There is at least one stakeholder which is the project owner. */

@@ -456,15 +456,43 @@ library package SYSMODViews {
         filter @ProjectMetadata;
         render Views::asTreeDiagram;
     }
+    view def ProjectAIView :> ProjectView {
+        doc /* Product "The Project" as an AI-generated management summary: a short markdown text with the project name,
+                * project owner, documentation, and purpose. It specializes ProjectView and replaces the tree diagram
+                * by the AI rendering asProjectFacts.
+                */
+        render asProjectFacts;
+    }
+    rendering asProjectFacts : AIRendering :> Views::renderings {
+        doc /* AI rendering that turns the exposed Project into markdown text. The create_prompt defines the structure:
+                * headline with the project name, the project owner, the documentation, and the purpose.
+                */
+        :>> create_prompt = "Create pure text in markdown with a headline #Project <project name> and below 'Project owner: <project owner name>', and below ##Documentation, new line: <project doc>, and finally ##Purpose, new line <project purpose>.";
+    }
+
     // Step 02
     view def ProblemStatementView :> StandardViewDefinitions::GeneralView {
         doc /* Product "Problem Statement": the problemStatement of the Project with its projectOwner as stakeholder
                 * and the brownfield system as subject.
                 */
         satisfy requirement psvp : ProblemSolutionViewpoint;
-        filter @SysML::ConcernUsage or @ExtendedConcernMetadata or @StakeholderMetadata;
+        filter @SysML::ConcernUsage and (as SysML::ConcernUsage).name == "problemStatement";
         render Views::asTreeDiagram;
     }
+    view def ProblemStatementAIView :> ProblemStatementView {
+        doc /* Product "Problem Statement" as an AI-generated summary: a short markdown text with the problem statement, project owner, and brownfield system. */
+        render asMarkdown {
+            :>> title = "Problem Statement";
+        }
+    }
+    rendering asMarkdown : AIRendering :> Views::renderings {
+        doc /* AI rendering that turns the exposed Problem Statement into markdown text. The create_prompt defines the structure:
+                * headline with the problem statement, the project owner, and the brownfield system.
+                */
+        attribute title : ScalarValues::String;
+        :>> create_prompt = "Create pure text in markdown with a headline <title>, and below the exposed element as text.";
+    }
+
     // Step 03
     view def StakeholdersView :> StandardViewDefinitions::GridView {
         doc /* Product "Stakeholders": the projectStakeholders with their risk, effort, attention, and categories. */

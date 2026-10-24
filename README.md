@@ -22,7 +22,8 @@ The library provides ready-to-use SysML v2 definitions for the core SYSMOD conce
 - **Use Cases** — `SystemUseCase` with motivation, trigger, and result attributes, plus the specializations `SecondaryUseCase`, `SystemProcess`, and `ContinuousUseCase`
 - **Functional, Logical & Product Architecture** — Optional architecture contexts specializing the specification context, connected by `functional2logical` and `logical2product` allocations
 - **Sub-Projects** — `subProjects` list, subsetted by each sub-project usage, for decomposing a project into subsystem or component projects
-- **SYSMOD Process** — `SYSMODProcesses` package with `SYSMODDefaultProcess`, the default SYSMOD workflow performed by every project as `Project::defaultProcess`. One action definition per step (`SetupProject`, `SpecifyBrownfieldSystem`, `SpecifyProblemStatement`, `IdentifyStakeholders`, `ElaborateStakeholderNeeds`, `PitchSystemIdea`, `DefineSystemSpecification`, `CreateSolutionArchitectures`, `VerifyAndValidateRequirements`) whose outputs flow into the project's artifacts. Each step refines one or more ISO/IEC/IEEE 15288 processes, which the `ISO15288Processes` package defines as action definitions
+- **SYSMOD Process** — `SYSMODProcesses` package with `SYSMODDefaultProcess`, the default SYSMOD workflow performed by every project as `Project::defaultProcess`. One action definition per step (`SetupProject`, `SpecifyBrownfieldSystem`, `SpecifyProblemStatement`, `IdentifyStakeholders`, `ElaborateStakeholderNeeds`, `PitchSystemIdea`, `DefineSystemSpecification`, `CreateSolutionArchitectures`, `VerifyAndValidateRequirements`) whose outputs flow into the project's artifacts. Each step carries `StepStatus` metadata (status and percentage) and refines one or more ISO/IEC/IEEE 15288 processes, which the `ISO15288Processes` package defines as action definitions
+- **Views** — `SYSMODViews` package (top-level, own file), the SYSMOD architecture description framework according to ISO/IEC/IEEE 42010: stakeholder roles derived from the ISO/IEC/IEEE 15288 processes, their concerns, viewpoints framing the concerns, and view definitions for the SYSMOD steps, including AI renderings (e.g., `ProjectAIView`, `AIUseCase4ManagersView`). `Project` carries view usages such as `projectCoverView` and `problemStatementView`. See the generated documentation [SYSMODViews.md](SYSMODViews.md)
 - **SYSMOD-specific keywords** — Shorthand keywords (`#project`, `#systemContext`, `#extendedStakeholder`, `#extendedConcern`, `#extendedRequirement`, `#systemUseCase`, `#secondaryUseCase`, `#systemProcess`, `#continuousUseCase`, plus the actor tags `#system`, `#user`, `#externalSystem`, `#environmentalEffect`) for cleaner model notation
 - **AI metadata** — `SYSMOD4AI` package (top-level, own file, imports `SYSMOD`) providing `AIProject`, a template of AI metadata usages — one per main artifact plus a stakeholder priority map — each carrying `create_prompt`, `create_questions`, `validation_prompt`, and ready-to-run `perform_prompt`, `story_prompt`, and `slide_prompt` prompts, chained across all artifacts
 
@@ -78,7 +79,18 @@ examples/                                           # Delivery Drone example mod
   DeliveryDroneSystemProductArchitecture.sysml      # Product architecture and verification
   DeliveryDroneSystemControlStationProject.sysml    # Control station sub-project
   DeliveryDroneSystemDomainLibrary.sysml            # Shared domain items (orders, parcels, energy, ...)
+  views/                                            # Example renderings of the SYSMOD views (SVG)
 ```
+
+## Views Documentation
+
+[SYSMODViews.md](SYSMODViews.md) documents the `SYSMODViews` library: the ISO/IEC/IEEE 15288 processes, stakeholders, concerns, viewpoints, and views with their traceability and an example of each view. The file is read-only and generated from the library. After changing `SYSMODViews.sysml`, `SYSMOD.sysml`, or the example views, regenerate it:
+
+```text
+python scripts/generate_views_doc.py
+```
+
+The GitHub workflow `views-doc.yml` also regenerates and commits it on every push that changes these files.
 
 ## Contributing
 

@@ -1,14 +1,25 @@
 # Change Log
 
-## v5.1.4
+## v5.1.5
 
-- `SYSMODViews` stakeholder roles (`Acquirer`, `ProductManager`, …) now specialize `ExtendedStakeholder`, so a project stakeholder can play a role by multiple typing, e.g., `part johnFinch : ProductManager :>> projectOwner`. The `ProductManager` doc states that the `projectOwner` typically plays this role, and the `ProblemSolutionViewpoint` doc names its stakeholders (the `ProductManager` and the `Acquirer`).
-- Added the concern `MissionGoalsAndMeasures` (ISO/IEC/IEEE 15288 Business or Mission Analysis: mission, goals, objectives, and measures of success), framed by the `ProblemSolutionViewpoint`.
-- Documented in the `Concerns` package that the `Project` is the entity of interest (ISO/IEC/IEEE 42010) of all `SYSMODViews` concerns, while the system of interest is reached through the system contexts of the `Project`.
+- Added the `SYSMODViews` library package (file `SYSMODViews.sysml`), the SYSMOD architecture description framework according to ISO/IEC/IEEE 42010:
+  - `Stakeholders`: 17 stakeholder roles derived from the ISO/IEC/IEEE 15288 life cycle processes, e.g., `Acquirer`, `ProductManager`, `RequirementsEngineer`, `SystemArchitect`, `VerificationEngineer`, and `Maintainer`. Each role specializes `ExtendedStakeholder`, so a project stakeholder can play a role by multiple typing, e.g., `part johnFinch : ProductManager :>> projectOwner`. The `ProductManager` doc states that the `projectOwner` typically plays this role.
+  - `Concerns`: 17 concern definitions derived from the outcomes of the ISO/IEC/IEEE 15288 processes, e.g., `ProblemSolutionPitch`, `MissionGoalsAndMeasures` (mission, goals, objectives, and measures of success), `StakeholderNeedsCoverage`, `ProblemSolutionIntegration`, and `VerificationCoverage`. The `Project` is the entity of interest of all concerns, while the system of interest is reached through the system contexts of the `Project`.
+  - `Viewpoints`: 16 viewpoint definitions that frame the concerns. Their required constraints restrict the elements a conforming view may expose to SYSMOD concepts, e.g., `ExtendedConcern` and `SystemContext` for the `ProblemSolutionViewpoint`, whose doc names its stakeholders (the `ProductManager` and the `Acquirer`).
+  - View definitions per SYSMOD step that satisfy the viewpoints, from `ProjectView` (step 1) to `VerificationAndValidationView` and `VerificationMatrixView` (step 11), plus the base view `SystemContextView` and the abstract `SolutionArchitectureView` with its functional, logical, and product specializations.
+  - AI renderings: the rendering definition `AIRendering` with a `create_prompt`, and the renderings `asAIGenerated`, `as4Managers`, `asProjectFacts`, and `asMarkdown`. The AI views `ProjectAIView`, `ProblemStatementAIView`, `AIUseCaseView`, and `AIUseCase4ManagersView` use them.
+- Added view usages to `Project`: `projectCoverView` and `projectCoverAIView` expose the project, and `problemStatementView` and `problemStatementAIView` expose the `problemStatement`.
+- Added the `StepStatus` metadata (`status : StepStatusKind` with `open`, `inProgress`, `done`, and `skipped`, and `percentage : Percentage`) to `SYSMODProcesses`. All steps of `SYSMODDefaultProcess` carry it.
 - `Project::stakeholderNeeds` is now typed by `ExtendedConcern` and `Project::systemRequirementSpecification` by `ExtendedRequirement`, so they conform to the element constraints of the requirements, verification, and agreement viewpoints.
 - `IdentifyStakeholders` now also refines the ISO/IEC/IEEE 15288 Business or Mission Analysis process (identification of the major stakeholders is one of its outcomes).
-- Updated example model: `johnFinch` plays the `ProductManager` role, `logisticCompany` the `Acquirer` role, and `DeliveryDroneSystemRequirements` specializes `ExtendedRequirement`.
+- Fixed the `create_questions` lists in `SYSMOD4AI`: removed the trailing comma after the last question.
+- Added the generated, read-only documentation `SYSMODViews.md`, with the chapters ISO 15288 Processes, Stakeholders, Concerns, Viewpoints, and Views. It traces each view back to its SYSMOD step, viewpoints, concerns, stakeholders, and ISO/IEC/IEEE 15288 processes, and shows an example of each view. The script `scripts/generate_views_doc.py` generates it from the library, and the GitHub workflow `views-doc.yml` regenerates it whenever the library changes.
+- Updated example model: `johnFinch` plays the `ProductManager` role, `logisticCompany` the `Acquirer` role, `DeliveryDroneSystemRequirements` specializes `ExtendedRequirement`, `ChargingPosition` specializes `Position`, and the project has the views `useCaseView` (`AIUseCaseView`) and `useCaseManagerView` (`AIUseCase4ManagersView`).
+- Added example renderings of all views as SVG files to `examples/views/`, based on the Delivery Drone example model.
 - Removed the `sysmod.org` folder (the HTML documentation deck `sysmodv5-reveal.html` and its images) from the repository. The documentation is now maintained by the website mbse4u.com and is still available at https://sysmod.org. The README links to it.
+
+## v5.1.4
+
 - Added the SYSMOD use case specializations `SecondaryUseCase`, `SystemProcess`, and `ContinuousUseCase` (each specializing `SystemUseCase`, with `secondaryUseCases`, `systemProcesses`, and `continuousUseCases` usages) and the matching keywords `#secondaryUseCase`, `#systemProcess`, and `#continuousUseCase`.
 - Breaking: the actor-tagging metadata definitions are now lower camel case, so their keywords match the other SYSMOD keywords: `System` → `system`, `User` → `user`, `ExternalSystem` → `externalSystem`, `EnvironmentalEffect` → `environmentalEffect`. Replace `#System`, `#User`, `#ExternalSystem`, and `#EnvironmentalEffect` with the lower-case forms in existing models.
 - The `#systemUseCase` keyword (`SystemUseCaseMetadata`) now applies to use case definitions only, no longer to use case usages.

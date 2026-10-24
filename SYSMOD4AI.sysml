@@ -22,7 +22,7 @@ package SYSMOD4AI {
      *   project (e.g. AIProject::problemStatementAI's prompts apply to any project's own
      *   problemStatement), matched by feature identity rather than by inheritance from AIProject.
      *
-     * Version v5.1.4
+     * Version v5.1.5
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -227,7 +227,7 @@ package SYSMOD4AI {
                 "Which project should the process be applied to?",
                 "Is it a greenfield project or does an existing (brownfield) system exist?",
                 "Should I run all steps one after another, or only the next step?",
-                "Which optional steps (brownfield system, functional architecture, logical architecture) should be skipped?",
+                "Which optional steps (brownfield system, functional architecture, logical architecture) should be skipped?"
             );
             validation_prompt =
                 "Validate the project's progress against the SYSMOD default process and report findings grouped as errors, warnings, and suggestions.
@@ -267,7 +267,7 @@ package SYSMOD4AI {
                 4. If the user asks to insert the projectOwner into the SysML model, find the project and the projectOwner within the project. If no project exists, create one and insert the projectOwner into the project redefining the inherited projectOwner part usage. If the projectOwner already exists, update it.";
             create_questions = (
                 "Who is the project owner?", 
-                "Who is responsible for the project?",
+                "Who is responsible for the project?"
             );
             validation_prompt =
                 "Validate the projectOwner against the SYSMOD Project Owner concept and report findings grouped as errors, warnings, and suggestions.
@@ -316,7 +316,7 @@ package SYSMOD4AI {
             create_questions = (
                 "What is the name of the existing system (system of interest)?",
                 "Which external actors (users, operators, external systems, environments) interact with the existing system?",
-                "Are there any known and preset subcomponents or subsystems of the existing system that are relevant?",
+                "Are there any known and preset subcomponents or subsystems of the existing system that are relevant?"
             );
             validation_prompt =
                 "Validate the brownfieldContext and brownfieldContextImpl against the SYSMOD Brownfield Architecture concept and report findings grouped as errors, warnings, and suggestions.
@@ -364,7 +364,7 @@ package SYSMOD4AI {
                 10. If the user asks to insert the problemStatement into the SysML model, find the project and the problemStatement within the project. If no project exists, create one and insert the problemStatement into the project redefining the inherited problemStatement concern usage. If the problemStatement already exists, update it.";
             create_questions = (
                 "What is the core problem the system should solve?",
-                "What are the main deficiencies or pain points of the existing (brownfield) system?",
+                "What are the main deficiencies or pain points of the existing (brownfield) system?"
             );
             validation_prompt =
                 "Validate the problemStatement against the SYSMOD Problem Statement concept and report findings grouped as errors, warnings, and suggestions.
@@ -411,7 +411,7 @@ package SYSMOD4AI {
             create_questions = (
                 "Who are the primary users of the system?",
                 "Which organizations or roles own or define the requirements?",
-                "Are there regulatory bodies, standards authorities, or other external parties with an interest in the system?",
+                "Are there regulatory bodies, standards authorities, or other external parties with an interest in the system?"
             );
             validation_prompt =
                 "Validate the projectStakeholders against the SYSMOD Stakeholders concept and report findings grouped as errors, warnings, and suggestions.
@@ -456,7 +456,7 @@ package SYSMOD4AI {
                 5. Render the map as a diagram (e.g., SVG or a described grid), not as SysML v2 textual notation, since it is an analysis artifact rather than a persisted model element.";
             create_questions = (
                 "Which stakeholders (from projectStakeholders) should be included in the map?",
-                "Do all included stakeholders already have risk and effort values assigned? If not, what are they?",
+                "Do all included stakeholders already have risk and effort values assigned? If not, what are they?"
             );
             validation_prompt =
                 "Validate the stakeholder priority map against the SYSMOD Stakeholder Priority Map concept and report findings grouped as errors, warnings, and suggestions.
@@ -497,7 +497,7 @@ package SYSMOD4AI {
                 6. If the user asks to insert the stakeholderNeeds into the SysML model, find the project and redefine the inherited stakeholderNeeds concern usage. If the project does not exist, create one first.";
             create_questions = (
                 "What does each stakeholder group need the system to do or be?",
-                "Are there any known constraints or non-functional needs (safety, cost, compliance) expressed by stakeholders?",
+                "Are there any known constraints or non-functional needs (safety, cost, compliance) expressed by stakeholders?"
             );
             validation_prompt =
                 "Validate the stakeholderNeeds against the SYSMOD Stakeholder Needs concept and report findings grouped as errors, warnings, and suggestions.
@@ -543,7 +543,7 @@ package SYSMOD4AI {
                 6. If the user asks to insert the systemIdeaContext into the SysML model, find the project and redefine the inherited systemIdeaContext and systemIdeaContextImpl part usages. If the project does not exist, create one first.";
             create_questions = (
                 "What is the high-level concept or approach for the new or changed system?",
-                "Are there any new actors introduced by the system idea that do not exist in the brownfield?",
+                "Are there any new actors introduced by the system idea that do not exist in the brownfield?"
             );
             validation_prompt =
                 "Validate the systemIdeaContext and systemIdeaContextImpl against the SYSMOD System Idea concept and report findings grouped as errors, warnings, and suggestions.
@@ -588,7 +588,7 @@ package SYSMOD4AI {
                 6. If the user asks to insert the specificationContext into the SysML model, find the project and redefine the inherited specificationContext and specificationContextImpl part usages.";
             create_questions = (
                 "Which use cases describe how actors interact with the system?",
-                "Are there additional actors or subcomponents that become visible at the specification level?",
+                "Are there additional actors or subcomponents that become visible at the specification level?"
             );
             validation_prompt =
                 "Validate the specificationContext and specificationContextImpl against the SYSMOD Specification Context concept and report findings grouped as errors, warnings, and suggestions.
@@ -632,7 +632,7 @@ package SYSMOD4AI {
             create_questions = (
                 "What are the key functional requirements of the system?",
                 "Are there non-functional requirements (performance, safety, reliability, compliance)?",
-                "Which requirements are mandatory and which are optional?",
+                "Which requirements are mandatory and which are optional?"
             );
             validation_prompt =
                 "Validate the systemRequirementSpecification against the SYSMOD System Requirements concept and report findings grouped as errors, warnings, and suggestions.
@@ -680,7 +680,7 @@ package SYSMOD4AI {
             create_questions = (
                 "Is a functional architecture required for this project?",
                 "What are the top-level functions the system must perform?",
-                "Should the functional architecture follow the FAS method or another approach?",
+                "Should the functional architecture follow the FAS method or another approach?"
             );
             validation_prompt =
                 "Validate the functionalContext against the SYSMOD Functional Architecture concept and report findings grouped as errors, warnings, and suggestions.
@@ -726,7 +726,7 @@ package SYSMOD4AI {
             create_questions = (
                 "Is a logical architecture required for this project?",
                 "What are the key logical components or subsystems?",
-                "Are there technology-independent partitioning principles to apply (e.g., separation of concerns, layers)?",
+                "Are there technology-independent partitioning principles to apply (e.g., separation of concerns, layers)?"
             );
             validation_prompt =
                 "Validate the logicalContext against the SYSMOD Logical Architecture concept and report findings grouped as errors, warnings, and suggestions.
@@ -770,7 +770,7 @@ package SYSMOD4AI {
             create_questions = (
                 "What are the main physical or deployable components of the system?",
                 "Are there hardware/software splits or deployment boundaries to model?",
-                "Which product components are derived from the logical architecture?",
+                "Which product components are derived from the logical architecture?"
             );
             validation_prompt =
                 "Validate the productContext against the SYSMOD Product Architecture concept and report findings grouped as errors, warnings, and suggestions.
@@ -816,7 +816,7 @@ package SYSMOD4AI {
             create_questions = (
                 "Should the project be decomposed into sub-projects?",
                 "What are the names and scopes of the sub-projects?",
-                "Do the sub-projects share stakeholders or requirements with the parent project?",
+                "Do the sub-projects share stakeholders or requirements with the parent project?"
             );
             validation_prompt =
                 "Validate the subProjects against the SYSMOD sub-project decomposition concept and report findings grouped as errors, warnings, and suggestions.

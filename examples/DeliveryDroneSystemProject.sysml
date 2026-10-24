@@ -38,9 +38,12 @@ package <DD> DeliveryDrone {
          *
          */
 
-        part johnFinch :>> projectOwner {
+        private import SYSMODViews::Stakeholders::*;
+        part johnFinch : ProductManager :>> projectOwner {
             doc /* John Finch is the head of drone engineering at the contractor
-                   and accountable for the Delivery Drone project. */
+                   and accountable for the Delivery Drone project. As project owner,
+                   he plays the ProductManager role, i.e., he is responsible for the
+                   problem statement (ISO 15288 Business or Mission Analysis). */
             attribute :>> name = "John Finch";
         }
 
@@ -56,7 +59,9 @@ package <DD> DeliveryDrone {
 
         //------------------------- Stakeholders
         private import DD_STAKEHOLDERS::*;
-        part logisticCompany : LogisticCompany :> projectStakeholders {
+        part logisticCompany : LogisticCompany, Acquirer :> projectStakeholders {
+            doc /* The client who has the problem. It plays the Acquirer role and must
+                   agree with the problem statement (ISO 15288 Business or Mission Analysis). */
             attribute :>> name = "Logistic Company";
         }
         part droneOperator : DroneOperator :> projectStakeholders {
@@ -138,5 +143,18 @@ package <DD> DeliveryDrone {
             doc /* The control station is developed in a SYSMOD sub-project. It
                    subsets the subProjects list inherited from SYSMOD::Project. */
         }
+
+        //
+        // Views
+        //
+        private import SYSMODViews::*;
+
+        view useCaseView : AIUseCaseView {
+            expose DD_SPECIFICATION::UseCases::*;
+        }
+        view useCaseManagerView : AIUseCase4ManagersView {
+            expose DD_SPECIFICATION::UseCases::*;
+        }
+
     }
 }

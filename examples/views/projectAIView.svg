@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="480" viewBox="0 0 1000 480" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::projectCoverAIView : SYSMODViews::ProjectAIView (render asProjectFacts).
+       Exposed: DD::PRJ ('Delivery Drone Project') via "expose this" (inherited from SYSMOD::Project), filtered by @ProjectMetadata.
+       The card follows the create_prompt of asProjectFacts: # Project <name>, 'Project owner: <name>', ## Documentation, ## Purpose.
+       The purpose attribute has no value in the example model; the AI text here is taken from the "Goal" line of the project doc.
+       Illustrative example of an AI rendering. -->
+  <rect width="1000" height="480" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] projectCoverAIView : ProjectAIView — Delivery Drone Project management summary</text>
+
+  <!-- Rendered markdown card -->
+  <rect x="20" y="46" width="960" height="400" rx="8" fill="#ffffff" stroke="#333" stroke-width="1.5"/>
+  <text x="966" y="64" font-size="11" fill="#555" text-anchor="end">rendered markdown · asProjectFacts</text>
+
+  <text x="44" y="98" font-size="24" font-weight="600" fill="#111">Project Delivery Drone Project</text>
+  <line x1="44" y1="110" x2="956" y2="110" stroke="#eef2f7" stroke-width="2"/>
+
+  <text x="44" y="138" font-size="14" fill="#222">Project owner: <tspan fill="#2f6fb0">John Finch</tspan></text>
+
+  <text x="44" y="178" font-size="18" font-weight="600" fill="#111">Documentation</text>
+  <line x1="44" y1="187" x2="956" y2="187" stroke="#eef2f7" stroke-width="2"/>
+  <g font-size="14" fill="#222">
+    <text x="44" y="212">Project Charter: Delivery Drone</text>
+    <text x="44" y="238">Client: A logistics company wants to speed up last-mile deliveries to remote places and reduce delivery costs.</text>
+    <text x="44" y="264">Contractor: Our company AmperDrones, an established drone manufacturer, will design and develop the</text>
+    <text x="44" y="283">delivery drone system.</text>
+    <text x="44" y="309">Goal: An autonomous drone system that delivers small packages faster and cheaper than the client's current</text>
+    <text x="44" y="328">ground-based delivery.</text>
+  </g>
+
+  <text x="44" y="370" font-size="18" font-weight="600" fill="#111">Purpose</text>
+  <line x1="44" y1="379" x2="956" y2="379" stroke="#eef2f7" stroke-width="2"/>
+  <g font-size="14" fill="#222">
+    <text x="44" y="404">An autonomous drone system that delivers small packages faster and cheaper than the client's current</text>
+    <text x="44" y="423">ground-based delivery.</text>
+  </g>
+
+  <text x="20" y="472" font-size="11" fill="#777">Illustrative AI rendering based on the Delivery Drone example model.</text>
+</svg>

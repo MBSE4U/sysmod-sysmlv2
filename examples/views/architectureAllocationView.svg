@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="440" viewBox="0 0 1000 440" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::architectureAllocationView : SYSMODViews::ArchitectureAllocationView (render asElementTable).
+       Exposed: DD::PRJ::functional2logical, DD::PRJ::logical2product (inherited from SYSMOD::Project) and the
+       solution architecture contexts deliveryDroneFunctionalContext, deliveryDroneLogicalContext and
+       deliveryDroneProductContext (system context elements pass the view filter as well).
+       The example model allocates only the contexts as a whole; no element-level allocations are modeled,
+       so none are shown. Illustrative example only; the view usage is not (yet) part of the example model. -->
+  <rect width="1000" height="440" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] architectureAllocationView : ArchitectureAllocationView — Delivery Drone architecture allocations</text>
+
+  <!-- Table 1: allocations -->
+  <text x="20" y="60" font-size="13" font-weight="600" fill="#333">Allocations</text>
+  <rect x="20" y="70" width="960" height="28" fill="#eef2f7"/>
+  <rect x="20" y="156" width="960" height="58" fill="#f7f9fc"/>
+  <g fill="none" stroke="#333" stroke-width="1.5">
+    <rect x="20" y="70" width="960" height="144"/>
+  </g>
+  <g stroke="#333" stroke-width="1">
+    <line x1="20" y1="98" x2="980" y2="98"/>
+    <line x1="20" y1="156" x2="980" y2="156"/>
+    <line x1="170" y1="70" x2="170" y2="214"/>
+    <line x1="430" y1="70" x2="430" y2="214"/>
+    <line x1="690" y1="70" x2="690" y2="214"/>
+  </g>
+  <g font-size="13" font-weight="600" fill="#222">
+    <text x="30" y="89">Allocation</text>
+    <text x="180" y="89">Source (allocated from)</text>
+    <text x="440" y="89">Target (allocated to)</text>
+    <text x="700" y="89">Documentation</text>
+  </g>
+  <!-- row 1 -->
+  <text x="30" y="122" font-size="11" fill="#555">«allocation»</text>
+  <text x="30" y="139" font-size="13" fill="#111">functional2logical</text>
+  <text x="180" y="122" font-size="13" fill="#111">deliveryDroneFunctionalContext</text>
+  <text x="180" y="139" font-size="11" fill="#555">:&gt;&gt; functionalContext</text>
+  <text x="440" y="122" font-size="13" fill="#111">deliveryDroneLogicalContext</text>
+  <text x="440" y="139" font-size="11" fill="#555">:&gt;&gt; logicalContext</text>
+  <text x="700" y="122" font-size="12" fill="#222">Allocation of the functional architecture</text>
+  <text x="700" y="138" font-size="12" fill="#222">to the logical architecture.</text>
+  <!-- row 2 -->
+  <text x="30" y="180" font-size="11" fill="#555">«allocation»</text>
+  <text x="30" y="197" font-size="13" fill="#111">logical2product</text>
+  <text x="180" y="180" font-size="13" fill="#111">deliveryDroneLogicalContext</text>
+  <text x="180" y="197" font-size="11" fill="#555">:&gt;&gt; logicalContext</text>
+  <text x="440" y="180" font-size="13" fill="#111">deliveryDroneProductContext</text>
+  <text x="440" y="197" font-size="11" fill="#555">:&gt;&gt; productContext</text>
+  <text x="700" y="180" font-size="12" fill="#222">Allocation of the logical architecture to</text>
+  <text x="700" y="196" font-size="12" fill="#222">the product architecture.</text>
+
+  <!-- Table 2: exposed system contexts -->
+  <text x="20" y="248" font-size="13" font-weight="600" fill="#333">Solution architecture contexts</text>
+  <rect x="20" y="258" width="960" height="28" fill="#eef2f7"/>
+  <rect x="20" y="320" width="960" height="34" fill="#f7f9fc"/>
+  <g fill="none" stroke="#333" stroke-width="1.5">
+    <rect x="20" y="258" width="960" height="130"/>
+  </g>
+  <g stroke="#333" stroke-width="1">
+    <line x1="20" y1="286" x2="980" y2="286"/>
+    <line x1="20" y1="320" x2="980" y2="320"/>
+    <line x1="20" y1="354" x2="980" y2="354"/>
+    <line x1="290" y1="258" x2="290" y2="388"/>
+    <line x1="560" y1="258" x2="560" y2="388"/>
+  </g>
+  <g font-size="13" font-weight="600" fill="#222">
+    <text x="30" y="277">«systemContext»</text>
+    <text x="300" y="277">Definition</text>
+    <text x="570" y="277">System of interest</text>
+  </g>
+  <g font-size="13" fill="#111">
+    <text x="30" y="308">deliveryDroneFunctionalContext</text>
+    <text x="300" y="308">DeliveryDroneFunctionalContext</text>
+    <text x="570" y="308">deliveryDroneSystem : DeliveryDroneFunctionalSystem</text>
+    <text x="30" y="342">deliveryDroneLogicalContext</text>
+    <text x="300" y="342">DeliveryDroneLogicalContext</text>
+    <text x="570" y="342">deliveryDroneSystem : DeliveryDroneLogicalSystem</text>
+    <text x="30" y="376">deliveryDroneProductContext</text>
+    <text x="300" y="376">DeliveryDroneProductContext</text>
+    <text x="570" y="376">deliveryDroneProduct : DeliveryDroneProductSystem</text>
+  </g>
+
+  <text x="20" y="412" font-size="11" fill="#555">Both allocations are inherited from SYSMOD::Project and allocate the contexts as a whole; no element-level allocations are modeled.</text>
+  <text x="20" y="432" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
+</svg>

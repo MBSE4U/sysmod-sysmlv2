@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="540" viewBox="0 0 1000 540" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::problemStatementView : SYSMODViews::ProblemStatementView (render asTreeDiagram).
+       Exposed: DD::PRJ::problemStatement (view usage inherited from SYSMOD::Project), filtered by
+       @SysML::ConcernUsage and name == "problemStatement". Shown with its subject (brownfield system)
+       and stakeholder (project owner) as owned members. Illustrative example. -->
+  <rect width="1000" height="540" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] problemStatementView : ProblemStatementView — Delivery Drone Problem Statement</text>
+
+  <!-- Membership edges -->
+  <g stroke="#333" stroke-width="1.5" fill="none">
+    <line x1="500" y1="281" x2="500" y2="300"/>
+    <line x1="270" y1="300" x2="730" y2="300"/>
+    <line x1="270" y1="300" x2="270" y2="330"/>
+    <line x1="730" y1="300" x2="730" y2="330"/>
+  </g>
+  <g stroke="#333" stroke-width="1.5" fill="#ffffff">
+    <circle cx="500" cy="274" r="7"/>
+    <line x1="493" y1="274" x2="507" y2="274"/>
+    <line x1="500" y1="267" x2="500" y2="281"/>
+  </g>
+
+  <!-- Root: problemStatement concern -->
+  <rect x="180" y="50" width="640" height="217" rx="8" fill="#f7f9fc" stroke="#333" stroke-width="2"/>
+  <text x="500" y="70" font-size="11" fill="#555" text-anchor="middle">«concern»</text>
+  <text x="500" y="90" font-size="15" font-weight="600" fill="#222" text-anchor="middle">problemStatement : ExtendedConcern</text>
+  <text x="500" y="107" font-size="12" fill="#555" text-anchor="middle">:&gt;&gt; Project::problemStatement</text>
+  <line x1="180" y1="117" x2="820" y2="117" stroke="#333" stroke-width="1.5"/>
+  <text x="500" y="133" font-size="11" font-style="italic" fill="#555" text-anchor="middle">doc</text>
+  <g font-size="13" fill="#222">
+    <text x="196" y="153">How can we deliver small packages to remote places faster and at lower cost than</text>
+    <text x="196" y="170">today's ground-based delivery, using our existing electric delivery drone platform?</text>
+    <text x="196" y="187">The current drones must return to a ground dock to recharge, which limits their range</text>
+    <text x="196" y="204">and makes remote deliveries slow and expensive.</text>
+  </g>
+  <line x1="180" y1="216" x2="820" y2="216" stroke="#333" stroke-width="1.5"/>
+  <text x="500" y="232" font-size="11" font-style="italic" fill="#555" text-anchor="middle">attributes</text>
+  <text x="196" y="252" font-size="13" fill="#222">priority = <tspan fill="#2f6fb0">critical</tspan> (default)</text>
+
+  <!-- Child: subject -->
+  <rect x="60" y="330" width="420" height="170" rx="8" fill="#ffffff" stroke="#333" stroke-width="1.5"/>
+  <text x="270" y="350" font-size="11" fill="#555" text-anchor="middle">«subject»</text>
+  <text x="270" y="368" font-size="14" font-weight="600" fill="#111" text-anchor="middle">brownfieldSystem</text>
+  <text x="270" y="385" font-size="12" fill="#555" text-anchor="middle">:&gt;&gt; brownfieldSystem</text>
+  <line x1="60" y1="395" x2="480" y2="395" stroke="#333" stroke-width="1.5"/>
+  <text x="270" y="411" font-size="11" font-style="italic" fill="#555" text-anchor="middle">value</text>
+  <g font-size="12" fill="#222">
+    <text x="74" y="430">= deliveryDroneBrownfieldContextImpl</text>
+    <text x="84" y="446">.deliveryDroneSystemImpl : DeliveryDroneSystemImpl</text>
+    <text x="74" y="470" fill="#555">White-box definition of the existing delivery drone system:</text>
+    <text x="74" y="486" fill="#555">a fleet of drones, a control station, and docks …</text>
+  </g>
+
+  <!-- Child: stakeholder -->
+  <rect x="520" y="330" width="420" height="170" rx="8" fill="#ffffff" stroke="#333" stroke-width="1.5"/>
+  <text x="730" y="350" font-size="11" fill="#555" text-anchor="middle">«stakeholder»</text>
+  <text x="730" y="368" font-size="14" font-weight="600" fill="#111" text-anchor="middle">projectOwner</text>
+  <text x="730" y="385" font-size="12" fill="#555" text-anchor="middle">:&gt;&gt; projectOwner</text>
+  <line x1="520" y1="395" x2="940" y2="395" stroke="#333" stroke-width="1.5"/>
+  <text x="730" y="411" font-size="11" font-style="italic" fill="#555" text-anchor="middle">value</text>
+  <g font-size="12" fill="#222">
+    <text x="534" y="430">= johnFinch : ProductManager</text>
+    <text x="544" y="446">name = "John Finch"</text>
+    <text x="534" y="470" fill="#555">Head of drone engineering at the contractor and</text>
+    <text x="534" y="486" fill="#555">accountable for the Delivery Drone project. …</text>
+  </g>
+
+  <text x="20" y="532" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
+</svg>

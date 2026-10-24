@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600" viewBox="0 0 1000 600" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::useCaseView : SYSMODViews::AIUseCaseView (render asAIGenerated).
+       Exposed: DD_SPECIFICATION::UseCases::*, filtered by @SysML::UseCaseDefinition.
+       Actor associations are derived from the use case triggers, motivations, and item flows;
+       the use case definitions do not model actors explicitly. -->
+  <defs>
+    <marker id="open" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10" fill="none" stroke="#333" stroke-width="1.2"/>
+    </marker>
+    <g id="actor" fill="none" stroke="#333" stroke-width="2">
+      <circle cx="0" cy="-38" r="11"/>
+      <line x1="0" y1="-27" x2="0" y2="8"/>
+      <line x1="-20" y1="-14" x2="20" y2="-14"/>
+      <line x1="0" y1="8" x2="-16" y2="34"/>
+      <line x1="0" y1="8" x2="16" y2="34"/>
+    </g>
+  </defs>
+  <rect width="1000" height="600" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">uc [view] useCaseView — Delivery Drone System Use Cases</text>
+
+  <!-- Subject boundary -->
+  <rect x="250" y="50" width="550" height="520" fill="#f7f9fc" stroke="#333" stroke-width="2"/>
+  <text x="262" y="74" font-size="13" fill="#555">«system»</text>
+  <text x="262" y="92" font-size="15" font-weight="600" fill="#222">DeliveryDroneSystem</text>
+
+  <!-- Associations (drawn first so ellipses cover the line ends) -->
+  <g stroke="#333" stroke-width="1.5">
+    <line x1="122" y1="150" x2="285" y2="232"/>   <!-- customer - BookDelivery -->
+    <line x1="122" y1="370" x2="285" y2="248"/>   <!-- operator - BookDelivery -->
+    <line x1="122" y1="378" x2="285" y2="350"/>   <!-- operator - ReportFleetStatus -->
+    <line x1="122" y1="386" x2="285" y2="458"/>   <!-- operator - HandleEmergencyLanding -->
+    <line x1="878" y1="240" x2="760" y2="240"/>   <!-- landingZone - DeliverPackage -->
+  </g>
+
+  <!-- Include relationships -->
+  <g stroke="#333" stroke-width="1.4" stroke-dasharray="6 4" fill="none">
+    <line x1="480" y1="150" x2="420" y2="208" marker-end="url(#open)"/>
+    <line x1="560" y1="150" x2="620" y2="208" marker-end="url(#open)"/>
+  </g>
+  <text x="400" y="178" font-size="12" fill="#444">«include»</text>
+  <text x="595" y="178" font-size="12" fill="#444">«include»</text>
+
+  <!-- Use cases -->
+  <g stroke="#333" stroke-width="1.6" fill="#ffffff">
+    <ellipse cx="520" cy="120" rx="120" ry="34"/>
+    <ellipse cx="395" cy="240" rx="110" ry="30"/>
+    <ellipse cx="645" cy="240" rx="115" ry="30"/>
+    <ellipse cx="395" cy="350" rx="110" ry="30"/>
+    <ellipse cx="645" cy="350" rx="115" ry="34"/>
+    <ellipse cx="395" cy="460" rx="112" ry="30"/>
+    <ellipse cx="645" cy="460" rx="115" ry="34"/>
+  </g>
+  <g font-size="14" fill="#111" text-anchor="middle">
+    <text x="520" y="114" font-size="11" fill="#555">«systemProcess»</text>
+    <text x="520" y="131">DeliveryProcess</text>
+    <text x="395" y="245">BookDelivery</text>
+    <text x="645" y="245">DeliverPackage</text>
+    <text x="395" y="355">ReportFleetStatus</text>
+    <text x="645" y="344" font-size="11" fill="#555">«secondaryUseCase»</text>
+    <text x="645" y="361">ChargeDrone</text>
+    <text x="395" y="465">HandleEmergencyLanding</text>
+    <text x="645" y="454" font-size="11" fill="#555">«continuousUseCase»</text>
+    <text x="645" y="471">MonitorDroneHealth</text>
+  </g>
+
+  <!-- Actors -->
+  <use href="#actor" x="100" y="150"/>
+  <text x="100" y="205" font-size="11" fill="#555" text-anchor="middle">«user»</text>
+  <text x="100" y="221" font-size="14" fill="#111" text-anchor="middle">customer</text>
+
+  <use href="#actor" x="100" y="378"/>
+  <text x="100" y="433" font-size="11" fill="#555" text-anchor="middle">«user»</text>
+  <text x="100" y="449" font-size="14" fill="#111" text-anchor="middle">operator</text>
+
+  <use href="#actor" x="900" y="240"/>
+  <text x="900" y="295" font-size="11" fill="#555" text-anchor="middle">«externalSystem»</text>
+  <text x="900" y="311" font-size="14" fill="#111" text-anchor="middle">landingZone</text>
+
+  <text x="20" y="592" font-size="11" fill="#777">Actor associations derived from use case triggers and item flows (not modeled explicitly). Rendered by AI from create_prompt of AIUseCaseView.</text>
+</svg>

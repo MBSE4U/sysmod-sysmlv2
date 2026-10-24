@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="360" viewBox="0 0 1000 360" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::stakeholdersView : SYSMODViews::StakeholdersView (render asElementTable).
+       Exposed (assumed usage, not in the model): DD::PRJ::projectStakeholders, filtered by @StakeholderMetadata,
+       i.e., johnFinch (projectOwner), logisticCompany, droneOperator, recipient, and regulator.
+       One row per stakeholder; attention = risk * effort with the LevelKind values. Illustrative example. -->
+  <rect width="1000" height="360" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] stakeholdersView : StakeholdersView — Delivery Drone Project stakeholders</text>
+
+  <!-- Header and alternating rows -->
+  <rect x="20" y="50" width="960" height="34" fill="#eef2f7"/>
+  <rect x="20" y="118" width="960" height="34" fill="#f7f9fc"/>
+  <rect x="20" y="186" width="960" height="34" fill="#f7f9fc"/>
+
+  <!-- Grid -->
+  <g stroke="#333" stroke-width="1.5" fill="none">
+    <rect x="20" y="50" width="960" height="204"/>
+    <line x1="20" y1="84" x2="980" y2="84"/>
+  </g>
+  <g stroke="#333" stroke-width="1" fill="none">
+    <line x1="20" y1="118" x2="980" y2="118"/>
+    <line x1="20" y1="152" x2="980" y2="152"/>
+    <line x1="20" y1="186" x2="980" y2="186"/>
+    <line x1="20" y1="220" x2="980" y2="220"/>
+    <line x1="170" y1="50" x2="170" y2="254"/>
+    <line x1="330" y1="50" x2="330" y2="254"/>
+    <line x1="560" y1="50" x2="560" y2="254"/>
+    <line x1="660" y1="50" x2="660" y2="254"/>
+    <line x1="760" y1="50" x2="760" y2="254"/>
+    <line x1="850" y1="50" x2="850" y2="254"/>
+  </g>
+
+  <!-- Header text -->
+  <g font-size="13" font-weight="600" fill="#222">
+    <text x="30" y="72">Element</text>
+    <text x="180" y="72">name</text>
+    <text x="340" y="72">Type</text>
+    <text x="570" y="72">risk</text>
+    <text x="670" y="72">effort</text>
+    <text x="770" y="72">attention</text>
+    <text x="860" y="72">categories</text>
+  </g>
+
+  <!-- Rows -->
+  <g font-size="13" fill="#111">
+    <text x="30" y="106">johnFinch ¹</text>
+    <text x="180" y="106">"John Finch"</text>
+    <text x="340" y="106">ProductManager</text>
+    <text x="570" y="106">critical</text>
+    <text x="670" y="106">low</text>
+    <text x="770" y="106">0.25</text>
+    <text x="860" y="106">requirementOwner</text>
+
+    <text x="30" y="140">logisticCompany</text>
+    <text x="180" y="140">"Logistic Company"</text>
+    <text x="340" y="140">LogisticCompany, Acquirer</text>
+    <text x="570" y="140">high</text>
+    <text x="670" y="140">low</text>
+    <text x="770" y="140">0.1875</text>
+    <text x="860" y="140">requirementOwner</text>
+
+    <text x="30" y="174">droneOperator</text>
+    <text x="180" y="174">"Drone Operator"</text>
+    <text x="340" y="174">DroneOperator</text>
+    <text x="570" y="174">middle</text>
+    <text x="670" y="174">low</text>
+    <text x="770" y="174">0.125</text>
+    <text x="860" y="174">user</text>
+
+    <text x="30" y="208">recipient</text>
+    <text x="180" y="208">"Recipient"</text>
+    <text x="340" y="208">Recipient</text>
+    <text x="570" y="208">low</text>
+    <text x="670" y="208">low</text>
+    <text x="770" y="208">0.0625</text>
+    <text x="860" y="208">other</text>
+
+    <text x="30" y="242">regulator</text>
+    <text x="180" y="242">"Aviation Authority"</text>
+    <text x="340" y="242">Regulator</text>
+    <text x="570" y="242">high</text>
+    <text x="670" y="242">middle</text>
+    <text x="770" y="242" font-weight="600" fill="#2f6fb0">0.375</text>
+    <text x="860" y="242">requirementOwner</text>
+  </g>
+
+  <!-- Notes -->
+  <g font-size="12" fill="#555">
+    <text x="20" y="282">¹ johnFinch redefines projectOwner; its risk, effort, and categories are the projectOwner defaults.</text>
+    <text x="20" y="300">attention = risk × effort (derived), with LevelKind values low = 0.25, middle = 0.5, high = 0.75, critical = 1.0.</text>
+    <text x="20" y="318">No contact values are set in the model, so the optional contact column is omitted.</text>
+  </g>
+
+  <text x="20" y="352" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
+</svg>

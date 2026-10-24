@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::verificationAndValidationView : SYSMODViews::VerificationAndValidationView (render asTreeDiagram).
+       Exposed: DD_VV::*, DD_SPECIFICATION::Requirements::**, DD_STAKEHOLDERNEEDS::*, and the project problemStatement
+       (hypothetical view usage; not yet declared in the project).
+       The model has one verification case (MaxPayloadTest) and no validation cases; uncovered elements are shown dashed.
+       Illustrative example. -->
+  <defs>
+    <marker id="open" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10" fill="none" stroke="#333" stroke-width="1.4"/>
+    </marker>
+    <marker id="filled" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2f6fb0"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="560" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] verificationAndValidationView : VerificationAndValidationView — Delivery Drone V&amp;V</text>
+
+  <!-- Tree edges -->
+  <g stroke="#333" stroke-width="1.5" fill="none">
+    <line x1="330" y1="122" x2="330" y2="146"/>
+    <line x1="170" y1="146" x2="480" y2="146"/>
+    <line x1="170" y1="146" x2="170" y2="169" marker-end="url(#open)"/>
+    <line x1="480" y1="250" x2="480" y2="299" marker-end="url(#open)"/>
+    <line x1="480" y1="370" x2="480" y2="419" stroke-dasharray="6 4" marker-end="url(#open)"/>
+    <line x1="820" y1="160" x2="820" y2="209" marker-end="url(#open)"/>
+  </g>
+  <line x1="480" y1="146" x2="480" y2="169" stroke="#2f6fb0" stroke-width="2" marker-end="url(#filled)"/>
+  <g font-size="11" fill="#555">
+    <text x="178" y="162">subject</text>
+    <text x="488" y="162" fill="#2f6fb0" font-weight="600">«verify»</text>
+    <text x="488" y="280">«frame»</text>
+    <text x="488" y="400">via stakeholderNeeds</text>
+    <text x="828" y="190">«frame»</text>
+  </g>
+
+  <!-- Root: verification case -->
+  <rect x="210" y="50" width="240" height="72" rx="4" fill="#ffffff" stroke="#333" stroke-width="2"/>
+  <g text-anchor="middle">
+    <text x="330" y="65" font-size="11" fill="#555">«verification def»</text>
+    <text x="330" y="83" font-size="14" font-weight="600" fill="#111">MaxPayloadTest</text>
+    <text x="330" y="99" font-size="11" fill="#555">action preparePayload</text>
+    <text x="330" y="114" font-size="11" fill="#555">verdict = PassIf(maxReq.result)</text>
+  </g>
+
+  <!-- Subject -->
+  <rect x="40" y="170" width="260" height="60" rx="4" fill="#ffffff" stroke="#333" stroke-width="1.6"/>
+  <g text-anchor="middle">
+    <text x="170" y="185" font-size="11" fill="#555">«subject»</text>
+    <text x="170" y="202" font-size="13" fill="#111">testedSystem</text>
+    <text x="170" y="219" font-size="11" fill="#555">: DeliveryDroneProductSystem</text>
+  </g>
+
+  <!-- Verified requirement -->
+  <rect x="340" y="170" width="280" height="80" rx="4" fill="#ffffff" stroke="#333" stroke-width="1.6"/>
+  <g text-anchor="middle">
+    <text x="480" y="185" font-size="11" fill="#555">«requirement»</text>
+    <text x="480" y="202" font-size="13" fill="#111">maxReq : MaxPayloadMass</text>
+    <text x="480" y="220" font-size="11" fill="#555">The system shall transport payloads</text>
+    <text x="480" y="235" font-size="11" fill="#555">with a mass of up to 5 kg.</text>
+  </g>
+
+  <!-- Stakeholder need -->
+  <rect x="340" y="300" width="280" height="70" rx="4" fill="#ffffff" stroke="#333" stroke-width="1.6"/>
+  <g text-anchor="middle">
+    <text x="480" y="315" font-size="11" fill="#555">«concern def»</text>
+    <text x="480" y="332" font-size="13" fill="#111">LowDeliveryCost</text>
+    <text x="480" y="349" font-size="11" fill="#555">cost per delivery below ground delivery</text>
+    <text x="480" y="363" font-size="11" fill="#555">priority middle · logisticCompany</text>
+  </g>
+
+  <!-- Problem statement -->
+  <rect x="340" y="420" width="280" height="70" rx="4" fill="#ffffff" stroke="#333" stroke-width="1.6"/>
+  <g text-anchor="middle">
+    <text x="480" y="435" font-size="11" fill="#555">«concern»</text>
+    <text x="480" y="452" font-size="13" fill="#111">problemStatement</text>
+    <text x="480" y="469" font-size="11" fill="#555">How can we deliver small packages to remote</text>
+    <text x="480" y="483" font-size="11" fill="#555">places faster and at lower cost …</text>
+  </g>
+
+  <!-- Validation note -->
+  <rect x="40" y="300" width="260" height="190" rx="4" fill="#ffffff" stroke="#333" stroke-width="1.4" stroke-dasharray="6 4"/>
+  <text x="54" y="322" font-size="13" font-weight="600" fill="#222">Validation</text>
+  <g font-size="12" fill="#555">
+    <text x="54" y="344">No validation case in the model.</text>
+    <text x="54" y="362">LowDeliveryCost and the</text>
+    <text x="54" y="380">problemStatement are reached only</text>
+    <text x="54" y="398">by frame relationships, not by a</text>
+    <text x="54" y="416">validation case run against the</text>
+    <text x="54" y="434">productSystem.</text>
+    <text x="54" y="462">ValidationViewpoint: open.</text>
+  </g>
+
+  <!-- Not covered panel -->
+  <rect x="660" y="50" width="320" height="440" fill="#f7f9fc" stroke="#333" stroke-width="1.5"/>
+  <text x="672" y="72" font-size="13" font-weight="600" fill="#222">Not covered by a verification case</text>
+
+  <rect x="680" y="90" width="280" height="70" rx="4" fill="#ffffff" stroke="#333" stroke-width="1.4" stroke-dasharray="6 4"/>
+  <g text-anchor="middle">
+    <text x="820" y="105" font-size="11" fill="#555">«extendedRequirement»</text>
+    <text x="820" y="122" font-size="13" fill="#111">airCharging : AirCharging</text>
+    <text x="820" y="139" font-size="11" fill="#555">A drone shall be able to recharge its</text>
+    <text x="820" y="153" font-size="11" fill="#555">battery during flight.</text>
+  </g>
+
+  <rect x="680" y="210" width="280" height="60" rx="4" fill="#ffffff" stroke="#333" stroke-width="1.4" stroke-dasharray="6 4"/>
+  <g text-anchor="middle">
+    <text x="820" y="225" font-size="11" fill="#555">«concern def»</text>
+    <text x="820" y="242" font-size="13" fill="#111">ReliableDelivery</text>
+    <text x="820" y="259" font-size="11" fill="#555">priority high · logisticCompany</text>
+  </g>
+
+  <rect x="680" y="300" width="280" height="70" rx="4" fill="#ffffff" stroke="#333" stroke-width="1.4" stroke-dasharray="6 4"/>
+  <g text-anchor="middle">
+    <text x="820" y="315" font-size="11" fill="#555">«concern def»</text>
+    <text x="820" y="332" font-size="13" fill="#111">SafeOperation</text>
+    <text x="820" y="349" font-size="11" fill="#555">priority critical · droneOperator</text>
+    <text x="820" y="363" font-size="11" fill="#555">not framed by any requirement</text>
+  </g>
+
+  <g font-size="12" fill="#555">
+    <text x="680" y="402">No verification case verifies airCharging,</text>
+    <text x="680" y="420">and no validation case covers the</text>
+    <text x="680" y="438">stakeholder needs. Coverage gaps for</text>
+    <text x="680" y="456">the next V&amp;V iteration.</text>
+  </g>
+
+  <!-- Legend -->
+  <g font-size="11" fill="#555">
+    <line x1="20" y1="514" x2="56" y2="514" stroke="#2f6fb0" stroke-width="2" marker-end="url(#filled)"/>
+    <text x="62" y="518">«verify»</text>
+    <line x1="130" y1="514" x2="166" y2="514" stroke="#333" stroke-width="1.5" marker-end="url(#open)"/>
+    <text x="172" y="518">subject / «frame»</text>
+    <line x1="290" y1="514" x2="326" y2="514" stroke="#333" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#open)"/>
+    <text x="332" y="518">indirect trace</text>
+    <rect x="440" y="506" width="30" height="16" fill="#ffffff" stroke="#333" stroke-width="1.4" stroke-dasharray="4 3"/>
+    <text x="476" y="518">not covered by V&amp;V</text>
+  </g>
+
+  <text x="20" y="552" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
+</svg>

@@ -29,7 +29,7 @@ library package <DDD> DeliveryDroneDomainLibrary {
         item def ChargerAssignment {
             doc /* The assignment pairing a low-battery drone with a specific charger drone. */
         }
-        item def ChargingPosition {
+        item def ChargingPosition :> Position {
             doc /* The shared in-flight position where two drones meet to transfer energy. */
         }
         item def CustomerRequest {

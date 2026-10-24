@@ -3,7 +3,7 @@ library package SYSMOD {
     /* 
      * Definition of SYSMOD v5 for SysML v2
      *
-     * Version v5.1.4
+     * Version v5.1.5
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -27,6 +27,9 @@ library package SYSMOD {
         doc 
         /* The Project provides a context for all main engineering artifacts used for this specific project and sets cross relationships. */
 
+        //
+        // Project Cover
+        //
         action defaultProcess : SYSMODProcesses::SYSMODDefaultProcess {
             doc
             /* The SYSMOD process performed by the project. It defaults to SYSMODDefaultProcess and can be redefined with a specialization of it to tailor the process. */
@@ -44,6 +47,20 @@ library package SYSMOD {
             attribute :>> effort default LevelKind::low;
             attribute :>> categories default StakeholderCategoryKind::requirementOwner;
         }
+        view projectCoverView : SYSMODViews::ProjectView { 
+            doc
+            /* The Project Cover view shows the project with its purpose, project owner, and the main engineering artifacts. */
+            expose this;
+        }
+        view projectCoverAIView : SYSMODViews::ProjectAIView {
+            doc
+            /* The Project Cover view is an AI-generated management summary of the project. It exposes the project itself, i.e., its purpose, project owner, and the main engineering artifacts. */
+            expose this;
+        }
+
+        //
+        // Problem Statement
+        //
         concern problemStatement : ExtendedConcern {
             doc
             /* The Problem Statement is an elevator pitch that describes the problem the system of interest is intended to solve. It is based on the brownfield system. The problem statement does not specify a solution. The project owner is the stakeholder of the problem statement. */
@@ -51,11 +68,22 @@ library package SYSMOD {
             stakeholder projectOwner :> Project::projectOwner;
             attribute :>> priority default LevelKind::critical;
         }
+        view problemStatementView : SYSMODViews::ProblemStatementView {
+            doc
+            /* The Problem Statement view shows the problem statement with its project owner and the brownfield system. */
+            expose problemStatement;
+        }
+        view problemStatementAIView : SYSMODViews::ProblemStatementAIView {
+            doc
+            /* The Problem Statement view is an AI-generated summary of the problem statement. It exposes the problem statement itself, i.e., its project owner and the brownfield system. */
+            expose problemStatement;
+        }
+
         part projectStakeholders : ExtendedStakeholder [1..*] {
             doc
             /* Stakeholders are individuals and organizations that have an interest in the system. They have needs and are potential sources of system requirements. There is at least one stakeholder which is the project owner. */
         }
-        concern stakeholderNeeds {
+        concern stakeholderNeeds : ExtendedConcern {
             doc
             /* The concern stakeholderNeeds is the root element for all stakeholder needs which will be translated into system requirements. The needs are based on the brownfield system (white-box view) and frame the problem statement. */
             subject brownfieldSystem :> Project::brownfieldContextImpl.soiImpl;
@@ -110,7 +138,7 @@ library package SYSMOD {
                 /* The white-box view of the specification system including its internal structure. */
             }
         }
-        requirement systemRequirementSpecification {
+        requirement systemRequirementSpecification : ExtendedRequirement {
             doc
             /* The System Requirement Specification is the root element for system requirements. They frame the stakeholder needs. */
             subject specificationSystem :> specificationContext.soi;
@@ -472,7 +500,6 @@ library package SYSMOD {
          * Each step refines one or more ISO/IEC/IEEE 15288 processes from the package ISO15288Processes (#refinement dependencies at the end of this package).
          * A project can tailor the process by redefining Project::defaultProcess with a specialization of SYSMODDefaultProcess.
          */
-
         private import ModelingMetadata::refinement;
 
         action def SYSMODDefaultProcess {
@@ -550,26 +577,31 @@ library package SYSMOD {
             bind project.productContext = verifyAndValidateRequirements.productContext;
 
             action setupProject : SetupProject {
+                @StepStatus;
                 in attribute projectOwnerName = SYSMODDefaultProcess::projectOwnerName;
                 in attribute projectPurpose = SYSMODDefaultProcess::projectPurpose;
             }
             action specifyBrownfieldSystem : SpecifyBrownfieldSystem {
+                @StepStatus;
                 in item brownfieldArchitecture = SYSMODDefaultProcess::brownfieldArchitecture;
             }
             action specifyProblemStatement : SpecifyProblemStatement {
+                @StepStatus;
                 in part projectOwner = SYSMODDefaultProcess::project.projectOwner;
                 in attribute problemStatementText = SYSMODDefaultProcess::problemStatementText;
             }
-            action identifyStakeholders : IdentifyStakeholders;
-            action elaborateStakeholderNeeds : ElaborateStakeholderNeeds;
+            action identifyStakeholders : IdentifyStakeholders { @StepStatus; }
+            action elaborateStakeholderNeeds : ElaborateStakeholderNeeds { @StepStatus; }
             action pitchSystemIdea : PitchSystemIdea {
+                @StepStatus;
                 in item systemIdeaArchitecture = SYSMODDefaultProcess::systemIdeaArchitecture;
             }
-            action defineSystemSpecification : DefineSystemSpecification;
+            action defineSystemSpecification : DefineSystemSpecification { @StepStatus; } 
             action createSolutionArchitectures : CreateSolutionArchitectures {
+                @StepStatus;
                 in item solutionArchitecture = SYSMODDefaultProcess::solutionArchitecture;
             }
-            action verifyAndValidateRequirements : VerifyAndValidateRequirements;
+            action verifyAndValidateRequirements : VerifyAndValidateRequirements { @StepStatus; }
         }
 
         action def SetupProject { 
@@ -612,7 +644,7 @@ library package SYSMOD {
 
         action def IdentifyStakeholders {
             doc
-            /* Identifies the stakeholders of the project based on the problem statement and assesses their risk, effort, and categories. Refines the ISO 15288 Stakeholder Needs and Requirements Definition process. */
+            /* Identifies the stakeholders of the project based on the problem statement and assesses their risk, effort, and categories. Refines the ISO 15288 Business or Mission Analysis process (identification of the major stakeholders) and the Stakeholder Needs and Requirements Definition process. */
             in concern problemStatement : ExtendedConcern;
             out part projectStakeholders[*] : ExtendedStakeholder {
                 doc /* The stakeholders of the project are individuals and organizations that have an interest in the system. The list includes the project owner retrieved from the problemStatement.*/
@@ -699,12 +731,26 @@ library package SYSMOD {
         #refinement dependency SpecifyBrownfieldSystem to ISO15288Processes::BusinessOrMissionAnalysis;
         #refinement dependency SpecifyProblemStatement to ISO15288Processes::BusinessOrMissionAnalysis;
         #refinement dependency IdentifyStakeholders to ISO15288Processes::StakeholderNeedsAndRequirementsDefinition;
+        #refinement dependency IdentifyStakeholders to ISO15288Processes::BusinessOrMissionAnalysis;
         #refinement dependency ElaborateStakeholderNeeds to ISO15288Processes::StakeholderNeedsAndRequirementsDefinition;
         #refinement dependency PitchSystemIdea to ISO15288Processes::BusinessOrMissionAnalysis;
         #refinement dependency DefineSystemSpecification to ISO15288Processes::SystemRequirementsDefinition;
         #refinement dependency CreateSolutionArchitectures to ISO15288Processes::SystemArchitectureDefinition;
         #refinement dependency VerifyAndValidateRequirements to ISO15288Processes::Verification;
         #refinement dependency VerifyAndValidateRequirements to ISO15288Processes::Validation;
+
+        //
+        // Additional Elements
+        //
+        enum def StepStatusKind { open; inProgress; done; skipped; }
+        attribute def Percentage :> ScalarValues::Real {
+            assert constraint { self >= 0.0 and self <= 1.0 }
+        }
+        metadata def StepStatus {
+            attribute status : StepStatusKind default StepStatusKind::open;
+            attribute percentage : Percentage default (0.0);
+            :> annotatedElement : SysML::ActionUsage;
+        }        
     }
 
     package ISO15288Processes {
@@ -847,5 +893,3 @@ library package SYSMOD {
         }
     }
 }
-
-    

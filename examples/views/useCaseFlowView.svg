@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::useCaseFlowView : SYSMODViews::UseCaseFlowView (render inherited from StandardViewDefinitions::ActionFlowView).
+       Exposed: DD_SPECIFICATION::UseCases::DeliverPackage (hypothetical view usage; not yet declared in the project).
+       Shows the successions, the merge m1, the item flows from ucPlanDelivery.task, and the parameter bindings.
+       Illustrative example; layout and notation details are hand-drawn. -->
+  <defs>
+    <marker id="open" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10" fill="none" stroke="#333" stroke-width="1.4"/>
+    </marker>
+    <marker id="filled" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2f6fb0"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="560" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] useCaseFlowView : UseCaseFlowView — DeliverPackage step by step</text>
+
+  <!-- Use case frame -->
+  <rect x="20" y="40" width="960" height="490" fill="#f7f9fc" stroke="#333" stroke-width="2"/>
+  <text x="32" y="60" font-size="11" fill="#555">«use case def»</text>
+  <text x="32" y="78" font-size="15" font-weight="600" fill="#222">DeliverPackage</text>
+  <text x="32" y="96" font-size="12" fill="#555">subject droneSystem : DeliveryDroneSystem</text>
+
+  <!-- Legend -->
+  <g font-size="11" fill="#555">
+    <line x1="790" y1="58" x2="830" y2="58" stroke="#333" stroke-width="1.5" marker-end="url(#open)"/>
+    <text x="838" y="62">succession</text>
+    <line x1="790" y1="78" x2="830" y2="78" stroke="#2f6fb0" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#filled)"/>
+    <text x="838" y="82">item flow</text>
+  </g>
+
+  <!-- Successions -->
+  <g stroke="#333" stroke-width="1.5" fill="none" marker-end="url(#open)">
+    <line x1="80" y1="270" x2="109" y2="270"/>
+    <line x1="260" y1="270" x2="309" y2="270"/>
+    <line x1="460" y1="270" x2="509" y2="270"/>
+    <line x1="660" y1="270" x2="721" y2="270"/>
+    <line x1="758" y1="270" x2="799" y2="270"/>
+    <line x1="580" y1="135" x2="664" y2="135"/>
+    <line x1="740" y1="163" x2="740" y2="251"/>
+    <line x1="875" y1="298" x2="875" y2="381"/>
+    <line x1="800" y1="410" x2="711" y2="410"/>
+    <line x1="560" y1="410" x2="515" y2="410"/>
+  </g>
+
+  <!-- Item flows -->
+  <g stroke="#2f6fb0" stroke-width="1.5" stroke-dasharray="5 3" fill="none" marker-end="url(#filled)">
+    <path d="M235,302 V330 H335 V307"/>
+    <path d="M150,302 V365 H780 V285 H795"/>
+  </g>
+  <g fill="#ffffff" stroke="#2f6fb0" stroke-width="1.5">
+    <rect x="231" y="294" width="8" height="8"/>
+    <rect x="331" y="294" width="8" height="8"/>
+    <rect x="146" y="294" width="8" height="8"/>
+    <rect x="796" y="281" width="8" height="8"/>
+  </g>
+  <g font-size="11" fill="#2f6fb0" text-anchor="middle">
+    <text x="285" y="346">task.pickupLocation → pos</text>
+    <text x="470" y="380">task.deliverLocation → pos</text>
+  </g>
+
+  <!-- Start / done / merge -->
+  <circle cx="70" cy="270" r="10" fill="#111"/>
+  <circle cx="500" cy="410" r="14" fill="#ffffff" stroke="#111" stroke-width="2"/>
+  <circle cx="500" cy="410" r="8" fill="#111"/>
+  <text x="500" y="442" font-size="11" fill="#555" text-anchor="middle">done</text>
+  <text x="70" y="298" font-size="11" fill="#555" text-anchor="middle">start</text>
+  <polygon points="740,252 758,270 740,288 722,270" fill="#ffffff" stroke="#333" stroke-width="1.6"/>
+  <text x="738" y="305" font-size="11" fill="#555" text-anchor="middle">merge m1</text>
+
+  <!-- Actions -->
+  <g fill="#ffffff" stroke="#333" stroke-width="1.6">
+    <rect x="430" y="107" width="150" height="56" rx="12"/>
+    <rect x="665" y="107" width="150" height="56" rx="12"/>
+    <rect x="110" y="242" width="150" height="56" rx="12"/>
+    <rect x="310" y="242" width="150" height="56" rx="12"/>
+    <rect x="510" y="242" width="150" height="56" rx="12"/>
+    <rect x="800" y="242" width="150" height="56" rx="12"/>
+    <rect x="800" y="382" width="150" height="56" rx="12"/>
+    <rect x="560" y="382" width="150" height="56" rx="12"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="505" y="121" font-size="11" fill="#555">«perform action»</text>
+    <text x="505" y="138" font-size="13" fill="#111">ucAcceptBatteryLow</text>
+    <text x="505" y="154" font-size="11" fill="#555">::&gt; acceptBatteryLow</text>
+
+    <text x="740" y="121" font-size="11" fill="#555">«perform action»</text>
+    <text x="740" y="138" font-size="13" fill="#111">ucChargeInFlight</text>
+    <text x="740" y="154" font-size="11" fill="#555">::&gt; chargeInFlight</text>
+
+    <text x="185" y="256" font-size="11" fill="#555">«perform action»</text>
+    <text x="185" y="273" font-size="13" fill="#111">ucPlanDelivery</text>
+    <text x="185" y="289" font-size="11" fill="#555">::&gt; planDelivery</text>
+
+    <text x="385" y="256" font-size="11" fill="#555">«action»</text>
+    <text x="385" y="273" font-size="13" fill="#111">flyToPickup</text>
+    <text x="385" y="289" font-size="11" fill="#555">:&gt; ucFlyToPosition</text>
+
+    <text x="585" y="256" font-size="11" fill="#555">«perform action»</text>
+    <text x="585" y="273" font-size="13" fill="#111">ucPickUpPackage</text>
+    <text x="585" y="289" font-size="11" fill="#555">::&gt; pickUpPackage</text>
+
+    <text x="875" y="256" font-size="11" fill="#555">«action»</text>
+    <text x="875" y="273" font-size="13" fill="#111">flyToDelivery</text>
+    <text x="875" y="289" font-size="11" fill="#555">:&gt; ucFlyToPosition</text>
+
+    <text x="875" y="396" font-size="11" fill="#555">«perform action»</text>
+    <text x="875" y="413" font-size="13" fill="#111">ucDropOffPackage</text>
+    <text x="875" y="429" font-size="11" fill="#555">::&gt; dropOffPackage</text>
+
+    <text x="635" y="396" font-size="11" fill="#555">«action»</text>
+    <text x="635" y="413" font-size="13" fill="#111">flyToHome</text>
+    <text x="635" y="429" font-size="11" fill="#555">pos = homePosition</text>
+  </g>
+  <text x="505" y="180" font-size="11" fill="#555" text-anchor="middle">accepts LowBatterySignal (no predecessor)</text>
+
+  <!-- Parameters and bindings -->
+  <line x1="20" y1="458" x2="980" y2="458" stroke="#333" stroke-width="1"/>
+  <text x="32" y="477" font-size="11" fill="#555">parameters and bindings</text>
+  <g font-size="12" fill="#222">
+    <text x="32" y="498">in order : DeliveryOrder = droneSystem.ucPlanDelivery.order</text>
+    <text x="510" y="498">in pkgIn : Parcel = droneSystem.ucPickUpPackage.pkg</text>
+    <text x="32" y="518">out pkgOut : Parcel = droneSystem.ucDropOffPackage.deliveredPkg</text>
+    <text x="510" y="518">in energy : Energy = droneSystem.ucChargeInFlight.energy</text>
+  </g>
+
+  <text x="20" y="552" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
+</svg>

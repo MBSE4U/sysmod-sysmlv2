@@ -576,6 +576,9 @@ library package SYSMODViews {
         }
     }
     view def AIUseCase4ManagersView {
+        doc /* Management summary view. Shows the use case definitions exposed by the view
+             * as a single AI-generated slide for managers who do not read SysML.
+             */
         filter @SysML::UseCaseDefinition;
         render as4Managers;
     }
@@ -589,10 +592,13 @@ library package SYSMODViews {
         doc /* Default AI rendering. Views redefine its create_prompt to describe their specific notation. */
     }
     rendering as4Managers : AIRendering[1] :> Views::renderings {
-        doc /* Default AI rendering. Views redefine its create_prompt to describe their specific notation. */
+        doc /* AI rendering that summarizes the exposed and filtered information as a single slide for managers. */
         :>> create_prompt = "Create a single slide that presents the exposed and filtered information from the view, summarizing it concisely for managers: What does this mean, and how can we use it to make decisions? Assume that the managers cannot read SysML.";
     }
     view def SystemContextView :> StandardViewDefinitions::InterconnectionView {
+        doc /* Base view for the system contexts. Shows the parts, ports, interfaces, connections, and use cases
+             * of the exposed system context as an interconnection diagram, without library elements.
+             */
         filter @SysML::PartUsage or @SysML::PortUsage or @SysML::InterfaceUsage or @SysML::ConnectionUsage or @SysML::UseCaseUsage;
         filter not (@KerML::Element::isLibraryElement);
         render Views::asInterconnectionDiagram;

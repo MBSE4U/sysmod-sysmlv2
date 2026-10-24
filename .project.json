@@ -2,5 +2,11 @@
   "name": "sysmod",
   "publisher": "mbse4u",
   "version": "5.1.4",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "tags": [
+    "sysml-v2",
+    "sysmod",
+    "methodology",
+    "MBSE"
+  ]
 }

@@ -11,7 +11,7 @@ library package SYSMODRequirementsBoilerplates {
      * 'attribute :>> maxValue :> ISQ::mass = 5 [SI::kg];', and sets the tolerance with the same unit, since the default
      * tolerance 0.0 is a plain number.
      *
-     * Version v5.1.5
+     * Version v5.1.6
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.

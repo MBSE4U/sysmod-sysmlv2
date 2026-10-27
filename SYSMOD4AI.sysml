@@ -22,7 +22,7 @@ package SYSMOD4AI {
      *   project (e.g. AIProject::problemStatementAI's prompts apply to any project's own
      *   problemStatement), matched by feature identity rather than by inheritance from AIProject.
      *
-     * Version v5.1.5
+     * Version v5.1.6
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -333,7 +333,7 @@ package SYSMOD4AI {
 
         metadata problemStatementAI : AI about problemStatement {
             doc
-            /* Frames the problem the project is meant to solve, as a concise elevator-pitch style
+            /* Frames the problem the project is meant to solve, as a concise elevator-pitch-style
              * statement based on the brownfield system's deficiencies — never a solution.
              *
              * When to use:
@@ -354,7 +354,7 @@ package SYSMOD4AI {
             create_prompt =
                 "1. Follow the structure between engineering artifacts given by the SYSMOD library.
                 2. Analyze the provided scenario. If it is forward engineering, identify the problem statement from the given scenario. If it is reverse engineering, identify the problem statement by identifying the problem that is solved by the given system.
-                3. Create a concise elevator-pitch style problem statement text (typically 150-250 words).
+                3. Create a concise elevator-pitch-style problem statement text (typically 150-250 words).
                 4. Follow this format: 'How can we...'
                 5. Ensure the problem statement text is based on the brownfieldContext. If the brownfieldContext is not available, create one that is implied by the problem statement text using the AI metadata about the brownfieldContext.
                 6. Ensure that the problem statement does not jump to the solution and describe it in advance.

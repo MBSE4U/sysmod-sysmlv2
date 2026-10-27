@@ -6,9 +6,9 @@
 
 # SYSMOD Views
 
-> This document is generated from the SYSMODViews library (v5.1.5). It is read-only; changes are made in [SYSMODViews.sysml](SYSMODViews.sysml) and the document is regenerated with `python scripts/generate_views_doc.py`.
+> This document is generated from the SYSMODViews library (v5.1.6). It is read-only; changes are made in [SYSMODViews.sysml](SYSMODViews.sysml) and the document is regenerated with `python scripts/generate_views_doc.py`.
 
-The SYSMOD views follow ISO/IEC/IEEE 42010: stakeholders derived from the ISO/IEC/IEEE 15288 life cycle processes have concerns, viewpoints frame these concerns, and views conform to the viewpoints. The SYSMOD process steps refine the ISO/IEC/IEEE 15288 processes and produce the project elements that the views of the SYSMOD `Project` expose.
+The SYSMOD views follow ISO/IEC/IEEE 42010: stakeholders derived from the ISO/IEC/IEEE 15288 life cycle processes have concerns, viewpoints frame these concerns, and views conform to the viewpoints. The SYSMOD process steps refine the ISO/IEC/IEEE 15288 processes and produce the project elements that the views of a SYSMOD project expose, e.g., in the Delivery Drone example.
 
 ```mermaid
 flowchart LR
@@ -651,7 +651,7 @@ Product "The Project": the SYSMOD Project with its purpose, projectOwner, and su
 
 **Backward traceability**
 
-- **SYSMOD steps:** `SetupProject` (`Project::projectCoverView`)
+- **SYSMOD steps:** `SetupProject` (`'Delivery Drone Project'::projectCoverView`)
 - **Viewpoints:** [ProjectViewpoint](#viewpoint-projectviewpoint)
 - **Concerns:** [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration)
 - **Stakeholders:** [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect)
@@ -684,7 +684,7 @@ Product "The Project" as an AI-generated management summary: a short markdown te
 
 **Backward traceability**
 
-- **SYSMOD steps:** `SetupProject` (`Project::projectCoverAIView`)
+- **SYSMOD steps:** `SetupProject` (`'Delivery Drone Project'::projectCoverAIView`)
 - **Viewpoints:** [ProjectViewpoint](#viewpoint-projectviewpoint) (inherited)
 - **Concerns:** [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration)
 - **Stakeholders:** [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect)
@@ -730,7 +730,7 @@ Product "Problem Statement": the problemStatement of the Project with its projec
 
 **Backward traceability**
 
-- **SYSMOD steps:** `SpecifyProblemStatement` (`Project::problemStatementView`)
+- **SYSMOD steps:** `SpecifyProblemStatement` (`'Delivery Drone Project'::problemStatementView`)
 - **Viewpoints:** [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint)
 - **Concerns:** [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures)
 - **Stakeholders:** [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer)
@@ -765,7 +765,7 @@ Product "Problem Statement" as an AI-generated summary: a short markdown text wi
 
 **Backward traceability**
 
-- **SYSMOD steps:** `SpecifyProblemStatement` (`Project::problemStatementAIView`)
+- **SYSMOD steps:** `SpecifyProblemStatement` (`'Delivery Drone Project'::problemStatementAIView`)
 - **Viewpoints:** [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) (inherited)
 - **Concerns:** [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures)
 - **Stakeholders:** [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer)

@@ -163,7 +163,7 @@ package <DD_BROWNFIELD> DeliveryDroneSystemBrownfieldArchitecture {
         }
         part controlUnit {
             doc
-            /* On-board computer for navigation and communication. */
+            /* Onboard computer for navigation and communication. */
         }
 
         connect engines to body;

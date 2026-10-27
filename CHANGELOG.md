@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleased
+## v5.1.6
 
 - Added `examples/microstories/`: the SysML v2 snippets of the SYSMOD MicroStories on the MBSE4U blog, one standalone file per story (e.g., `the-project.sysml`, `problem-statement.sysml`). Each file builds on the SYSMOD library and is the source of the snippet shown in its story; the website copies the files and checks them with the library. The files are examples and are not part of the published library package.
 - Fixed snippets that the OpenSysML checker rejected:

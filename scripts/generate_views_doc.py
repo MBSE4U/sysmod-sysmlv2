@@ -7,6 +7,7 @@ each time the library changes. Do not edit it by hand.
 Sources:
   SYSMODViews.sysml   stakeholders, concerns, viewpoints, views
   SYSMOD.sysml        ISO 15288 processes, SYSMOD process steps refining them
+  examples/*.sysml    view usages of the #project occurrence defs, linking the SYSMOD steps to the views
   examples/views/     example SVG renderings; the first 'SYSMODViews::<ViewDef>' in a file names its view
 
 Traceability:
@@ -30,7 +31,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 VIEWS_FILE = ROOT / "SYSMODViews.sysml"
 SYSMOD_FILE = ROOT / "SYSMOD.sysml"
-RENDERED_VIEWS_DIR = ROOT / "examples" / "views"
+EXAMPLES_DIR = ROOT / "examples"
+RENDERED_VIEWS_DIR = EXAMPLES_DIR / "views"
 OUTPUT_FILE = ROOT / "SYSMODViews.md"
 
 PROCESS_GROUPS = {
@@ -257,7 +259,7 @@ class View:
     source: str
     specializations: list = field(default_factory=list)
     examples: list = field(default_factory=list)
-    steps: list = field(default_factory=list)  # (SYSMOD step, view usage in SYSMOD::Project)
+    steps: list = field(default_factory=list)  # (SYSMOD step, qualified view usage in a project)
 
 
 def humanize(name):
@@ -460,10 +462,24 @@ def source_text(source, element, strip=""):
     return textwrap.dedent(" " * indent + text).strip()
 
 
-def read_step_views(sysmod_elements, views):
-    """Link the SYSMOD steps to the views of the Project.
+def project_defs(elements):
+    """The SYSMOD project definitions: SYSMOD::Project and the occurrence defs marked with #project."""
+    for element in walk(elements):
+        words = element.words
+        if "occurrence" not in words or "def" not in words:
+            continue
+        name = words[words.index("def") + 1:]
+        if name[:1] == ["<"] and ">" in name:
+            name = name[name.index(">") + 1:]
+        marked = any(w == "#" and short(n) == "project" for w, n in zip(words, words[1:]))
+        if name and (marked or declared(element, "occurrence", "def") == "Project"):
+            yield name[0], element
 
-    A view usage in SYSMOD::Project exposes a project feature, e.g., 'expose problemStatement'.
+
+def read_step_views(sysmod_elements, project_files, views):
+    """Link the SYSMOD steps to the views of the projects, i.e., SYSMOD::Project and the example projects.
+
+    A view usage in a project exposes a project feature, e.g., 'expose problemStatement'.
     The step producing that feature is found by the flows of SYSMODDefaultProcess,
     e.g., 'flow from specifyProblemStatement.problemStatement to project.problemStatement'.
     'expose this' exposes the project itself, which the steps assigning project features set up.
@@ -484,22 +500,24 @@ def read_step_views(sysmod_elements, views):
                     c.words[:3] == ["assign", "project", "."] for c in step_element.children):
                 producers.setdefault("this", []).append(usage)
 
-    project = next(e for e in walk(sysmod_elements) if declared(e, "occurrence", "def") == "Project")
-    for element in project.children:
-        words = element.words
-        if words[0] != "view" or ":" not in words:
-            continue
-        vtype = short(typed_by(element))
-        if vtype not in views:
-            continue
-        for child in element.children:
-            if child.words[0] == "expose":
+    projects = list(project_defs(sysmod_elements))
+    for path in project_files:
+        projects += project_defs(parse(path)[1])
+    for project_name, project in projects:
+        for element in project.children:
+            words = element.words
+            if words[0] != "view" or ":" not in words:
+                continue
+            vtype = short(typed_by(element))
+            if vtype not in views:
+                continue
+            for child in element.children:
+                if child.words[0] != "expose":
+                    continue
+                # exposed elements outside the project, e.g., a use case package, have no producing step
                 feature = re.split(r"::|\.", child.words[1])[0]
-                steps = producers.get(feature, [])
-                if not steps:
-                    warn(f"Project::{words[1]}: no SYSMOD step produces the exposed feature {feature}")
-                for usage in steps:
-                    entry = (step_types[usage], words[1])
+                for usage in producers.get(feature, []):
+                    entry = (step_types[usage], f"{project_name}::{words[1]}")
                     if entry not in views[vtype].steps:
                         views[vtype].steps.append(entry)
 
@@ -561,7 +579,7 @@ def render(version, processes, stakeholders, concerns, viewpoints, views, render
     w("The SYSMOD views follow ISO/IEC/IEEE 42010: stakeholders derived from the ISO/IEC/IEEE 15288 "
       "life cycle processes have concerns, viewpoints frame these concerns, and views conform to the viewpoints. "
       "The SYSMOD process steps refine the ISO/IEC/IEEE 15288 processes and produce the project elements "
-      "that the views of the SYSMOD `Project` expose.")
+      "that the views of a SYSMOD project expose, e.g., in the Delivery Drone example.")
     w("")
     w("```mermaid")
     w("flowchart LR")
@@ -699,7 +717,7 @@ def render(version, processes, stakeholders, concerns, viewpoints, views, render
         w("")
         w("**Backward traceability**")
         w("")
-        usages = ", ".join(f"`{step}` (`Project::{usage}`)" for step, usage in v.steps) or "—"
+        usages = ", ".join(f"`{step}` (`{usage}`)" for step, usage in v.steps) or "—"
         w(f"- **SYSMOD steps:** {usages}")
         w(f"- **Viewpoints:** {names('viewpoint', vps)}"
           + (" (inherited)" if vps and not v.own_viewpoints else ""))
@@ -778,7 +796,7 @@ def generate():
     views = read_views(library.children, views_source, viewpoints)
     renderings = read_renderings(library.children, views_source)
 
-    read_step_views(sysmod_elements, views)
+    read_step_views(sysmod_elements, sorted(EXAMPLES_DIR.glob("*.sysml")), views)
     find_examples(views)
 
     return render(library_version(views_elements), processes, stakeholders, concerns, viewpoints, views, renderings)

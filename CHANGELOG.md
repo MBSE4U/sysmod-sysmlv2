@@ -1,8 +1,11 @@
 # Change Log
 
-## Unreleased
+## v5.1.6
 
-- Consistent spelling of black box and white box (#31): two words as a noun ("the system as a black box"), hyphenated as an adjective before a noun ("the black-box context", "the white-box view"). Fixed "blackbox context" and "whitebox context" in the doc comments of `Project::brownfieldContext` and `Project::brownfieldContextImpl`; all other occurrences already followed the rule.
+- Moved the view usages `projectCoverView` (`ProjectView`) and `projectCoverAIView` (`ProjectAIView`) from `SYSMOD::Project` to the example model (`DeliveryDroneSystemProject.sysml`), where they expose the Delivery Drone project.
+- `StepStatus::percentage` now defaults to `0.0 as Percentage` (feature value with `default =`).
+- `scripts/generate_views_doc.py` now links the SYSMOD steps to the view usages of the `#project` occurrence definitions in `examples/` as well as of `SYSMOD::Project`, since the library defines the views and the projects instantiate them.
+- - Consistent spelling of black box and white box (#31): two words as a noun ("the system as a black box"), hyphenated as an adjective before a noun ("the black-box context", "the white-box view"). Fixed "blackbox context" and "whitebox context" in the doc comments of `Project::brownfieldContext` and `Project::brownfieldContextImpl`; all other occurrences already followed the rule.
 - Same rule for two further compounds: "elevator-pitch-style" before a noun in the `problemStatementAI` prompts (was "elevator-pitch style"), and "onboard" in the brownfield example (was "On-board", as everywhere else in the examples).
 
 ## v5.1.5

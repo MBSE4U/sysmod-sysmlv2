@@ -71,7 +71,7 @@ library package SYSMOD {
         }
         part brownfieldContext : SystemContext {
             doc
-            /* The Brownfield Context includes the system and actors that are already identified at the start of the Project. These constraints limit the set of possible solutions. This is the blackbox context without specifying the internals of the system of interest. */
+            /* The Brownfield Context includes the system and actors that are already identified at the start of the Project. These constraints limit the set of possible solutions. This is the black-box context without specifying the internals of the system of interest. */
             part <soi> systemOfInterest :>> soi {
                 doc
                 /* The existing (brownfield) system of interest as a black box. It is the explicit anchor for the refinement along the context chain. */
@@ -79,7 +79,7 @@ library package SYSMOD {
         }
         part brownfieldContextImpl :> brownfieldContext {
             doc
-            /* The implementation of the brownfield context includes the internal structure of the system of interest. This is the whitebox context. */
+            /* The implementation of the brownfield context includes the internal structure of the system of interest. This is the white-box context. */
             part <soiImpl> systemOfInterestImpl :>> soi {
                 doc
                 /* The white-box view of the existing system of interest including its internal structure. It redefines the black-box soi. */

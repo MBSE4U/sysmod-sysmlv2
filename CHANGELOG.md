@@ -1,5 +1,11 @@
 # Change Log
 
+## v5.1.6
+
+- Moved the view usages `projectCoverView` (`ProjectView`) and `projectCoverAIView` (`ProjectAIView`) from `SYSMOD::Project` to the example model (`DeliveryDroneSystemProject.sysml`), where they expose the Delivery Drone project.
+- `StepStatus::percentage` now defaults to `0.0 as Percentage` (feature value with `default =`).
+- `scripts/generate_views_doc.py` now links the SYSMOD steps to the view usages of the `#project` occurrence definitions in `examples/` as well as of `SYSMOD::Project`, since the library defines the views and the projects instantiate them.
+
 ## v5.1.5
 
 - Added the `SYSMODViews` library package (file `SYSMODViews.sysml`), the SYSMOD architecture description framework according to ISO/IEC/IEEE 42010:

@@ -159,6 +159,16 @@ package <DD> DeliveryDrone {
             /* The Project Cover view is an AI-generated management summary of the project. It exposes the project itself, i.e., its purpose, project owner, and the main engineering artifacts. */
             expose this;
         }
+        view problemStatementView : SYSMODViews::ProblemStatementView {
+            doc
+            /* The Problem Statement view shows the problem statement with its project owner and the brownfield system. */
+            expose problemStatement;
+        }
+        view problemStatementAIView : SYSMODViews::ProblemStatementAIView {
+            doc
+            /* The Problem Statement view is an AI-generated summary of the problem statement. It exposes the problem statement itself, i.e., its project owner and the brownfield system. */
+            expose problemStatement;
+        }
 
 
         view useCaseView : AIUseCaseView {

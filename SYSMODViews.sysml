@@ -3,7 +3,7 @@ library package SYSMODViews {
     /* 
      * Definition of SYSMOD v5 Views
      *
-     * Version v5.1.5
+     * Version v5.1.6
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.

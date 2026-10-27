@@ -3,7 +3,7 @@ library package SYSMOD {
     /* 
      * Definition of SYSMOD v5 for SysML v2
      *
-     * Version v5.1.6
+     * Version v5.1.7
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -723,10 +723,10 @@ library package SYSMOD {
 
         //
         // Additional Elements
-        //
+        //    
         enum def StepStatusKind { open; inProgress; done; skipped; }
         attribute def Percentage :> ScalarValues::Real {
-            assert constraint { self >= 0.0 and self <= 1.0 }
+            assert constraint { that >= 0.0 and that <= 1.0 }
         }
         metadata def StepStatus {
             attribute status : StepStatusKind default StepStatusKind::open;

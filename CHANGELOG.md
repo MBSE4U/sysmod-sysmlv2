@@ -2,6 +2,11 @@
 
 ## v5.1.6
 
+- Added `examples/microstories/`: the SysML v2 snippets of the SYSMOD MicroStories on the MBSE4U blog, one standalone file per story (e.g., `the-project.sysml`, `problem-statement.sysml`). Each file builds on the SYSMOD library and is the source of the snippet shown in its story; the website copies the files and checks them with the library. The files are examples and are not part of the published library package.
+- Fixed snippets that the OpenSysML checker rejected:
+  - Requirements and verification usages that redefine `systemRequirementSpecification` or subset `verificationCases` now redefine the inherited subject together with the subject of their definition (`subject :>> specificationSystem, deliveryDroneSystem;`), so the usage has one subject, and the requirement definitions specialize `ExtendedRequirement` (`system-requirements`, `requirements-traceability`, `the-full-chain`, `verification`, `validation`).
+  - `logical-architecture`: the nested allocations reference the named ends of `functional2logical` (`allocate func ::> functional to logic ::> logical`).
+  - `use-case-flows`: the decision uses two guarded successions to local steps instead of `else` and feature chains as targets, which the checker does not parse yet.
 - Moved the view usages `projectCoverView` (`ProjectView`) and `projectCoverAIView` (`ProjectAIView`) from `SYSMOD::Project` to the example model (`DeliveryDroneSystemProject.sysml`), where they expose the Delivery Drone project.
 - `StepStatus::percentage` now defaults to `0.0 as Percentage` (feature value with `default =`).
 - `scripts/generate_views_doc.py` now links the SYSMOD steps to the view usages of the `#project` occurrence definitions in `examples/` as well as of `SYSMOD::Project`, since the library defines the views and the projects instantiate them.

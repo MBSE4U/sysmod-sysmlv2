@@ -1,5 +1,13 @@
 # Change Log
 
+## Unreleased
+
+- Added `examples/microstories/`: the SysML v2 snippets of the SYSMOD MicroStories on the MBSE4U blog, one standalone file per story (e.g., `the-project.sysml`, `problem-statement.sysml`). Each file builds on the SYSMOD library and is the source of the snippet shown in its story; the website copies the files and checks them with the library. The files are examples and are not part of the published library package.
+- Fixed snippets that the OpenSysML checker rejected:
+  - Requirements and verification usages that redefine `systemRequirementSpecification` or subset `verificationCases` now redefine the inherited subject together with the subject of their definition (`subject :>> specificationSystem, deliveryDroneSystem;`), so the usage has one subject, and the requirement definitions specialize `ExtendedRequirement` (`system-requirements`, `requirements-traceability`, `the-full-chain`, `verification`, `validation`).
+  - `logical-architecture`: the nested allocations reference the named ends of `functional2logical` (`allocate func ::> functional to logic ::> logical`).
+  - `use-case-flows`: the decision uses two guarded successions to local steps instead of `else` and feature chains as targets, which the checker does not parse yet.
+
 ## v5.1.5
 
 - Added the `SYSMODViews` library package (file `SYSMODViews.sysml`), the SYSMOD architecture description framework according to ISO/IEC/IEEE 42010:

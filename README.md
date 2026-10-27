@@ -80,6 +80,7 @@ examples/                                           # Delivery Drone example mod
   DeliveryDroneSystemControlStationProject.sysml    # Control station sub-project
   DeliveryDroneSystemDomainLibrary.sysml            # Shared domain items (orders, parcels, energy, ...)
   views/                                            # Example renderings of the SYSMOD views (SVG)
+  microstories/                                     # The SysML v2 snippets of the SYSMOD MicroStories (one file per story)
 ```
 
 ## Views Documentation

@@ -24,9 +24,10 @@ package MicroStory_ProblemStatement {
             stakeholder :>> projectOwner = johnFinch;
         }
 
-        // Also inherited from SYSMOD::Project – every project has both views:
-        //   view problemStatementView   : SYSMODViews::ProblemStatementView   { expose problemStatement; }
-        //   view problemStatementAIView : SYSMODViews::ProblemStatementAIView { expose problemStatement; }
+        // Two views of the same statement. SYSMODViews defines them;
+        // the project declares them and exposes its problem statement.
+        view problemStatementView : SYSMODViews::ProblemStatementView { expose problemStatement; }
+        view problemStatementAIView : SYSMODViews::ProblemStatementAIView { expose problemStatement; }
         // Both satisfy the ProblemSolutionViewpoint, which frames the concerns
         // ProblemSolutionPitch and MissionGoalsAndMeasures of the
         // ProductManager and the Acquirer.

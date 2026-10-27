@@ -1,5 +1,10 @@
 # Change Log
 
+## Unreleased
+
+- MicroStory snippets `the-project` and `problem-statement`: the project now declares the views `projectCoverView`, `projectCoverAIView`, `problemStatementView`, and `problemStatementAIView` itself, as the Delivery Drone example does since 5.1.6 (they are no longer inherited from `SYSMOD::Project`).
+- Fixed the double bullet ("- - ") of the black box/white box entry in the 5.1.6 change log.
+
 ## v5.1.6
 
 - Added `examples/microstories/`: the SysML v2 snippets of the SYSMOD MicroStories on the MBSE4U blog, one standalone file per story (e.g., `the-project.sysml`, `problem-statement.sysml`). Each file builds on the SYSMOD library and is the source of the snippet shown in its story; the website copies the files and checks them with the library. The files are examples and are not part of the published library package.
@@ -10,7 +15,7 @@
 - Moved the view usages `projectCoverView` (`ProjectView`) and `projectCoverAIView` (`ProjectAIView`) from `SYSMOD::Project` to the example model (`DeliveryDroneSystemProject.sysml`), where they expose the Delivery Drone project.
 - `StepStatus::percentage` now defaults to `0.0 as Percentage` (feature value with `default =`).
 - `scripts/generate_views_doc.py` now links the SYSMOD steps to the view usages of the `#project` occurrence definitions in `examples/` as well as of `SYSMOD::Project`, since the library defines the views and the projects instantiate them.
-- - Consistent spelling of black box and white box (#31): two words as a noun ("the system as a black box"), hyphenated as an adjective before a noun ("the black-box context", "the white-box view"). Fixed "blackbox context" and "whitebox context" in the doc comments of `Project::brownfieldContext` and `Project::brownfieldContextImpl`; all other occurrences already followed the rule.
+- Consistent spelling of black box and white box (#31): two words as a noun ("the system as a black box"), hyphenated as an adjective before a noun ("the black-box context", "the white-box view"). Fixed "blackbox context" and "whitebox context" in the doc comments of `Project::brownfieldContext` and `Project::brownfieldContextImpl`; all other occurrences already followed the rule.
 - Same rule for two further compounds: "elevator-pitch-style" before a noun in the `problemStatementAI` prompts (was "elevator-pitch style"), and "onboard" in the brownfield example (was "On-board", as everywhere else in the examples).
 - Updated example model (project): the Delivery Drone project now sets its `purpose`; the example views `projectView.svg` and `projectAIView.svg` show it.
 

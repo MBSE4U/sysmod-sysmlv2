@@ -21,9 +21,10 @@ package MicroStory_TheProject {
         }
         attribute :>> purpose = "Develop an autonomous delivery drone system for remote last-mile deliveries that is faster and cheaper than the client's ground-based delivery.";
 
-        // Inherited from SYSMOD::Project – the project's cover page:
-        //   view projectCoverView   : SYSMODViews::ProjectView   { expose this; }
-        //   view projectCoverAIView : SYSMODViews::ProjectAIView { expose this; }
+        // The project's cover page: two views of the same model. SYSMODViews
+        // defines them; the project declares them and exposes itself.
+        view projectCoverView : SYSMODViews::ProjectView { expose this; }
+        view projectCoverAIView : SYSMODViews::ProjectAIView { expose this; }
         // Both satisfy the ProjectViewpoint, which frames the concerns
         // ProjectStatus (ProjectManager, PortfolioManager) and
         // ProblemSolutionIntegration (SystemArchitect).

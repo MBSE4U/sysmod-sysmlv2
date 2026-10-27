@@ -20,6 +20,7 @@ package MicroStory_ProblemStatement {
                  * and at lower cost than today's ground-based delivery?
                  * Today's drones must return to a ground dock to recharge,
                  * which limits range and makes remote deliveries slow. */
+            subject;
             stakeholder :>> projectOwner = johnFinch;
         }
 

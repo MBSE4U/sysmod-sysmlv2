@@ -25,11 +25,13 @@ package MicroStory_TheFullChain {
         concern :>> problemStatement {
             doc /* How can we deliver small packages to remote places faster
                  * and at lower cost than today's ground-based delivery? */
+            subject;
             stakeholder :>> projectOwner = johnFinch;
         }
         concern :>> stakeholderNeeds {
             concern reliableDelivery : ExtendedConcern {
                 doc /* Deliveries arrive even when roads are closed. */
+                subject;
                 stakeholder client = PRJ::logisticCompany;
                 attribute :>> priority = LevelKind::high;
             }

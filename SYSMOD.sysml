@@ -33,6 +33,8 @@ library package SYSMOD {
         action defaultProcess : SYSMODProcesses::SYSMODDefaultProcess {
             doc
             /* The SYSMOD process performed by the project. It defaults to SYSMODDefaultProcess and can be redefined with a specialization of it to tailor the process. */
+            in attribute projectOwner = Project::projectOwner.name;
+            in attribute purpose = Project::purpose;
         }
 
         attribute purpose : ScalarValues::String {

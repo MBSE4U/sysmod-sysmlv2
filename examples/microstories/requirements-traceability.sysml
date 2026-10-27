@@ -29,6 +29,7 @@ package MicroStory_Traceability {
 
         concern :>> stakeholderNeeds {
             concern lowDeliveryCost : LowDeliveryCost {
+                subject;
                 stakeholder :>> logisticCompany = PRJ::logisticCompany;
             }
         }
@@ -40,8 +41,9 @@ package MicroStory_Traceability {
             :>> systemRequirementSpecification : DeliveryDroneSystemRequirements {
             subject :>> specificationSystem, deliveryDroneSystem;
             requirement :>> maxPayloadMass {
-                stakeholder :>> logisticCompany = PRJ::logisticCompany;
-                frame PRJ::stakeholderNeeds::lowDeliveryCost;
+                subject;
+                stakeholder :>> logisticCompany = logisticCompany;
+                frame PRJ::stakeholderNeeds.lowDeliveryCost;
             }
         }
     }

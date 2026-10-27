@@ -23,6 +23,8 @@ package <DD> DeliveryDrone {
      */
 
     private import SYSMOD::*;
+    private import SYSMODViews::Stakeholders::*;
+
     #project occurrence def <PRJ> 'Delivery Drone Project' {
         doc
         /* Project Charter: Delivery Drone
@@ -38,7 +40,8 @@ package <DD> DeliveryDrone {
          *
          */
 
-        private import SYSMODViews::Stakeholders::*;
+        attribute :>> purpose = "Develop an autonomous delivery drone system for remote last-mile deliveries that is faster and cheaper than the client's ground-based delivery.";
+
         part johnFinch : ProductManager :>> projectOwner {
             doc /* John Finch is the head of drone engineering at the contractor
                    and accountable for the Delivery Drone project. As project owner,

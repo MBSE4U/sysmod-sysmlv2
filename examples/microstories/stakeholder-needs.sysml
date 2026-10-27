@@ -28,9 +28,11 @@ package MicroStory_StakeholderNeeds {
         // the problemStatement.
         concern :>> stakeholderNeeds {
             concern reliableDelivery : ReliableDelivery {
+                subject;
                 stakeholder :>> logisticCompany = PRJ::logisticCompany;
             }
             concern safeOperation : SafeOperation {
+                subject;
                 stakeholder :>> droneOperator = PRJ::droneOperator;
             }
         }

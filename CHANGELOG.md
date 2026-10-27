@@ -1,5 +1,10 @@
 # Change Log
 
+## Unreleased
+
+- Consistent spelling of black box and white box (#31): two words as a noun ("the system as a black box"), hyphenated as an adjective before a noun ("the black-box context", "the white-box view"). Fixed "blackbox context" and "whitebox context" in the doc comments of `Project::brownfieldContext` and `Project::brownfieldContextImpl`; all other occurrences already followed the rule.
+- Same rule for two further compounds: "elevator-pitch-style" before a noun in the `problemStatementAI` prompts (was "elevator-pitch style"), and "onboard" in the brownfield example (was "On-board", as everywhere else in the examples).
+
 ## v5.1.5
 
 - Added the `SYSMODViews` library package (file `SYSMODViews.sysml`), the SYSMOD architecture description framework according to ISO/IEC/IEEE 42010:

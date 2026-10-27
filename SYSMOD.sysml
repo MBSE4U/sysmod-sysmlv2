@@ -3,7 +3,7 @@ library package SYSMOD {
     /* 
      * Definition of SYSMOD v5 for SysML v2
      *
-     * Version v5.1.5
+     * Version v5.1.6
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -47,16 +47,6 @@ library package SYSMOD {
             attribute :>> effort default LevelKind::low;
             attribute :>> categories default StakeholderCategoryKind::requirementOwner;
         }
-        view projectCoverView : SYSMODViews::ProjectView { 
-            doc
-            /* The Project Cover view shows the project with its purpose, project owner, and the main engineering artifacts. */
-            expose this;
-        }
-        view projectCoverAIView : SYSMODViews::ProjectAIView {
-            doc
-            /* The Project Cover view is an AI-generated management summary of the project. It exposes the project itself, i.e., its purpose, project owner, and the main engineering artifacts. */
-            expose this;
-        }
 
         //
         // Problem Statement
@@ -67,16 +57,6 @@ library package SYSMOD {
             subject brownfieldSystem :> Project::brownfieldContextImpl.soiImpl;
             stakeholder projectOwner :> Project::projectOwner;
             attribute :>> priority default LevelKind::critical;
-        }
-        view problemStatementView : SYSMODViews::ProblemStatementView {
-            doc
-            /* The Problem Statement view shows the problem statement with its project owner and the brownfield system. */
-            expose problemStatement;
-        }
-        view problemStatementAIView : SYSMODViews::ProblemStatementAIView {
-            doc
-            /* The Problem Statement view is an AI-generated summary of the problem statement. It exposes the problem statement itself, i.e., its project owner and the brownfield system. */
-            expose problemStatement;
         }
 
         part projectStakeholders : ExtendedStakeholder [1..*] {
@@ -748,7 +728,7 @@ library package SYSMOD {
         }
         metadata def StepStatus {
             attribute status : StepStatusKind default StepStatusKind::open;
-            attribute percentage : Percentage default (0.0);
+            attribute percentage : Percentage default = 0.0 as Percentage;
             :> annotatedElement : SysML::ActionUsage;
         }        
     }

@@ -149,6 +149,18 @@ package <DD> DeliveryDrone {
         //
         private import SYSMODViews::*;
 
+        view projectCoverView : SYSMODViews::ProjectView { 
+            doc
+            /* The Project Cover view shows the project with its purpose, project owner, and the main engineering artifacts. */
+            expose this;
+        }
+        view projectCoverAIView : SYSMODViews::ProjectAIView {
+            doc
+            /* The Project Cover view is an AI-generated management summary of the project. It exposes the project itself, i.e., its purpose, project owner, and the main engineering artifacts. */
+            expose this;
+        }
+
+
         view useCaseView : AIUseCaseView {
             expose DD_SPECIFICATION::UseCases::*;
         }

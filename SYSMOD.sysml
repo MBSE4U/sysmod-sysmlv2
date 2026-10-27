@@ -47,16 +47,6 @@ library package SYSMOD {
             attribute :>> effort default LevelKind::low;
             attribute :>> categories default StakeholderCategoryKind::requirementOwner;
         }
-        view projectCoverView : SYSMODViews::ProjectView { 
-            doc
-            /* The Project Cover view shows the project with its purpose, project owner, and the main engineering artifacts. */
-            expose this;
-        }
-        view projectCoverAIView : SYSMODViews::ProjectAIView {
-            doc
-            /* The Project Cover view is an AI-generated management summary of the project. It exposes the project itself, i.e., its purpose, project owner, and the main engineering artifacts. */
-            expose this;
-        }
 
         //
         // Problem Statement
@@ -748,7 +738,7 @@ library package SYSMOD {
         }
         metadata def StepStatus {
             attribute status : StepStatusKind default StepStatusKind::open;
-            attribute percentage : Percentage default (0.0);
+            attribute percentage : Percentage default = 0.0 as Percentage;
             :> annotatedElement : SysML::ActionUsage;
         }        
     }

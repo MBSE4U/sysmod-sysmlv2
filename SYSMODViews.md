@@ -617,8 +617,8 @@ View definitions of the SYSMODViews library with their backward traceability vie
 
 | View | SYSMOD steps | Viewpoints | Concerns | Stakeholders |
 |---|---|---|---|---|
-| [ProjectView](#view-projectview) | `SetupProject` | [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) |
-| [ProjectAIView](#view-projectaiview) | `SetupProject` | [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) |
+| [ProjectView](#view-projectview) | — | [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) |
+| [ProjectAIView](#view-projectaiview) | — | [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) |
 | [ProblemStatementView](#view-problemstatementview) | `SpecifyProblemStatement` | [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) |
 | [ProblemStatementAIView](#view-problemstatementaiview) | `SpecifyProblemStatement` | [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) |
 | [StakeholdersView](#view-stakeholdersview) | — | [RequirementsViewpoint](#viewpoint-requirementsviewpoint) | [StakeholderNeedsCoverage](#concern-stakeholderneedscoverage) | [RequirementsEngineer](#stakeholder-requirementsengineer), [ProductManager](#stakeholder-productmanager) |
@@ -651,6 +651,7 @@ Product "The Project": the SYSMOD Project with its purpose, projectOwner, and su
 
 **Backward traceability**
 
+- **SYSMOD steps:** —
 - **SYSMOD steps:** `SetupProject` (`'Delivery Drone Project'::projectCoverView`)
 - **Viewpoints:** [ProjectViewpoint](#viewpoint-projectviewpoint)
 - **Concerns:** [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration)

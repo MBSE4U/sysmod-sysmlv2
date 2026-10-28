@@ -566,7 +566,7 @@ def find_examples(views):
 # View dependencies
 # ---------------------------------------------------------------------------
 
-PARAMETER_KEYWORDS = {"in", "out", "inout", "part", "item", "attribute", "concern", "requirement",
+PARAMETER_KEYWORDS = {"in", "out", "inout", "abstract", "part", "item", "attribute", "concern", "requirement",
                       "verification", "use", "case", "ref", "occurrence", "action", "allocation"}
 
 

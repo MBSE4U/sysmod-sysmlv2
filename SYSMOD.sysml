@@ -798,8 +798,8 @@ library package SYSMOD {
             in part functionalContextImpl[0..1] : SystemContext;
             out part logicalContext[0..1] : SystemContext;
             out part logicalContextImpl[0..1] : SystemContext;
-            out allocation functional2logical[0..1];
-            out allocation functionalImpl2logicalImpl[0..1];
+            out abstract allocation functional2logical[0..1];
+            out abstract allocation functionalImpl2logicalImpl[0..1];
         }
 
         action def CreateProductArchitecture {
@@ -812,8 +812,8 @@ library package SYSMOD {
             in part logicalContextImpl[0..1] : SystemContext;
             out part productContext : SystemContext;
             out part productContextImpl : SystemContext;
-            out allocation logical2product[0..1];
-            out allocation logicalImpl2productImpl[0..1];
+            out abstract allocation logical2product[0..1];
+            out abstract allocation logicalImpl2productImpl[0..1];
         }
 
         action def VerifyAndValidateRequirements {

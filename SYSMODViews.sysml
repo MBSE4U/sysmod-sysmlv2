@@ -666,6 +666,43 @@ library package SYSMODViews {
         filter not (@KerML::Element::isLibraryElement);
         render Views::asInterconnectionDiagram;
     }
+
+    //
+    // Viewed artifacts
+    //
+    metadata def <viewedArtifact> ViewedArtifact {
+        doc /* Marks a dependency from a view definition to the features of the SYSMOD Project, i.e., the artifacts,
+             * that a conforming view exposes in a project, e.g., the problemStatement for the ProblemStatementView.
+             * A view definition without a viewedArtifact dependency inherits the artifacts of its general view definition.
+             *
+             * The views do not depend on each other. The artifacts they show do: each SYSMOD step reads artifacts
+             * created by earlier steps (the inputs of the step) and creates its own (the outputs of the step), and the
+             * Project relates the artifacts, e.g., by frame, satisfy, allocate, and the specialization of the system contexts.
+             * Together with these dependencies, the viewedArtifact dependencies yield the correspondences between the views
+             * in the sense of ISO/IEC/IEEE 42010. They state which content builds on which other content,
+             * not an order in which views must be completed.
+             */
+        :>> annotatedElement : SysML::Dependency;
+    }
+
+    #viewedArtifact dependency ProjectView to Project;
+    #viewedArtifact dependency ProblemStatementView to Project::problemStatement;
+    #viewedArtifact dependency StakeholdersView to Project::projectStakeholders;
+    #viewedArtifact dependency StakeholderNeedsView to Project::stakeholderNeeds;
+    #viewedArtifact dependency BrownfieldArchitectureView to Project::brownfieldContext, Project::brownfieldContextImpl;
+    #viewedArtifact dependency SystemIdeaView to Project::systemIdeaContext, Project::systemIdeaContextImpl;
+    #viewedArtifact dependency SystemObjectivesView to Project::systemObjectives;
+    #viewedArtifact dependency SpecificationSystemView to Project::specificationContext, Project::specificationContextImpl;
+    #viewedArtifact dependency UseCasesView to Project::specificationContext::useCases;
+    #viewedArtifact dependency UseCaseFlowView to Project::specificationContext::useCases;
+    #viewedArtifact dependency SystemRequirementsView to Project::systemRequirementSpecification;
+    #viewedArtifact dependency FunctionalArchitectureView to Project::functionalContext, Project::functionalContextImpl;
+    #viewedArtifact dependency LogicalArchitectureView to Project::logicalContext, Project::logicalContextImpl;
+    #viewedArtifact dependency ProductArchitectureView to Project::productContext, Project::productContextImpl;
+    #viewedArtifact dependency ArchitectureAllocationView to Project::functional2logical, Project::logical2product,
+        Project::functionalImpl2logicalImpl, Project::logicalImpl2productImpl;
+    #viewedArtifact dependency VerificationAndValidationView to Project::verificationContext::verificationCases;
+    #viewedArtifact dependency VerificationMatrixView to Project::verificationContext::verificationCases;
 }
 
 

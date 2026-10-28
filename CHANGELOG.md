@@ -37,6 +37,11 @@
   - Functional: `batteryManagement` and `flightControl` refine `AirCharging`; `packageManagement` refines `MaxPayloadMass`.
   - Logical: `energyManagement`, `fleetCoordination`, and `flightControl` refine `AirCharging`.
 - `ArchitectureViewpoint`: the constraint `onlyArchitectureElements` now also allows dependencies (`SysML::Dependency`), so an architecture view can show the `#refinement` traces to the system requirements without violating the viewpoint.
+- View dependencies: the views do not depend on each other, but the content they show does. `SYSMODViews` now makes this explicit as correspondences in the sense of ISO/IEC/IEEE 42010:
+  - New metadata definition `ViewedArtifact` (`#viewedArtifact`) for dependencies from a view definition to the `Project` features it shows, e.g., `#viewedArtifact dependency ProblemStatementView to Project::problemStatement;`. All step-related view definitions declare them; specializations without own dependencies, e.g., `ProjectAIView`, inherit those of their general view.
+  - `SYSMODViews.md` has the new chapter 6 "View Dependencies" with a Mermaid diagram and a table, and every view has a "Dependencies" block: the artifacts it shows, the SYSMOD step creating them, the views it builds on (inputs of the creating step or nested action), the information provided by a human or an AI assistant, the views it traces to (specialization of the system contexts, `frame`, `satisfy`, `subject`, `allocate` in `Project`), and the views it is input for.
+  - The introduction of `SYSMODViews.md` separates the framework from the method: the framework defines what the views show and for whom; the SYSMOD process defines a default, optional, and iterative path through the steps that create the content, applied again to the `subProjects`.
+  - `scripts/generate_views_doc.py` derives the dependencies from `SYSMODViews.sysml` and `SYSMOD.sysml`; nothing is maintained by hand.
 
 - Step status for the SYSMOD Map:
   - The Delivery Drone project redefines its `defaultProcess` and sets the `@StepStatus` of every step (all steps `done`, `verifyAndValidateRequirements` `inProgress` at 20 %, as verification has only started with `MaxPayloadTest`).

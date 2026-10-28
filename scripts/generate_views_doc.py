@@ -16,6 +16,14 @@ Traceability:
   concern    <- viewpoint     frame concern features of the viewpoint def
   viewpoint  <- view          satisfy requirement features of the view def (including inherited ones)
 
+View dependencies (correspondences between the views, chapter 6):
+  view       -> artifact      #viewedArtifact dependencies in SYSMODViews.sysml (inherited if not declared)
+  artifact   -> artifact      builds on: inputs of the SYSMOD step (or of its nested action) creating the artifact,
+                              i.e., the flows and bindings of SYSMODDefaultProcess and the step parameters in SYSMOD.sysml
+                              traces to: relationships of the Project features in SYSMOD.sysml
+                              (specialization of the system contexts, frame, satisfy, subject, allocate)
+  view       -> view          lifted from the artifacts the views show
+
 Usage:
   python scripts/generate_views_doc.py           write SYSMODViews.md
   python scripts/generate_views_doc.py --check   exit 1 if SYSMODViews.md is out of date
@@ -260,6 +268,24 @@ class View:
     specializations: list = field(default_factory=list)
     examples: list = field(default_factory=list)
     steps: list = field(default_factory=list)  # (SYSMOD step, qualified view usage in a project)
+    own_artifacts: list = field(default_factory=list)  # Project features from #viewedArtifact dependencies
+    artifacts: list = field(default_factory=list)  # own or inherited
+    builds_on: dict = field(default_factory=dict)  # view -> artifacts of that view read by the steps creating this view's artifacts
+    traces_to: dict = field(default_factory=dict)  # view -> relationship labels between the artifacts
+    input_for: list = field(default_factory=list)
+    external_inputs: list = field(default_factory=list)  # step inputs not created by a step, e.g., brownfieldArchitecture
+
+
+@dataclass
+class Artifact:
+    """A feature of the SYSMOD Project, e.g., 'problemStatement' or 'specificationContext.useCases' ('this' is the Project)."""
+
+    name: str
+    step: str = ""  # SYSMOD step (action def) creating the artifact
+    action: str = ""  # nested action of the step creating the artifact, if any
+    inputs: list = field(default_factory=list)  # artifacts the creating step or action reads
+    external_inputs: list = field(default_factory=list)
+    relations: list = field(default_factory=list)  # (label, other artifact)
 
 
 def humanize(name):
@@ -536,6 +562,241 @@ def find_examples(views):
             views[match.group(1)].examples.append(path)
 
 
+# ---------------------------------------------------------------------------
+# View dependencies
+# ---------------------------------------------------------------------------
+
+PARAMETER_KEYWORDS = {"in", "out", "inout", "part", "item", "attribute", "concern", "requirement",
+                      "verification", "use", "case", "ref", "occurrence", "action", "allocation"}
+
+
+def parameter(element):
+    """(direction, name, binding words) of a parameter 'in part x : T = A::b.c' or (None, None, None)."""
+    words = element.words
+    if not words or words[0] not in ("in", "out", "inout"):
+        return None, None, None
+    name = next((w for w in words[1:] if w not in PARAMETER_KEYWORDS), None)
+    binding = words[words.index("=") + 1:] if "=" in words else []
+    return words[0], name, binding
+
+
+def dotted(words):
+    """'A::b . c' -> 'A::b.c'"""
+    return "".join(words)
+
+
+def read_viewed_artifacts(library, views):
+    for element in library.children:
+        words = element.words
+        if words[:3] != ["#", "viewedArtifact", "dependency"] or "to" not in words:
+            continue
+        clients = [w for w in words[3:words.index("to")] if w != ","]
+        suppliers = " ".join(words[words.index("to") + 1:]).split(",")
+        artifacts = []
+        for supplier in suppliers:
+            path = supplier.replace(" ", "").split("::")
+            if path[0] != "Project":
+                warn(f"viewedArtifact dependency of {', '.join(clients)} to {supplier.strip()} is not a Project feature")
+                continue
+            artifacts.append(".".join(path[1:]) or "this")
+        for client in clients:
+            if client not in views:
+                warn(f"viewedArtifact dependency of unknown view {client}")
+                continue
+            views[client].own_artifacts += [a for a in artifacts if a not in views[client].own_artifacts]
+    for view in views.values():
+        current = view
+        while current and not current.own_artifacts:
+            current = views.get(current.general)
+        view.artifacts = list(current.own_artifacts) if current else []
+
+
+def read_artifacts(sysmod_elements):
+    """The artifacts (Project features) with the SYSMOD step creating them, the inputs of that step, and their relationships."""
+    package = find_package(sysmod_elements, "SYSMODProcesses")
+    step_defs = {declared(e, "action", "def"): e for e in package.children if declared(e, "action", "def")}
+    process = step_defs["SYSMODDefaultProcess"]
+
+    usages, flows, binds = {}, {}, {}  # usage -> step; (usage, out) -> artifact; (usage, in) -> artifact or ("external", name)
+    for child in process.children:
+        words = child.words
+        if words[0] == "action" and ":" in words:
+            usages[words[1]] = short(typed_by(child))
+            for param in child.children:
+                direction, name, binding = parameter(param)
+                if direction == "in" and binding:
+                    target = dotted(binding).split("::")[-1]
+                    if target.startswith("project."):
+                        binds[(words[1], name)] = target[len("project."):]
+                    else:
+                        binds[(words[1], name)] = ("external", target)
+        elif words[:2] == ["flow", "from"] and "to" in words:
+            source = dotted(words[2:words.index("to")]).split(".")
+            target = dotted(words[words.index("to") + 1:]).split(".")
+            if target[0] == "project" and len(source) == 2:
+                flows[(source[0], source[1])] = ".".join(target[1:])
+        elif words[0] == "bind" and "=" in words:
+            left = dotted(words[1:words.index("=")]).split(".")
+            right = dotted(words[words.index("=") + 1:]).split(".")
+            if left[0] == "project" and len(right) == 2:
+                binds[(right[0], right[1])] = ".".join(left[1:])
+
+    # Project features assigned by a step, e.g., 'assign project.projectOwner.name := ...' in SetupProject,
+    # belong to the artifact 'this', the Project itself
+    assigned = {}
+    for step, definition in step_defs.items():
+        for child in definition.children:
+            if child.words[:3] == ["assign", "project", "."]:
+                assigned[child.words[3]] = "this"
+    for key, value in binds.items():
+        if isinstance(value, str) and value.split(".")[0] in assigned:
+            binds[key] = "this"
+
+    artifacts = {}
+
+    def artifact(name):
+        return artifacts.setdefault(name, Artifact(name))
+
+    for usage, step in usages.items():
+        definition = step_defs.get(step)
+        if definition is None:
+            warn(f"unknown SYSMOD step {step}")
+            continue
+        ins, outs = [], []
+        for child in definition.children:
+            direction, name, _ = parameter(child)
+            if direction == "in":
+                ins.append(name)
+            elif direction == "out":
+                outs.append(name)
+
+        def resolve(param, ins=ins, outs=outs, usage=usage):
+            """An input parameter of the step: an artifact name or ('external', name)."""
+            if param in outs:
+                return flows.get((usage, param), ("external", param))
+            return binds.get((usage, param), ("external", param))
+
+        def add_inputs(target, params):
+            for param in params:
+                source = resolve(param)
+                if isinstance(source, tuple):
+                    if source[1] not in target.external_inputs:
+                        target.external_inputs.append(source[1])
+                elif source != target.name and source not in target.inputs:
+                    target.inputs.append(source)
+
+        created = set()
+        for nested in definition.children:
+            if nested.words[0] != "action" or "def" in nested.words:
+                continue
+            nested_ins, nested_outs = [], []
+            for child in nested.children:
+                direction, name, binding = parameter(child)
+                path = dotted(binding).split("::")[-1].split(".") if binding else []
+                if direction == "in" and path:
+                    nested_ins.append(path[0])
+                elif direction == "out" and path and (usage, path[0]) in flows:
+                    nested_outs.append(".".join([flows[(usage, path[0])]] + path[1:]))
+            for name in nested_outs:
+                a = artifact(name)
+                a.step, a.action = step, nested.words[1]
+                add_inputs(a, nested_ins)
+                created.add(name)
+        for out in outs:
+            name = flows.get((usage, out))
+            if name is None:
+                warn(f"output {out} of {step} does not flow into a Project feature")
+                continue
+            if name not in created:
+                a = artifact(name)
+                a.step = step
+                add_inputs(a, ins)
+        if any(c.words[:3] == ["assign", "project", "."] for c in definition.children):
+            a = artifact("this")
+            a.step = step
+            add_inputs(a, ins)
+
+    # relationships between the Project features
+    project = next(element for name, element in project_defs(sysmod_elements) if name == "Project")
+    features = {}
+    for child in project.children:
+        words = child.words
+        if len(words) > 1 and words[0] in PARAMETER_KEYWORDS:
+            features[words[1]] = child
+
+    def feature_of(words):
+        path = dotted(words).split("::")[-1].split(".")
+        return path[0] if path[0] in features else None
+
+    for name, child in features.items():
+        words = child.words
+        relations = []
+        if words[0] == "allocation" and "allocate" in words and "to" in words:
+            relations += [("allocates", feature_of(words[words.index("allocate") + 1:words.index("to")])),
+                          ("allocates to", feature_of(words[words.index("to") + 1:]))]
+        elif ":>" in words:
+            relations += [("specializes", w) for w in words[words.index(":>") + 1:] if w in features]
+        for nested in walk(child.children):
+            nwords = nested.words
+            if nwords and nwords[0] == "frame":
+                relations.append(("frames", feature_of(nwords[1:])))
+            elif nwords and nwords[0] == "satisfy":
+                relations.append(("satisfies", feature_of(nwords[1:])))
+            elif nwords and nwords[0] == "subject" and ":>" in nwords:
+                relations.append(("has its subject in", feature_of(nwords[nwords.index(":>") + 1:])))
+        for label, target in relations:
+            if target and target != name and (label, target) not in artifact(name).relations:
+                artifact(name).relations.append((label, target))
+    return artifacts, list(usages.values())
+
+
+def lookup(artifacts, name):
+    """The artifact or, for a nested feature such as 'verificationContext.verificationCases', its owning artifact."""
+    path = name.split(".")
+    while path:
+        if ".".join(path) in artifacts:
+            return artifacts[".".join(path)]
+        path = path[:-1]
+    return None
+
+
+def link_view_dependencies(views, artifacts):
+    """Lift the dependencies of the artifacts to the views showing them.
+
+    Only views that declare their own artifacts are targets, e.g., ProblemStatementView, not ProblemStatementAIView,
+    which inherits the artifacts and therefore the dependencies.
+    """
+    primary = [v for v in views.values() if v.own_artifacts and not v.abstract]
+    for view in views.values():
+        for name in view.artifacts:
+            a = lookup(artifacts, name)
+            if a is None:
+                continue
+            view.external_inputs += [e for e in a.external_inputs if e not in view.external_inputs]
+            for other in primary:
+                if other is view or other.own_artifacts == view.artifacts:
+                    continue
+                for source in a.inputs:
+                    if source in other.artifacts and source not in view.artifacts:
+                        view.builds_on.setdefault(other.name, [])
+                        if source not in view.builds_on[other.name]:
+                            view.builds_on[other.name].append(source)
+                for label, target in a.relations:
+                    if target in other.artifacts and target not in view.artifacts:
+                        view.traces_to.setdefault(other.name, [])
+                        relation = f"{name} {label} {target}"
+                        if relation not in view.traces_to[other.name]:
+                            view.traces_to[other.name].append(relation)
+    for view in primary:
+        for other in view.builds_on:
+            if view.name not in views[other].input_for:
+                views[other].input_for.append(view.name)
+
+
+def creating_steps(view, artifacts):
+    return unique(lookup(artifacts, a).step for a in view.artifacts if lookup(artifacts, a) and lookup(artifacts, a).step)
+
+
 WARNINGS = []
 
 
@@ -560,7 +821,7 @@ def relpath(path):
     return path.relative_to(ROOT).as_posix()
 
 
-def render(version, processes, stakeholders, concerns, viewpoints, views, renderings):
+def render(version, processes, stakeholders, concerns, viewpoints, views, renderings, artifacts, step_order):
     out = []
     w = out.append
 
@@ -587,6 +848,17 @@ def render(version, processes, stakeholders, concerns, viewpoints, views, render
     w("    P --> ST[SYSMOD Step] --> V")
     w("```")
     w("")
+    w("**Views, dependencies, and paths.** The views do not depend on each other; the content they show does. "
+      "Every view is a projection of the one SYSMOD Project model, and the model elements it exposes build on "
+      "other model elements, e.g., the stakeholder needs on the problem statement and the stakeholders. "
+      "SYSMOD therefore separates the framework from the method: the framework (this document) defines what the views "
+      "show and for whom, the SYSMOD process (`Project::defaultProcess`) defines a path through the steps that create "
+      "the content. The process is a default, not a mandatory sequence: all steps after `SetupProject` are optional, "
+      "e.g., the brownfield system in a greenfield project, the steps can be revisited in iterations, and the whole "
+      "process is applied again to the `subProjects` on the next level of the system hierarchy. "
+      "Chapter [6. View Dependencies](#6-view-dependencies) shows which views build on which other views, "
+      "derived from the library.")
+    w("")
     w("## Contents")
     w("")
     w("1. [ISO 15288 Processes](#1-iso-15288-processes)")
@@ -594,6 +866,7 @@ def render(version, processes, stakeholders, concerns, viewpoints, views, render
     w("3. [Concerns](#3-concerns)")
     w("4. [Viewpoints](#4-viewpoints)")
     w("5. [Views](#5-views)")
+    w("6. [View Dependencies](#6-view-dependencies)")
     w("")
 
     # 1. Processes
@@ -726,6 +999,21 @@ def render(version, processes, stakeholders, concerns, viewpoints, views, render
         w(f"- **ISO 15288 processes:** "
           + (", ".join(f"[{processes[p].title}](#{anchor('process', p)})" for p in ps) or "—"))
         w("")
+        w("**Dependencies**")
+        w("")
+        if not v.artifacts:
+            w("_Not tied to Project artifacts; the view shows whatever a project exposes, "
+              + ("see its specializations._" if v.specializations else "e.g., a use case package._"))
+            w("")
+        else:
+            inherited = " (inherited)" if not v.own_artifacts else ""
+            w(f"- **Shows artifacts:** {code_list(v.artifacts)}{inherited}")
+            w(f"- **Created by:** {code_list(creating_steps(v, artifacts))}")
+            w(f"- **Builds on:** {view_artifact_list(v.builds_on)}")
+            w(f"- **Information provided:** {code_list(v.external_inputs)}")
+            w(f"- **Traces to:** {view_relation_list(v.traces_to)}")
+            w(f"- **Input for:** {names('view', v.input_for)}")
+            w("")
         w("**Definition**")
         w("")
         w("```sysml")
@@ -757,7 +1045,90 @@ def render(version, processes, stakeholders, concerns, viewpoints, views, render
             w(f"_Illustrative example based on the Delivery Drone example model ([{path.name}]({relpath(path)}))._")
             w("")
 
+    # 6. View dependencies
+    primary = [v for v in views.values() if v.own_artifacts and not v.abstract]
+    w("## 6. View Dependencies")
+    w("")
+    w("The dependencies between the views are the correspondences of the SYSMOD architecture description framework "
+      "in the sense of ISO/IEC/IEEE 42010. They are not maintained by hand but derived from the library:")
+    w("")
+    w("- Each view definition names the Project features, i.e., the artifacts, that a conforming view shows "
+      "(`#viewedArtifact` dependencies in [SYSMODViews.sysml](SYSMODViews.sysml)).")
+    w("- **Builds on:** the SYSMOD step that creates the artifacts of a view reads artifacts that earlier steps "
+      "created (the inputs of the step or of its nested action in `SYSMOD::SYSMODProcesses`). "
+      "The view builds on the views showing these artifacts.")
+    w("- **Traces to:** the Project relates its artifacts by model relationships, e.g., the specification context "
+      "specializes the system idea context, the system requirements frame the stakeholder needs, and the product "
+      "system satisfies the system requirements (`SYSMOD::Project`).")
+    w("- **Information provided:** step inputs that no step creates, e.g., the problem statement text or a "
+      "description of the existing architecture, given by a human or an AI assistant. Views with such inputs and "
+      "without a *builds on* dependency are entry points.")
+    w("")
+    w("A dependency states which content builds on which other content. It does not require the other view to be "
+      "complete: SYSMOD lets you start with partial content, e.g., pitch the system idea before all stakeholder "
+      "needs are elaborated, and revise earlier content when later steps reveal gaps. Following the dependencies "
+      "keeps the content consistent and traceable; the default order is given by the SYSMOD process steps, "
+      "and changes ripple along the *input for* direction.")
+    w("")
+    w("```mermaid")
+    w("flowchart TB")
+    placed = set()
+    for step in unique(step_order):
+        members = [v for v in primary if creating_steps(v, artifacts)[:1] == [step]]
+        if not members:
+            continue
+        w(f'    subgraph {step}["{humanize(step)}"]')
+        for v in members:
+            w(f"        {v.name}[{v.name}]")
+            placed.add(v.name)
+        w("    end")
+    for v in primary:
+        if v.name not in placed:
+            w(f"    {v.name}[{v.name}]")
+    drawn = set()
+    for v in primary:
+        for other in v.builds_on:
+            w(f"    {other} --> {v.name}")
+            drawn.add(frozenset((other, v.name)))
+    for v in primary:
+        for other in v.traces_to:
+            if frozenset((other, v.name)) not in drawn:
+                w(f"    {v.name} -.-> {other}")
+                drawn.add(frozenset((other, v.name)))
+    w("```")
+    w("")
+    w("_Solid arrow: the target view builds on the source view. Dotted arrow: the source view traces to the "
+      "target view by a model relationship only. Grouped by the SYSMOD step creating the content; views that "
+      "inherit their artifacts, e.g., the AI views, are not shown and have the dependencies of their general view._")
+    w("")
+    w("| View | Shows artifacts | Created by | Builds on | Information provided | Traces to | Input for |")
+    w("|---|---|---|---|---|---|---|")
+    for v in views.values():
+        if not v.artifacts or v.abstract:
+            continue
+        w(f"| {link('view', v.name)} | {code_list(v.artifacts)} | {code_list(creating_steps(v, artifacts))} | "
+          f"{names('view', list(v.builds_on))} | {code_list(v.external_inputs)} | {names('view', list(v.traces_to))} | "
+          f"{names('view', v.input_for)} |")
+    w("")
+    others = [v.name for v in views.values() if not v.artifacts or v.abstract]
+    w(f"Not tied to Project artifacts: {names('view', others)}. They are base views or show whatever a project "
+      "exposes, e.g., a use case package. See the views for the artifacts behind each dependency.")
+    w("")
+
     return "\n".join(out).rstrip() + "\n"
+
+
+def code_list(items):
+    """Inline code list; the artifact 'this' is the Project itself."""
+    return ", ".join(f"`{'Project' if i == 'this' else i}`" for i in items) if items else "—"
+
+
+def view_artifact_list(mapping):
+    return ", ".join(f"{link('view', v)} ({code_list(a)})" for v, a in mapping.items()) if mapping else "—"
+
+
+def view_relation_list(mapping):
+    return ", ".join(f"{link('view', v)} ({'; '.join(r)})" for v, r in mapping.items()) if mapping else "—"
 
 
 def unique(items):
@@ -799,7 +1170,16 @@ def generate():
     read_step_views(sysmod_elements, sorted(EXAMPLES_DIR.glob("*.sysml")), views)
     find_examples(views)
 
-    return render(library_version(views_elements), processes, stakeholders, concerns, viewpoints, views, renderings)
+    read_viewed_artifacts(library, views)
+    artifacts, step_order = read_artifacts(sysmod_elements)
+    for view in views.values():
+        for name in view.artifacts:
+            if lookup(artifacts, name) is None:
+                warn(f"view {view.name}: artifact {name} is neither created by a SYSMOD step nor related to another artifact")
+    link_view_dependencies(views, artifacts)
+
+    return render(library_version(views_elements), processes, stakeholders, concerns, viewpoints, views, renderings,
+                  artifacts, step_order)
 
 
 def main():

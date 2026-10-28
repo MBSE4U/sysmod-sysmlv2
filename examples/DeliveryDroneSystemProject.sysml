@@ -223,6 +223,11 @@ package <DD> DeliveryDrone {
             /* The Project Cover view is an AI-generated management summary of the project. It exposes the project itself, i.e., its purpose, project owner, and the main engineering artifacts. */
             expose this;
         }
+        view sysmodMapView : SYSMODViews::SYSMODMapView {
+            doc
+            /* The SYSMOD Map shows the project's features by concerns, black box, and white box from the brownfield system to verification, with the status of the steps. */
+            expose this;
+        }
         view problemStatementView : SYSMODViews::ProblemStatementView {
             doc
             /* The Problem Statement view shows the problem statement with its project owner and the brownfield system. */

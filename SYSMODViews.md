@@ -424,7 +424,7 @@ Viewpoints of the package `SYSMODViews::Viewpoints`. The stakeholders are the st
 | [AgreementViewpoint](#viewpoint-agreementviewpoint) | [ContractualAgreement](#concern-contractualagreement) | [Acquirer](#stakeholder-acquirer), [Supplier](#stakeholder-supplier) | — |
 | [PortfolioViewpoint](#viewpoint-portfolioviewpoint) | [PortfolioAlignment](#concern-portfolioalignment), [ProjectStatus](#concern-projectstatus) | [PortfolioManager](#stakeholder-portfoliomanager), [ProjectManager](#stakeholder-projectmanager) | — |
 | [QualityViewpoint](#viewpoint-qualityviewpoint) | [QualityCompliance](#concern-qualitycompliance) | [QualityManager](#stakeholder-qualitymanager) | — |
-| [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) | [ProjectView](#view-projectview), [ProjectAIView](#view-projectaiview) |
+| [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) | [ProjectView](#view-projectview), [ProjectAIView](#view-projectaiview), [SYSMODMapView](#view-sysmodmapview) |
 | [ProcessViewpoint](#viewpoint-processviewpoint) | [ProjectStatus](#concern-projectstatus) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager) | — |
 | [RiskViewpoint](#viewpoint-riskviewpoint) | [RiskExposure](#concern-riskexposure) | [RiskManager](#stakeholder-riskmanager), [ProjectManager](#stakeholder-projectmanager) | — |
 | [ConfigurationViewpoint](#viewpoint-configurationviewpoint) | [ConfigurationBaseline](#concern-configurationbaseline) | [ConfigurationManager](#stakeholder-configurationmanager) | — |
@@ -480,7 +480,7 @@ Provides an overview of the SYSMOD Project and the integration of its problem ar
 - **Frames concerns:** [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration)
 - **Stakeholders:** [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect)
 - **Allowed exposed elements:** `Project`
-- **Views:** [ProjectView](#view-projectview), [ProjectAIView](#view-projectaiview)
+- **Views:** [ProjectView](#view-projectview), [ProjectAIView](#view-projectaiview), [SYSMODMapView](#view-sysmodmapview)
 
 <a id="viewpoint-processviewpoint"></a>
 
@@ -622,6 +622,7 @@ View definitions of the SYSMODViews library with their backward traceability vie
 |---|---|---|---|---|
 | [ProjectView](#view-projectview) | `SetupProject` | [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) |
 | [ProjectAIView](#view-projectaiview) | `SetupProject` | [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) |
+| [SYSMODMapView](#view-sysmodmapview) | `SetupProject` | [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) |
 | [ProblemStatementView](#view-problemstatementview) | `SpecifyProblemStatement` | [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) |
 | [ProblemStatementAIView](#view-problemstatementaiview) | `SpecifyProblemStatement` | [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) |
 | [StakeholdersView](#view-stakeholdersview) | — | [RequirementsViewpoint](#viewpoint-requirementsviewpoint) | [StakeholderNeedsCoverage](#concern-stakeholderneedscoverage) | [RequirementsEngineer](#stakeholder-requirementsengineer), [ProductManager](#stakeholder-productmanager) |
@@ -651,7 +652,7 @@ View definitions of the SYSMODViews library with their backward traceability vie
 Product "The Project": the SYSMOD Project with its purpose, projectOwner, and subProjects.
 
 - **Specializes:** `GeneralView`
-- **Specialized by:** [ProjectAIView](#view-projectaiview)
+- **Specialized by:** [ProjectAIView](#view-projectaiview), [SYSMODMapView](#view-sysmodmapview)
 
 **Backward traceability**
 
@@ -740,6 +741,76 @@ rendering asProjectFacts : AIRendering :> Views::renderings {
 ![ProjectAIView example](examples/views/projectAIView.svg)
 
 _Illustrative example based on the Delivery Drone example model ([projectAIView.svg](examples/views/projectAIView.svg))._
+
+<a id="view-sysmodmapview"></a>
+
+### SYSMODMapView
+
+Product "The Project" as SYSMOD Map: the features of the exposed Project on one sheet with grid references, row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield, 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation. It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell is the StepStatus of the step of the Project's defaultProcess that creates the cell's features.
+
+- **Specializes:** [ProjectView](#view-projectview)
+
+**Backward traceability**
+
+- **SYSMOD steps:** `SetupProject` (`'Delivery Drone Project'::sysmodMapView`)
+- **Viewpoints:** [ProjectViewpoint](#viewpoint-projectviewpoint) (inherited)
+- **Concerns:** [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration)
+- **Stakeholders:** [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect)
+- **ISO 15288 processes:** [Project Planning](#process-projectplanning), [Project Assessment and Control](#process-projectassessmentandcontrol), [Portfolio Management](#process-portfoliomanagement), [System Architecture Definition](#process-systemarchitecturedefinition)
+
+**Dependencies**
+
+- **Shows artifacts:** `Project` (inherited)
+- **Created by:** `SetupProject`
+- **Builds on:** —
+- **Information provided:** `projectOwnerName`, `projectPurpose`
+- **Traces to:** —
+- **Input for:** —
+
+**Definition**
+
+```sysml
+view def SYSMODMapView :> ProjectView {
+    doc /* Product "The Project" as SYSMOD Map: the features of the exposed Project on one sheet with grid references,
+            * row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield,
+            * 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation.
+            * It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell
+            * is the StepStatus of the step of the Project's defaultProcess that creates the cell's features.
+            */
+    render asSYSMODMap;
+}
+```
+
+Rendering `asSYSMODMap`: Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them: Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject). A1: problemStatement, projectStakeholders, stakeholderNeeds (specifyProblemStatement, identifyStakeholders, elaborateStakeholderNeeds). A2: systemObjectives (pitchSystemIdea). A3: systemRequirementSpecification (defineSystemSpecification). A4: #refinement dependencies from the functional elements to the system requirements (createFunctionalArchitecture). A5: #refinement dependencies from the logical elements to the system requirements (createLogicalArchitecture). A6: productSystemImpl satisfies systemRequirementSpecification (createProductArchitecture). A7: verificationContext.verificationCases (verifyAndValidateRequirements). B1: brownfieldContext; C1: brownfieldContextImpl (specifyBrownfieldSystem). B2: systemIdeaContext; C2: systemIdeaContextImpl (pitchSystemIdea). B3: specificationContext with the system use cases; C3: specificationContextImpl (defineSystemSpecification). B4: functionalContext; C4: functionalContextImpl (createFunctionalArchitecture). B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (createLogicalArchitecture). B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (createProductArchitecture). B7 to C7: verificationContext (verifyAndValidateRequirements). Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
+
+```sysml
+rendering asSYSMODMap :> Views::renderings {
+    doc /* Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them:
+            * Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject).
+            * A1: problemStatement, projectStakeholders, stakeholderNeeds (specifyProblemStatement, identifyStakeholders, elaborateStakeholderNeeds).
+            * A2: systemObjectives (pitchSystemIdea).
+            * A3: systemRequirementSpecification (defineSystemSpecification).
+            * A4: #refinement dependencies from the functional elements to the system requirements (createFunctionalArchitecture).
+            * A5: #refinement dependencies from the logical elements to the system requirements (createLogicalArchitecture).
+            * A6: productSystemImpl satisfies systemRequirementSpecification (createProductArchitecture).
+            * A7: verificationContext.verificationCases (verifyAndValidateRequirements).
+            * B1: brownfieldContext; C1: brownfieldContextImpl (specifyBrownfieldSystem).
+            * B2: systemIdeaContext; C2: systemIdeaContextImpl (pitchSystemIdea).
+            * B3: specificationContext with the system use cases; C3: specificationContextImpl (defineSystemSpecification).
+            * B4: functionalContext; C4: functionalContextImpl (createFunctionalArchitecture).
+            * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (createLogicalArchitecture).
+            * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (createProductArchitecture).
+            * B7 to C7: verificationContext (verifyAndValidateRequirements).
+            * Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
+            */
+}
+```
+
+**Example**
+
+![SYSMODMapView example](examples/views/sysmodMapView.svg)
+
+_Illustrative example based on the Delivery Drone example model ([sysmodMapView.svg](examples/views/sysmodMapView.svg))._
 
 <a id="view-problemstatementview"></a>
 
@@ -1739,6 +1810,7 @@ _Solid arrow: the target view builds on the source view. Dotted arrow: the sourc
 |---|---|---|---|---|---|---|
 | [ProjectView](#view-projectview) | `Project` | `SetupProject` | — | `projectOwnerName`, `projectPurpose` | — | [ProblemStatementView](#view-problemstatementview) |
 | [ProjectAIView](#view-projectaiview) | `Project` | `SetupProject` | — | `projectOwnerName`, `projectPurpose` | — | — |
+| [SYSMODMapView](#view-sysmodmapview) | `Project` | `SetupProject` | — | `projectOwnerName`, `projectPurpose` | — | — |
 | [ProblemStatementView](#view-problemstatementview) | `problemStatement` | `SpecifyProblemStatement` | [ProjectView](#view-projectview), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | `problemStatementText` | [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | [StakeholdersView](#view-stakeholdersview), [StakeholderNeedsView](#view-stakeholderneedsview), [SystemIdeaView](#view-systemideaview), [SystemObjectivesView](#view-systemobjectivesview) |
 | [ProblemStatementAIView](#view-problemstatementaiview) | `problemStatement` | `SpecifyProblemStatement` | [ProjectView](#view-projectview), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | `problemStatementText` | [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | — |
 | [StakeholdersView](#view-stakeholdersview) | `projectStakeholders` | `IdentifyStakeholders` | [ProblemStatementView](#view-problemstatementview) | — | — | [StakeholderNeedsView](#view-stakeholderneedsview) |

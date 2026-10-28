@@ -47,6 +47,8 @@
   - The Delivery Drone project redefines its `defaultProcess` and sets the `@StepStatus` of every step (all steps `done`, `verifyAndValidateRequirements` `inProgress` at 20 %, as verification has only started with `MaxPayloadTest`).
   - New script `scripts/generate_map_status.py` (reuses the parser of `generate_views_doc.py`) reads the steps of `SYSMODDefaultProcess`, the `StepStatusKind` literals, and the `StepStatus` defaults from `SYSMOD.sysml`, and the step status of every `#project` in `examples/`. It writes the read-only `examples/views/sysmodMapStatus.json` and warns about unknown steps, unknown status literals, and percentages outside 0..1. Steps a project does not redefine keep the library defaults.
   - New workflow `.github/workflows/map-status.yml` regenerates the file on changes of the library, the examples, or the scripts.
+- New view `SYSMODMapView` (SYSMOD Map): the features of the exposed Project on one sheet with grid references, row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield to 7 verification and validation. It specializes `ProjectView` (`ProjectViewpoint`, `expose this`, `@ProjectMetadata`) and replaces the tree diagram by the new rendering `asSYSMODMap`, whose doc lists the cells with their Project features and the steps that create them. The cell status is the `@StepStatus` of those steps.
+  - Updated example model: the Delivery Drone project declares the view usage `sysmodMapView`; the example view `sysmodMapView.svg` shows it with the step status of `sysmodMapStatus.json`.
 
 ## v5.1.6
 

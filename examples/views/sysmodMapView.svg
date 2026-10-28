@@ -1,0 +1,193 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="640" viewBox="0 0 1000 640" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::sysmodMapView : SYSMODViews::SYSMODMapView (render asSYSMODMap).
+       Exposed: DD::PRJ ('Delivery Drone Project') via "expose this", filtered by @ProjectMetadata (inherited from ProjectView).
+       Rows A concerns, B black box, C white box; columns 1 brownfield to 7 verification and validation.
+       Cell status from the @StepStatus of the steps of the project's defaultProcess (examples/views/sysmodMapStatus.json).
+       Illustrative example. -->
+  <rect width="1000" height="640" fill="#ffffff"/>
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] sysmodMapView : SYSMODMapView — Delivery Drone Project</text>
+  <rect x="52" y="44" width="920" height="42" rx="6" fill="#f7f9fc" stroke="#333" stroke-width="1.5"/>
+  <text x="64" y="62" font-size="12" font-weight="600" fill="#222">Title block · «#project» 'Delivery Drone Project'</text>
+  <text x="64" y="78" font-size="11" fill="#555">purpose · projectOwner John Finch · defaultProcess · subProjects: Control Station</text>
+  <text x="960" y="70" font-size="11" fill="#555" text-anchor="end">setupProject: done · 100 %</text>
+  <text x="56" y="122" font-size="12" font-weight="600" fill="#333">1 Brownfield</text>
+  <text x="188" y="122" font-size="12" font-weight="600" fill="#333">2 System idea</text>
+  <text x="320" y="122" font-size="12" font-weight="600" fill="#333">3 Specification</text>
+  <text x="452" y="122" font-size="12" font-weight="600" fill="#333">4 Functional</text>
+  <text x="584" y="122" font-size="12" font-weight="600" fill="#333">5 Logical</text>
+  <text x="716" y="122" font-size="12" font-weight="600" fill="#333">6 Product</text>
+  <text x="848" y="122" font-size="12" font-weight="600" fill="#333">7 V&amp;V</text>
+  <rect x="20" y="132" width="26" height="156" fill="#b7791f"/>
+  <text x="33" y="152" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">A</text>
+  <text transform="translate(37 278) rotate(-90)" font-size="11" font-weight="600" fill="#ffffff">Concerns</text>
+  <rect x="52" y="132" width="128" height="156" rx="6" fill="#fff6e5" stroke="#b7791f" stroke-width="1.5"/>
+  <text x="60" y="149" font-size="11" font-weight="700" fill="#b7791f">A1</text>
+  <text x="60" y="166" font-size="12" font-weight="600" fill="#222">Problem &amp; needs</text>
+  <text x="60" y="184" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">problemStatement</text>
+  <text x="60" y="198" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">projectStakeholders</text>
+  <text x="60" y="212" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">stakeholderNeeds</text>
+  <text x="60" y="262" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="60" y="268" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="60" y="268" width="112.0" height="6" fill="#b7791f"/>
+  <rect x="184" y="132" width="128" height="156" rx="6" fill="#fff6e5" stroke="#b7791f" stroke-width="1.5"/>
+  <text x="192" y="149" font-size="11" font-weight="700" fill="#b7791f">A2</text>
+  <text x="192" y="166" font-size="12" font-weight="600" fill="#222">System objectives</text>
+  <text x="192" y="184" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">systemObjectives</text>
+  <text x="192" y="262" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="192" y="268" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="192" y="268" width="112.0" height="6" fill="#b7791f"/>
+  <rect x="316" y="132" width="128" height="156" rx="6" fill="#fff6e5" stroke="#b7791f" stroke-width="1.5"/>
+  <text x="324" y="149" font-size="11" font-weight="700" fill="#b7791f">A3</text>
+  <text x="324" y="166" font-size="12" font-weight="600" fill="#222">Requirements</text>
+  <text x="324" y="184" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">systemRequirement</text>
+  <text x="324" y="198" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Specification</text>
+  <text x="324" y="262" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="324" y="268" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="324" y="268" width="112.0" height="6" fill="#b7791f"/>
+  <rect x="448" y="132" width="128" height="156" rx="6" fill="#fff6e5" stroke="#b7791f" stroke-width="1.5"/>
+  <text x="456" y="149" font-size="11" font-weight="700" fill="#b7791f">A4</text>
+  <text x="456" y="166" font-size="12" font-weight="600" fill="#222">Refinement</text>
+  <text x="456" y="184" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">#refinement</text>
+  <text x="456" y="198" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">functional → req.</text>
+  <text x="456" y="262" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="456" y="268" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="456" y="268" width="112.0" height="6" fill="#b7791f"/>
+  <rect x="580" y="132" width="128" height="156" rx="6" fill="#fff6e5" stroke="#b7791f" stroke-width="1.5"/>
+  <text x="588" y="149" font-size="11" font-weight="700" fill="#b7791f">A5</text>
+  <text x="588" y="166" font-size="12" font-weight="600" fill="#222">Refinement</text>
+  <text x="588" y="184" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">#refinement</text>
+  <text x="588" y="198" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">logical → req.</text>
+  <text x="588" y="262" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="588" y="268" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="588" y="268" width="112.0" height="6" fill="#b7791f"/>
+  <rect x="712" y="132" width="128" height="156" rx="6" fill="#fff6e5" stroke="#b7791f" stroke-width="1.5"/>
+  <text x="720" y="149" font-size="11" font-weight="700" fill="#b7791f">A6</text>
+  <text x="720" y="166" font-size="12" font-weight="600" fill="#222">Satisfaction</text>
+  <text x="720" y="184" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">productSystemImpl</text>
+  <text x="720" y="198" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">satisfy SRS</text>
+  <text x="720" y="262" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="720" y="268" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="720" y="268" width="112.0" height="6" fill="#b7791f"/>
+  <rect x="844" y="132" width="128" height="156" rx="6" fill="#fff6e5" stroke="#b7791f" stroke-width="1.5"/>
+  <text x="852" y="149" font-size="11" font-weight="700" fill="#b7791f">A7</text>
+  <text x="852" y="166" font-size="12" font-weight="600" fill="#222">V&amp;V cases</text>
+  <text x="852" y="184" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">verification</text>
+  <text x="852" y="198" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Context.</text>
+  <text x="852" y="212" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">verificationCases</text>
+  <text x="852" y="262" font-size="10" fill="#555">in progress · 20 %</text>
+  <rect x="852" y="268" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="852" y="268" width="22.4" height="6" fill="#b7791f"/>
+  <rect x="20" y="292" width="26" height="156" fill="#2b639b"/>
+  <text x="33" y="312" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">B</text>
+  <text transform="translate(37 438) rotate(-90)" font-size="11" font-weight="600" fill="#ffffff">Black box</text>
+  <rect x="52" y="292" width="128" height="156" rx="6" fill="#eaf2fb" stroke="#2b639b" stroke-width="1.5"/>
+  <text x="60" y="309" font-size="11" font-weight="700" fill="#2b639b">B1</text>
+  <text x="60" y="326" font-size="12" font-weight="600" fill="#222">Brownfield</text>
+  <text x="60" y="344" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">brownfieldContext</text>
+  <text x="60" y="422" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="60" y="428" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="60" y="428" width="112.0" height="6" fill="#2b639b"/>
+  <rect x="184" y="292" width="128" height="156" rx="6" fill="#eaf2fb" stroke="#2b639b" stroke-width="1.5"/>
+  <text x="192" y="309" font-size="11" font-weight="700" fill="#2b639b">B2</text>
+  <text x="192" y="326" font-size="12" font-weight="600" fill="#222">System idea</text>
+  <text x="192" y="344" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">systemIdeaContext</text>
+  <text x="192" y="422" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="192" y="428" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="192" y="428" width="112.0" height="6" fill="#2b639b"/>
+  <rect x="316" y="292" width="128" height="156" rx="6" fill="#eaf2fb" stroke="#2b639b" stroke-width="1.5"/>
+  <text x="324" y="309" font-size="11" font-weight="700" fill="#2b639b">B3</text>
+  <text x="324" y="326" font-size="12" font-weight="600" fill="#222">Specification</text>
+  <text x="324" y="344" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">specification</text>
+  <text x="324" y="358" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Context</text>
+  <text x="324" y="372" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">+ use cases</text>
+  <text x="324" y="422" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="324" y="428" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="324" y="428" width="112.0" height="6" fill="#2b639b"/>
+  <rect x="448" y="292" width="128" height="156" rx="6" fill="#eaf2fb" stroke="#2b639b" stroke-width="1.5"/>
+  <text x="456" y="309" font-size="11" font-weight="700" fill="#2b639b">B4</text>
+  <text x="456" y="326" font-size="12" font-weight="600" fill="#222">Functional</text>
+  <text x="456" y="344" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">functionalContext</text>
+  <text x="456" y="422" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="456" y="428" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="456" y="428" width="112.0" height="6" fill="#2b639b"/>
+  <rect x="580" y="292" width="128" height="156" rx="6" fill="#eaf2fb" stroke="#2b639b" stroke-width="1.5"/>
+  <text x="588" y="309" font-size="11" font-weight="700" fill="#2b639b">B5</text>
+  <text x="588" y="326" font-size="12" font-weight="600" fill="#222">Logical</text>
+  <text x="588" y="344" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">logicalContext</text>
+  <text x="588" y="358" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">functional2logical</text>
+  <text x="588" y="422" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="588" y="428" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="588" y="428" width="112.0" height="6" fill="#2b639b"/>
+  <rect x="712" y="292" width="128" height="156" rx="6" fill="#eaf2fb" stroke="#2b639b" stroke-width="1.5"/>
+  <text x="720" y="309" font-size="11" font-weight="700" fill="#2b639b">B6</text>
+  <text x="720" y="326" font-size="12" font-weight="600" fill="#222">Product</text>
+  <text x="720" y="344" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">productContext</text>
+  <text x="720" y="358" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">logical2product</text>
+  <text x="720" y="422" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="720" y="428" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="720" y="428" width="112.0" height="6" fill="#2b639b"/>
+  <rect x="844" y="292" width="128" height="316" rx="6" fill="#e8f5ee" stroke="#2c7559" stroke-width="1.5"/>
+  <text x="852" y="309" font-size="11" font-weight="700" fill="#2c7559">B7–C7</text>
+  <text x="852" y="326" font-size="12" font-weight="600" fill="#222">Verification</text>
+  <text x="852" y="344" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">verificationContext</text>
+  <text x="852" y="358" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">:&gt; productContext-</text>
+  <text x="852" y="372" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Impl</text>
+  <text x="852" y="386" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">+ test systems</text>
+  <text x="852" y="582" font-size="10" fill="#555">in progress · 20 %</text>
+  <rect x="852" y="588" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="852" y="588" width="22.4" height="6" fill="#2c7559"/>
+  <rect x="20" y="452" width="26" height="156" fill="#2c7559"/>
+  <text x="33" y="472" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">C</text>
+  <text transform="translate(37 598) rotate(-90)" font-size="11" font-weight="600" fill="#ffffff">White box</text>
+  <rect x="52" y="452" width="128" height="156" rx="6" fill="#e8f5ee" stroke="#2c7559" stroke-width="1.5"/>
+  <text x="60" y="469" font-size="11" font-weight="700" fill="#2c7559">C1</text>
+  <text x="60" y="486" font-size="12" font-weight="600" fill="#222">Brownfield</text>
+  <text x="60" y="504" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">brownfieldContext</text>
+  <text x="60" y="518" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Impl</text>
+  <text x="60" y="582" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="60" y="588" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="60" y="588" width="112.0" height="6" fill="#2c7559"/>
+  <rect x="184" y="452" width="128" height="156" rx="6" fill="#e8f5ee" stroke="#2c7559" stroke-width="1.5"/>
+  <text x="192" y="469" font-size="11" font-weight="700" fill="#2c7559">C2</text>
+  <text x="192" y="486" font-size="12" font-weight="600" fill="#222">System idea</text>
+  <text x="192" y="504" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">systemIdeaContext</text>
+  <text x="192" y="518" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Impl</text>
+  <text x="192" y="582" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="192" y="588" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="192" y="588" width="112.0" height="6" fill="#2c7559"/>
+  <rect x="316" y="452" width="128" height="156" rx="6" fill="#e8f5ee" stroke="#2c7559" stroke-width="1.5"/>
+  <text x="324" y="469" font-size="11" font-weight="700" fill="#2c7559">C3</text>
+  <text x="324" y="486" font-size="12" font-weight="600" fill="#222">Specification</text>
+  <text x="324" y="504" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">specification</text>
+  <text x="324" y="518" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">ContextImpl</text>
+  <text x="324" y="582" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="324" y="588" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="324" y="588" width="112.0" height="6" fill="#2c7559"/>
+  <rect x="448" y="452" width="128" height="156" rx="6" fill="#e8f5ee" stroke="#2c7559" stroke-width="1.5"/>
+  <text x="456" y="469" font-size="11" font-weight="700" fill="#2c7559">C4</text>
+  <text x="456" y="486" font-size="12" font-weight="600" fill="#222">Functional</text>
+  <text x="456" y="504" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">functionalContext</text>
+  <text x="456" y="518" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Impl</text>
+  <text x="456" y="582" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="456" y="588" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="456" y="588" width="112.0" height="6" fill="#2c7559"/>
+  <rect x="580" y="452" width="128" height="156" rx="6" fill="#e8f5ee" stroke="#2c7559" stroke-width="1.5"/>
+  <text x="588" y="469" font-size="11" font-weight="700" fill="#2c7559">C5</text>
+  <text x="588" y="486" font-size="12" font-weight="600" fill="#222">Logical</text>
+  <text x="588" y="504" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">logicalContextImpl</text>
+  <text x="588" y="518" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">functional</text>
+  <text x="588" y="532" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Impl2logicalImpl</text>
+  <text x="588" y="582" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="588" y="588" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="588" y="588" width="112.0" height="6" fill="#2c7559"/>
+  <rect x="712" y="452" width="128" height="156" rx="6" fill="#e8f5ee" stroke="#2c7559" stroke-width="1.5"/>
+  <text x="720" y="469" font-size="11" font-weight="700" fill="#2c7559">C6</text>
+  <text x="720" y="486" font-size="12" font-weight="600" fill="#222">Product</text>
+  <text x="720" y="504" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">productContextImpl</text>
+  <text x="720" y="518" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">logicalImpl2product</text>
+  <text x="720" y="532" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Impl</text>
+  <text x="720" y="582" font-size="10" fill="#555">done · 100 %</text>
+  <rect x="720" y="588" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="720" y="588" width="112.0" height="6" fill="#2c7559"/>
+  <text x="20" y="628" font-size="10.5" fill="#666">Status: @StepStatus of the step that creates the cell (Delivery Drone defaultProcess). Optional features a project does not define appear as empty cells.</text>
+</svg>

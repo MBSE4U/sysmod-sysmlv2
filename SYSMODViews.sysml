@@ -495,6 +495,35 @@ library package SYSMODViews {
                 */
         :>> create_prompt = "Create pure text in markdown with a headline #Project <project name> and below 'Project owner: <project owner name>', and below ##Documentation, new line: <project doc>, and finally ##Purpose, new line <project purpose>.";
     }
+    view def SYSMODMapView :> ProjectView {
+        doc /* Product "The Project" as SYSMOD Map: the features of the exposed Project on one sheet with grid references,
+                * row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield,
+                * 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation.
+                * It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell
+                * is the StepStatus of the step of the Project's defaultProcess that creates the cell's features.
+                */
+        render asSYSMODMap;
+    }
+    rendering asSYSMODMap :> Views::renderings {
+        doc /* Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them:
+                * Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject).
+                * A1: problemStatement, projectStakeholders, stakeholderNeeds (specifyProblemStatement, identifyStakeholders, elaborateStakeholderNeeds).
+                * A2: systemObjectives (pitchSystemIdea).
+                * A3: systemRequirementSpecification (defineSystemSpecification).
+                * A4: #refinement dependencies from the functional elements to the system requirements (createFunctionalArchitecture).
+                * A5: #refinement dependencies from the logical elements to the system requirements (createLogicalArchitecture).
+                * A6: productSystemImpl satisfies systemRequirementSpecification (createProductArchitecture).
+                * A7: verificationContext.verificationCases (verifyAndValidateRequirements).
+                * B1: brownfieldContext; C1: brownfieldContextImpl (specifyBrownfieldSystem).
+                * B2: systemIdeaContext; C2: systemIdeaContextImpl (pitchSystemIdea).
+                * B3: specificationContext with the system use cases; C3: specificationContextImpl (defineSystemSpecification).
+                * B4: functionalContext; C4: functionalContextImpl (createFunctionalArchitecture).
+                * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (createLogicalArchitecture).
+                * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (createProductArchitecture).
+                * B7 to C7: verificationContext (verifyAndValidateRequirements).
+                * Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
+                */
+    }
 
     // Step 02
     view def ProblemStatementView :> StandardViewDefinitions::GeneralView {

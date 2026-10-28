@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600" viewBox="0 0 1000 600" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <!-- Rendering of DD::PRJ::productArchitectureView : SYSMODViews::ProductArchitectureView (render asInterconnectionDiagram).
-       Exposed: DD::PRJ::deliveryDroneProductContextImpl (DD_PRODUCT::DeliveryDroneProductContextImpl), the white-box product context.
+       Exposed: DD::PRJ::deliveryDroneProductContextImpl (DD_PRODUCT::DeliveryDroneProductContextImpl), the white box product context.
        Shown: the actors and interfaces inherited from the brownfield context, the system ports, the product parts
        drones, controlStation and droneDocks with their ports and the connections drones.radioPort - controlStation.radioPort
        and drones.chargingPort - droneDocks.chargingPort, the inherited connection droneDocks - controlStation, and the

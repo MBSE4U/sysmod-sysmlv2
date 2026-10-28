@@ -24,7 +24,7 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
 
     #systemContext part def DeliveryDroneProductContext :> DD_SPECIFICATION::DeliveryDroneSystemContext {
         doc
-        /* The black-box context of the product architecture. */
+        /* The black box context of the product architecture. */
         #system part :>> deliveryDroneSystem : DeliveryDroneProductSystem;
 
         use case :>> deliverPackage : DD_SPECIFICATION::UseCases::DeliverPackage {
@@ -46,13 +46,13 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
     }   
     #systemContext part def DeliveryDroneProductContextImpl :> DeliveryDroneProductContext, DD_SPECIFICATION::DeliveryDroneSystemContextImpl {
         doc
-        /* The white-box context of the product architecture: adds the
+        /* The white box context of the product architecture: adds the
          * concrete, physical building blocks of the product system. */
         #system part :>> deliveryDroneSystemImpl : DeliveryDroneProductSystemImpl;
     }
     part def DeliveryDroneProductSystem :> DD_SPECIFICATION::DeliveryDroneSystem {
         doc
-        /* The product system as a black box. It redefines the black-box
+        /* The product system as a black box. It redefines the black box
          * specification system and inherits the system ports. */
     }
     part def DeliveryDroneProductSystemImpl :> DeliveryDroneProductSystem, DD_SPECIFICATION::DeliveryDroneSystemImpl {
@@ -98,7 +98,7 @@ package <DD_VV> DeliveryDroneVerificationValidation {
 
     #systemContext part def DeliveryDroneVerificationContext :> DeliveryDroneProductContextImpl {
         doc
-        /* The verification context: the white-box product context plus the
+        /* The verification context: the white box product context plus the
          * test systems that the verification cases need as additional actors. */
         #externalSystem part windTunnel :> actors {
             doc

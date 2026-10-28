@@ -47,7 +47,7 @@
   <g font-size="12" fill="#222">
     <text x="74" y="430">= deliveryDroneBrownfieldContextImpl</text>
     <text x="84" y="446">.deliveryDroneSystemImpl : DeliveryDroneSystemImpl</text>
-    <text x="74" y="470" fill="#555">White-box definition of the existing delivery drone system:</text>
+    <text x="74" y="470" fill="#555">White box definition of the existing delivery drone system:</text>
     <text x="74" y="486" fill="#555">a fleet of drones, a control station, and docks …</text>
   </g>
 

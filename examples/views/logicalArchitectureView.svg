@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="490" viewBox="0 0 1000 490" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <!-- Rendering of DD::PRJ::logicalArchitectureView : SYSMODViews::LogicalArchitectureView (render asInterconnectionDiagram).
-       Exposed: DD::PRJ::deliveryDroneLogicalContextImpl (DD_LOGICAL::DeliveryDroneLogicalContextImpl), the white-box logical context.
+       Exposed: DD::PRJ::deliveryDroneLogicalContextImpl (DD_LOGICAL::DeliveryDroneLogicalContextImpl), the white box logical context.
        Shown: the actors and interfaces inherited from the brownfield context, the system ports, and the three
        logical building blocks of DeliveryDroneLogicalSystemImpl (with their doc text). The logical blocks have no
        ports or connections in the model, so none are drawn between them.

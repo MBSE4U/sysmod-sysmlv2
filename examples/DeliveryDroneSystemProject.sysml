@@ -113,6 +113,25 @@ package <DD> DeliveryDrone {
             satisfy PRJ::problemStatement;
         }
 
+        //------------------------- System Objectives
+        concern :>> systemObjectives {
+            doc /* The measurable goals of the system idea, agreed with the project owner.
+                   They frame the stakeholder needs and are the basis for the system
+                   requirements and for validation. */
+            subject :>> systemIdea = deliveryDroneSystemIdeaContext.deliveryDroneSystem;
+            stakeholder :>> projectOwner = johnFinch;
+            frame stakeholderNeeds :>> Project::systemObjectives::stakeholderNeeds :> PRJ::stakeholderNeeds;
+            concern fastRemoteDelivery : DD_SYSTEMIDEA::FastRemoteDelivery {
+                subject :>> systemIdea = deliveryDroneSystemIdeaContext.deliveryDroneSystem;
+            }
+            concern lowCostPerDelivery : DD_SYSTEMIDEA::LowCostPerDelivery {
+                subject :>> systemIdea = deliveryDroneSystemIdeaContext.deliveryDroneSystem;
+            }
+            concern onTimeDelivery : DD_SYSTEMIDEA::OnTimeDelivery {
+                subject :>> systemIdea = deliveryDroneSystemIdeaContext.deliveryDroneSystem;
+            }
+        }
+
         //------------------------- Specification
         part deliveryDroneSpecificationContext :>> specificationContext : DD_SPECIFICATION::DeliveryDroneSystemContext :> deliveryDroneSystemIdeaContext {
             part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSystemIdeaContext::deliveryDroneSystem, Project::specificationContext::soi;
@@ -190,6 +209,11 @@ package <DD> DeliveryDrone {
             doc
             /* The Problem Statement view is an AI-generated summary of the problem statement. It exposes the problem statement itself, i.e., its project owner and the brownfield system. */
             expose problemStatement;
+        }
+        view systemObjectivesView : SYSMODViews::SystemObjectivesView {
+            doc
+            /* The System Objectives view shows the measurable goals of the system idea with the project owner, the system idea, and the stakeholder needs they frame. */
+            expose systemObjectives;
         }
 
 

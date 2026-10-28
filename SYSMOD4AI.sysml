@@ -156,7 +156,7 @@ package SYSMOD4AI {
                 "1. Create the SysML v2 textual notation for the project definition using the SYSMOD-defined keyword: '#project occurrence def PROJECTNAME {}'
                 2. Use the create_prompt of the AI metadata of the projectOwner to create the project owner of the project.
                 3. If not given by the user, use the questions to get the name of the project and the location where the project should be added.
-                4. Optionally continue with the other engineering artifacts in SYSMOD order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, functionalContext, logicalContext, productContext, each with its Impl context) using the create_prompts of their AI metadata.";
+                4. Optionally continue with the other engineering artifacts in SYSMOD order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification, functionalContext, logicalContext, productContext, each with its Impl context) using the create_prompts of their AI metadata.";
             create_questions = (
                 "What is the name of the project?", 
                 "Where should I add the project definition?",
@@ -173,9 +173,9 @@ package SYSMOD4AI {
                 6. A systemIdeaContext part usage is present and specializes brownfieldContext; a systemIdeaContextImpl part usage is present and specializes systemIdeaContext and brownfieldContextImpl.
                 7. A specificationContext part usage is present and specializes systemIdeaContext; a specificationContextImpl part usage is present and specializes specificationContext and systemIdeaContextImpl.
                 8. A systemRequirementSpecification requirement usage is present and frames stakeholderNeeds.
-                9. A productContext part usage is present and specializes specificationContext; a productContextImpl part usage is present and specializes productContext and specificationContextImpl. Present functionalContextImpl and logicalContextImpl part usages specialize their black-box context and specificationContextImpl.
+                9. A productContext part usage is present and specializes specificationContext; a productContextImpl part usage is present and specializes productContext and specificationContextImpl. Present functionalContextImpl and logicalContextImpl part usages specialize their black box context and specificationContextImpl.
                 10. The cross-artifact traceability chain is intact: problemStatement <- stakeholderNeeds <- systemRequirementSpecification, and satisfy relationships exist at the system idea and functional, logical, and product architecture levels.
-                11. If both functionalContext and logicalContext are present, the functional2logical allocation is defined; if logicalContext is present, the logical2product allocation is defined. The same holds for the white-box contexts and the functionalImpl2logicalImpl and logicalImpl2productImpl allocations.
+                11. If both functionalContext and logicalContext are present, the functional2logical allocation is defined; if logicalContext is present, the logical2product allocation is defined. The same holds for the white box contexts and the functionalImpl2logicalImpl and logicalImpl2productImpl allocations.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -215,7 +215,7 @@ package SYSMOD4AI {
                    - specifyProblemStatement: problemStatementAI, using the process input problemStatementText and the projectOwner.
                    - identifyStakeholders: projectStakeholdersAI; optionally stakeholderPriorityMapAI.
                    - elaborateStakeholderNeeds: stakeholderNeedsAI.
-                   - pitchSystemIdea: systemIdeaContextAI, using the process input systemIdeaArchitecture.
+                   - pitchSystemIdea: systemIdeaContextAI, using the process input systemIdeaArchitecture, then systemObjectivesAI.
                    - defineSystemSpecification: specificationContextAI (specification architecture and use cases), then systemRequirementSpecificationAI.
                    - createFunctionalArchitecture (optional): functionalContextAI, using the process input functionalArchitecture.
                    - createLogicalArchitecture (optional): logicalContextAI, using the process input logicalArchitecture.
@@ -238,7 +238,7 @@ package SYSMOD4AI {
                 1. For each step of SYSMODDefaultProcess, report its status: done (outputs exist and pass the validation_prompt of the corresponding AI metadata), in progress (outputs exist but have validation errors), skipped, or open.
                 2. No step is done while one of its inputs is missing or invalid (e.g. stakeholderNeeds without a problemStatement, systemRequirementSpecification without stakeholderNeeds, productContextImpl without a specificationContextImpl).
                 3. setupProject: the project has a purpose and the projectOwner has a name.
-                4. Only optional steps are skipped (specifyBrownfieldSystem for greenfield projects, createFunctionalArchitecture, createLogicalArchitecture); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, productContext, productContextImpl) are not skipped.
+                4. Only optional steps are skipped (specifyBrownfieldSystem for greenfield projects, createFunctionalArchitecture, createLogicalArchitecture); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification, productContext, productContextImpl) are not skipped.
                 5. verifyAndValidateRequirements: the verificationContext specializes productContextImpl, verification case usages exist within it with the productSystem as subject, and every requirement of the systemRequirementSpecification is verified by at least one verification case.
                 6. If the project redefines defaultProcess, the redefinition is typed by a specialization of SYSMODDefaultProcess and documents its deviations from the default process.
                 7. Name the next step to perform and the AI metadata to use for it.
@@ -312,7 +312,7 @@ package SYSMOD4AI {
                 3. Create a part definition for the brownfield system of interest.
                 4. For each identified actor, create a part definition in a subpackage named 'Actors', if not already exists.
                 5. For each identified actor, add a part usage defined by the corresponding part definition and subsetting the part usage 'actors' inherited from SystemContext.
-                6. For the black-box view, redefine the inherited soi part (within brownfieldContext) with an appropriately named and typed part definition. For the white-box view, redefine the inherited soiImpl part (within brownfieldContextImpl, which specializes brownfieldContext) accordingly.
+                6. For the black box view, redefine the inherited soi part (within brownfieldContext) with an appropriately named and typed part definition. For the white box view, redefine the inherited soiImpl part (within brownfieldContextImpl, which specializes brownfieldContext) accordingly.
                 7. Ensure the brownfield context reflects constraints and givens only — it must not include solution elements.
                 8. Create the SysML v2 textual notation for the brownfieldContext and brownfieldContextImpl.
                 9. If the user asks to insert the brownfieldContext into the SysML model, find the project and redefine the inherited brownfieldContext and brownfieldContextImpl part usages. If the project does not exist, create one first.";
@@ -326,8 +326,8 @@ package SYSMOD4AI {
                 Check:
                 1. The brownfieldContext part usage is present in the project and typed by a SystemContext specialization.
                 2. At least one actor part usage subsetting actors is present, representing an external entity that interacts with the existing system.
-                3. The soi part is redefined within brownfieldContext with a named part definition representing the existing system of interest (black-box view).
-                4. The brownfieldContextImpl part usage is present, specializes brownfieldContext, and redefines the soiImpl part representing the white-box view of the existing system.
+                3. The soi part is redefined within brownfieldContext with a named part definition representing the existing system of interest (black box view).
+                4. The brownfieldContextImpl part usage is present, specializes brownfieldContext, and redefines the soiImpl part representing the white box view of the existing system.
                 5. Actor-system interfaces (actorSystemInterfaces) connect actor ports to system ports.
                 6. The brownfield context contains only elements that exist before the project starts — no solution-specific parts, new system ideas, or future-state components.
                 7. Each actor has a meaningful name and, ideally, a doc comment describing its role.
@@ -539,7 +539,7 @@ package SYSMOD4AI {
             name = "sysmod-system-idea";
             create_prompt =
                 "1. Based on the problemStatement, develop a high-level system idea: an elevator-pitch-style outline of the new or changed system that solves the stated problem.
-                2. Specialize brownfieldContext by redefining the soi part (black-box view) with a named system idea definition, within systemIdeaContext. Specialize systemIdeaContext and brownfieldContextImpl by redefining the soiImpl part (white-box view) with the matching system idea implementation, within systemIdeaContextImpl. The systemIdeaSystemImpl must include a satisfy relationship to the problemStatement.
+                2. Specialize brownfieldContext by redefining the soi part (black box view) with a named system idea definition, within systemIdeaContext. Specialize systemIdeaContext and brownfieldContextImpl by redefining the soiImpl part (white box view) with the matching system idea implementation, within systemIdeaContextImpl. The systemIdeaSystemImpl must include a satisfy relationship to the problemStatement.
                 3. Add any additional actors that are introduced by the system idea and are not already present in the brownfieldContext.
                 4. Keep the system idea at a conceptual level — no detailed architecture or design decisions.
                 5. Create the SysML v2 textual notation for the systemIdeaContext and systemIdeaContextImpl.
@@ -564,7 +564,7 @@ package SYSMOD4AI {
         metadata specificationContextAI : AI about specificationContext {
             doc
             /* Refines the system idea into a specification-level system with use cases
-             * describing how actors interact with it, still as a black-box/white-box context (no
+             * describing how actors interact with it, still as a black box/white box context (no
              * requirements yet).
              *
              * When to use:
@@ -583,8 +583,8 @@ package SYSMOD4AI {
              */
             name = "sysmod-specification-context";
             create_prompt =
-                "1. Specialize systemIdeaContext by redefining the soi part (black-box view) with a specification-level system definition, within specificationContext. Specialize specificationContext and systemIdeaContextImpl by redefining the soiImpl part (white-box view) with the matching specification implementation, within specificationContextImpl.
-                2. Identify and add any actors or subcomponents that become visible during requirements analysis (e.g., specific interfaces, subsystems defined at the black-box level).
+                "1. Specialize systemIdeaContext by redefining the soi part (black box view) with a specification-level system definition, within specificationContext. Specialize specificationContext and systemIdeaContextImpl by redefining the soiImpl part (white box view) with the matching specification implementation, within specificationContextImpl.
+                2. Identify and add any actors or subcomponents that become visible during requirements analysis (e.g., specific interfaces, subsystems defined at the black box level).
                 3. Add system use cases to the specificationContext that describe how actors interact with the system of interest at the specification level.
                 4. Each use case definition declares the specification system as its first parameter (subject) and a typed actor parameter for each participating actor. Each use case usage in the specificationContext subsets its subject from the context's soi and binds each actor parameter to the context's actor part usage.
                 5. Create the SysML v2 textual notation for the specificationContext and specificationContextImpl, including actor parts and use case usages.
@@ -603,7 +603,49 @@ package SYSMOD4AI {
                 5. Each use case has at least one actor parameter, and in the specificationContext every actor parameter is bound to an actor part usage subsetting actors.
                 6. Each use case has a meaningful name and doc comment describing the interaction goal.
                 7. All actors from the systemIdeaContext are inherited or redefined — no actor should silently disappear.
-                8. The specificationContext does not contain solution elements — it should remain a black-box view of the system.
+                8. The specificationContext does not contain solution elements — it should remain a black box view of the system.
+                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        }
+
+        metadata systemObjectivesAI : AI about systemObjectives {
+            doc
+            /* Defines the system objectives — the measurable goals of the system idea that
+             * frame the stakeholder needs and are the basis for the system requirements and
+             * for validation.
+             *
+             * When to use:
+             * - The user states what the new or changed system must achieve and how success is
+             *   measured (e.g. "deliver in half the time", "cut the cost per delivery by 30 %").
+             * - A system idea and the stakeholder needs exist and the project must agree on
+             *   measurable goals before the system requirements are elaborated.
+             *
+             * When not to use:
+             * - The user describes the concept of the solution itself — use systemIdeaContextAI.
+             * - The user states a verifiable requirement on the specification system — use
+             *   systemRequirementSpecificationAI.
+             */
+            name = "sysmod-system-objectives";
+            create_prompt =
+                "1. Based on the systemIdeaContext, the problemStatement, and the stakeholderNeeds, derive the measurable goals of the system idea.
+                2. For each objective, create a concern definition specializing ExtendedConcern with the system idea as its first parameter (subject) and state the measure and target value in its doc comment or as attributes. Create a concern usage redefining systemObjectives that binds the subject to the systemIdeaContext soi, binds the projectOwner, and nests one concern usage per objective.
+                3. The systemObjectives frame the stakeholderNeeds; each objective addresses at least one stakeholder need. The objectives direct the development: the system requirements reflect them, but no requirement frames them and no system satisfies them directly.
+                4. Keep the objectives solution-neutral below the level of the system idea — no architecture or design decisions.
+                5. Create the SysML v2 textual notation for the systemObjectives.
+                6. If the user asks to insert the systemObjectives into the SysML model, find the project and redefine the inherited systemObjectives concern usage.";
+            create_questions = (
+                "What must the new or changed system achieve compared to today?",
+                "How is success measured, and what are the target values?"
+            );
+            validation_prompt =
+                "Validate the systemObjectives against the SYSMOD System Objectives concept and report findings grouped as errors, warnings, and suggestions.
+                Check:
+                1. The systemObjectives concern usage is present in the project, redefining the inherited systemObjectives.
+                2. The systemObjectives frame the stakeholderNeeds.
+                3. The subject references the systemIdeaContext soi, and the stakeholder is the projectOwner.
+                4. At least one objective is defined as a concern usage nested inside systemObjectives.
+                5. Each objective is measurable — it names a measure and a target value; flag vague goals without a threshold (e.g., 'faster', 'cheaper').
+                6. Each objective is traceable to at least one stakeholder need.
+                7. Each objective is solution-neutral — no architecture or design decisions.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -626,7 +668,7 @@ package SYSMOD4AI {
              */
             name = "sysmod-system-requirements";
             create_prompt =
-                "1. Derive system requirements from the stakeholderNeeds, framed by the stakeholderNeeds and referencing the specificationSystem as subject.
+                "1. Derive system requirements from the stakeholderNeeds and the systemObjectives, framed by the stakeholderNeeds and referencing the specificationSystem as subject. Each measurable system objective is reflected in at least one requirement with the target value.
                 2. For each requirement, create a requirement usage or definition specializing ExtendedRequirement. Set obligation (mandatory/optional), stability (stable/unstable), and a brief motivation. Declare the specification system as the first parameter (subject) and a typed stakeholder parameter for the stakeholders of the framed need. In the root requirement, bind each nested requirement usage's subject to the root subject.
                 3. Ensure each requirement is verifiable, unambiguous, and solution-neutral where possible.
                 4. Group requirements logically (e.g., functional, performance, safety, interface) using nested requirement usages if appropriate.
@@ -656,7 +698,7 @@ package SYSMOD4AI {
         metadata functionalContextAI : AI about functionalContext {
             doc
             /* Defines the optional functional architecture — technology-independent
-             * functions/actions derived from the specification's black-box view, without
+             * functions/actions derived from the specification's black box view, without
              * depending on physical structure.
              *
              * When to use:
@@ -674,10 +716,10 @@ package SYSMOD4AI {
              */
             name = "sysmod-functional-architecture";
             create_prompt =
-                "1. If a functional architecture is required, specialize specificationContext (black-box view) within functionalContext. The black-box functionalContext does not specialize specificationContextImpl — the functional system must not depend on the physical internal structure of the system.
-                2. Redefine the inherited functionalSystem part (which redefines the black-box specification soi) as the root of the functional architecture (e.g., developed with the FAS method). It inherits the system ports, so functions can be related to the system's external interfaces. Define the top-level functions of the system as action usages within the functionalSystem.
-                3. Specialize functionalContext and specificationContextImpl within functionalContextImpl (white-box view) by redefining the inherited functionalSystemImpl part. Define the functional blocks as part usages within the functionalSystemImpl that perform the functions.
-                4. If allocations to the logical architecture are known, note them; formal allocations are expressed via the functional2logical allocation (black-box contexts) and the functionalImpl2logicalImpl allocation (white-box contexts) in the project.
+                "1. If a functional architecture is required, specialize specificationContext (black box view) within functionalContext. The black box functionalContext does not specialize specificationContextImpl — the functional system must not depend on the physical internal structure of the system.
+                2. Redefine the inherited functionalSystem part (which redefines the black box specification soi) as the root of the functional architecture (e.g., developed with the FAS method). It inherits the system ports, so functions can be related to the system's external interfaces. Define the top-level functions of the system as action usages within the functionalSystem.
+                3. Specialize functionalContext and specificationContextImpl within functionalContextImpl (white box view) by redefining the inherited functionalSystemImpl part. Define the functional blocks as part usages within the functionalSystemImpl that perform the functions.
+                4. If allocations to the logical architecture are known, note them; formal allocations are expressed via the functional2logical allocation (black box contexts) and the functionalImpl2logicalImpl allocation (white box contexts) in the project.
                 5. Create the SysML v2 textual notation for the functionalContext and the functionalContextImpl.
                 6. If the user asks to insert them into the SysML model, find the project and redefine the inherited functionalContext and functionalContextImpl part usages (note: multiplicity is [0..1]).";
             create_questions = (
@@ -689,7 +731,7 @@ package SYSMOD4AI {
                 "Validate the functionalContext against the SYSMOD Functional Architecture concept and report findings grouped as errors, warnings, and suggestions.
                 Check:
                 1. If present, the functionalContext part usage specializes specificationContext, and the functionalContextImpl part usage specializes functionalContext and specificationContextImpl.
-                2. A functionalSystem part is present as the root of the functional architecture, redefining the black-box specification soi; a functionalSystemImpl part redefines the functionalSystem and the white-box specification soiImpl.
+                2. A functionalSystem part is present as the root of the functional architecture, redefining the black box specification soi; a functionalSystemImpl part redefines the functionalSystem and the white box specification soiImpl.
                 3. At least one top-level function is defined as an action usage within the functionalSystem, and the functional blocks are part usages within the functionalSystemImpl.
                 4. Each top-level function is traceable to at least one system requirement (via satisfy, refine, or doc comment reference).
                 5. Functions are technology-independent — check for implementation-specific naming or structure that belongs in the logical or product architecture.
@@ -720,8 +762,8 @@ package SYSMOD4AI {
              */
             name = "sysmod-logical-architecture";
             create_prompt =
-                "1. If a logical architecture is required, specialize specificationContext (black-box view) within logicalContext by redefining the inherited logicalSystem part (the redefined black-box soi).
-                2. Specialize logicalContext and specificationContextImpl within logicalContextImpl (white-box view) by redefining the inherited logicalSystemImpl part. Define logical components as part usages within logicalSystemImpl, representing technology-independent building blocks that realize the functional architecture.
+                "1. If a logical architecture is required, specialize specificationContext (black box view) within logicalContext by redefining the inherited logicalSystem part (the redefined black box soi).
+                2. Specialize logicalContext and specificationContextImpl within logicalContextImpl (white box view) by redefining the inherited logicalSystemImpl part. Define logical components as part usages within logicalSystemImpl, representing technology-independent building blocks that realize the functional architecture.
                 3. If allocations from the functional architecture are known, note them; formal allocations are expressed via the functional2logical and functionalImpl2logicalImpl allocations in the project.
                 4. If allocations to the product architecture are known, note them; formal allocations are expressed via the logical2product and logicalImpl2productImpl allocations in the project.
                 5. Create the SysML v2 textual notation for the logicalContext and the logicalContextImpl.
@@ -738,8 +780,8 @@ package SYSMOD4AI {
                 2. At least one logical component is defined as a part usage within logicalSystemImpl.
                 3. Logical components are technology-independent — check for product-specific naming, vendor names, physical form factors, or deployment-specific details that belong in the productContext.
                 4. Each logical component is traceable to at least one function from the functionalContext (if present) via allocation or doc comment.
-                5. If a functionalContext is present in the project, a functional2logical allocation is defined connecting functionalContext to logicalContext, and a functionalImpl2logicalImpl allocation connects the white-box contexts.
-                6. If a productContext is present in the project, a logical2product allocation is defined connecting logicalContext to productContext, and a logicalImpl2productImpl allocation connects the white-box contexts.
+                5. If a functionalContext is present in the project, a functional2logical allocation is defined connecting functionalContext to logicalContext, and a functionalImpl2logicalImpl allocation connects the white box contexts.
+                6. If a productContext is present in the project, a logical2product allocation is defined connecting logicalContext to productContext, and a logicalImpl2productImpl allocation connects the white box contexts.
                 7. Logical component interfaces are defined where components interact, using port and interface definitions.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
@@ -764,8 +806,8 @@ package SYSMOD4AI {
              */
             name = "sysmod-product-architecture";
             create_prompt =
-                "1. Specialize specificationContext (black-box view) within productContext by redefining the inherited productSystem part (the redefined black-box soi) with a product-level definition.
-                2. Specialize productContext and specificationContextImpl within productContextImpl (white-box view) by redefining the inherited productSystemImpl part. Define product components as part usages within productSystemImpl, representing physical or deployable building blocks (hardware, software components, assemblies).
+                "1. Specialize specificationContext (black box view) within productContext by redefining the inherited productSystem part (the redefined black box soi) with a product-level definition.
+                2. Specialize productContext and specificationContextImpl within productContextImpl (white box view) by redefining the inherited productSystemImpl part. Define product components as part usages within productSystemImpl, representing physical or deployable building blocks (hardware, software components, assemblies).
                 3. If allocations from the logical architecture are known, note them; formal allocations are expressed via the logical2product and logicalImpl2productImpl allocations in the project.
                 4. Include interfaces between product components where relevant.
                 5. Create the SysML v2 textual notation for the productContext and the productContextImpl.

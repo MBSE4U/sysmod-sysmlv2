@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="690" viewBox="0 0 1000 690" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <!-- Rendering of DD::PRJ::architectureAllocationView : SYSMODViews::ArchitectureAllocationView (render asElementTable).
        Exposed: DD::PRJ::functional2logical, DD::PRJ::logical2product, DD::PRJ::functionalImpl2logicalImpl,
-       DD::PRJ::logicalImpl2productImpl (inherited from SYSMOD::Project) and the black-box and white-box solution
+       DD::PRJ::logicalImpl2productImpl (inherited from SYSMOD::Project) and the black box and white box solution
        architecture contexts (system context elements pass the view filter as well).
        The example model allocates only the contexts as a whole; no element-level allocations are modeled,
        so none are shown. Illustrative example only; the view usage is not (yet) part of the example model. -->
@@ -57,8 +57,8 @@
   <text x="220" y="255" font-size="11" fill="#555">:&gt;&gt; functionalContextImpl</text>
   <text x="480" y="238" font-size="13" fill="#111">deliveryDroneLogicalContextImpl</text>
   <text x="480" y="255" font-size="11" fill="#555">:&gt;&gt; logicalContextImpl</text>
-  <text x="740" y="238" font-size="12" fill="#222">Allocation of the white-box functional</text>
-  <text x="740" y="254" font-size="12" fill="#222">to the white-box logical architecture.</text>
+  <text x="740" y="238" font-size="12" fill="#222">Allocation of the white box functional</text>
+  <text x="740" y="254" font-size="12" fill="#222">to the white box logical architecture.</text>
   <!-- row 4 -->
   <text x="30" y="296" font-size="11" fill="#555">«allocation»</text>
   <text x="30" y="313" font-size="13" fill="#111">logicalImpl2productImpl</text>
@@ -66,8 +66,8 @@
   <text x="220" y="313" font-size="11" fill="#555">:&gt;&gt; logicalContextImpl</text>
   <text x="480" y="296" font-size="13" fill="#111">deliveryDroneProductContextImpl</text>
   <text x="480" y="313" font-size="11" fill="#555">:&gt;&gt; productContextImpl</text>
-  <text x="740" y="296" font-size="12" fill="#222">Allocation of the white-box logical</text>
-  <text x="740" y="312" font-size="12" fill="#222">to the white-box product architecture.</text>
+  <text x="740" y="296" font-size="12" fill="#222">Allocation of the white box logical</text>
+  <text x="740" y="312" font-size="12" fill="#222">to the white box product architecture.</text>
 
   <!-- Table 2: exposed system contexts -->
   <text x="20" y="364" font-size="13" font-weight="600" fill="#333">Solution architecture contexts</text>

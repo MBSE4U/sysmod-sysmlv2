@@ -25,8 +25,8 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
 
     #systemContext part def DeliveryDroneFunctionalContext :> DD_SPECIFICATION::DeliveryDroneSystemContext {
         doc
-        /* The black-box context of the functional architecture. It specializes the
-         * black-box specification context only: the functional system must not
+        /* The black box context of the functional architecture. It specializes the
+         * black box specification context only: the functional system must not
          * depend on the physical internal structure of the system. */
         #system part :>> deliveryDroneSystem : DeliveryDroneFunctionalSystem;
 
@@ -48,14 +48,14 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
     }
     #systemContext part def DeliveryDroneFunctionalContextImpl :> DeliveryDroneFunctionalContext, DD_SPECIFICATION::DeliveryDroneSystemContextImpl {
         doc
-        /* The white-box context of the functional architecture: adds the
+        /* The white box context of the functional architecture: adds the
          * functional blocks of the functional system. */
         #system part :>> deliveryDroneSystemImpl : DeliveryDroneFunctionalSystemImpl;
     }
     part def DeliveryDroneFunctionalSystem :> DD_SPECIFICATION::DeliveryDroneSystem {
         doc
         /* The root of the functional architecture as a black box, for example,
-         * developed with the FAS method. It redefines the black-box specification
+         * developed with the FAS method. It redefines the black box specification
          * system and thereby inherits the system ports, so the functions can be
          * related to the system's external interfaces. */
     }

@@ -67,37 +67,50 @@ library package SYSMOD {
         }
         concern stakeholderNeeds : ExtendedConcern {
             doc
-            /* The concern stakeholderNeeds is the root element for all stakeholder needs which will be translated into system requirements. The needs are based on the brownfield system (white-box view) and frame the problem statement. */
+            /* The concern stakeholderNeeds is the root element for all stakeholder needs which will be translated into system requirements. The needs are based on the brownfield system (white box view) and frame the problem statement. */
             subject brownfieldSystem :> Project::brownfieldContextImpl.soiImpl;
             frame problemStatement;
         }
         part brownfieldContext : SystemContext {
             doc
-            /* The Brownfield Context includes the system and actors that are already identified at the start of the Project. These constraints limit the set of possible solutions. This is the black-box context without specifying the internals of the system of interest. */
+            /* The Brownfield Context includes the system and actors that are already identified at the start of the Project. These constraints limit the set of possible solutions. This is the black box context without specifying the internals of the system of interest. */
             part <soi> systemOfInterest :>> soi {
                 doc
-                /* The existing (brownfield) system of interest as a black-box. It is the explicit anchor for the refinement along the context chain. */
+                /* The existing (brownfield) system of interest as a black box. It is the explicit anchor for the refinement along the context chain. */
             }
         }
         part brownfieldContextImpl :> brownfieldContext {
             doc
-            /* The implementation of the brownfield context includes the internal structure of the system of interest. This is the white-box context. */
+            /* The implementation of the brownfield context includes the internal structure of the system of interest. This is the white box context. */
             part <soiImpl> systemOfInterestImpl :>> soi {
                 doc
-                /* The white-box view of the existing system of interest including its internal structure. It redefines the black-box soi. */
+                /* The white box view of the existing system of interest including its internal structure. It redefines the black box soi. */
             }
         }
+
+        // 
+        // The System Idea and the System Objectives
+        //
+        concern systemObjectives : ExtendedConcern {
+            doc
+            /* The System Objectives are the measurable goals of the system idea. They frame the
+             * stakeholder needs and are the basis for the system requirements and for validation. */
+            subject systemIdea :> Project::systemIdeaContext.soi;
+            stakeholder projectOwner :> Project::projectOwner;
+            frame stakeholderNeeds;
+        }
+        
         part systemIdeaContext :> brownfieldContext {
             doc
-            /* The system idea context contains the system idea and additional actors, if necessary. It specializes the black-box brownfield context. */
+            /* The system idea context contains the system idea and additional actors, if necessary. It specializes the black box brownfield context. */
             part <soi> systemIdeaSystem :>> brownfieldContext::soi {
                 doc
-                /* The system idea as a black-box. It redefines the brownfield system of interest. */
+                /* The system idea as a black box. It redefines the brownfield system of interest. */
             }
         }
         part systemIdeaContextImpl :> systemIdeaContext, brownfieldContextImpl {
             doc
-            /* The white-box view of the system idea context. It combines the black-box system idea context with the internal structure view inherited from the brownfield implementation context. */
+            /* The white box view of the system idea context. It combines the black box system idea context with the internal structure view inherited from the brownfield implementation context. */
             part <soiImpl> systemIdeaSystemImpl :>> systemIdeaContext::soi, brownfieldContextImpl::soiImpl {
                 doc
                 /* The system idea is the answer to the problem statement. It is a rough, elevator-pitch-style outline of the system designed to solve the problem. The system idea specializes the brownfield system. */
@@ -106,7 +119,7 @@ library package SYSMOD {
         }
         part specificationContext :> systemIdeaContext {
             doc
-            /* The specification context includes the actors and the system, along with specific subcomponents, which are defined during the requirements analysis. The specification context is also the owner of the system use cases. The context specializes the black-box system idea context. */
+            /* The specification context includes the actors and the system, along with specific subcomponents, which are defined during the requirements analysis. The specification context is also the owner of the system use cases. The context specializes the black box system idea context. */
             part <soi> specificationSystem :>> systemIdeaContext::soi {
                 doc
                 /* The specification system as a black box. It redefines the system idea and is the subject of the system requirements and use cases. */
@@ -114,10 +127,10 @@ library package SYSMOD {
         }
         part specificationContextImpl :> specificationContext, systemIdeaContextImpl {
             doc
-            /* The white-box view of the specification context. It combines the black-box specification context with the internal structure view inherited from the system idea implementation context. */
+            /* The white box view of the specification context. It combines the black box specification context with the internal structure view inherited from the system idea implementation context. */
             part <soiImpl> specificationSystemImpl :>> specificationContext::soi, systemIdeaContextImpl::soiImpl {
                 doc
-                /* The white-box view of the specification system including its internal structure. */
+                /* The white box view of the specification system including its internal structure. */
             }
         }
         requirement systemRequirementSpecification : ExtendedRequirement {
@@ -128,50 +141,50 @@ library package SYSMOD {
         }
         part functionalContext[0..1] :> specificationContext {
             doc
-            /* The Functional Context is optional and specializes the black-box specification context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white-box specification context: the black-box functional system does not depend on the physical internal structure of the system. The functional blocks are the internal structure of the functional system and belong to the white-box functional context implementation. */
+            /* The Functional Context is optional and specializes the black box specification context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white box specification context: the black box functional system does not depend on the physical internal structure of the system. The functional blocks are the internal structure of the functional system and belong to the white box functional context implementation. */
             part <soi> functionalSystem :>> specificationContext::soi {
                 doc
-                /* The Functional System is the root element of the functional architecture. It redefines the black-box specification system and thereby inherits the context information such as the system ports, so that functions can be related to the system's external interfaces without depending on its physical internal structure. */
+                /* The Functional System is the root element of the functional architecture. It redefines the black box specification system and thereby inherits the context information such as the system ports, so that functions can be related to the system's external interfaces without depending on its physical internal structure. */
             }
         }
         part functionalContextImpl[0..1] :> functionalContext, specificationContextImpl {
             doc
-            /* The Functional Context Implementation is optional and the white-box view of the functional context. It specializes the functional context and the white-box specification context and contains the internal structure of the functional system, i.e., its functional blocks. */
+            /* The Functional Context Implementation is optional and the white box view of the functional context. It specializes the functional context and the white box specification context and contains the internal structure of the functional system, i.e., its functional blocks. */
             part <soiImpl> functionalSystemImpl :>> functionalContext::soi, specificationContextImpl::soiImpl {
                 doc
-                /* The white-box view of the functional system. It redefines the functional system and the white-box specification system and contains the functional blocks of the functional architecture. */
+                /* The white box view of the functional system. It redefines the functional system and the white box specification system and contains the functional blocks of the functional architecture. */
             }
         }
         part logicalContext[0..1] :> specificationContext {
             doc
-            /* The Logical Context is optional and specializes the black-box specification context. It provides the context for a logical architecture with technology-independent building blocks. */
+            /* The Logical Context is optional and specializes the black box specification context. It provides the context for a logical architecture with technology-independent building blocks. */
             part <soi> logicalSystem :>> specificationContext::soi {
                 doc
-                /* The Logical System is the root element of the logical architecture. It redefines the black-box specification system and thereby inherits the context information such as the system ports. */
+                /* The Logical System is the root element of the logical architecture. It redefines the black box specification system and thereby inherits the context information such as the system ports. */
             }
         }
         part logicalContextImpl[0..1] :> logicalContext, specificationContextImpl {
             doc
-            /* The Logical Context Implementation is optional and the white-box view of the logical context. It specializes the logical context and the white-box specification context and contains the internal structure of the logical system, i.e., its technology-independent building blocks. */
+            /* The Logical Context Implementation is optional and the white box view of the logical context. It specializes the logical context and the white box specification context and contains the internal structure of the logical system, i.e., its technology-independent building blocks. */
             part <soiImpl> logicalSystemImpl :>> logicalContext::soi, specificationContextImpl::soiImpl {
                 doc
-                /* The white-box view of the logical system. It redefines the logical system and the white-box specification system and contains the technology-independent building blocks of the logical architecture. */
+                /* The white box view of the logical system. It redefines the logical system and the white box specification system and contains the technology-independent building blocks of the logical architecture. */
             }
         }
         part productContext :> specificationContext {
             doc
-            /* The Product Context specializes the black-box specification context. It provides the context for a product architecture with concrete, physical or deployable building blocks. */
+            /* The Product Context specializes the black box specification context. It provides the context for a product architecture with concrete, physical or deployable building blocks. */
             part <soi> productSystem :>> specificationContext::soi {
                 doc
-                /* The Product System is the root element of the product architecture. It redefines the black-box specification system and thereby inherits the context information such as the system ports. */
+                /* The Product System is the root element of the product architecture. It redefines the black box specification system and thereby inherits the context information such as the system ports. */
             }
         }
         part productContextImpl :> productContext, specificationContextImpl {
             doc
-            /* The Product Context Implementation is the white-box view of the product context. It specializes the product context and the white-box specification context and contains the internal structure of the product system, i.e., its concrete, physical or deployable building blocks. */
+            /* The Product Context Implementation is the white box view of the product context. It specializes the product context and the white box specification context and contains the internal structure of the product system, i.e., its concrete, physical or deployable building blocks. */
             part <soiImpl> productSystemImpl :>> productContext::soi, specificationContextImpl::soiImpl {
                 doc
-                /* The white-box view of the product system. It redefines the product system and the white-box specification system and contains the concrete, physical or deployable building blocks of the product architecture. It satisfies the system requirements and is the subject of the verification cases. */
+                /* The white box view of the product system. It redefines the product system and the white box specification system and contains the concrete, physical or deployable building blocks of the product architecture. It satisfies the system requirements and is the subject of the verification cases. */
                 satisfy systemRequirementSpecification;
             }
         }
@@ -185,7 +198,7 @@ library package SYSMOD {
         }
         allocation functionalImpl2logicalImpl [0..1] allocate functionalContextImpl to logicalContextImpl {
             doc
-            /* Allocation of the white-box functional architecture, i.e., its functional blocks, to the white-box logical architecture. */
+            /* Allocation of the white box functional architecture, i.e., its functional blocks, to the white box logical architecture. */
         }
         allocation logical2product [0..1] allocate logicalContext to productContext {
             doc
@@ -193,7 +206,7 @@ library package SYSMOD {
         }
         allocation logicalImpl2productImpl [0..1] allocate logicalContextImpl to productContextImpl {
             doc
-            /* Allocation of the white-box logical architecture, i.e., its logical building blocks, to the white-box product architecture. */
+            /* Allocation of the white box logical architecture, i.e., its logical building blocks, to the white box product architecture. */
         }
 
         //
@@ -240,7 +253,7 @@ library package SYSMOD {
         }
         part <soi> systemOfInterest {
             doc
-            /* The system of interest as a black box. Implementation contexts redefine it to add the white-box view. */
+            /* The system of interest as a black box. Implementation contexts redefine it to add the white box view. */
             port systemPorts[1..*] {
                 doc
                 /* Ports of the system of interest to exchange items with the actors. */
@@ -594,6 +607,7 @@ library package SYSMOD {
             flow from elaborateStakeholderNeeds.stakeholderNeeds to project.stakeholderNeeds;
             flow from pitchSystemIdea.systemIdeaContext to project.systemIdeaContext;
             flow from pitchSystemIdea.systemIdeaContextImpl to project.systemIdeaContextImpl;
+            flow from pitchSystemIdea.systemObjectives to project.systemObjectives;
             flow from defineSystemSpecification.specificationContext to project.specificationContext;
             flow from defineSystemSpecification.specificationContextImpl to project.specificationContextImpl;
             flow from defineSystemSpecification.systemRequirementSpecification to project.systemRequirementSpecification;
@@ -614,6 +628,7 @@ library package SYSMOD {
             bind project.stakeholderNeeds = pitchSystemIdea.stakeholderNeeds;
             bind project.systemIdeaContextImpl = defineSystemSpecification.systemIdeaContextImpl;
             bind project.stakeholderNeeds = defineSystemSpecification.stakeholderNeeds;
+            bind project.systemObjectives = defineSystemSpecification.systemObjectives;
             bind project.specificationContextImpl = createFunctionalArchitecture.specificationContextImpl;
             bind project.specificationContextImpl = createLogicalArchitecture.specificationContextImpl;
             bind project.functionalContextImpl = createLogicalArchitecture.functionalContextImpl;
@@ -679,7 +694,7 @@ library package SYSMOD {
 
         action def SpecifyBrownfieldSystem {
             doc
-            /* Specifies the existing (brownfield) system and its actors as black-box context (brownfieldContext) and white-box context (brownfieldContextImpl), based on a given description of the existing architecture. Optional for greenfield projects. Refines the ISO 15288 Business or Mission Analysis process. */
+            /* Specifies the existing (brownfield) system and its actors as black box context (brownfieldContext) and white box context (brownfieldContextImpl), based on a given description of the existing architecture. Optional for greenfield projects. Refines the ISO 15288 Business or Mission Analysis process. */
             in item brownfieldArchitecture : ArchitectureDescription;
             out part brownfieldContext : SystemContext;
             out part brownfieldContextImpl : SystemContext;
@@ -716,26 +731,28 @@ library package SYSMOD {
 
         action def PitchSystemIdea {
             doc
-            /* Pitches the system idea: a conceptual, elevator-pitch-style outline of the new or changed system that answers the problem statement and the stakeholder needs, as black-box (systemIdeaContext) and white-box (systemIdeaContextImpl) context. Refines the ISO 15288 Business or Mission Analysis process. */
+            /* Pitches the system idea: a conceptual, elevator-pitch-style outline of the new or changed system that answers the problem statement and the stakeholder needs, as black box (systemIdeaContext) and white box (systemIdeaContextImpl) context, and its measurable goals, the system objectives. Refines the ISO 15288 Business or Mission Analysis process. */
             in item systemIdeaArchitecture : ArchitectureDescription;
             in concern problemStatement : ExtendedConcern;
             in concern stakeholderNeeds : ExtendedConcern;
             out part systemIdeaContext : SystemContext;
             out part systemIdeaContextImpl : SystemContext;
+            out concern systemObjectives : ExtendedConcern;
         }
 
         action def DefineSystemSpecification {
             doc
-            /* Defines the system specification based on the system idea and the stakeholder needs: the specification contexts, the system use cases, and the system requirements. Refines the ISO 15288 System Requirements Definition process. */
+            /* Defines the system specification based on the system idea, the system objectives, and the stakeholder needs: the specification contexts, the system use cases, and the system requirements. Refines the ISO 15288 System Requirements Definition process. */
             in part systemIdeaContextImpl : SystemContext;
             in concern stakeholderNeeds : ExtendedConcern;
+            in concern systemObjectives : ExtendedConcern;
             out part specificationContext : SystemContext;
             out part specificationContextImpl : SystemContext;
             out requirement systemRequirementSpecification : ExtendedRequirement;
 
             action specifySpecificationArchitecture {
                 doc
-                /* Refines the system idea contexts into the black-box and white-box specification contexts. */
+                /* Refines the system idea contexts into the black box and white box specification contexts. */
                 in part systemIdeaContextImpl : SystemContext = DefineSystemSpecification::systemIdeaContextImpl;
                 out part specificationContext : SystemContext = DefineSystemSpecification::specificationContext;
                 out part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
@@ -752,13 +769,14 @@ library package SYSMOD {
                 /* Elaborates the verifiable, solution-neutral system requirements that frame the stakeholder needs. */
                 in part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
                 in concern stakeholderNeeds : ExtendedConcern = DefineSystemSpecification::stakeholderNeeds;
+                in concern systemObjectives : ExtendedConcern = DefineSystemSpecification::systemObjectives;
                 out requirement systemRequirementSpecification : ExtendedRequirement = DefineSystemSpecification::systemRequirementSpecification;
             }
         }
 
         action def CreateFunctionalArchitecture {
             doc
-            /* Creates the optional functional architecture based on the white-box specification context: the black-box functional context and the white-box functional context with the functional blocks. Refines the ISO 15288 System Architecture Definition process. */
+            /* Creates the optional functional architecture based on the white box specification context: the black box functional context and the white box functional context with the functional blocks. Refines the ISO 15288 System Architecture Definition process. */
             in item functionalArchitecture : ArchitectureDescription;
             in part specificationContextImpl : SystemContext;
             out part functionalContext[0..1] : SystemContext;
@@ -767,7 +785,7 @@ library package SYSMOD {
 
         action def CreateLogicalArchitecture {
             doc
-            /* Creates the optional logical architecture based on the white-box specification context and, if present, the white-box functional context: the black-box logical context and the white-box logical context with the technology-independent building blocks. Refines the ISO 15288 System Architecture Definition process. */
+            /* Creates the optional logical architecture based on the white box specification context and, if present, the white box functional context: the black box logical context and the white box logical context with the technology-independent building blocks. Refines the ISO 15288 System Architecture Definition process. */
             in item logicalArchitecture : ArchitectureDescription;
             in part specificationContextImpl : SystemContext;
             in part functionalContextImpl[0..1] : SystemContext;
@@ -777,7 +795,7 @@ library package SYSMOD {
 
         action def CreateProductArchitecture {
             doc
-            /* Creates the product architecture based on the white-box specification context and, if present, the white-box functional and logical contexts: the black-box product context and the white-box product context with the concrete, physical or deployable building blocks. Refines the ISO 15288 System Architecture Definition process. */
+            /* Creates the product architecture based on the white box specification context and, if present, the white box functional and logical contexts: the black box product context and the white box product context with the concrete, physical or deployable building blocks. Refines the ISO 15288 System Architecture Definition process. */
             in item productArchitecture : ArchitectureDescription;
             in part specificationContextImpl : SystemContext;
             in part functionalContextImpl[0..1] : SystemContext;

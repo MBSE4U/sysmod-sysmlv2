@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="660" viewBox="0 0 1000 660" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <!-- Rendering of DD::PRJ::functionalArchitectureView : SYSMODViews::FunctionalArchitectureView (render asInterconnectionDiagram).
        Exposed: DD::PRJ::deliveryDroneFunctionalContextImpl (DD_FUNCTIONAL_ARCHITECTURE::DeliveryDroneFunctionalContextImpl),
-       the white-box functional context.
+       the white box functional context.
        Shown: the actors and interfaces inherited from the brownfield context, the system ports, the functional
        blocks of DeliveryDroneFunctionalSystemImpl with their ports, and the two PositionInterface connections.
        Binding connectors (e.g. operatorPort.order = deliveryManagement.deliveryPort.deliveryOrder) are not

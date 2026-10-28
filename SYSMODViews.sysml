@@ -314,7 +314,7 @@ library package SYSMODViews {
         // Technical management processes
         viewpoint def ProjectViewpoint {
             doc /* Provides an overview of the SYSMOD Project and the integration of its problem artifacts
-                 * (problemStatement, stakeholderNeeds, systemRequirementSpecification) and solution artifacts
+                 * (problemStatement, stakeholderNeeds, systemObjectives, systemRequirementSpecification) and solution artifacts
                  * (the system contexts from the brownfieldContext to the productContext).
                  */
             subject theView;
@@ -360,7 +360,7 @@ library package SYSMODViews {
         // Technical processes
         viewpoint def ProblemSolutionViewpoint {
             doc /* Shows the problemStatement with its projectOwner and the brownfieldContext,
-                 * and the systemIdeaContext that answers the problem.
+                 * the systemIdeaContext that answers the problem, and the systemObjectives, the measurable goals of the system idea.
                  * The stakeholders are those of the framed concerns: the ProductManager, a role typically played by
                  * the projectOwner, and the Acquirer, who has the problem and must agree with the problemStatement.
                  */
@@ -386,7 +386,7 @@ library package SYSMODViews {
             }
         }
         viewpoint def ArchitectureViewpoint {
-            doc /* Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext with their white-box
+            doc /* Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext with their white box
                  * contexts (functionalContextImpl, logicalContextImpl, productContextImpl), their allocations (functional2logical,
                  * logical2product, functionalImpl2logicalImpl, logicalImpl2productImpl), and the systemRequirementSpecification they satisfy.
                  */
@@ -434,7 +434,7 @@ library package SYSMODViews {
             }
         }
         viewpoint def ValidationViewpoint {
-            doc /* Shows the problemStatement, the stakeholderNeeds, the system use cases describing the intended use,
+            doc /* Shows the problemStatement, the stakeholderNeeds, the systemObjectives, the system use cases describing the intended use,
                  * and the verificationCases that validate the productSystem against them.
                  */
             subject theView;
@@ -546,6 +546,15 @@ library package SYSMODViews {
                 * that answer the problemStatement.
                 */
         satisfy requirement psvp : ProblemSolutionViewpoint;
+    }
+    view def SystemObjectivesView :> StandardViewDefinitions::GeneralView {
+        doc /* Product "The System Idea": the systemObjectives of the Project, i.e., the measurable goals of the system idea
+                * that direct the development, with the projectOwner as stakeholder, the system idea as subject,
+                * and the stakeholderNeeds they frame.
+                */
+        satisfy requirement psvp : ProblemSolutionViewpoint;
+        filter @SysML::ConcernUsage;
+        render Views::asTreeDiagram;
     }
     // Step 07
     view def SpecificationSystemView :> SystemContextView {

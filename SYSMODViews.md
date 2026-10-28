@@ -425,7 +425,7 @@ Viewpoints of the package `SYSMODViews::Viewpoints`. The stakeholders are the st
 | [ProcessViewpoint](#viewpoint-processviewpoint) | [ProjectStatus](#concern-projectstatus) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager) | — |
 | [RiskViewpoint](#viewpoint-riskviewpoint) | [RiskExposure](#concern-riskexposure) | [RiskManager](#stakeholder-riskmanager), [ProjectManager](#stakeholder-projectmanager) | — |
 | [ConfigurationViewpoint](#viewpoint-configurationviewpoint) | [ConfigurationBaseline](#concern-configurationbaseline) | [ConfigurationManager](#stakeholder-configurationmanager) | — |
-| [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) | [ProblemStatementView](#view-problemstatementview), [ProblemStatementAIView](#view-problemstatementaiview), [SystemIdeaView](#view-systemideaview) |
+| [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) | [ProblemStatementView](#view-problemstatementview), [ProblemStatementAIView](#view-problemstatementaiview), [SystemIdeaView](#view-systemideaview), [SystemObjectivesView](#view-systemobjectivesview) |
 | [RequirementsViewpoint](#viewpoint-requirementsviewpoint) | [StakeholderNeedsCoverage](#concern-stakeholderneedscoverage) | [RequirementsEngineer](#stakeholder-requirementsengineer), [ProductManager](#stakeholder-productmanager) | [StakeholdersView](#view-stakeholdersview), [StakeholderNeedsView](#view-stakeholderneedsview), [SystemRequirementsView](#view-systemrequirementsview) |
 | [ArchitectureViewpoint](#viewpoint-architectureviewpoint) | [ProblemSolutionIntegration](#concern-problemsolutionintegration), [DesignConsistency](#concern-designconsistency) | [SystemArchitect](#stakeholder-systemarchitect), [DesignEngineer](#stakeholder-designengineer) | [SolutionArchitectureView](#view-solutionarchitectureview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview) |
 | [TradeOffViewpoint](#viewpoint-tradeoffviewpoint) | [TradeOffDecision](#concern-tradeoffdecision) | [SystemAnalyst](#stakeholder-systemanalyst), [SystemArchitect](#stakeholder-systemarchitect) | — |
@@ -472,7 +472,7 @@ Shows the systemRequirementSpecification and the verificationCases of the verifi
 
 ### ProjectViewpoint
 
-Provides an overview of the SYSMOD Project and the integration of its problem artifacts (problemStatement, stakeholderNeeds, systemRequirementSpecification) and solution artifacts (the system contexts from the brownfieldContext to the productContext).
+Provides an overview of the SYSMOD Project and the integration of its problem artifacts (problemStatement, stakeholderNeeds, systemObjectives, systemRequirementSpecification) and solution artifacts (the system contexts from the brownfieldContext to the productContext).
 
 - **Frames concerns:** [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration)
 - **Stakeholders:** [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect)
@@ -516,12 +516,12 @@ Shows the Project, its subProjects, and the chain of system contexts from the br
 
 ### ProblemSolutionViewpoint
 
-Shows the problemStatement with its projectOwner and the brownfieldContext, and the systemIdeaContext that answers the problem. The stakeholders are those of the framed concerns: the ProductManager, a role typically played by the projectOwner, and the Acquirer, who has the problem and must agree with the problemStatement.
+Shows the problemStatement with its projectOwner and the brownfieldContext, the systemIdeaContext that answers the problem, and the systemObjectives, the measurable goals of the system idea. The stakeholders are those of the framed concerns: the ProductManager, a role typically played by the projectOwner, and the Acquirer, who has the problem and must agree with the problemStatement.
 
 - **Frames concerns:** [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures)
 - **Stakeholders:** [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer)
 - **Allowed exposed elements:** `ExtendedConcern`, `ExtendedStakeholder`, `SystemContext`
-- **Views:** [ProblemStatementView](#view-problemstatementview), [ProblemStatementAIView](#view-problemstatementaiview), [SystemIdeaView](#view-systemideaview)
+- **Views:** [ProblemStatementView](#view-problemstatementview), [ProblemStatementAIView](#view-problemstatementaiview), [SystemIdeaView](#view-systemideaview), [SystemObjectivesView](#view-systemobjectivesview)
 
 <a id="viewpoint-requirementsviewpoint"></a>
 
@@ -538,7 +538,7 @@ Shows the projectStakeholders, their stakeholderNeeds, and the systemRequirement
 
 ### ArchitectureViewpoint
 
-Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext with their white-box contexts (functionalContextImpl, logicalContextImpl, productContextImpl), their allocations (functional2logical, logical2product, functionalImpl2logicalImpl, logicalImpl2productImpl), and the systemRequirementSpecification they satisfy.
+Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext with their white box contexts (functionalContextImpl, logicalContextImpl, productContextImpl), their allocations (functional2logical, logical2product, functionalImpl2logicalImpl, logicalImpl2productImpl), and the systemRequirementSpecification they satisfy.
 
 - **Frames concerns:** [ProblemSolutionIntegration](#concern-problemsolutionintegration), [DesignConsistency](#concern-designconsistency)
 - **Stakeholders:** [SystemArchitect](#stakeholder-systemarchitect), [DesignEngineer](#stakeholder-designengineer)
@@ -582,7 +582,7 @@ Shows the systemRequirementSpecification and the verificationCases that verify t
 
 ### ValidationViewpoint
 
-Shows the problemStatement, the stakeholderNeeds, the system use cases describing the intended use, and the verificationCases that validate the productSystem against them.
+Shows the problemStatement, the stakeholderNeeds, the systemObjectives, the system use cases describing the intended use, and the verificationCases that validate the productSystem against them.
 
 - **Frames concerns:** [OperationalSuitability](#concern-operationalsuitability)
 - **Stakeholders:** [ValidationEngineer](#stakeholder-validationengineer), [Operator](#stakeholder-operator), [Acquirer](#stakeholder-acquirer)
@@ -625,6 +625,7 @@ View definitions of the SYSMODViews library with their backward traceability vie
 | [StakeholderNeedsView](#view-stakeholderneedsview) | — | [RequirementsViewpoint](#viewpoint-requirementsviewpoint) | [StakeholderNeedsCoverage](#concern-stakeholderneedscoverage) | [RequirementsEngineer](#stakeholder-requirementsengineer), [ProductManager](#stakeholder-productmanager) |
 | [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | — | [InterfaceViewpoint](#viewpoint-interfaceviewpoint) | [InterfaceIntegration](#concern-interfaceintegration) | [IntegrationEngineer](#stakeholder-integrationengineer), [DesignEngineer](#stakeholder-designengineer) |
 | [SystemIdeaView](#view-systemideaview) | — | [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) |
+| [SystemObjectivesView](#view-systemobjectivesview) | `PitchSystemIdea` | [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) |
 | [SpecificationSystemView](#view-specificationsystemview) | — | [InterfaceViewpoint](#viewpoint-interfaceviewpoint) | [InterfaceIntegration](#concern-interfaceintegration) | [IntegrationEngineer](#stakeholder-integrationengineer), [DesignEngineer](#stakeholder-designengineer) |
 | [UseCasesView](#view-usecasesview) | — | [UseCaseViewpoint](#viewpoint-usecaseviewpoint) | [SystemOperation](#concern-systemoperation) | [Operator](#stakeholder-operator) |
 | [UseCaseFlowView](#view-usecaseflowview) | — | [UseCaseViewpoint](#viewpoint-usecaseviewpoint) | [SystemOperation](#concern-systemoperation) | [Operator](#stakeholder-operator) |
@@ -933,6 +934,42 @@ view def SystemIdeaView :> SystemContextView {
 ![SystemIdeaView example](examples/views/systemIdeaView.svg)
 
 _Illustrative example based on the Delivery Drone example model ([systemIdeaView.svg](examples/views/systemIdeaView.svg))._
+
+<a id="view-systemobjectivesview"></a>
+
+### SystemObjectivesView
+
+Product "The System Idea": the systemObjectives of the Project, i.e., the measurable goals of the system idea that direct the development, with the projectOwner as stakeholder, the system idea as subject, and the stakeholderNeeds they frame.
+
+- **Specializes:** `GeneralView`
+
+**Backward traceability**
+
+- **SYSMOD steps:** `PitchSystemIdea` (`'Delivery Drone Project'::systemObjectivesView`)
+- **Viewpoints:** [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint)
+- **Concerns:** [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures)
+- **Stakeholders:** [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer)
+- **ISO 15288 processes:** [Business or Mission Analysis](#process-businessormissionanalysis), [Acquisition](#process-acquisition)
+
+**Definition**
+
+```sysml
+view def SystemObjectivesView :> StandardViewDefinitions::GeneralView {
+    doc /* Product "The System Idea": the systemObjectives of the Project, i.e., the measurable goals of the system idea
+            * that direct the development, with the projectOwner as stakeholder, the system idea as subject,
+            * and the stakeholderNeeds they frame.
+            */
+    satisfy requirement psvp : ProblemSolutionViewpoint;
+    filter @SysML::ConcernUsage;
+    render Views::asTreeDiagram;
+}
+```
+
+**Example**
+
+![SystemObjectivesView example](examples/views/systemObjectivesView.svg)
+
+_Illustrative example based on the Delivery Drone example model ([systemObjectivesView.svg](examples/views/systemObjectivesView.svg))._
 
 <a id="view-specificationsystemview"></a>
 

@@ -385,8 +385,9 @@ library package SYSMODViews {
             }
         }
         viewpoint def ArchitectureViewpoint {
-            doc /* Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext,
-                 * their allocations (functional2logical, logical2product), and the systemRequirementSpecification they satisfy.
+            doc /* Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext with their white-box
+                 * contexts (functionalContextImpl, logicalContextImpl, productContextImpl), their allocations (functional2logical,
+                 * logical2product, functionalImpl2logicalImpl, logicalImpl2productImpl), and the systemRequirementSpecification they satisfy.
                  */
             subject theView;
             frame concern cpsi : ProblemSolutionIntegration;
@@ -583,16 +584,16 @@ library package SYSMODViews {
         render Views::asInterconnectionDiagram;
     }
     view def FunctionalArchitectureView :> SolutionArchitectureView {
-        doc /* The functionalContext of the Project with the functional blocks of the functional system. */
+        doc /* The functionalContext and functionalContextImpl of the Project with the functional blocks of the functional system. */
     }
     view def LogicalArchitectureView :> SolutionArchitectureView {
-        doc /* The logicalContext of the Project with the technology-independent building blocks of the logical system. */
+        doc /* The logicalContext and logicalContextImpl of the Project with the technology-independent building blocks of the logical system. */
     }
     view def ProductArchitectureView :> SolutionArchitectureView {
-        doc /* The productContext of the Project with the concrete building blocks of the product system. */
+        doc /* The productContext and productContextImpl of the Project with the concrete building blocks of the product system. */
     }
     view def ArchitectureAllocationView :> StandardViewDefinitions::GridView {
-        doc /* The allocations functional2logical and logical2product between the solution architectures. */
+        doc /* The allocations functional2logical, logical2product, functionalImpl2logicalImpl, and logicalImpl2productImpl between the solution architectures. */
         satisfy requirement avp : ArchitectureViewpoint;
         filter @SysML::AllocationUsage or @SystemContextMetadata;
         render Views::asElementTable;

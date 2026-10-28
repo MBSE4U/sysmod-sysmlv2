@@ -25,10 +25,9 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
 
     #systemContext part def DeliveryDroneFunctionalContext :> DD_SPECIFICATION::DeliveryDroneSystemContext {
         doc
-        /* The context of the functional architecture. It specializes the
-         * black-box specification context only: the functional architecture contains
-         * functional blocks and must not depend on the physical internal
-         * structure of the system. */
+        /* The black-box context of the functional architecture. It specializes the
+         * black-box specification context only: the functional system must not
+         * depend on the physical internal structure of the system. */
         #system part :>> deliveryDroneSystem : DeliveryDroneFunctionalSystem;
 
         use case :>> deliverPackage : DD_SPECIFICATION::UseCases::DeliverPackage {
@@ -47,12 +46,23 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
             subject :>> droneSystem :> deliveryDroneSystem;
         }
     }
+    #systemContext part def DeliveryDroneFunctionalContextImpl :> DeliveryDroneFunctionalContext, DD_SPECIFICATION::DeliveryDroneSystemContextImpl {
+        doc
+        /* The white-box context of the functional architecture: adds the
+         * functional blocks of the functional system. */
+        #system part :>> deliveryDroneSystemImpl : DeliveryDroneFunctionalSystemImpl;
+    }
     part def DeliveryDroneFunctionalSystem :> DD_SPECIFICATION::DeliveryDroneSystem {
         doc
-        /* The root of the functional architecture, for example, developed with
-         * the FAS method. It redefines the black-box specification system and thereby
-         * inherits the system ports, so the functions can be related to the
-         * system's external interfaces. */
+        /* The root of the functional architecture as a black box, for example,
+         * developed with the FAS method. It redefines the black-box specification
+         * system and thereby inherits the system ports, so the functions can be
+         * related to the system's external interfaces. */
+    }
+    part def DeliveryDroneFunctionalSystemImpl :> DeliveryDroneFunctionalSystem, DD_SPECIFICATION::DeliveryDroneSystemImpl {
+        doc
+        /* The functional system as a white box: the functional blocks that
+         * perform the functions of the system. */
 
         bind operatorPort.order = deliveryManagement.deliveryPort.deliveryOrder;
         bind energyPort.energy = batteryManagement.energyPort.energy;

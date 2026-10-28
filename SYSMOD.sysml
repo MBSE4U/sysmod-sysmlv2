@@ -128,10 +128,18 @@ library package SYSMOD {
         }
         part functionalContext[0..1] :> specificationContext {
             doc
-            /* The Functional Context is optional and specializes the black-box specification context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white-box specification context: a functional architecture contains only functional blocks and must not depend on the physical internal structure of the system. */
+            /* The Functional Context is optional and specializes the black-box specification context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white-box specification context: the black-box functional system does not depend on the physical internal structure of the system. The functional blocks are the internal structure of the functional system and belong to the white-box functional context implementation. */
             part <soi> functionalSystem :>> specificationContext::soi {
                 doc
                 /* The Functional System is the root element of the functional architecture. It redefines the black-box specification system and thereby inherits the context information such as the system ports, so that functions can be related to the system's external interfaces without depending on its physical internal structure. */
+            }
+        }
+        part functionalContextImpl[0..1] :> functionalContext, specificationContextImpl {
+            doc
+            /* The Functional Context Implementation is optional and the white-box view of the functional context. It specializes the functional context and the white-box specification context and contains the internal structure of the functional system, i.e., its functional blocks. */
+            part <soiImpl> functionalSystemImpl :>> functionalContext::soi, specificationContextImpl::soiImpl {
+                doc
+                /* The white-box view of the functional system. It redefines the functional system and the white-box specification system and contains the functional blocks of the functional architecture. */
             }
         }
         part logicalContext[0..1] :> specificationContext {
@@ -139,32 +147,55 @@ library package SYSMOD {
             /* The Logical Context is optional and specializes the black-box specification context. It provides the context for a logical architecture with technology-independent building blocks. */
             part <soi> logicalSystem :>> specificationContext::soi {
                 doc
-                /* The Logical System is the root element of the logical architecture. It redefines the black-box specification system. */
+                /* The Logical System is the root element of the logical architecture. It redefines the black-box specification system and thereby inherits the context information such as the system ports. */
             }
         }
-        part productContext :> specificationContextImpl {
+        part logicalContextImpl[0..1] :> logicalContext, specificationContextImpl {
             doc
-            /* The Product Context specializes the white-box specification context and provides the context for a product architecture with concrete, physical or deployable building blocks. */
-            part <soiImpl> productSystem :>> specificationContextImpl::soiImpl {
+            /* The Logical Context Implementation is optional and the white-box view of the logical context. It specializes the logical context and the white-box specification context and contains the internal structure of the logical system, i.e., its technology-independent building blocks. */
+            part <soiImpl> logicalSystemImpl :>> logicalContext::soi, specificationContextImpl::soiImpl {
                 doc
-                /* The Product System is the root element of the product architecture. It redefines the white-box specification system. It satisfies the system requirements. */
+                /* The white-box view of the logical system. It redefines the logical system and the white-box specification system and contains the technology-independent building blocks of the logical architecture. */
+            }
+        }
+        part productContext :> specificationContext {
+            doc
+            /* The Product Context specializes the black-box specification context. It provides the context for a product architecture with concrete, physical or deployable building blocks. */
+            part <soi> productSystem :>> specificationContext::soi {
+                doc
+                /* The Product System is the root element of the product architecture. It redefines the black-box specification system and thereby inherits the context information such as the system ports. */
+            }
+        }
+        part productContextImpl[0..1] :> productContext, specificationContextImpl {
+            doc
+            /* The Product Context Implementation is the white-box view of the product context. It specializes the product context and the white-box specification context and contains the internal structure of the product system, i.e., its concrete, physical or deployable building blocks. */
+            part <soiImpl> productSystemImpl :>> productContext::soi, specificationContextImpl::soiImpl {
+                doc
+                /* The white-box view of the product system. It redefines the product system and the white-box specification system and contains the concrete, physical or deployable building blocks of the product architecture. It satisfies the system requirements and is the subject of the verification cases. */
                 satisfy systemRequirementSpecification;
-
             }
         }
         verification verificationCases[*] {
             doc
             /* The verification cases verify and validate the system requirements. */
-            subject productSystem :> productContext.soiImpl;
+            subject productSystem :> productContextImpl.soiImpl;
         }
 
         allocation functional2logical [0..1] allocate functionalContext to logicalContext {
             doc
             /* Allocation of the functional architecture to the logical architecture. */
         }
+        allocation functionalImpl2logicalImpl [0..1] allocate functionalContextImpl to logicalContextImpl {
+            doc
+            /* Allocation of the white-box functional architecture, i.e., its functional blocks, to the white-box logical architecture. */
+        }
         allocation logical2product [0..1] allocate logicalContext to productContext {
             doc
             /* Allocation of the logical architecture to the product architecture. */
+        }
+        allocation logicalImpl2productImpl [0..1] allocate logicalContextImpl to productContextImpl {
+            doc
+            /* Allocation of the white-box logical architecture, i.e., its logical building blocks, to the white-box product architecture. */
         }
 
         occurrence subProjects : Project [*] {
@@ -543,6 +574,9 @@ library package SYSMOD {
             flow from createSolutionArchitectures.functionalContext to project.functionalContext;
             flow from createSolutionArchitectures.logicalContext to project.logicalContext;
             flow from createSolutionArchitectures.productContext to project.productContext;
+            flow from createSolutionArchitectures.functionalContextImpl to project.functionalContextImpl;
+            flow from createSolutionArchitectures.logicalContextImpl to project.logicalContextImpl;
+            flow from createSolutionArchitectures.productContextImpl to project.productContextImpl;
             flow from verifyAndValidateRequirements.verificationCases to project.verificationCases;
 
             bind project.brownfieldContextImpl = specifyProblemStatement.brownfieldContextImpl;
@@ -556,7 +590,7 @@ library package SYSMOD {
             bind project.stakeholderNeeds = defineSystemSpecification.stakeholderNeeds;
             bind project.specificationContextImpl = createSolutionArchitectures.specificationContextImpl;
             bind project.systemRequirementSpecification = verifyAndValidateRequirements.systemRequirementSpecification;
-            bind project.productContext = verifyAndValidateRequirements.productContext;
+            bind project.productContextImpl = verifyAndValidateRequirements.productContextImpl;
 
             action setupProject : SetupProject {
                 @StepStatus;
@@ -685,19 +719,22 @@ library package SYSMOD {
 
         action def CreateSolutionArchitectures {
             doc
-            /* Creates the solution architectures based on the white-box specification context: the optional functional and logical architectures and the product architecture. Refines the ISO 15288 System Architecture Definition process. */
+            /* Creates the solution architectures based on the white-box specification context: the optional functional and logical architectures and the product architecture, each as black-box context and white-box context (functionalContextImpl, logicalContextImpl, productContextImpl). Refines the ISO 15288 System Architecture Definition process. */
             in item solutionArchitecture : ArchitectureDescription;
             in part specificationContextImpl : SystemContext;
             out part functionalContext[0..1] : SystemContext;
             out part logicalContext[0..1] : SystemContext;
             out part productContext : SystemContext;
+            out part functionalContextImpl[0..1] : SystemContext;
+            out part logicalContextImpl[0..1] : SystemContext;
+            out part productContextImpl : SystemContext;
         }
 
         action def VerifyAndValidateRequirements {
             doc
             /* Creates the verification cases that verify the product system against the system requirements and validate it against the stakeholder needs and the problem statement. Refines the ISO 15288 Verification and Validation processes. */
             in requirement systemRequirementSpecification : ExtendedRequirement;
-            in part productContext : SystemContext;
+            in part productContextImpl : SystemContext;
             out verification verificationCases[*];
         }
 

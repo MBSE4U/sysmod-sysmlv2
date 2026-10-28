@@ -538,7 +538,7 @@ Shows the projectStakeholders, their stakeholderNeeds, and the systemRequirement
 
 ### ArchitectureViewpoint
 
-Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext, their allocations (functional2logical, logical2product), and the systemRequirementSpecification they satisfy.
+Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext with their white-box contexts (functionalContextImpl, logicalContextImpl, productContextImpl), their allocations (functional2logical, logical2product, functionalImpl2logicalImpl, logicalImpl2productImpl), and the systemRequirementSpecification they satisfy.
 
 - **Frames concerns:** [ProblemSolutionIntegration](#concern-problemsolutionintegration), [DesignConsistency](#concern-designconsistency)
 - **Stakeholders:** [SystemArchitect](#stakeholder-systemarchitect), [DesignEngineer](#stakeholder-designengineer)
@@ -1105,7 +1105,7 @@ Abstract view definition; see the examples of [FunctionalArchitectureView](#view
 
 ### FunctionalArchitectureView
 
-The functionalContext of the Project with the functional blocks of the functional system.
+The functionalContext and functionalContextImpl of the Project with the functional blocks of the functional system.
 
 - **Specializes:** [SolutionArchitectureView](#view-solutionarchitectureview)
 
@@ -1121,7 +1121,7 @@ The functionalContext of the Project with the functional blocks of the functiona
 
 ```sysml
 view def FunctionalArchitectureView :> SolutionArchitectureView {
-    doc /* The functionalContext of the Project with the functional blocks of the functional system. */
+    doc /* The functionalContext and functionalContextImpl of the Project with the functional blocks of the functional system. */
 }
 ```
 
@@ -1135,7 +1135,7 @@ _Illustrative example based on the Delivery Drone example model ([functionalArch
 
 ### LogicalArchitectureView
 
-The logicalContext of the Project with the technology-independent building blocks of the logical system.
+The logicalContext and logicalContextImpl of the Project with the technology-independent building blocks of the logical system.
 
 - **Specializes:** [SolutionArchitectureView](#view-solutionarchitectureview)
 
@@ -1151,7 +1151,7 @@ The logicalContext of the Project with the technology-independent building block
 
 ```sysml
 view def LogicalArchitectureView :> SolutionArchitectureView {
-    doc /* The logicalContext of the Project with the technology-independent building blocks of the logical system. */
+    doc /* The logicalContext and logicalContextImpl of the Project with the technology-independent building blocks of the logical system. */
 }
 ```
 
@@ -1165,7 +1165,7 @@ _Illustrative example based on the Delivery Drone example model ([logicalArchite
 
 ### ProductArchitectureView
 
-The productContext of the Project with the concrete building blocks of the product system.
+The productContext and productContextImpl of the Project with the concrete building blocks of the product system.
 
 - **Specializes:** [SolutionArchitectureView](#view-solutionarchitectureview)
 
@@ -1181,7 +1181,7 @@ The productContext of the Project with the concrete building blocks of the produ
 
 ```sysml
 view def ProductArchitectureView :> SolutionArchitectureView {
-    doc /* The productContext of the Project with the concrete building blocks of the product system. */
+    doc /* The productContext and productContextImpl of the Project with the concrete building blocks of the product system. */
 }
 ```
 
@@ -1195,7 +1195,7 @@ _Illustrative example based on the Delivery Drone example model ([productArchite
 
 ### ArchitectureAllocationView
 
-The allocations functional2logical and logical2product between the solution architectures.
+The allocations functional2logical, logical2product, functionalImpl2logicalImpl, and logicalImpl2productImpl between the solution architectures.
 
 - **Specializes:** `GridView`
 
@@ -1211,7 +1211,7 @@ The allocations functional2logical and logical2product between the solution arch
 
 ```sysml
 view def ArchitectureAllocationView :> StandardViewDefinitions::GridView {
-    doc /* The allocations functional2logical and logical2product between the solution architectures. */
+    doc /* The allocations functional2logical, logical2product, functionalImpl2logicalImpl, and logicalImpl2productImpl between the solution architectures. */
     satisfy requirement avp : ArchitectureViewpoint;
     filter @SysML::AllocationUsage or @SystemContextMetadata;
     render Views::asElementTable;

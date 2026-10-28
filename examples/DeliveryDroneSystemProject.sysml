@@ -129,17 +129,27 @@ package <DD> DeliveryDrone {
         part deliveryDroneFunctionalContext :>> functionalContext : DD_FUNCTIONAL_ARCHITECTURE::DeliveryDroneFunctionalContext :> deliveryDroneSpecificationContext {
             part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSpecificationContext::deliveryDroneSystem, Project::functionalContext::functionalSystem;
         }
+        part deliveryDroneFunctionalContextImpl :>> functionalContextImpl : DD_FUNCTIONAL_ARCHITECTURE::DeliveryDroneFunctionalContextImpl :> deliveryDroneFunctionalContext, deliveryDroneSpecificationContextImpl {
+            part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSpecificationContextImpl::deliveryDroneSystemImpl, Project::functionalContextImpl::functionalSystemImpl;
+        }
 
         //------------------------- Solution Architecture: Logical Architecture
         part deliveryDroneLogicalContext :>> logicalContext : DD_LOGICAL::DeliveryDroneLogicalContext :> deliveryDroneSpecificationContext {
-            part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSpecificationContext::deliveryDroneSystem, Project::logicalContext::logicalSystem;            
+            part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSpecificationContext::deliveryDroneSystem, Project::logicalContext::logicalSystem;
+        }
+        part deliveryDroneLogicalContextImpl :>> logicalContextImpl : DD_LOGICAL::DeliveryDroneLogicalContextImpl :> deliveryDroneLogicalContext, deliveryDroneSpecificationContextImpl {
+            part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSpecificationContextImpl::deliveryDroneSystemImpl, Project::logicalContextImpl::logicalSystemImpl;
         }
 
         //------------------------- Solution Architecture: Product Architecture
-        part deliveryDroneProductContext :>> productContext : DD_PRODUCT::DeliveryDroneProductContext :> deliveryDroneSpecificationContextImpl {
-            part deliveryDroneProduct :>> deliveryDroneSystemImpl, deliveryDroneSpecificationContextImpl::deliveryDroneSystemImpl, Project::productContext::productSystem;
+        part deliveryDroneProductContext :>> productContext : DD_PRODUCT::DeliveryDroneProductContext :> deliveryDroneSpecificationContext {
+            part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSpecificationContext::deliveryDroneSystem, Project::productContext::productSystem;
         }
-        // The functional2logical and logical2product allocations are inherited from SYSMOD::Project.
+        part deliveryDroneProductContextImpl :>> productContextImpl : DD_PRODUCT::DeliveryDroneProductContextImpl :> deliveryDroneProductContext, deliveryDroneSpecificationContextImpl {
+            part deliveryDroneProduct :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSpecificationContextImpl::deliveryDroneSystemImpl, Project::productContextImpl::productSystemImpl;
+        }
+        // The allocations functional2logical, logical2product, functionalImpl2logicalImpl,
+        // and logicalImpl2productImpl are inherited from SYSMOD::Project.
 
         //------------------------- Sub-Projects
         occurrence controlStationProject : DDCS::DeliveryDroneControlStationProject :> subProjects {

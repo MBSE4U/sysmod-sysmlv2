@@ -60,7 +60,7 @@
   <!-- Summary -->
   <g font-size="12" fill="#555">
     <text x="20" y="246">Verification coverage: 1 of 2 system requirements (50 %). The root DeliveryDroneSystemRequirements is not listed as a row.</text>
-    <text x="20" y="264">MaxPayloadTest (subject testedSystem : DeliveryDroneProductSystem) is a verification def and not yet a verificationCases usage of the project.</text>
+    <text x="20" y="264">MaxPayloadTest (subject testedSystem : DeliveryDroneProductSystemImpl) is a verification def and not yet a verificationCases usage of the project.</text>
     <text x="20" y="290">✓ = the verification case's objective verifies the requirement; empty cell = no verify relationship.</text>
   </g>
 

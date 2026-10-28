@@ -5,6 +5,14 @@
 - MicroStory snippets `the-project` and `problem-statement`: the project now declares the views `projectCoverView`, `projectCoverAIView`, `problemStatementView`, and `problemStatementAIView` itself, as the Delivery Drone example does since 5.1.6 (they are no longer inherited from `SYSMOD::Project`).
 - Fixed the double bullet ("- - ") of the black box/white box entry in the 5.1.6 change log.
 - Fixed a parser error in the `Percentage` constraint (#39): the assert constraint now refers to the attribute value with `that` instead of `self` (`that >= 0.0 and that <= 1.0`).
+- Black-box/white-box separation for the solution architectures, as for the brownfield, system idea, and specification contexts:
+  - `functionalContext`, `logicalContext`, and `productContext` are the black-box contexts and specialize `specificationContext`; `productContext` no longer specializes `specificationContextImpl`, and `productSystem` now redefines the black-box `soi`.
+  - New white-box contexts `functionalContextImpl`, `logicalContextImpl` (both optional), and `productContextImpl`, each specializing its black-box context and `specificationContextImpl`, with the systems `functionalSystemImpl`, `logicalSystemImpl`, and `productSystemImpl` (`soiImpl`).
+  - `productSystemImpl` now satisfies the `systemRequirementSpecification` and is the subject of the `verificationCases` (`productContextImpl.soiImpl`).
+  - New allocations `functionalImpl2logicalImpl` and `logicalImpl2productImpl` between the white-box contexts.
+  - `CreateSolutionArchitectures` also outputs the three white-box contexts, which flow to the project; `VerifyAndValidateRequirements` takes `productContextImpl` as input.
+  - Docs aligned in `SYSMOD.sysml`, the architecture and process prompts of `SYSMOD4AI.sysml`, the architecture view docs of `SYSMODViews.sysml`, and `README.md`.
+- Updated example model (architecture): the functional, logical, and product architectures of the Delivery Drone have a black-box system (`DeliveryDrone…System`) and a white-box system (`DeliveryDrone…SystemImpl`) with the building blocks, and white-box contexts (`DeliveryDrone…ContextImpl`) that the project instantiates. `MaxPayloadTest` tests the `DeliveryDroneProductSystemImpl`. The example views of the architectures, the allocations, and V&V show the white-box contexts.
 
 ## v5.1.6
 

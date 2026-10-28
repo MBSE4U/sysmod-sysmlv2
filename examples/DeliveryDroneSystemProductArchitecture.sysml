@@ -22,10 +22,10 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
 
     private import SYSMOD::*;
 
-    #systemContext part def DeliveryDroneProductContext :> DD_SPECIFICATION::DeliveryDroneSystemContextImpl {
+    #systemContext part def DeliveryDroneProductContext :> DD_SPECIFICATION::DeliveryDroneSystemContext {
         doc
-        /* The context of the product architecture. */
-        #system part :>> deliveryDroneSystemImpl : DeliveryDroneProductSystem;
+        /* The black-box context of the product architecture. */
+        #system part :>> deliveryDroneSystem : DeliveryDroneProductSystem;
 
         use case :>> deliverPackage : DD_SPECIFICATION::UseCases::DeliverPackage {
             subject :>> droneSystem :> deliveryDroneSystem;
@@ -44,7 +44,18 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
         }
   
     }   
-    part def DeliveryDroneProductSystem :> DD_SPECIFICATION::DeliveryDroneSystemImpl {
+    #systemContext part def DeliveryDroneProductContextImpl :> DeliveryDroneProductContext, DD_SPECIFICATION::DeliveryDroneSystemContextImpl {
+        doc
+        /* The white-box context of the product architecture: adds the
+         * concrete, physical building blocks of the product system. */
+        #system part :>> deliveryDroneSystemImpl : DeliveryDroneProductSystemImpl;
+    }
+    part def DeliveryDroneProductSystem :> DD_SPECIFICATION::DeliveryDroneSystem {
+        doc
+        /* The product system as a black box. It redefines the black-box
+         * specification system and inherits the system ports. */
+    }
+    part def DeliveryDroneProductSystemImpl :> DeliveryDroneProductSystem, DD_SPECIFICATION::DeliveryDroneSystemImpl {
         doc
         /* The product architecture: the concrete, physical building blocks of
          * the delivery drone system. */
@@ -84,7 +95,7 @@ package <DD_VV> DeliveryDroneVerificationValidation {
     private import DD_PRODUCT::*;
     private import DD_SPECIFICATION::*;
     verification def MaxPayloadTest {
-        subject testedSystem : DeliveryDroneProductSystem;
+        subject testedSystem : DeliveryDroneProductSystemImpl;
         requirement maxReq : Requirements::MaxPayloadMass {
             subject :>> deliveryDrone :> testedSystem.drones;
         }

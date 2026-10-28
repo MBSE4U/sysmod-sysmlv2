@@ -719,7 +719,7 @@ package SYSMOD4AI {
                 "1. If a functional architecture is required, specialize specificationContext (black box view) within functionalContext. Neither functionalContext nor functionalContextImpl specializes specificationContextImpl — the functional architecture must not depend on the physical internal structure of the system.
                 2. Redefine the inherited functionalSystem part (which redefines the black box specification soi) as the root of the functional architecture (e.g., developed with the FAS method). It inherits the system ports, so functions can be related to the system's external interfaces. Define the top-level functions of the system as action usages within the functionalSystem.
                 3. Specialize functionalContext within functionalContextImpl (white box view) by redefining the inherited functionalSystemImpl part. Define the functional blocks as part usages within the functionalSystemImpl that perform the functions.
-                4. If allocations to the logical architecture are known, note them; formal allocations are expressed via the functional2logical allocation (black box contexts) and the functionalImpl2logicalImpl allocation (white box contexts) in the project.
+                4. If allocations to the logical architecture are known, note them; the createLogicalArchitecture step creates the functional2logical allocation (black box contexts) and the functionalImpl2logicalImpl allocation (white box contexts) in the project.
                 5. Create the SysML v2 textual notation for the functionalContext and the functionalContextImpl.
                 6. If the user asks to insert them into the SysML model, find the project and redefine the inherited functionalContext and functionalContextImpl part usages (note: multiplicity is [0..1]).";
             create_questions = (
@@ -764,8 +764,8 @@ package SYSMOD4AI {
             create_prompt =
                 "1. If a logical architecture is required, specialize specificationContext (black box view) within logicalContext by redefining the inherited logicalSystem part (the redefined black box soi).
                 2. Specialize logicalContext and specificationContextImpl within logicalContextImpl (white box view) by redefining the inherited logicalSystemImpl part. Define logical components as part usages within logicalSystemImpl, representing technology-independent building blocks that realize the functional architecture.
-                3. If allocations from the functional architecture are known, note them; formal allocations are expressed via the functional2logical and functionalImpl2logicalImpl allocations in the project.
-                4. If allocations to the product architecture are known, note them; formal allocations are expressed via the logical2product and logicalImpl2productImpl allocations in the project.
+                3. If a functional architecture is present, create the functional2logical allocation (black box contexts) and the functionalImpl2logicalImpl allocation (white box contexts) by redefining the inherited allocation usages in the project, and allocate the functional blocks to the logical components within functionalImpl2logicalImpl.
+                4. If allocations to the product architecture are known, note them; the createProductArchitecture step creates the logical2product and logicalImpl2productImpl allocations in the project.
                 5. Create the SysML v2 textual notation for the logicalContext and the logicalContextImpl.
                 6. If the user asks to insert them into the SysML model, find the project and redefine the inherited logicalContext and logicalContextImpl part usages (note: multiplicity is [0..1]).";
             create_questions = (
@@ -808,7 +808,7 @@ package SYSMOD4AI {
             create_prompt =
                 "1. Specialize specificationContext (black box view) within productContext by redefining the inherited productSystem part (the redefined black box soi) with a product-level definition.
                 2. Specialize productContext and specificationContextImpl within productContextImpl (white box view) by redefining the inherited productSystemImpl part. Define product components as part usages within productSystemImpl, representing physical or deployable building blocks (hardware, software components, assemblies).
-                3. If allocations from the logical architecture are known, note them; formal allocations are expressed via the logical2product and logicalImpl2productImpl allocations in the project.
+                3. If a logical architecture is present, create the logical2product allocation (black box contexts) and the logicalImpl2productImpl allocation (white box contexts) by redefining the inherited allocation usages in the project, and allocate the logical components to the product components within logicalImpl2productImpl.
                 4. Include interfaces between product components where relevant.
                 5. Create the SysML v2 textual notation for the productContext and the productContextImpl.
                 6. If the user asks to insert them into the SysML model, find the project and redefine the inherited productContext and productContextImpl part usages.";

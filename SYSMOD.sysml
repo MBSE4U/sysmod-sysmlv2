@@ -194,19 +194,19 @@ library package SYSMOD {
         //
         allocation functional2logical [0..1] allocate functionalContext to logicalContext {
             doc
-            /* Allocation of the functional architecture to the logical architecture. */
+            /* Allocation of the functional architecture to the logical architecture. Created by the createLogicalArchitecture step. */
         }
         allocation functionalImpl2logicalImpl [0..1] allocate functionalContextImpl to logicalContextImpl {
             doc
-            /* Allocation of the white box functional architecture, i.e., its functional blocks, to the white box logical architecture. */
+            /* Allocation of the white box functional architecture, i.e., its functional blocks, to the white box logical architecture. Created by the createLogicalArchitecture step. */
         }
         allocation logical2product [0..1] allocate logicalContext to productContext {
             doc
-            /* Allocation of the logical architecture to the product architecture. */
+            /* Allocation of the logical architecture to the product architecture. Created by the createProductArchitecture step. */
         }
         allocation logicalImpl2productImpl [0..1] allocate logicalContextImpl to productContextImpl {
             doc
-            /* Allocation of the white box logical architecture, i.e., its logical building blocks, to the white box product architecture. */
+            /* Allocation of the white box logical architecture, i.e., its logical building blocks, to the white box product architecture. Created by the createProductArchitecture step. */
         }
 
         //
@@ -615,8 +615,12 @@ library package SYSMOD {
             flow from createFunctionalArchitecture.functionalContextImpl to project.functionalContextImpl;
             flow from createLogicalArchitecture.logicalContext to project.logicalContext;
             flow from createLogicalArchitecture.logicalContextImpl to project.logicalContextImpl;
+            flow from createLogicalArchitecture.functional2logical to project.functional2logical;
+            flow from createLogicalArchitecture.functionalImpl2logicalImpl to project.functionalImpl2logicalImpl;
             flow from createProductArchitecture.productContext to project.productContext;
             flow from createProductArchitecture.productContextImpl to project.productContextImpl;
+            flow from createProductArchitecture.logical2product to project.logical2product;
+            flow from createProductArchitecture.logicalImpl2productImpl to project.logicalImpl2productImpl;
             flow from verifyAndValidateRequirements.verificationContext to project.verificationContext;
 
             bind project.brownfieldContextImpl = specifyProblemStatement.brownfieldContextImpl;
@@ -631,9 +635,11 @@ library package SYSMOD {
             bind project.systemObjectives = defineSystemSpecification.systemObjectives;
             bind project.specificationContext = createFunctionalArchitecture.specificationContext;
             bind project.specificationContextImpl = createLogicalArchitecture.specificationContextImpl;
+            bind project.functionalContext = createLogicalArchitecture.functionalContext;
             bind project.functionalContextImpl = createLogicalArchitecture.functionalContextImpl;
             bind project.specificationContextImpl = createProductArchitecture.specificationContextImpl;
             bind project.functionalContextImpl = createProductArchitecture.functionalContextImpl;
+            bind project.logicalContext = createProductArchitecture.logicalContext;
             bind project.logicalContextImpl = createProductArchitecture.logicalContextImpl;
             bind project.systemRequirementSpecification = verifyAndValidateRequirements.systemRequirementSpecification;
             bind project.productContextImpl = verifyAndValidateRequirements.productContextImpl;
@@ -785,23 +791,29 @@ library package SYSMOD {
 
         action def CreateLogicalArchitecture {
             doc
-            /* Creates the optional logical architecture based on the white box specification context and, if present, the white box functional context: the black box logical context and the white box logical context with the technology-independent building blocks, and the #refinement dependencies from the logical elements to the system requirements they refine. Refines the ISO 15288 System Architecture Definition process. */
+            /* Creates the optional logical architecture based on the white box specification context and, if present, the white box functional context: the black box logical context and the white box logical context with the technology-independent building blocks, the #refinement dependencies from the logical elements to the system requirements they refine, and, if a functional architecture is present, the allocations functional2logical and functionalImpl2logicalImpl from the functional to the logical architecture. Refines the ISO 15288 System Architecture Definition process. */
             in item logicalArchitecture : ArchitectureDescription;
             in part specificationContextImpl : SystemContext;
+            in part functionalContext[0..1] : SystemContext;
             in part functionalContextImpl[0..1] : SystemContext;
             out part logicalContext[0..1] : SystemContext;
             out part logicalContextImpl[0..1] : SystemContext;
+            out allocation functional2logical[0..1];
+            out allocation functionalImpl2logicalImpl[0..1];
         }
 
         action def CreateProductArchitecture {
             doc
-            /* Creates the product architecture based on the white box specification context and, if present, the white box functional and logical contexts: the black box product context and the white box product context with the concrete, physical or deployable building blocks. Refines the ISO 15288 System Architecture Definition process. */
+            /* Creates the product architecture based on the white box specification context and, if present, the white box functional and logical contexts: the black box product context and the white box product context with the concrete, physical or deployable building blocks, and, if a logical architecture is present, the allocations logical2product and logicalImpl2productImpl from the logical to the product architecture. Refines the ISO 15288 System Architecture Definition process. */
             in item productArchitecture : ArchitectureDescription;
             in part specificationContextImpl : SystemContext;
             in part functionalContextImpl[0..1] : SystemContext;
+            in part logicalContext[0..1] : SystemContext;
             in part logicalContextImpl[0..1] : SystemContext;
             out part productContext : SystemContext;
             out part productContextImpl : SystemContext;
+            out allocation logical2product[0..1];
+            out allocation logicalImpl2productImpl[0..1];
         }
 
         action def VerifyAndValidateRequirements {

@@ -38,6 +38,11 @@
   - Logical: `energyManagement`, `fleetCoordination`, and `flightControl` refine `AirCharging`.
 - `ArchitectureViewpoint`: the constraint `onlyArchitectureElements` now also allows dependencies (`SysML::Dependency`), so an architecture view can show the `#refinement` traces to the system requirements without violating the viewpoint.
 
+- Step status for the SYSMOD Map:
+  - The Delivery Drone project redefines its `defaultProcess` and sets the `@StepStatus` of every step (all steps `done`, `verifyAndValidateRequirements` `inProgress` at 20 %, as verification has only started with `MaxPayloadTest`).
+  - New script `scripts/generate_map_status.py` (reuses the parser of `generate_views_doc.py`) reads the steps of `SYSMODDefaultProcess`, the `StepStatusKind` literals, and the `StepStatus` defaults from `SYSMOD.sysml`, and the step status of every `#project` in `examples/`. It writes the read-only `examples/views/sysmodMapStatus.json` and warns about unknown steps, unknown status literals, and percentages outside 0..1. Steps a project does not redefine keep the library defaults.
+  - New workflow `.github/workflows/map-status.yml` regenerates the file on changes of the library, the examples, or the scripts.
+
 ## v5.1.6
 
 - Added `examples/microstories/`: the SysML v2 snippets of the SYSMOD MicroStories on the MBSE4U blog, one standalone file per story (e.g., `the-project.sysml`, `problem-statement.sysml`). Each file builds on the SYSMOD library and is the source of the snippet shown in its story; the website copies the files and checks them with the library. The files are examples and are not part of the published library package.

@@ -173,7 +173,7 @@ package SYSMOD4AI {
                 6. A systemIdeaContext part usage is present and specializes brownfieldContext; a systemIdeaContextImpl part usage is present and specializes systemIdeaContext and brownfieldContextImpl.
                 7. A specificationContext part usage is present and specializes systemIdeaContext; a specificationContextImpl part usage is present and specializes specificationContext and systemIdeaContextImpl.
                 8. A systemRequirementSpecification requirement usage is present and frames stakeholderNeeds.
-                9. A productContext part usage is present and specializes specificationContext; a productContextImpl part usage is present and specializes productContext and specificationContextImpl. Present functionalContextImpl and logicalContextImpl part usages specialize their black box context and specificationContextImpl.
+                9. A productContext part usage is present and specializes specificationContext; a productContextImpl part usage is present and specializes productContext and specificationContextImpl. A present functionalContextImpl part usage specializes functionalContext only; a present logicalContextImpl part usage specializes logicalContext and specificationContextImpl.
                 10. The cross-artifact traceability chain is intact: problemStatement <- stakeholderNeeds <- systemRequirementSpecification, and satisfy relationships exist at the system idea and functional, logical, and product architecture levels.
                 11. If both functionalContext and logicalContext are present, the functional2logical allocation is defined; if logicalContext is present, the logical2product allocation is defined. The same holds for the white box contexts and the functionalImpl2logicalImpl and logicalImpl2productImpl allocations.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
@@ -716,9 +716,9 @@ package SYSMOD4AI {
              */
             name = "sysmod-functional-architecture";
             create_prompt =
-                "1. If a functional architecture is required, specialize specificationContext (black box view) within functionalContext. The black box functionalContext does not specialize specificationContextImpl — the functional system must not depend on the physical internal structure of the system.
+                "1. If a functional architecture is required, specialize specificationContext (black box view) within functionalContext. Neither functionalContext nor functionalContextImpl specializes specificationContextImpl — the functional architecture must not depend on the physical internal structure of the system.
                 2. Redefine the inherited functionalSystem part (which redefines the black box specification soi) as the root of the functional architecture (e.g., developed with the FAS method). It inherits the system ports, so functions can be related to the system's external interfaces. Define the top-level functions of the system as action usages within the functionalSystem.
-                3. Specialize functionalContext and specificationContextImpl within functionalContextImpl (white box view) by redefining the inherited functionalSystemImpl part. Define the functional blocks as part usages within the functionalSystemImpl that perform the functions.
+                3. Specialize functionalContext within functionalContextImpl (white box view) by redefining the inherited functionalSystemImpl part. Define the functional blocks as part usages within the functionalSystemImpl that perform the functions.
                 4. If allocations to the logical architecture are known, note them; formal allocations are expressed via the functional2logical allocation (black box contexts) and the functionalImpl2logicalImpl allocation (white box contexts) in the project.
                 5. Create the SysML v2 textual notation for the functionalContext and the functionalContextImpl.
                 6. If the user asks to insert them into the SysML model, find the project and redefine the inherited functionalContext and functionalContextImpl part usages (note: multiplicity is [0..1]).";
@@ -730,8 +730,8 @@ package SYSMOD4AI {
             validation_prompt =
                 "Validate the functionalContext against the SYSMOD Functional Architecture concept and report findings grouped as errors, warnings, and suggestions.
                 Check:
-                1. If present, the functionalContext part usage specializes specificationContext, and the functionalContextImpl part usage specializes functionalContext and specificationContextImpl.
-                2. A functionalSystem part is present as the root of the functional architecture, redefining the black box specification soi; a functionalSystemImpl part redefines the functionalSystem and the white box specification soiImpl.
+                1. If present, the functionalContext part usage specializes specificationContext, and the functionalContextImpl part usage specializes functionalContext but not specificationContextImpl.
+                2. A functionalSystem part is present as the root of the functional architecture, redefining the black box specification soi; a functionalSystemImpl part redefines the functionalSystem.
                 3. At least one top-level function is defined as an action usage within the functionalSystem, and the functional blocks are part usages within the functionalSystemImpl.
                 4. Each top-level function is traceable to at least one system requirement (via satisfy, refine, or doc comment reference).
                 5. Functions are technology-independent — check for implementation-specific naming or structure that belongs in the logical or product architecture.

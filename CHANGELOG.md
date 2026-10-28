@@ -7,8 +7,9 @@
 - Fixed a parser error in the `Percentage` constraint (#39): the assert constraint now refers to the attribute value with `that` instead of `self` (`that >= 0.0 and that <= 1.0`).
 - Black box/white box separation for the solution architectures, as for the brownfield, system idea, and specification contexts:
   - `functionalContext`, `logicalContext`, and `productContext` are the black box contexts and specialize `specificationContext`; `productContext` no longer specializes `specificationContextImpl`, and `productSystem` now redefines the black box `soi`.
-  - New white box contexts `functionalContextImpl`, `logicalContextImpl` (both optional), and `productContextImpl`, each specializing its black box context and `specificationContextImpl`, with the systems `functionalSystemImpl`, `logicalSystemImpl`, and `productSystemImpl` (`soiImpl`).
+  - New white box contexts `functionalContextImpl`, `logicalContextImpl` (both optional), and `productContextImpl`, each specializing its black box context, with the systems `functionalSystemImpl`, `logicalSystemImpl`, and `productSystemImpl` (`soiImpl`).
   - `productSystemImpl` now satisfies the `systemRequirementSpecification` and is the subject of the `verificationCases` (`productContextImpl.soiImpl`).
+  - `logicalContextImpl` and `productContextImpl` also specialize `specificationContextImpl`. `functionalContextImpl` does not, so the functional architecture, including its functional blocks, stays independent of the physical internal structure of the system. `CreateFunctionalArchitecture` therefore takes the black box `specificationContext` as input.
   - New allocations `functionalImpl2logicalImpl` and `logicalImpl2productImpl` between the white box contexts.
   - `VerifyAndValidateRequirements` takes `productContextImpl` as input.
   - Docs aligned in `SYSMOD.sysml`, the architecture and process prompts of `SYSMOD4AI.sysml`, the architecture view docs of `SYSMODViews.sysml`, and `README.md`.
@@ -31,6 +32,9 @@
   - Updated the docs of `ProjectViewpoint`, `ProblemSolutionViewpoint`, and `ValidationViewpoint` in `SYSMODViews.sysml`, and `README.md`.
 - Updated example model (system objectives): `DD_SYSTEMIDEA` defines the measurable objectives `FastRemoteDelivery` (at most 50 % of the ground delivery time), `LowCostPerDelivery` (at most 70 % of the ground delivery cost), and `OnTimeDelivery` (at least 98 % on time). The Delivery Drone project redefines `systemObjectives` with these three objectives for the project owner John Finch and declares the view usage `systemObjectivesView`; the example view `systemObjectivesView.svg` shows it.
 - Spelling: "black box" and "white box" are now written as two words everywhere, also before a noun ("the black box context", "the white box view"). This replaces the hyphenated adjective form of 5.1.6 (#31) in the library, the AI prompts, the views, the examples, the example views, and `README.md`.
+- Updated example model (requirements traceability): elements of the functional and logical architectures refine the system requirements with `#refinement` dependencies.
+  - Functional: `batteryManagement` and `flightControl` refine `AirCharging`; `packageManagement` refines `MaxPayloadMass`.
+  - Logical: `energyManagement`, `fleetCoordination`, and `flightControl` refine `AirCharging`.
 
 ## v5.1.6
 

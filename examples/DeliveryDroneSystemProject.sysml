@@ -148,8 +148,8 @@ package <DD> DeliveryDrone {
         part deliveryDroneFunctionalContext :>> functionalContext : DD_FUNCTIONAL_ARCHITECTURE::DeliveryDroneFunctionalContext :> deliveryDroneSpecificationContext {
             part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSpecificationContext::deliveryDroneSystem, Project::functionalContext::functionalSystem;
         }
-        part deliveryDroneFunctionalContextImpl :>> functionalContextImpl : DD_FUNCTIONAL_ARCHITECTURE::DeliveryDroneFunctionalContextImpl :> deliveryDroneFunctionalContext, deliveryDroneSpecificationContextImpl {
-            part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSpecificationContextImpl::deliveryDroneSystemImpl, Project::functionalContextImpl::functionalSystemImpl;
+        part deliveryDroneFunctionalContextImpl :>> functionalContextImpl : DD_FUNCTIONAL_ARCHITECTURE::DeliveryDroneFunctionalContextImpl :> deliveryDroneFunctionalContext {
+            part deliveryDroneSystemImpl :>> deliveryDroneSystemImpl, deliveryDroneFunctionalContext::deliveryDroneSystem, Project::functionalContextImpl::functionalSystemImpl;
         }
 
         //------------------------- Solution Architecture: Logical Architecture

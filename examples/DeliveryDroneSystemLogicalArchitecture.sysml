@@ -72,4 +72,16 @@ package <DD_LOGICAL> DeliveryDroneSystemLogicalArchitecture {
             /* Monitors batteries and decides when a drone needs an air charge. */
         }
     }
+
+    //
+    // Refinement of the system requirements by the logical architecture
+    //
+    private import ModelingMetadata::refinement;
+
+    // Deciding when a drone needs an air charge details the air charging requirement.
+    #refinement dependency DeliveryDroneLogicalSystemImpl::energyManagement to DD_SPECIFICATION::Requirements::AirCharging;
+    // Pairing charger drones with low-battery drones details the air charging requirement.
+    #refinement dependency DeliveryDroneLogicalSystemImpl::fleetCoordination to DD_SPECIFICATION::Requirements::AirCharging;
+    // The air charging rendezvous on the route details the air charging requirement.
+    #refinement dependency DeliveryDroneLogicalSystemImpl::flightControl to DD_SPECIFICATION::Requirements::AirCharging;
 }

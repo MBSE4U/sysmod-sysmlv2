@@ -141,18 +141,18 @@ library package SYSMOD {
         }
         part functionalContext[0..1] :> specificationContext {
             doc
-            /* The Functional Context is optional and specializes the black box specification context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white box specification context: the black box functional system does not depend on the physical internal structure of the system. The functional blocks are the internal structure of the functional system and belong to the white box functional context implementation. */
+            /* The Functional Context is optional and specializes the black box specification context. It provides the context for a functional architecture, for example, developed with the FAS method. It deliberately does not specialize the white box specification context, and neither does the functional context implementation: the functional architecture does not depend on the physical internal structure of the system. The functional blocks are the internal structure of the functional system and belong to the white box functional context implementation. */
             part <soi> functionalSystem :>> specificationContext::soi {
                 doc
                 /* The Functional System is the root element of the functional architecture. It redefines the black box specification system and thereby inherits the context information such as the system ports, so that functions can be related to the system's external interfaces without depending on its physical internal structure. */
             }
         }
-        part functionalContextImpl[0..1] :> functionalContext, specificationContextImpl {
+        part functionalContextImpl[0..1] :> functionalContext {
             doc
-            /* The Functional Context Implementation is optional and the white box view of the functional context. It specializes the functional context and the white box specification context and contains the internal structure of the functional system, i.e., its functional blocks. */
-            part <soiImpl> functionalSystemImpl :>> functionalContext::soi, specificationContextImpl::soiImpl {
+            /* The Functional Context Implementation is optional and the white box view of the functional context. It specializes the functional context and contains the internal structure of the functional system, i.e., its functional blocks. */
+            part <soiImpl> functionalSystemImpl :>> functionalContext::soi {
                 doc
-                /* The white box view of the functional system. It redefines the functional system and the white box specification system and contains the functional blocks of the functional architecture. */
+                /* The white box view of the functional system. It redefines the functional system and contains the functional blocks of the functional architecture. It does not inherit the internal structure of the white box specification system. */
             }
         }
         part logicalContext[0..1] :> specificationContext {
@@ -629,7 +629,7 @@ library package SYSMOD {
             bind project.systemIdeaContextImpl = defineSystemSpecification.systemIdeaContextImpl;
             bind project.stakeholderNeeds = defineSystemSpecification.stakeholderNeeds;
             bind project.systemObjectives = defineSystemSpecification.systemObjectives;
-            bind project.specificationContextImpl = createFunctionalArchitecture.specificationContextImpl;
+            bind project.specificationContext = createFunctionalArchitecture.specificationContext;
             bind project.specificationContextImpl = createLogicalArchitecture.specificationContextImpl;
             bind project.functionalContextImpl = createLogicalArchitecture.functionalContextImpl;
             bind project.specificationContextImpl = createProductArchitecture.specificationContextImpl;
@@ -776,9 +776,9 @@ library package SYSMOD {
 
         action def CreateFunctionalArchitecture {
             doc
-            /* Creates the optional functional architecture based on the white box specification context: the black box functional context and the white box functional context with the functional blocks. Refines the ISO 15288 System Architecture Definition process. */
+            /* Creates the optional functional architecture based on the black box specification context: the black box functional context and the white box functional context with the functional blocks. Refines the ISO 15288 System Architecture Definition process. */
             in item functionalArchitecture : ArchitectureDescription;
-            in part specificationContextImpl : SystemContext;
+            in part specificationContext : SystemContext;
             out part functionalContext[0..1] : SystemContext;
             out part functionalContextImpl[0..1] : SystemContext;
         }

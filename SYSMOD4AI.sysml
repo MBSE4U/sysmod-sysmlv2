@@ -185,7 +185,8 @@ package SYSMOD4AI {
              * (SYSMODProcesses::SYSMODDefaultProcess) and reports where a project stands in it:
              * setupProject, specifyBrownfieldSystem, specifyProblemStatement, identifyStakeholders,
              * elaborateStakeholderNeeds, pitchSystemIdea, defineSystemSpecification,
-             * createSolutionArchitectures, and verifyAndValidateRequirements.
+             * createFunctionalArchitecture, createLogicalArchitecture, createProductArchitecture,
+             * and verifyAndValidateRequirements.
              *
              * When to use:
              * - The user asks what to do next in a SYSMOD project, how far the project has
@@ -205,7 +206,7 @@ package SYSMOD4AI {
              */
             name = "sysmod-default-process";
             create_prompt =
-                "1. Read the SYSMODDefaultProcess action definition in SYSMOD::SYSMODProcesses and its steps in succession order: setupProject, specifyBrownfieldSystem, specifyProblemStatement, identifyStakeholders, elaborateStakeholderNeeds, pitchSystemIdea, defineSystemSpecification, createSolutionArchitectures, verifyAndValidateRequirements.
+                "1. Read the SYSMODDefaultProcess action definition in SYSMOD::SYSMODProcesses and its steps in succession order: setupProject, specifyBrownfieldSystem, specifyProblemStatement, identifyStakeholders, elaborateStakeholderNeeds, pitchSystemIdea, defineSystemSpecification, createFunctionalArchitecture, createLogicalArchitecture, createProductArchitecture, verifyAndValidateRequirements.
                 2. Find the project. If no project exists, start with setupProject.
                 3. Determine the current position in the process: for each step, check whether its outputs (the project features it flows into) already exist in the project and are valid. The first step whose outputs are missing or invalid is the next step.
                 4. Execute the next step by delegating to the AI metadata of the project features it produces, using their create_questions, create_prompt, and validation_prompt:
@@ -216,10 +217,12 @@ package SYSMOD4AI {
                    - elaborateStakeholderNeeds: stakeholderNeedsAI.
                    - pitchSystemIdea: systemIdeaContextAI, using the process input systemIdeaArchitecture.
                    - defineSystemSpecification: specificationContextAI (specification architecture and use cases), then systemRequirementSpecificationAI.
-                   - createSolutionArchitectures: functionalContextAI and logicalContextAI (both optional), then productContextAI, using the process input solutionArchitecture.
+                   - createFunctionalArchitecture (optional): functionalContextAI, using the process input functionalArchitecture.
+                   - createLogicalArchitecture (optional): logicalContextAI, using the process input logicalArchitecture.
+                   - createProductArchitecture: productContextAI, using the process input productArchitecture.
                    - verifyAndValidateRequirements: create verification case usages subsetting the project's verificationCases, with the productSystem (productContextImpl.soiImpl) as subject, each verifying one or more requirements of the systemRequirementSpecification.
                 5. Respect the inputs of each step as defined by the bindings of SYSMODDefaultProcess: a step must only start when the project features it reads exist (e.g. elaborateStakeholderNeeds needs the problemStatement and the projectStakeholders).
-                6. Steps after setupProject are optional ([0..1] successions). Skip a step only when it does not apply (e.g. specifyBrownfieldSystem for a pure greenfield project, or the functional and logical architectures), and tell the user which step was skipped and why.
+                6. Steps after setupProject are optional ([0..1] successions). Skip a step only when it does not apply (e.g. specifyBrownfieldSystem for a pure greenfield project, or createFunctionalArchitecture and createLogicalArchitecture), and tell the user which step was skipped and why.
                 7. After each step, show the user the result and the step's validation findings, and ask whether to continue with the next step, revise the current one, or stop.
                 8. If the user asks how a step relates to ISO/IEC/IEEE 15288, answer from the #refinement dependencies in SYSMODProcesses (e.g. DefineSystemSpecification refines ISO15288Processes::SystemRequirementsDefinition).
                 9. Do not redefine the project's defaultProcess action usage unless the user explicitly asks to tailor the process; if so, redefine defaultProcess in the project with a specialization of SYSMODDefaultProcess and document every deviation in a doc comment.";
@@ -235,7 +238,7 @@ package SYSMOD4AI {
                 1. For each step of SYSMODDefaultProcess, report its status: done (outputs exist and pass the validation_prompt of the corresponding AI metadata), in progress (outputs exist but have validation errors), skipped, or open.
                 2. No step is done while one of its inputs is missing or invalid (e.g. stakeholderNeeds without a problemStatement, systemRequirementSpecification without stakeholderNeeds, productContextImpl without a specificationContextImpl).
                 3. setupProject: the project has a purpose and the projectOwner has a name.
-                4. Only optional steps are skipped (specifyBrownfieldSystem for greenfield projects, the functional and logical architectures); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, productContext, productContextImpl) are not skipped.
+                4. Only optional steps are skipped (specifyBrownfieldSystem for greenfield projects, createFunctionalArchitecture, createLogicalArchitecture); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, productContext, productContextImpl) are not skipped.
                 5. verifyAndValidateRequirements: verification case usages exist with the productSystem as subject, and every requirement of the systemRequirementSpecification is verified by at least one verification case.
                 6. If the project redefines defaultProcess, the redefinition is typed by a specialization of SYSMODDefaultProcess and documents its deviations from the default process.
                 7. Name the next step to perform and the AI metadata to use for it.

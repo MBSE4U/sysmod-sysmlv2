@@ -266,7 +266,8 @@ library package SYSMODViews {
             elements->forAll {
                 in e; e istype SYSMODDefaultProcess or e istype SetupProject or e istype SpecifyBrownfieldSystem
                     or e istype SpecifyProblemStatement or e istype IdentifyStakeholders or e istype ElaborateStakeholderNeeds
-                    or e istype PitchSystemIdea or e istype DefineSystemSpecification or e istype CreateSolutionArchitectures
+                    or e istype PitchSystemIdea or e istype DefineSystemSpecification or e istype CreateFunctionalArchitecture
+                    or e istype CreateLogicalArchitecture or e istype CreateProductArchitecture
                     or e istype VerifyAndValidateRequirements
             }
         }

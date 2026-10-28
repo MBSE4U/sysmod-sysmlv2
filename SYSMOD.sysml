@@ -76,7 +76,7 @@ library package SYSMOD {
             /* The Brownfield Context includes the system and actors that are already identified at the start of the Project. These constraints limit the set of possible solutions. This is the black-box context without specifying the internals of the system of interest. */
             part <soi> systemOfInterest :>> soi {
                 doc
-                /* The existing (brownfield) system of interest as a black box. It is the explicit anchor for the refinement along the context chain. */
+                /* The existing (brownfield) system of interest as a black-box. It is the explicit anchor for the refinement along the context chain. */
             }
         }
         part brownfieldContextImpl :> brownfieldContext {
@@ -92,7 +92,7 @@ library package SYSMOD {
             /* The system idea context contains the system idea and additional actors, if necessary. It specializes the black-box brownfield context. */
             part <soi> systemIdeaSystem :>> brownfieldContext::soi {
                 doc
-                /* The system idea as a black box. It redefines the brownfield system of interest. */
+                /* The system idea as a black-box. It redefines the brownfield system of interest. */
             }
         }
         part systemIdeaContextImpl :> systemIdeaContext, brownfieldContextImpl {
@@ -519,7 +519,8 @@ library package SYSMOD {
             doc
             /*
              * The default SYSMOD process: setupProject, specifyBrownfieldSystem, specifyProblemStatement, identifyStakeholders,
-             * elaborateStakeholderNeeds, pitchSystemIdea, defineSystemSpecification, createSolutionArchitectures, and verifyAndValidateRequirements, in this order.
+             * elaborateStakeholderNeeds, pitchSystemIdea, defineSystemSpecification, createFunctionalArchitecture, createLogicalArchitecture,
+             * createProductArchitecture, and verifyAndValidateRequirements, in this order.
              * The project that performs the process is referenced by project. Outputs of the steps flow into the corresponding project features,
              * and the inputs of the steps are bound to the project features created by earlier steps.
              * The input parameters are the information a human or an AI assistant provides to start the process. */
@@ -545,9 +546,17 @@ library package SYSMOD {
                 doc
                 /* The system idea architecture is a description of the proposed system. */
             }
-            in item solutionArchitecture : ArchitectureDescription {
+            in item functionalArchitecture : ArchitectureDescription {
                 doc
-                /* The solution architecture is a description of the solution system. */
+                /* The functional architecture is a description of the functions and functional blocks of the solution system. */
+            }
+            in item logicalArchitecture : ArchitectureDescription {
+                doc
+                /* The logical architecture is a description of the technology-independent building blocks of the solution system. */
+            }
+            in item productArchitecture : ArchitectureDescription {
+                doc
+                /* The product architecture is a description of the concrete, physical or deployable building blocks of the solution system. */
             }
 
             first start then setupProject;
@@ -557,8 +566,10 @@ library package SYSMOD {
             first [0..1]identifyStakeholders then [0..1]elaborateStakeholderNeeds;
             first [0..1]elaborateStakeholderNeeds then [0..1]pitchSystemIdea;
             first [0..1]pitchSystemIdea then [0..1]defineSystemSpecification;
-            first [0..1]defineSystemSpecification then [0..1]createSolutionArchitectures;
-            first [0..1]createSolutionArchitectures then [0..1]verifyAndValidateRequirements;
+            first [0..1]defineSystemSpecification then [0..1]createFunctionalArchitecture;
+            first [0..1]createFunctionalArchitecture then [0..1]createLogicalArchitecture;
+            first [0..1]createLogicalArchitecture then [0..1]createProductArchitecture;
+            first [0..1]createProductArchitecture then [0..1]verifyAndValidateRequirements;
             first [0..1]verifyAndValidateRequirements then done;
 
             flow from specifyBrownfieldSystem.brownfieldContext to project.brownfieldContext;
@@ -571,12 +582,12 @@ library package SYSMOD {
             flow from defineSystemSpecification.specificationContext to project.specificationContext;
             flow from defineSystemSpecification.specificationContextImpl to project.specificationContextImpl;
             flow from defineSystemSpecification.systemRequirementSpecification to project.systemRequirementSpecification;
-            flow from createSolutionArchitectures.functionalContext to project.functionalContext;
-            flow from createSolutionArchitectures.logicalContext to project.logicalContext;
-            flow from createSolutionArchitectures.productContext to project.productContext;
-            flow from createSolutionArchitectures.functionalContextImpl to project.functionalContextImpl;
-            flow from createSolutionArchitectures.logicalContextImpl to project.logicalContextImpl;
-            flow from createSolutionArchitectures.productContextImpl to project.productContextImpl;
+            flow from createFunctionalArchitecture.functionalContext to project.functionalContext;
+            flow from createFunctionalArchitecture.functionalContextImpl to project.functionalContextImpl;
+            flow from createLogicalArchitecture.logicalContext to project.logicalContext;
+            flow from createLogicalArchitecture.logicalContextImpl to project.logicalContextImpl;
+            flow from createProductArchitecture.productContext to project.productContext;
+            flow from createProductArchitecture.productContextImpl to project.productContextImpl;
             flow from verifyAndValidateRequirements.verificationCases to project.verificationCases;
 
             bind project.brownfieldContextImpl = specifyProblemStatement.brownfieldContextImpl;
@@ -588,7 +599,12 @@ library package SYSMOD {
             bind project.stakeholderNeeds = pitchSystemIdea.stakeholderNeeds;
             bind project.systemIdeaContextImpl = defineSystemSpecification.systemIdeaContextImpl;
             bind project.stakeholderNeeds = defineSystemSpecification.stakeholderNeeds;
-            bind project.specificationContextImpl = createSolutionArchitectures.specificationContextImpl;
+            bind project.specificationContextImpl = createFunctionalArchitecture.specificationContextImpl;
+            bind project.specificationContextImpl = createLogicalArchitecture.specificationContextImpl;
+            bind project.functionalContextImpl = createLogicalArchitecture.functionalContextImpl;
+            bind project.specificationContextImpl = createProductArchitecture.specificationContextImpl;
+            bind project.functionalContextImpl = createProductArchitecture.functionalContextImpl;
+            bind project.logicalContextImpl = createProductArchitecture.logicalContextImpl;
             bind project.systemRequirementSpecification = verifyAndValidateRequirements.systemRequirementSpecification;
             bind project.productContextImpl = verifyAndValidateRequirements.productContextImpl;
 
@@ -613,9 +629,17 @@ library package SYSMOD {
                 in item systemIdeaArchitecture = SYSMODDefaultProcess::systemIdeaArchitecture;
             }
             action defineSystemSpecification : DefineSystemSpecification { @StepStatus; } 
-            action createSolutionArchitectures : CreateSolutionArchitectures {
+            action createFunctionalArchitecture : CreateFunctionalArchitecture {
                 @StepStatus;
-                in item solutionArchitecture = SYSMODDefaultProcess::solutionArchitecture;
+                in item functionalArchitecture = SYSMODDefaultProcess::functionalArchitecture;
+            }
+            action createLogicalArchitecture : CreateLogicalArchitecture {
+                @StepStatus;
+                in item logicalArchitecture = SYSMODDefaultProcess::logicalArchitecture;
+            }
+            action createProductArchitecture : CreateProductArchitecture {
+                @StepStatus;
+                in item productArchitecture = SYSMODDefaultProcess::productArchitecture;
             }
             action verifyAndValidateRequirements : VerifyAndValidateRequirements { @StepStatus; }
         }
@@ -717,16 +741,33 @@ library package SYSMOD {
             }
         }
 
-        action def CreateSolutionArchitectures {
+        action def CreateFunctionalArchitecture {
             doc
-            /* Creates the solution architectures based on the white-box specification context: the optional functional and logical architectures and the product architecture, each as black-box context and white-box context (functionalContextImpl, logicalContextImpl, productContextImpl). Refines the ISO 15288 System Architecture Definition process. */
-            in item solutionArchitecture : ArchitectureDescription;
+            /* Creates the optional functional architecture based on the white-box specification context: the black-box functional context and the white-box functional context with the functional blocks. Refines the ISO 15288 System Architecture Definition process. */
+            in item functionalArchitecture : ArchitectureDescription;
             in part specificationContextImpl : SystemContext;
             out part functionalContext[0..1] : SystemContext;
-            out part logicalContext[0..1] : SystemContext;
-            out part productContext : SystemContext;
             out part functionalContextImpl[0..1] : SystemContext;
+        }
+
+        action def CreateLogicalArchitecture {
+            doc
+            /* Creates the optional logical architecture based on the white-box specification context and, if present, the white-box functional context: the black-box logical context and the white-box logical context with the technology-independent building blocks. Refines the ISO 15288 System Architecture Definition process. */
+            in item logicalArchitecture : ArchitectureDescription;
+            in part specificationContextImpl : SystemContext;
+            in part functionalContextImpl[0..1] : SystemContext;
+            out part logicalContext[0..1] : SystemContext;
             out part logicalContextImpl[0..1] : SystemContext;
+        }
+
+        action def CreateProductArchitecture {
+            doc
+            /* Creates the product architecture based on the white-box specification context and, if present, the white-box functional and logical contexts: the black-box product context and the white-box product context with the concrete, physical or deployable building blocks. Refines the ISO 15288 System Architecture Definition process. */
+            in item productArchitecture : ArchitectureDescription;
+            in part specificationContextImpl : SystemContext;
+            in part functionalContextImpl[0..1] : SystemContext;
+            in part logicalContextImpl[0..1] : SystemContext;
+            out part productContext : SystemContext;
             out part productContextImpl : SystemContext;
         }
 
@@ -754,7 +795,9 @@ library package SYSMOD {
         #refinement dependency ElaborateStakeholderNeeds to ISO15288Processes::StakeholderNeedsAndRequirementsDefinition;
         #refinement dependency PitchSystemIdea to ISO15288Processes::BusinessOrMissionAnalysis;
         #refinement dependency DefineSystemSpecification to ISO15288Processes::SystemRequirementsDefinition;
-        #refinement dependency CreateSolutionArchitectures to ISO15288Processes::SystemArchitectureDefinition;
+        #refinement dependency CreateFunctionalArchitecture to ISO15288Processes::SystemArchitectureDefinition;
+        #refinement dependency CreateLogicalArchitecture to ISO15288Processes::SystemArchitectureDefinition;
+        #refinement dependency CreateProductArchitecture to ISO15288Processes::SystemArchitectureDefinition;
         #refinement dependency VerifyAndValidateRequirements to ISO15288Processes::Verification;
         #refinement dependency VerifyAndValidateRequirements to ISO15288Processes::Validation;
 

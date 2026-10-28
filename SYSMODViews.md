@@ -1078,7 +1078,7 @@ Product "The Specification System": the specificationContext of the Project that
 - **Builds on:** [SystemIdeaView](#view-systemideaview) (`systemIdeaContextImpl`)
 - **Information provided:** —
 - **Traces to:** [SystemIdeaView](#view-systemideaview) (specificationContext specializes systemIdeaContext; specificationContextImpl specializes systemIdeaContextImpl)
-- **Input for:** [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview)
+- **Input for:** [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview)
 
 **Definition**
 
@@ -1285,7 +1285,7 @@ The functionalContext and functionalContextImpl of the Project with the function
 - **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContext`)
 - **Information provided:** `functionalArchitecture`
 - **Traces to:** [SpecificationSystemView](#view-specificationsystemview) (functionalContext specializes specificationContext)
-- **Input for:** [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview)
+- **Input for:** [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview)
 
 **Definition**
 
@@ -1324,7 +1324,7 @@ The logicalContext and logicalContextImpl of the Project with the technology-ind
 - **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`), [FunctionalArchitectureView](#view-functionalarchitectureview) (`functionalContext`, `functionalContextImpl`)
 - **Information provided:** `logicalArchitecture`
 - **Traces to:** [SpecificationSystemView](#view-specificationsystemview) (logicalContext specializes specificationContext; logicalContextImpl specializes specificationContextImpl)
-- **Input for:** [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview)
+- **Input for:** [ProductArchitectureView](#view-productarchitectureview)
 
 **Definition**
 
@@ -1398,9 +1398,9 @@ The allocations functional2logical, logical2product, functionalImpl2logicalImpl,
 **Dependencies**
 
 - **Shows artifacts:** `functional2logical`, `logical2product`, `functionalImpl2logicalImpl`, `logicalImpl2productImpl`
-- **Created by:** `CreateLogicalArchitecture`, `CreateProductArchitecture`
-- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`), [FunctionalArchitectureView](#view-functionalarchitectureview) (`functionalContext`, `functionalContextImpl`), [LogicalArchitectureView](#view-logicalarchitectureview) (`logicalContext`, `logicalContextImpl`)
-- **Information provided:** `logicalArchitecture`, `productArchitecture`
+- **Created by:** —
+- **Builds on:** —
+- **Information provided:** —
 - **Traces to:** [FunctionalArchitectureView](#view-functionalarchitectureview) (functional2logical allocates functionalContext; functionalImpl2logicalImpl allocates functionalContextImpl), [LogicalArchitectureView](#view-logicalarchitectureview) (functional2logical allocates to logicalContext; logical2product allocates logicalContext; functionalImpl2logicalImpl allocates to logicalContextImpl; logicalImpl2productImpl allocates logicalContextImpl), [ProductArchitectureView](#view-productarchitectureview) (logical2product allocates to productContext; logicalImpl2productImpl allocates to productContextImpl)
 - **Input for:** —
 
@@ -1688,7 +1688,6 @@ flowchart TB
     end
     subgraph CreateLogicalArchitecture["Create Logical Architecture"]
         LogicalArchitectureView[LogicalArchitectureView]
-        ArchitectureAllocationView[ArchitectureAllocationView]
     end
     subgraph CreateProductArchitecture["Create Product Architecture"]
         ProductArchitectureView[ProductArchitectureView]
@@ -1697,6 +1696,7 @@ flowchart TB
         VerificationAndValidationView[VerificationAndValidationView]
         VerificationMatrixView[VerificationMatrixView]
     end
+    ArchitectureAllocationView[ArchitectureAllocationView]
     ProjectView --> ProblemStatementView
     BrownfieldArchitectureView --> ProblemStatementView
     ProblemStatementView --> StakeholdersView
@@ -1720,9 +1720,6 @@ flowchart TB
     SpecificationSystemView --> ProductArchitectureView
     FunctionalArchitectureView --> ProductArchitectureView
     LogicalArchitectureView --> ProductArchitectureView
-    SpecificationSystemView --> ArchitectureAllocationView
-    FunctionalArchitectureView --> ArchitectureAllocationView
-    LogicalArchitectureView --> ArchitectureAllocationView
     SystemRequirementsView --> VerificationAndValidationView
     ProductArchitectureView --> VerificationAndValidationView
     SystemRequirementsView --> VerificationMatrixView
@@ -1731,6 +1728,8 @@ flowchart TB
     SystemIdeaView -.-> BrownfieldArchitectureView
     SystemObjectivesView -.-> SystemIdeaView
     ProductArchitectureView -.-> SystemRequirementsView
+    ArchitectureAllocationView -.-> FunctionalArchitectureView
+    ArchitectureAllocationView -.-> LogicalArchitectureView
     ArchitectureAllocationView -.-> ProductArchitectureView
 ```
 
@@ -1747,14 +1746,14 @@ _Solid arrow: the target view builds on the source view. Dotted arrow: the sourc
 | [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | `brownfieldContext`, `brownfieldContextImpl` | `SpecifyBrownfieldSystem` | — | `brownfieldArchitecture` | — | [ProblemStatementView](#view-problemstatementview) |
 | [SystemIdeaView](#view-systemideaview) | `systemIdeaContext`, `systemIdeaContextImpl` | `PitchSystemIdea` | [ProblemStatementView](#view-problemstatementview), [StakeholderNeedsView](#view-stakeholderneedsview) | `systemIdeaArchitecture` | [BrownfieldArchitectureView](#view-brownfieldarchitectureview), [ProblemStatementView](#view-problemstatementview) | [SpecificationSystemView](#view-specificationsystemview) |
 | [SystemObjectivesView](#view-systemobjectivesview) | `systemObjectives` | `PitchSystemIdea` | [ProblemStatementView](#view-problemstatementview), [StakeholderNeedsView](#view-stakeholderneedsview) | `systemIdeaArchitecture` | [StakeholderNeedsView](#view-stakeholderneedsview), [SystemIdeaView](#view-systemideaview) | [SystemRequirementsView](#view-systemrequirementsview) |
-| [SpecificationSystemView](#view-specificationsystemview) | `specificationContext`, `specificationContextImpl` | `DefineSystemSpecification` | [SystemIdeaView](#view-systemideaview) | — | [SystemIdeaView](#view-systemideaview) | [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview) |
+| [SpecificationSystemView](#view-specificationsystemview) | `specificationContext`, `specificationContextImpl` | `DefineSystemSpecification` | [SystemIdeaView](#view-systemideaview) | — | [SystemIdeaView](#view-systemideaview) | [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview) |
 | [UseCasesView](#view-usecasesview) | `specificationContext.useCases` | `DefineSystemSpecification` | [StakeholderNeedsView](#view-stakeholderneedsview), [SpecificationSystemView](#view-specificationsystemview) | — | — | — |
 | [UseCaseFlowView](#view-usecaseflowview) | `specificationContext.useCases` | `DefineSystemSpecification` | [StakeholderNeedsView](#view-stakeholderneedsview), [SpecificationSystemView](#view-specificationsystemview) | — | — | — |
 | [SystemRequirementsView](#view-systemrequirementsview) | `systemRequirementSpecification` | `DefineSystemSpecification` | [StakeholderNeedsView](#view-stakeholderneedsview), [SystemObjectivesView](#view-systemobjectivesview), [SpecificationSystemView](#view-specificationsystemview) | — | [StakeholderNeedsView](#view-stakeholderneedsview), [SpecificationSystemView](#view-specificationsystemview) | [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview) |
-| [FunctionalArchitectureView](#view-functionalarchitectureview) | `functionalContext`, `functionalContextImpl` | `CreateFunctionalArchitecture` | [SpecificationSystemView](#view-specificationsystemview) | `functionalArchitecture` | [SpecificationSystemView](#view-specificationsystemview) | [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview) |
-| [LogicalArchitectureView](#view-logicalarchitectureview) | `logicalContext`, `logicalContextImpl` | `CreateLogicalArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [FunctionalArchitectureView](#view-functionalarchitectureview) | `logicalArchitecture` | [SpecificationSystemView](#view-specificationsystemview) | [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview) |
+| [FunctionalArchitectureView](#view-functionalarchitectureview) | `functionalContext`, `functionalContextImpl` | `CreateFunctionalArchitecture` | [SpecificationSystemView](#view-specificationsystemview) | `functionalArchitecture` | [SpecificationSystemView](#view-specificationsystemview) | [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview) |
+| [LogicalArchitectureView](#view-logicalarchitectureview) | `logicalContext`, `logicalContextImpl` | `CreateLogicalArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [FunctionalArchitectureView](#view-functionalarchitectureview) | `logicalArchitecture` | [SpecificationSystemView](#view-specificationsystemview) | [ProductArchitectureView](#view-productarchitectureview) |
 | [ProductArchitectureView](#view-productarchitectureview) | `productContext`, `productContextImpl` | `CreateProductArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview) | `productArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview) | [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview) |
-| [ArchitectureAllocationView](#view-architectureallocationview) | `functional2logical`, `logical2product`, `functionalImpl2logicalImpl`, `logicalImpl2productImpl` | `CreateLogicalArchitecture`, `CreateProductArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview) | `logicalArchitecture`, `productArchitecture` | [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview) | — |
+| [ArchitectureAllocationView](#view-architectureallocationview) | `functional2logical`, `logical2product`, `functionalImpl2logicalImpl`, `logicalImpl2productImpl` | — | — | — | [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview) | — |
 | [VerificationAndValidationView](#view-verificationandvalidationview) | `verificationContext.verificationCases` | `VerifyAndValidateRequirements` | [SystemRequirementsView](#view-systemrequirementsview), [ProductArchitectureView](#view-productarchitectureview) | — | [ProductArchitectureView](#view-productarchitectureview) | — |
 | [VerificationMatrixView](#view-verificationmatrixview) | `verificationContext.verificationCases` | `VerifyAndValidateRequirements` | [SystemRequirementsView](#view-systemrequirementsview), [ProductArchitectureView](#view-productarchitectureview) | — | [ProductArchitectureView](#view-productarchitectureview) | — |
 

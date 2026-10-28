@@ -538,11 +538,11 @@ Shows the projectStakeholders, their stakeholderNeeds, and the systemRequirement
 
 ### ArchitectureViewpoint
 
-Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext with their white box contexts (functionalContextImpl, logicalContextImpl, productContextImpl), their allocations (functional2logical, logical2product, functionalImpl2logicalImpl, logicalImpl2productImpl), and the systemRequirementSpecification they satisfy.
+Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext with their white box contexts (functionalContextImpl, logicalContextImpl, productContextImpl), their allocations (functional2logical, logical2product, functionalImpl2logicalImpl, logicalImpl2productImpl), the systemRequirementSpecification they satisfy, and the #refinement dependencies from the functional and logical elements to the system requirements.
 
 - **Frames concerns:** [ProblemSolutionIntegration](#concern-problemsolutionintegration), [DesignConsistency](#concern-designconsistency)
 - **Stakeholders:** [SystemArchitect](#stakeholder-systemarchitect), [DesignEngineer](#stakeholder-designengineer)
-- **Allowed exposed elements:** `SystemContext`, `ExtendedRequirement`, `Allocation`
+- **Allowed exposed elements:** `SystemContext`, `ExtendedRequirement`, `Allocation`, `Dependency`
 - **Views:** [SolutionArchitectureView](#view-solutionarchitectureview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview)
 
 <a id="viewpoint-tradeoffviewpoint"></a>

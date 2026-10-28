@@ -14,7 +14,7 @@
   - `VerifyAndValidateRequirements` takes `productContextImpl` as input.
   - Docs aligned in `SYSMOD.sysml`, the architecture and process prompts of `SYSMOD4AI.sysml`, the architecture view docs of `SYSMODViews.sysml`, and `README.md`.
 - Split the process step `CreateSolutionArchitectures` into one step per architecture kind:
-  - `CreateFunctionalArchitecture` and `CreateLogicalArchitecture` (both optional) and `CreateProductArchitecture`, each outputting its black box and white box context; each refines the ISO 15288 System Architecture Definition process.
+  - `CreateFunctionalArchitecture` and `CreateLogicalArchitecture` (both optional) and `CreateProductArchitecture`, each outputting its black box and white box context; each refines the ISO 15288 System Architecture Definition process. The functional and logical steps also create the `#refinement` dependencies from their architecture elements to the system requirements.
   - `SYSMODDefaultProcess` runs them in this order between `defineSystemSpecification` and `verifyAndValidateRequirements`. The logical step takes the white box functional context as input; the product step takes the white box functional and logical contexts.
   - The process input `solutionArchitecture` is replaced by `functionalArchitecture`, `logicalArchitecture`, and `productArchitecture`.
   - Updated the process prompts of `SYSMOD4AI.sysml`, the `OnlyProcessStepElements` constraint of `SYSMODViews.sysml`, and `README.md`.
@@ -35,6 +35,7 @@
 - Updated example model (requirements traceability): elements of the functional and logical architectures refine the system requirements with `#refinement` dependencies.
   - Functional: `batteryManagement` and `flightControl` refine `AirCharging`; `packageManagement` refines `MaxPayloadMass`.
   - Logical: `energyManagement`, `fleetCoordination`, and `flightControl` refine `AirCharging`.
+- `ArchitectureViewpoint`: the constraint `onlyArchitectureElements` now also allows dependencies (`SysML::Dependency`), so an architecture view can show the `#refinement` traces to the system requirements without violating the viewpoint.
 
 ## v5.1.6
 

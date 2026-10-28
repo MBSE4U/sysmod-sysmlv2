@@ -776,7 +776,7 @@ library package SYSMOD {
 
         action def CreateFunctionalArchitecture {
             doc
-            /* Creates the optional functional architecture based on the black box specification context: the black box functional context and the white box functional context with the functional blocks. Refines the ISO 15288 System Architecture Definition process. */
+            /* Creates the optional functional architecture based on the black box specification context: the black box functional context and the white box functional context with the functional blocks, and the #refinement dependencies from the functional elements to the system requirements they refine. Refines the ISO 15288 System Architecture Definition process. */
             in item functionalArchitecture : ArchitectureDescription;
             in part specificationContext : SystemContext;
             out part functionalContext[0..1] : SystemContext;
@@ -785,7 +785,7 @@ library package SYSMOD {
 
         action def CreateLogicalArchitecture {
             doc
-            /* Creates the optional logical architecture based on the white box specification context and, if present, the white box functional context: the black box logical context and the white box logical context with the technology-independent building blocks. Refines the ISO 15288 System Architecture Definition process. */
+            /* Creates the optional logical architecture based on the white box specification context and, if present, the white box functional context: the black box logical context and the white box logical context with the technology-independent building blocks, and the #refinement dependencies from the logical elements to the system requirements they refine. Refines the ISO 15288 System Architecture Definition process. */
             in item logicalArchitecture : ArchitectureDescription;
             in part specificationContextImpl : SystemContext;
             in part functionalContextImpl[0..1] : SystemContext;

@@ -388,7 +388,8 @@ library package SYSMODViews {
         viewpoint def ArchitectureViewpoint {
             doc /* Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext with their white box
                  * contexts (functionalContextImpl, logicalContextImpl, productContextImpl), their allocations (functional2logical,
-                 * logical2product, functionalImpl2logicalImpl, logicalImpl2productImpl), and the systemRequirementSpecification they satisfy.
+                 * logical2product, functionalImpl2logicalImpl, logicalImpl2productImpl), the systemRequirementSpecification they satisfy,
+                 * and the #refinement dependencies from the functional and logical elements to the system requirements.
                  */
             subject theView;
             frame concern cpsi : ProblemSolutionIntegration;
@@ -396,6 +397,7 @@ library package SYSMODViews {
             require constraint onlyArchitectureElements {
                 (theView as SysML::ViewUsage).exposedElement->forAll {
                     in e; e istype SystemContext or e istype ExtendedRequirement or e istype Allocations::Allocation
+                        or e istype SysML::Dependency
                 }
             }
         }

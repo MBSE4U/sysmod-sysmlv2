@@ -30,11 +30,13 @@ package MicroStory_Validation {
     }
 
     #project occurrence def 'Delivery Drone Project' {
-        // SYSMOD adds nothing for V&V: verificationCases holds
-        // verification and validation cases alike.
-        verification islandPilot : IslandPilotValidation :> verificationCases {
-            // one subject: the library's productSystem is the pilot system
-            subject :>> productSystem, pilotSystem;
+        // SYSMOD adds nothing for V&V: the verificationCases of the
+        // verification context hold verification and validation cases alike.
+        part :>> verificationContext {
+            verification islandPilot : IslandPilotValidation :> verificationCases {
+                // one subject: the library's productSystem is the pilot system
+                subject :>> productSystem, pilotSystem;
+            }
         }
     }
 }

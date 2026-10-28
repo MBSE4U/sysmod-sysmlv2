@@ -18,6 +18,11 @@
   - The process input `solutionArchitecture` is replaced by `functionalArchitecture`, `logicalArchitecture`, and `productArchitecture`.
   - Updated the process prompts of `SYSMOD4AI.sysml`, the `OnlyProcessStepElements` constraint of `SYSMODViews.sysml`, and `README.md`.
 - Updated example model (architecture): the functional, logical, and product architectures of the Delivery Drone have a black-box system (`DeliveryDrone…System`) and a white-box system (`DeliveryDrone…SystemImpl`) with the building blocks, and white-box contexts (`DeliveryDrone…ContextImpl`) that the project instantiates. `MaxPayloadTest` tests the `DeliveryDroneProductSystemImpl`. The example views of the architectures, the allocations, and V&V show the white-box contexts.
+- Added `verificationContext` to `SYSMOD::Project`: it specializes `productContextImpl`, adds the test systems as actors (e.g., a test bench or a wind tunnel with constant wind speed), and owns the `verificationCases`, which moved from the project into the context.
+  - `VerifyAndValidateRequirements` now outputs the `verificationContext` instead of the `verificationCases`, and it flows to the project.
+  - Updated the process prompts of `SYSMOD4AI.sysml`, the viewpoint and view docs of `SYSMODViews.sysml`, and `README.md`.
+- Updated example model (verification): `DD_VV::DeliveryDroneVerificationContext` adds a `windTunnel` (`#externalSystem` with a constant `windSpeed`) to the white-box product context. The project's `deliveryDroneVerificationContext` owns `maxPayloadTest : MaxPayloadTest`, the first verification case usage of the example. The example views `verificationAndValidationView.svg` and `verificationMatrixView.svg` show the usage.
+- MicroStory snippets `verification`, `validation`, and `the-full-chain`: the verification cases are owned by the project's `verificationContext`.
 
 ## v5.1.6
 

@@ -166,7 +166,7 @@ library package SYSMOD {
                 /* The Product System is the root element of the product architecture. It redefines the black-box specification system and thereby inherits the context information such as the system ports. */
             }
         }
-        part productContextImpl[0..1] :> productContext, specificationContextImpl {
+        part productContextImpl :> productContext, specificationContextImpl {
             doc
             /* The Product Context Implementation is the white-box view of the product context. It specializes the product context and the white-box specification context and contains the internal structure of the product system, i.e., its concrete, physical or deployable building blocks. */
             part <soiImpl> productSystemImpl :>> productContext::soi, specificationContextImpl::soiImpl {
@@ -175,12 +175,10 @@ library package SYSMOD {
                 satisfy systemRequirementSpecification;
             }
         }
-        verification verificationCases[*] {
-            doc
-            /* The verification cases verify and validate the system requirements. */
-            subject productSystem :> productContextImpl.soiImpl;
-        }
 
+        //
+        // Architecture Allocations
+        //
         allocation functional2logical [0..1] allocate functionalContext to logicalContext {
             doc
             /* Allocation of the functional architecture to the logical architecture. */
@@ -198,6 +196,23 @@ library package SYSMOD {
             /* Allocation of the white-box logical architecture, i.e., its logical building blocks, to the white-box product architecture. */
         }
 
+        //
+        // Verification
+        //
+        part verificationContext :> productContextImpl {
+            doc
+            /* The context in which the verification takes place, including all relevant actors and the system of interest. */
+        
+            verification verificationCases[*] {
+                doc
+                /* The verification cases verify and validate the system requirements. */
+                subject productSystem :> soiImpl;
+            }
+        }
+
+        //
+        // Sub Projects
+        //
         occurrence subProjects : Project [*] {
             doc /* List of all subProjects, for example, a standalone project for a subsystem or component of the system. */
         }
@@ -588,7 +603,7 @@ library package SYSMOD {
             flow from createLogicalArchitecture.logicalContextImpl to project.logicalContextImpl;
             flow from createProductArchitecture.productContext to project.productContext;
             flow from createProductArchitecture.productContextImpl to project.productContextImpl;
-            flow from verifyAndValidateRequirements.verificationCases to project.verificationCases;
+            flow from verifyAndValidateRequirements.verificationContext to project.verificationContext;
 
             bind project.brownfieldContextImpl = specifyProblemStatement.brownfieldContextImpl;
             bind project.brownfieldContextImpl = specifyBrownfieldSystem.brownfieldContextImpl;
@@ -773,10 +788,10 @@ library package SYSMOD {
 
         action def VerifyAndValidateRequirements {
             doc
-            /* Creates the verification cases that verify the product system against the system requirements and validate it against the stakeholder needs and the problem statement. Refines the ISO 15288 Verification and Validation processes. */
+            /* Creates the verification context with the test systems, e.g., test benches or a wind tunnel, as additional actors, and its verification cases that verify the product system against the system requirements and validate it against the stakeholder needs and the problem statement. Refines the ISO 15288 Verification and Validation processes. */
             in requirement systemRequirementSpecification : ExtendedRequirement;
             in part productContextImpl : SystemContext;
-            out verification verificationCases[*];
+            out part verificationContext : SystemContext;
         }
 
         item def ArchitectureDescription {

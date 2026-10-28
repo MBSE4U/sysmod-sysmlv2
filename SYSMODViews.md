@@ -439,7 +439,7 @@ Viewpoints of the package `SYSMODViews::Viewpoints`. The stakeholders are the st
 
 ### AgreementViewpoint
 
-Shows the SYSMOD artifacts that define the agreed scope and the acceptance criteria: the problemStatement, the systemRequirementSpecification, and the verificationCases of the Project.
+Shows the SYSMOD artifacts that define the agreed scope and the acceptance criteria: the problemStatement, the systemRequirementSpecification, and the verificationCases of the verificationContext of the Project.
 
 - **Frames concerns:** [ContractualAgreement](#concern-contractualagreement)
 - **Stakeholders:** [Acquirer](#stakeholder-acquirer), [Supplier](#stakeholder-supplier)
@@ -461,7 +461,7 @@ Shows the SYSMOD Projects with their purpose, projectOwner, and subProjects as a
 
 ### QualityViewpoint
 
-Shows the systemRequirementSpecification and the verificationCases of the Project as evidence that the system meets the quality objectives.
+Shows the systemRequirementSpecification and the verificationCases of the verificationContext of the Project as evidence that the system meets the quality objectives.
 
 - **Frames concerns:** [QualityCompliance](#concern-qualitycompliance)
 - **Stakeholders:** [QualityManager](#stakeholder-qualitymanager)
@@ -1228,7 +1228,7 @@ _Illustrative example based on the Delivery Drone example model ([architectureAl
 
 ### VerificationAndValidationView
 
-Product "Verification and Validation": the verificationCases of the Project with the tested productSystem and the system requirements, stakeholder needs, and problem statement they verify and validate.
+Product "Verification and Validation": the verificationCases of the verificationContext of the Project with the tested productSystem and the system requirements, stakeholder needs, and problem statement they verify and validate.
 
 - **Specializes:** `GeneralView`
 
@@ -1244,7 +1244,7 @@ Product "Verification and Validation": the verificationCases of the Project with
 
 ```sysml
 view def VerificationAndValidationView :> StandardViewDefinitions::GeneralView {
-    doc /* Product "Verification and Validation": the verificationCases of the Project with the tested productSystem
+    doc /* Product "Verification and Validation": the verificationCases of the verificationContext of the Project with the tested productSystem
             * and the system requirements, stakeholder needs, and problem statement they verify and validate.
             */
     satisfy requirement vvp : VerificationViewpoint;

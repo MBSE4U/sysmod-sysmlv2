@@ -275,7 +275,7 @@ library package SYSMODViews {
         // Agreement processes
         viewpoint def AgreementViewpoint {
             doc /* Shows the SYSMOD artifacts that define the agreed scope and the acceptance criteria:
-                 * the problemStatement, the systemRequirementSpecification, and the verificationCases of the Project.
+                 * the problemStatement, the systemRequirementSpecification, and the verificationCases of the verificationContext of the Project.
                  */
             subject theView;
             frame concern cca : ContractualAgreement;
@@ -299,7 +299,7 @@ library package SYSMODViews {
             }
         }
         viewpoint def QualityViewpoint {
-            doc /* Shows the systemRequirementSpecification and the verificationCases of the Project
+            doc /* Shows the systemRequirementSpecification and the verificationCases of the verificationContext of the Project
                  * as evidence that the system meets the quality objectives.
                  */
             subject theView;
@@ -601,7 +601,7 @@ library package SYSMODViews {
     }
     // Step 11
     view def VerificationAndValidationView :> StandardViewDefinitions::GeneralView {
-        doc /* Product "Verification and Validation": the verificationCases of the Project with the tested productSystem
+        doc /* Product "Verification and Validation": the verificationCases of the verificationContext of the Project with the tested productSystem
                 * and the system requirements, stakeholder needs, and problem statement they verify and validate.
                 */
         satisfy requirement vvp : VerificationViewpoint;

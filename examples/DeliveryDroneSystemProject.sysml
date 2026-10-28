@@ -151,6 +151,15 @@ package <DD> DeliveryDrone {
         // The allocations functional2logical, logical2product, functionalImpl2logicalImpl,
         // and logicalImpl2productImpl are inherited from SYSMOD::Project.
 
+        //------------------------- Verification
+        part deliveryDroneVerificationContext :>> verificationContext : DD_VV::DeliveryDroneVerificationContext :> deliveryDroneProductContextImpl {
+            doc /* The verification context adds the wind tunnel as test system and
+                   owns the verification cases of the Delivery Drone. */
+            verification maxPayloadTest : DD_VV::MaxPayloadTest :> verificationCases {
+                subject :>> productSystem, testedSystem;
+            }
+        }
+
         //------------------------- Sub-Projects
         occurrence controlStationProject : DDCS::DeliveryDroneControlStationProject :> subProjects {
             doc /* The control station is developed in a SYSMOD sub-project. It

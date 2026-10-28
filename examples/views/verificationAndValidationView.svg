@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <!-- Rendering of DD::PRJ::verificationAndValidationView : SYSMODViews::VerificationAndValidationView (render asTreeDiagram).
-       Exposed: DD_VV::*, DD_SPECIFICATION::Requirements::**, DD_STAKEHOLDERNEEDS::*, and the project problemStatement
+       Exposed: DD::PRJ::deliveryDroneVerificationContext, DD_SPECIFICATION::Requirements::**, DD_STAKEHOLDERNEEDS::*, and the project problemStatement
        (hypothetical view usage; not yet declared in the project).
-       The model has one verification case (MaxPayloadTest) and no validation cases; uncovered elements are shown dashed.
+       The model has one verification case (maxPayloadTest : MaxPayloadTest) and no validation cases; uncovered elements are shown dashed.
        Illustrative example. -->
   <defs>
     <marker id="open" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
@@ -37,8 +37,8 @@
   <!-- Root: verification case -->
   <rect x="210" y="50" width="240" height="72" rx="4" fill="#ffffff" stroke="#333" stroke-width="2"/>
   <g text-anchor="middle">
-    <text x="330" y="65" font-size="11" fill="#555">«verification def»</text>
-    <text x="330" y="83" font-size="14" font-weight="600" fill="#111">MaxPayloadTest</text>
+    <text x="330" y="65" font-size="11" fill="#555">«verification»</text>
+    <text x="330" y="83" font-size="14" font-weight="600" fill="#111">maxPayloadTest : MaxPayloadTest</text>
     <text x="330" y="99" font-size="11" fill="#555">action preparePayload</text>
     <text x="330" y="114" font-size="11" fill="#555">verdict = PassIf(maxReq.result)</text>
   </g>

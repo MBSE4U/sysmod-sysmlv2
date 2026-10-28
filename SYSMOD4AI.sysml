@@ -220,7 +220,7 @@ package SYSMOD4AI {
                    - createFunctionalArchitecture (optional): functionalContextAI, using the process input functionalArchitecture.
                    - createLogicalArchitecture (optional): logicalContextAI, using the process input logicalArchitecture.
                    - createProductArchitecture: productContextAI, using the process input productArchitecture.
-                   - verifyAndValidateRequirements: create verification case usages subsetting the project's verificationCases, with the productSystem (productContextImpl.soiImpl) as subject, each verifying one or more requirements of the systemRequirementSpecification.
+                   - verifyAndValidateRequirements: redefine the project's verificationContext (it specializes productContextImpl), add the test systems needed for the verification as actors (e.g., a test bench or a wind tunnel), and create verification case usages within it subsetting its verificationCases, with the productSystem (the soiImpl of the verificationContext) as subject, each verifying one or more requirements of the systemRequirementSpecification.
                 5. Respect the inputs of each step as defined by the bindings of SYSMODDefaultProcess: a step must only start when the project features it reads exist (e.g. elaborateStakeholderNeeds needs the problemStatement and the projectStakeholders).
                 6. Steps after setupProject are optional ([0..1] successions). Skip a step only when it does not apply (e.g. specifyBrownfieldSystem for a pure greenfield project, or createFunctionalArchitecture and createLogicalArchitecture), and tell the user which step was skipped and why.
                 7. After each step, show the user the result and the step's validation findings, and ask whether to continue with the next step, revise the current one, or stop.
@@ -239,7 +239,7 @@ package SYSMOD4AI {
                 2. No step is done while one of its inputs is missing or invalid (e.g. stakeholderNeeds without a problemStatement, systemRequirementSpecification without stakeholderNeeds, productContextImpl without a specificationContextImpl).
                 3. setupProject: the project has a purpose and the projectOwner has a name.
                 4. Only optional steps are skipped (specifyBrownfieldSystem for greenfield projects, createFunctionalArchitecture, createLogicalArchitecture); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, specificationContext, systemRequirementSpecification, productContext, productContextImpl) are not skipped.
-                5. verifyAndValidateRequirements: verification case usages exist with the productSystem as subject, and every requirement of the systemRequirementSpecification is verified by at least one verification case.
+                5. verifyAndValidateRequirements: the verificationContext specializes productContextImpl, verification case usages exist within it with the productSystem as subject, and every requirement of the systemRequirementSpecification is verified by at least one verification case.
                 6. If the project redefines defaultProcess, the redefinition is typed by a specialization of SYSMODDefaultProcess and documents its deviations from the default process.
                 7. Name the next step to perform and the AI metadata to use for it.
                 Report each finding with the step name, the affected element, the violated SYSMOD rule, and a concrete suggestion for correction.";

@@ -5,8 +5,9 @@ The Markdown file is read-only: it is fully regenerated from the SysML v2 source
 each time the library changes. Do not edit it by hand.
 
 Sources:
-  SYSMODViews.sysml   stakeholders, concerns, viewpoints, views
-  SYSMOD.sysml        ISO 15288 processes, SYSMOD process steps refining them
+  SYSMOD15288.sysml   ISO 15288 processes (ISO15288Processes) with their stakeholders and concerns
+  SYSMODViews.sysml   viewpoints, views
+  SYSMOD.sysml        SYSMOD process steps refining the ISO 15288 processes
   examples/*.sysml    view usages of the #project occurrence defs, linking the SYSMOD steps to the views
   examples/views/     example SVG renderings; the first 'SYSMODViews::<ViewDef>' in a file names its view
 
@@ -31,6 +32,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 VIEWS_FILE = ROOT / "SYSMODViews.sysml"
 SYSMOD_FILE = ROOT / "SYSMOD.sysml"
+ISO15288_FILE = ROOT / "SYSMOD15288.sysml"
 EXAMPLES_DIR = ROOT / "examples"
 RENDERED_VIEWS_DIR = EXAMPLES_DIR / "views"
 OUTPUT_FILE = ROOT / "SYSMODViews.md"
@@ -275,8 +277,7 @@ def anchor(kind, name):
     return f"{kind}-{name}".lower()
 
 
-def read_processes(sysmod_elements):
-    package = find_package(sysmod_elements, "ISO15288Processes")
+def read_processes(package, sysmod_elements):
     processes = {}
     for element in package.children:
         name = declared(element, "action", "def")
@@ -566,14 +567,14 @@ def render(version, processes, stakeholders, concerns, viewpoints, views, render
 
     w("<!--")
     w("  GENERATED FILE - DO NOT EDIT.")
-    w("  Generated from SYSMODViews.sysml and SYSMOD.sysml by scripts/generate_views_doc.py.")
+    w("  Generated from SYSMOD15288.sysml, SYSMODViews.sysml, and SYSMOD.sysml by scripts/generate_views_doc.py.")
     w("  Edit the library and rerun the script instead.")
     w("-->")
     w("")
     w("# SYSMOD Views")
     w("")
     w(f"> This document is generated from the SYSMODViews library ({version}). It is read-only; "
-      "changes are made in [SYSMODViews.sysml](SYSMODViews.sysml) and the document is regenerated "
+      "changes are made in [SYSMOD15288.sysml](SYSMOD15288.sysml) and [SYSMODViews.sysml](SYSMODViews.sysml) and the document is regenerated "
       "with `python scripts/generate_views_doc.py`.")
     w("")
     w("The SYSMOD views follow ISO/IEC/IEEE 42010: stakeholders derived from the ISO/IEC/IEEE 15288 "
@@ -599,7 +600,7 @@ def render(version, processes, stakeholders, concerns, viewpoints, views, render
     # 1. Processes
     w("## 1. ISO 15288 Processes")
     w("")
-    w("The life cycle processes of ISO/IEC/IEEE 15288 as defined in the package `SYSMOD::ISO15288Processes`, "
+    w("The life cycle processes of ISO/IEC/IEEE 15288 as defined in the package `ISO15288Processes`, "
       "the stakeholders responsible for them, and the SYSMOD process steps that refine them.")
     w("")
     group = None
@@ -624,7 +625,7 @@ def render(version, processes, stakeholders, concerns, viewpoints, views, render
     # 2. Stakeholders
     w("## 2. Stakeholders")
     w("")
-    w("Stakeholders of the package `SYSMODViews::Stakeholders`. Each one specializes `ExtendedStakeholder`.")
+    w("Stakeholders of the package `ISO15288Processes::Stakeholders`. Each one specializes `ExtendedStakeholder`.")
     w("")
     for s in stakeholders.values():
         w(f'<a id="{anchor("stakeholder", s.name)}"></a>')
@@ -641,7 +642,7 @@ def render(version, processes, stakeholders, concerns, viewpoints, views, render
     # 3. Concerns
     w("## 3. Concerns")
     w("")
-    w("Concerns of the package `SYSMODViews::Concerns`. The subject of every concern is the SYSMOD `Project`.")
+    w("Concerns of the package `ISO15288Processes::Concerns`. The subject of every concern is the SYSMOD `Project`.")
     w("")
     w("| Concern | Stakeholders | Viewpoints |")
     w("|---|---|---|")
@@ -787,11 +788,13 @@ def library_version(elements):
 def generate():
     views_source, views_elements = parse(VIEWS_FILE)
     _, sysmod_elements = parse(SYSMOD_FILE)
+    _, iso_elements = parse(ISO15288_FILE)
     library = find_package(views_elements, "SYSMODViews")
+    iso = find_package(iso_elements, "ISO15288Processes")
 
-    processes = read_processes(sysmod_elements)
-    stakeholders = read_stakeholders(find_package(library.children, "Stakeholders"), processes)
-    concerns = read_concerns(find_package(library.children, "Concerns"), stakeholders)
+    processes = read_processes(iso, sysmod_elements)
+    stakeholders = read_stakeholders(find_package(iso.children, "Stakeholders"), processes)
+    concerns = read_concerns(find_package(iso.children, "Concerns"), stakeholders)
     viewpoints = read_viewpoints(find_package(library.children, "Viewpoints"), concerns)
     views = read_views(library.children, views_source, viewpoints)
     renderings = read_renderings(library.children, views_source)

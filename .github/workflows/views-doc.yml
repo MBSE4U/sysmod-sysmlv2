@@ -6,6 +6,7 @@ name: Generate SYSMODViews.md
 on:
   push:
     paths:
+      - "SYSMOD15288.sysml"
       - "SYSMODViews.sysml"
       - "SYSMOD.sysml"
       - "examples/**"

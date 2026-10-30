@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Renamed the fictional drone company in the examples and MicroStory snippets from AmperDrones to Quite Remote Deliveries Ltd. (doc comments and the example views `projectView.svg` and `projectAIView.svg`; no identifiers changed).
 - MicroStory snippets `the-project` and `problem-statement`: the project now declares the views `projectCoverView`, `projectCoverAIView`, `problemStatementView`, and `problemStatementAIView` itself, as the Delivery Drone example does since 5.1.6 (they are no longer inherited from `SYSMOD::Project`).
 - Fixed the double bullet ("- - ") of the black box/white box entry in the 5.1.6 change log.
 

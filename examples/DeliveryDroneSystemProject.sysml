@@ -32,7 +32,7 @@ package <DD> DeliveryDrone {
          * Client: A logistics company wants to speed up last-mile deliveries 
          * to remote places and reduce delivery costs.
          *
-         * Contractor: Our company AmperDrones, an established drone manufacturer, will
+         * Contractor: Our company Quite Remote Deliveries, an established drone manufacturer, will
          * design and develop the delivery drone system.
          *
          * Goal: An autonomous drone system that delivers small packages

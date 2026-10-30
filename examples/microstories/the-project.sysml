@@ -3,13 +3,13 @@ package MicroStory_TheProject {
 
     #project occurrence def 'Delivery Drone Project' {
         doc /* Charter: a logistics company wants faster and cheaper
-             * last-mile deliveries to remote places. AmperDrones designs
+             * last-mile deliveries to remote places. Quite Remote Deliveries designs
              * and develops the delivery drone system. */
 
         attribute :>> purpose = "Develop an autonomous delivery drone system for remote last-mile deliveries that is faster and cheaper than the client's ground-based delivery.";
 
         part johnFinch :>> projectOwner {
-            doc /* Head of drone engineering at AmperDrones, accountable
+            doc /* Head of drone engineering at Quite Remote Deliveries, accountable
                  * for the Delivery Drone project. */
             attribute :>> name = "John Finch";
         }

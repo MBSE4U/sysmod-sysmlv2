@@ -23,6 +23,7 @@ package <DD> DeliveryDrone {
      */
 
     private import SYSMOD::*;
+    private import SYSMOD::SYSMODProcesses::*;
     private import ISO15288Processes::Stakeholders::*;
 
     #project occurrence def <PRJ> 'Delivery Drone Project' {
@@ -194,17 +195,17 @@ package <DD> DeliveryDrone {
              * steps of the default process and sets their @StepStatus. The SYSMOD Map reads it with
              * scripts/generate_map_status.py. Verification has only started: MaxPayloadTest is the
              * first verification case. */
-            action :>> setupProject { @StepStatus { status = StepStatusKind::done; percentage = 1.0; } }
-            action :>> specifyBrownfieldSystem { @StepStatus { status = StepStatusKind::done; percentage = 1.0; } }
-            action :>> specifyProblemStatement { @StepStatus { status = StepStatusKind::done; percentage = 1.0; } }
-            action :>> identifyStakeholders { @StepStatus { status = StepStatusKind::done; percentage = 1.0; } }
-            action :>> elaborateStakeholderNeeds { @StepStatus { status = StepStatusKind::done; percentage = 1.0; } }
-            action :>> pitchSystemIdea { @StepStatus { status = StepStatusKind::done; percentage = 1.0; } }
-            action :>> defineSystemSpecification { @StepStatus { status = StepStatusKind::done; percentage = 1.0; } }
-            action :>> createFunctionalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0; } }
-            action :>> createLogicalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0; } }
-            action :>> createProductArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0; } }
-            action :>> verifyAndValidateRequirements { @StepStatus { status = StepStatusKind::inProgress; percentage = 0.2; } }
+            action :>> setupProject { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> specifyBrownfieldSystem { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> specifyProblemStatement { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> identifyStakeholders { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> elaborateStakeholderNeeds { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> pitchSystemIdea { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> defineSystemSpecification { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> createFunctionalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> createLogicalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> createProductArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> verifyAndValidateRequirements { @StepStatus { status = StepStatusKind::inProgress; percentage = 0.2 as Percentage; } }
         }
 
         //

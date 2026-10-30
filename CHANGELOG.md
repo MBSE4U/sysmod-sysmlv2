@@ -5,6 +5,11 @@
 - MicroStory snippets `the-project` and `problem-statement`: the project now declares the views `projectCoverView`, `projectCoverAIView`, `problemStatementView`, and `problemStatementAIView` itself, as the Delivery Drone example does since 5.1.6 (they are no longer inherited from `SYSMOD::Project`).
 - Fixed the double bullet ("- - ") of the black box/white box entry in the 5.1.6 change log.
 - Fixed a parser error in the `Percentage` constraint (#39): the assert constraint now refers to the attribute value with `that` instead of `self` (`that >= 0.0 and that <= 1.0`).
+- Extracted the ISO/IEC/IEEE 15288 processes, the stakeholders, and the concerns into the new top-level library package `ISO15288Processes` in its own file `SYSMOD15288.sysml`:
+  - The process action definitions moved from `SYSMOD::ISO15288Processes`; the `#refinement` dependencies of the SYSMOD steps refer to the new package.
+  - The stakeholders and concerns moved from `SYSMODViews::Stakeholders` and `SYSMODViews::Concerns` to `ISO15288Processes::Stakeholders` and `ISO15288Processes::Concerns`. `SYSMODViews` imports the concerns for its viewpoints.
+  - Models that use the stakeholder roles import `ISO15288Processes::Stakeholders::*` instead of `SYSMODViews::Stakeholders::*` (Delivery Drone project, MicroStory `problem-statement`).
+  - `.meta.json` indexes the new package; `scripts/generate_views_doc.py` and the views-doc workflow read the processes, stakeholders, and concerns from `SYSMOD15288.sysml`. Updated `README.md` and the regenerated `SYSMODViews.md`.
 - Black box/white box separation for the solution architectures, as for the brownfield, system idea, and specification contexts:
   - `functionalContext`, `logicalContext`, and `productContext` are the black box contexts and specialize `specificationContext`; `productContext` no longer specializes `specificationContextImpl`, and `productSystem` now redefines the black box `soi`.
   - New white box contexts `functionalContextImpl`, `logicalContextImpl` (both optional), and `productContextImpl`, each specializing its black box context, with the systems `functionalSystemImpl`, `logicalSystemImpl`, and `productSystemImpl` (`soiImpl`).

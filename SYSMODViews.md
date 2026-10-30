@@ -1,12 +1,12 @@
 <!--
   GENERATED FILE - DO NOT EDIT.
-  Generated from SYSMODViews.sysml and SYSMOD.sysml by scripts/generate_views_doc.py.
+  Generated from SYSMOD15288.sysml, SYSMODViews.sysml, and SYSMOD.sysml by scripts/generate_views_doc.py.
   Edit the library and rerun the script instead.
 -->
 
 # SYSMOD Views
 
-> This document is generated from the SYSMODViews library (v5.1.7). It is read-only; changes are made in [SYSMODViews.sysml](SYSMODViews.sysml) and the document is regenerated with `python scripts/generate_views_doc.py`.
+> This document is generated from the SYSMODViews library (v5.1.7). It is read-only; changes are made in [SYSMOD15288.sysml](SYSMOD15288.sysml) and [SYSMODViews.sysml](SYSMODViews.sysml) and the document is regenerated with `python scripts/generate_views_doc.py`.
 
 The SYSMOD views follow ISO/IEC/IEEE 42010: stakeholders derived from the ISO/IEC/IEEE 15288 life cycle processes have concerns, viewpoints frame these concerns, and views conform to the viewpoints. The SYSMOD process steps refine the ISO/IEC/IEEE 15288 processes and produce the project elements that the views of a SYSMOD project expose, e.g., in the Delivery Drone example.
 
@@ -29,7 +29,7 @@ flowchart LR
 
 ## 1. ISO 15288 Processes
 
-The life cycle processes of ISO/IEC/IEEE 15288 as defined in the package `SYSMOD::ISO15288Processes`, the stakeholders responsible for them, and the SYSMOD process steps that refine them.
+The life cycle processes of ISO/IEC/IEEE 15288 as defined in the package `ISO15288Processes`, the stakeholders responsible for them, and the SYSMOD process steps that refine them.
 
 ### Agreement Processes
 
@@ -83,7 +83,7 @@ The life cycle processes of ISO/IEC/IEEE 15288 as defined in the package `SYSMOD
 
 ## 2. Stakeholders
 
-Stakeholders of the package `SYSMODViews::Stakeholders`. Each one specializes `ExtendedStakeholder`.
+Stakeholders of the package `ISO15288Processes::Stakeholders`. Each one specializes `ExtendedStakeholder`.
 
 <a id="stakeholder-acquirer"></a>
 
@@ -240,7 +240,7 @@ Sustains the capability of the system to provide its services (ISO/IEC/IEEE 1528
 
 ## 3. Concerns
 
-Concerns of the package `SYSMODViews::Concerns`. The subject of every concern is the SYSMOD `Project`.
+Concerns of the package `ISO15288Processes::Concerns`. The subject of every concern is the SYSMOD `Project`.
 
 | Concern | Stakeholders | Viewpoints |
 |---|---|---|

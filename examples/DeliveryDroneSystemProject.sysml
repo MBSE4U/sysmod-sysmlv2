@@ -23,8 +23,7 @@ package <DD> DeliveryDrone {
      */
 
     private import SYSMOD::*;
-    private import SYSMODViews::Stakeholders::*;
-    private import SYSMOD::SYSMODProcesses::*;
+    private import ISO15288Processes::Stakeholders::*;
 
     #project occurrence def <PRJ> 'Delivery Drone Project' {
         doc

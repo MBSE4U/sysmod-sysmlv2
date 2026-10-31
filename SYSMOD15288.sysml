@@ -6,7 +6,7 @@ library package ISO15288Processes {
      *
      * Subpackages contain Stakeholders and their Concerns.
      *
-     * Version v5.1.7
+     * Version v5.1.8
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.

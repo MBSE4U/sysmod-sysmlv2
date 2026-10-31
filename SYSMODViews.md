@@ -6,7 +6,7 @@
 
 # SYSMOD Views
 
-> This document is generated from the SYSMODViews library (v5.1.7). It is read-only; changes are made in [SYSMOD15288.sysml](SYSMOD15288.sysml) and [SYSMODViews.sysml](SYSMODViews.sysml) and the document is regenerated with `python scripts/generate_views_doc.py`.
+> This document is generated from the SYSMODViews library (v5.1.8). It is read-only; changes are made in [SYSMOD15288.sysml](SYSMOD15288.sysml) and [SYSMODViews.sysml](SYSMODViews.sysml) and the document is regenerated with `python scripts/generate_views_doc.py`.
 
 The SYSMOD views follow ISO/IEC/IEEE 42010: stakeholders derived from the ISO/IEC/IEEE 15288 life cycle processes have concerns, viewpoints frame these concerns, and views conform to the viewpoints. The SYSMOD process steps refine the ISO/IEC/IEEE 15288 processes and produce the project elements that the views of a SYSMOD project expose, e.g., in the Delivery Drone example.
 

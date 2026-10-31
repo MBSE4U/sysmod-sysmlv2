@@ -8,10 +8,10 @@ Sources:
   SYSMOD.sysml        the steps of SYSMODDefaultProcess (action usages annotated with @StepStatus),
                       the literals of StepStatusKind, and the defaults of the StepStatus metadata
   examples/*.sysml    the #project occurrence defs; a project sets the status of a step by
-                      redefining it in its default process:
+                      redefining it in its default process (with SYSMOD::SYSMODProcesses::* imported):
 
                         action :>> defaultProcess {
-                            action :>> pitchSystemIdea { @StepStatus { status = StepStatusKind::done; percentage = 1.0; } }
+                            action :>> pitchSystemIdea { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
                         }
 
                       Steps a project does not redefine keep the defaults of the library.

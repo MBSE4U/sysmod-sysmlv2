@@ -1,7 +1,7 @@
 package MicroStory_ModelingInfrastructure {
     private import SYSMOD::*;
 
-    // What is already there: the engineering environment of AmperDrones today
+    // What is already there: the engineering environment of Quite Remote Deliveries today
     part def EngineeringEnvironment {
         part plm { doc /* parts, baselines, change requests */ }
         part requirementsDatabase { doc /* today's requirements, as text */ }
@@ -14,7 +14,7 @@ package MicroStory_ModelingInfrastructure {
     part def MBSEEnvironment :> EngineeringEnvironment {
         part sysmlV2Tool { doc /* textual and graphical modeling, SysML v2 API */ }
         part modelRepository { doc /* versions, reviews, automatic checks */ }
-        part methodology { doc /* SYSMOD, tailored to AmperDrones */ }
+        part methodology { doc /* SYSMOD, tailored to Quite Remote Deliveries */ }
         part training { doc /* SysML v2 and SYSMOD for the whole team */ }
         part coaching { doc /* an experienced modeler during the first project */ }
 

@@ -665,16 +665,11 @@ library package SYSMOD {
             first [0..1]performVerification then done;
 
             // Flows for information coming from the outside or created by steps for project features
-            bind setupProject.projectOwnerName = projectOwnerName;
-            bind setupProject.projectPurpose = projectPurpose;
-            bind modelBrownfieldSystem.brownfieldArchitectureDescription = brownfieldArchitectureDescription;
             flow from modelBrownfieldSystem.brownfieldContext to project.brownfieldContext;
             flow from modelBrownfieldSystem.brownfieldContextImpl to project.brownfieldContextImpl;
-            bind describeProblemStatement.problemStatementDescription = problemStatementDescription;
             flow from describeProblemStatement.problemStatement to project.problemStatement;
             flow from identifyStakeholders.projectStakeholders to project.projectStakeholders;
             flow from identifyStakeholderNeeds.stakeholderNeeds to project.stakeholderNeeds;
-            bind describeSystemIdea.systemIdeaArchitectureDescription = systemIdeaArchitectureDescription;
             flow from describeSystemIdea.systemIdeaContext to project.systemIdeaContext;
             flow from describeSystemIdea.systemIdeaContextImpl to project.systemIdeaContextImpl;
             flow from describeSystemIdea.systemObjectives to project.systemObjectives;
@@ -682,9 +677,6 @@ library package SYSMOD {
             flow from specifySystem.specificationContextImpl to project.specificationContextImpl;
             flow from specifySystem.systemRequirementSpecification to project.systemRequirementSpecification;
             flow from specifySystem.verificationContext to project.verificationContext;
-            bind modelSolutionArchitecture.functionalArchitectureDescription = functionalArchitectureDescription;
-            bind modelSolutionArchitecture.logicalArchitectureDescription = logicalArchitectureDescription;
-            bind modelSolutionArchitecture.productArchitectureDescription = productArchitectureDescription;
             flow from modelSolutionArchitecture.functionalContext to project.functionalContext;
             flow from modelSolutionArchitecture.functionalContextImpl to project.functionalContextImpl;
             flow from modelSolutionArchitecture.logicalContext to project.logicalContext;
@@ -698,8 +690,12 @@ library package SYSMOD {
             flow from specifyVerificationContext.verificationContext to project.verificationContext;
             flow from performVerification.verificationReports to project.verificationContext.verificationReports;        
 
-            // Bindings to project features: inputs to process steps which are already available in the project
+            // Bindings to process parameters and project features: inputs to process steps which are already available in the project
+            bind setupProject.projectOwnerName = projectOwnerName;
+            bind setupProject.projectPurpose = projectPurpose;
             bind project.projectOwner = describeProblemStatement.projectOwner;
+            bind describeProblemStatement.problemStatementDescription = problemStatementDescription;
+            bind modelBrownfieldSystem.brownfieldArchitectureDescription = brownfieldArchitectureDescription;
             bind project.brownfieldContextImpl = describeProblemStatement.brownfieldContextImpl;
             bind project.problemStatement = identifyStakeholders.problemStatement;
             bind project.problemStatement = identifyStakeholderNeeds.problemStatement;
@@ -709,6 +705,10 @@ library package SYSMOD {
             bind project.systemIdeaContextImpl = specifySystem.systemIdeaContextImpl;
             bind project.stakeholderNeeds = specifySystem.stakeholderNeeds;
             bind project.systemObjectives = specifySystem.systemObjectives;
+            bind describeSystemIdea.systemIdeaArchitectureDescription = systemIdeaArchitectureDescription;            
+            bind modelSolutionArchitecture.functionalArchitectureDescription = functionalArchitectureDescription;
+            bind modelSolutionArchitecture.logicalArchitectureDescription = logicalArchitectureDescription;
+            bind modelSolutionArchitecture.productArchitectureDescription = productArchitectureDescription;
             bind project.specificationContext = modelSolutionArchitecture.specificationContext;
             bind project.specificationContextImpl = modelSolutionArchitecture.specificationContextImpl;
             bind project.systemRequirementSpecification = modelSolutionArchitecture.systemRequirementSpecification;    
@@ -716,6 +716,8 @@ library package SYSMOD {
             bind project.productContextImpl = specifyVerificationContext.productContextImpl;
             bind project.verificationContext = specifyVerificationContext.verificationContext;
             bind project.verificationContext = performVerification.verificationContext;
+
+
 
             action setupProject : SetupProject { @StepStatus; }
             action modelBrownfieldSystem : ModelBrownfieldSystem { @StepStatus; }

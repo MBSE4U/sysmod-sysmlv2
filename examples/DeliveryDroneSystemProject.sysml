@@ -224,9 +224,12 @@ package <DD> DeliveryDrone {
             action :>> identifyStakeholderNeeds { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
             action :>> describeSystemIdea { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
             action :>> specifySystem { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> modelFunctionalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> modelLogicalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> modelProductArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> modelSolutionArchitecture {
+                @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; }
+                action :>> modelFunctionalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+                action :>> modelLogicalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+                action :>> modelProductArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            }
             action :>> specifyVerificationContext { @StepStatus { status = StepStatusKind::inProgress; percentage = 0.2 as Percentage; } }
             action :>> performVerification { @StepStatus { status = StepStatusKind::open; percentage = 0.0 as Percentage; } }
         }

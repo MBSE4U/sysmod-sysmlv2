@@ -14,11 +14,18 @@ Sources:
                             action :>> describeSystemIdea { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
                         }
 
+                      A nested step annotated with @StepStatus, e.g., modelFunctionalArchitecture of
+                      ModelSolutionArchitecture, is set inside the redefinition of its step:
+
+                        action :>> modelSolutionArchitecture {
+                            action :>> modelFunctionalArchitecture { @StepStatus { status = StepStatusKind::done; } }
+                        }
+
                       Steps a project does not redefine keep the defaults of the library.
 
 Output:
   examples/views/sysmodMapStatus.json
-    { "library": ..., "steps": [{"name", "type"}...],
+    { "library": ..., "steps": [{"name", "type", "parent"}...],
       "projects": [{"name", "file", "steps": {<step>: {"status", "percentage", "source"}}}] }
   The SYSMOD Map assigns each step to the cells it produces and shows status and percentage per cell.
 
@@ -70,11 +77,18 @@ def read_library(sysmod_elements):
         (e for e in walk(processes.children) if declared(e, "action", "def") == "SYSMODDefaultProcess"), None)
     if default_process is None:
         raise SystemExit("error: action def SYSMODDefaultProcess not found")
+    step_defs = {declared(e, "action", "def"): e for e in walk(processes.children) if declared(e, "action", "def")}
     steps = []
     for child in default_process.children:
         name = declared(child, "action")
         if name and any(is_step_status(c) for c in child.children):
-            steps.append({"name": name, "type": short(typed_by(child) or "")})
+            step_type = short(typed_by(child) or "")
+            steps.append({"name": name, "type": step_type, "parent": ""})
+            # nested steps of the step's action def, e.g., modelFunctionalArchitecture of ModelSolutionArchitecture
+            for nested in getattr(step_defs.get(step_type), "children", []):
+                nested_name = declared(nested, "action")
+                if nested_name and any(is_step_status(c) for c in nested.children):
+                    steps.append({"name": nested_name, "type": "", "parent": name})
 
     literals = []
     status_kind = next((e for e in walk(processes.children) if declared(e, "enum", "def") == "StepStatusKind"), None)
@@ -110,13 +124,21 @@ def read_project_status(project, steps, literals, defaults, file_label):
     if process is None:
         return status
 
-    for child in process.children:
-        if child.words[:2] != ["action", ":>>"] or len(child.words) < 3:
-            continue
-        name = child.words[2]
-        if name not in status:
-            warn(f"{file_label}: step '{name}' is not a step of SYSMODDefaultProcess")
-            continue
+    parents = {s["name"]: s["parent"] for s in steps}
+
+    def redefined_steps(owner, parent):
+        for child in owner.children:
+            if child.words[:2] != ["action", ":>>"] or len(child.words) < 3:
+                continue
+            name = child.words[2]
+            if parents.get(name) != parent:
+                where = f"a nested step of {parent}" if parent else "a step of SYSMODDefaultProcess"
+                warn(f"{file_label}: step '{name}' is not {where}")
+                continue
+            yield name, child
+            yield from redefined_steps(child, name)
+
+    for name, child in redefined_steps(process, ""):
         for meta in (c for c in child.children if is_step_status(c)):
             entry = status[name]
             entry["source"] = "model"

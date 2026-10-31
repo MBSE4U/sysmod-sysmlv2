@@ -275,7 +275,7 @@ class View:
     builds_on: dict = field(default_factory=dict)  # view -> artifacts of that view read by the steps creating this view's artifacts
     traces_to: dict = field(default_factory=dict)  # view -> relationship labels between the artifacts
     input_for: list = field(default_factory=list)
-    external_inputs: list = field(default_factory=list)  # step inputs not created by a step, e.g., brownfieldArchitecture
+    external_inputs: list = field(default_factory=list)  # step inputs not created by a step, e.g., brownfieldArchitectureDescription
 
 
 @dataclass
@@ -687,23 +687,45 @@ def read_artifacts(sysmod_elements):
                 elif source != target.name and source not in target.inputs:
                     target.inputs.append(source)
 
-        created = set()
+        # nested steps, e.g., modelFunctionalArchitecture of ModelSolutionArchitecture: their outputs are bound to
+        # outputs of the step ('out part x = Step::x' or 'bind x = nested.x'), and they read inputs of the step
+        # ('in part y = Step::y') or outputs of preceding nested steps ('flow from nested1.x to nested2.x')
+        nested_actions = [n.words[1] for n in definition.children if n.words[0] == "action" and "def" not in n.words]
+        nested_outs = {}  # (nested action, parameter) -> artifact
+        nested_ins = {n: [] for n in nested_actions}  # nested action -> input parameters of the step
         for nested in definition.children:
-            if nested.words[0] != "action" or "def" in nested.words:
-                continue
-            nested_ins, nested_outs = [], []
-            for child in nested.children:
-                direction, name, binding = parameter(child)
-                path = dotted(binding).split("::")[-1].split(".") if binding else []
-                if direction == "in" and path:
-                    nested_ins.append(path[0])
-                elif direction == "out" and path and (usage, path[0]) in flows:
-                    nested_outs.append(".".join([flows[(usage, path[0])]] + path[1:]))
-            for name in nested_outs:
-                a = artifact(name)
-                a.step, a.action = step, nested.words[1]
-                add_inputs(a, nested_ins)
-                created.add(name)
+            if nested.words[1:2] and nested.words[1] in nested_actions:
+                for child in nested.children:
+                    direction, name, binding = parameter(child)
+                    path = dotted(binding).split("::")[-1].split(".") if binding else []
+                    if direction == "in" and path:
+                        nested_ins[nested.words[1]].append(path[0])
+                    elif direction == "out" and path and (usage, path[0]) in flows:
+                        nested_outs[(nested.words[1], name)] = ".".join([flows[(usage, path[0])]] + path[1:])
+        for child in definition.children:
+            words = child.words
+            if words[0] == "bind" and "=" in words:
+                left = dotted(words[1:words.index("=")]).split(".")
+                right = dotted(words[words.index("=") + 1:]).split(".")
+                if len(left) == 1 and len(right) == 2 and right[0] in nested_actions and (usage, left[0]) in flows:
+                    nested_outs[(right[0], right[1])] = flows[(usage, left[0])]
+        nested_flow_ins = {n: [] for n in nested_actions}  # nested action -> artifacts of preceding nested steps
+        for child in definition.children:
+            words = child.words
+            if words[:2] == ["flow", "from"] and "to" in words:
+                source = tuple(dotted(words[2:words.index("to")]).split("."))
+                target = dotted(words[words.index("to") + 1:]).split(".")
+                if source in nested_outs and target[0] in nested_flow_ins:
+                    nested_flow_ins[target[0]].append(nested_outs[source])
+        created = set()
+        for (action, _), name in nested_outs.items():
+            a = artifact(name)
+            a.step, a.action = step, action
+            add_inputs(a, nested_ins[action])
+            for source in nested_flow_ins[action]:
+                if source != name and source not in a.inputs:
+                    a.inputs.append(source)
+            created.add(name)
         for out in outs:
             name = flows.get((usage, out))
             if name is None:

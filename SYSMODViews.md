@@ -69,7 +69,7 @@ The life cycle processes of ISO/IEC/IEEE 15288 as defined in the package `ISO152
 | <a id="process-businessormissionanalysis"></a>**Business or Mission Analysis** | [ProductManager](#stakeholder-productmanager) | `ModelBrownfieldSystem`, `DescribeProblemStatement`, `IdentifyStakeholders`, `DescribeSystemIdea` | The Business or Mission Analysis process defines the business or mission problem or opportunity, characterizes the solution space, and determines potential solution class(es) that can address a problem or take advantage of an opportunity. |
 | <a id="process-stakeholderneedsandrequirementsdefinition"></a>**Stakeholder Needs and Requirements Definition** | [RequirementsEngineer](#stakeholder-requirementsengineer) | `IdentifyStakeholders`, `IdentifyStakeholderNeeds` | The Stakeholder Needs and Requirements Definition process defines the stakeholder requirements for a system that can provide the capabilities needed by users and other stakeholders in a defined environment. |
 | <a id="process-systemrequirementsdefinition"></a>**System Requirements Definition** | [RequirementsEngineer](#stakeholder-requirementsengineer) | `SpecifySystem` | The System Requirements Definition process transforms the stakeholder, user-oriented view of desired capabilities into a technical view of a solution that meets the operational needs of the user. |
-| <a id="process-systemarchitecturedefinition"></a>**System Architecture Definition** | [SystemArchitect](#stakeholder-systemarchitect) | `ModelFunctionalArchitecture`, `ModelLogicalArchitecture`, `ModelProductArchitecture` | The System Architecture Definition process generates system architecture alternatives, selects one or more alternatives that address stakeholder concerns and system requirements, and expresses this in consistent views and models. |
+| <a id="process-systemarchitecturedefinition"></a>**System Architecture Definition** | [SystemArchitect](#stakeholder-systemarchitect) | `ModelSolutionArchitecture` | The System Architecture Definition process generates system architecture alternatives, selects one or more alternatives that address stakeholder concerns and system requirements, and expresses this in consistent views and models. |
 | <a id="process-designdefinition"></a>**Design Definition** | [DesignEngineer](#stakeholder-designengineer) | — | The Design Definition process provides sufficient detailed data and information about the system and its elements to enable the implementation consistent with the architectural entities as defined in the models and views of the system architecture. |
 | <a id="process-systemanalysis"></a>**System Analysis** | [SystemAnalyst](#stakeholder-systemanalyst) | — | The System Analysis process provides a rigorous basis of data and information for technical understanding to aid decision-making across the life cycle. |
 | <a id="process-implementation"></a>**Implementation** | [DesignEngineer](#stakeholder-designengineer) | — | The Implementation process realizes a specified system element. |
@@ -490,7 +490,7 @@ Shows the steps of the SYSMOD process (Project::defaultProcess) together with th
 
 - **Frames concerns:** [ProjectStatus](#concern-projectstatus)
 - **Stakeholders:** [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager)
-- **Allowed exposed elements:** `SYSMODDefaultProcess`, `SetupProject`, `ModelBrownfieldSystem`, `DescribeProblemStatement`, `IdentifyStakeholders`, `IdentifyStakeholderNeeds`, `DescribeSystemIdea`, `SpecifySystem`, `ModelFunctionalArchitecture`, `ModelLogicalArchitecture`, `ModelProductArchitecture`, `SpecifyVerificationContext`
+- **Allowed exposed elements:** `SYSMODDefaultProcess`, `SetupProject`, `ModelBrownfieldSystem`, `DescribeProblemStatement`, `IdentifyStakeholders`, `IdentifyStakeholderNeeds`, `DescribeSystemIdea`, `SpecifySystem`, `ModelSolutionArchitecture`, `SpecifyVerificationContext`, `PerformVerification`
 - **Views:** —
 
 <a id="viewpoint-riskviewpoint"></a>
@@ -746,7 +746,7 @@ _Illustrative example based on the Delivery Drone example model ([projectAIView.
 
 ### SYSMODMapView
 
-Product "The Project" as SYSMOD Map: the features of the exposed Project on one sheet with grid references, row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield, 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation. It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell is the StepStatus of the step of the Project's defaultProcess that creates the cell's features; if several steps create them, e.g., specifyVerificationContext and performVerification in B7 to C7, the cell shows the status of each step.
+Product "The Project" as SYSMOD Map: the features of the exposed Project on one sheet with grid references, row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield, 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation. It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell is the StepStatus of the step of the Project's defaultProcess that creates the cell's features; if several steps create them, e.g., specifyVerificationContext and performVerification in B7 to C7, the cell shows the status of each step. For a step with nested steps, e.g., modelSolutionArchitecture, the cells show the StepStatus of the nested step that creates their features, e.g., modelFunctionalArchitecture in column 4.
 
 - **Specializes:** [ProjectView](#view-projectview)
 
@@ -776,13 +776,13 @@ view def SYSMODMapView :> ProjectView {
             * 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation.
             * It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell
             * is the StepStatus of the step of the Project's defaultProcess that creates the cell's features; if several steps
-            * create them, e.g., specifyVerificationContext and performVerification in B7 to C7, the cell shows the status of each step.
+            * create them, e.g., specifyVerificationContext and performVerification in B7 to C7, the cell shows the status of each step. For a step with nested steps, e.g., modelSolutionArchitecture, the cells show the StepStatus of the nested step that creates their features, e.g., modelFunctionalArchitecture in column 4.
             */
     render asSYSMODMap;
 }
 ```
 
-Rendering `asSYSMODMap`: Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them: Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject). A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds). A2: systemObjectives (describeSystemIdea). A3: systemRequirementSpecification, verificationContext.verificationCases (specifySystem). A4: #refinement dependencies from the functional elements to the system requirements (modelFunctionalArchitecture). A5: #refinement dependencies from the logical elements to the system requirements (modelLogicalArchitecture). A6: productSystemImpl satisfies systemRequirementSpecification (modelProductArchitecture). A7: verificationContext.verificationCases, i.e., the verification cases of A3 bound to the productSystem (specifyVerificationContext). B1: brownfieldContext; C1: brownfieldContextImpl (modelBrownfieldSystem). B2: systemIdeaContext; C2: systemIdeaContextImpl (describeSystemIdea). B3: specificationContext with the system use cases; C3: specificationContextImpl (specifySystem). B4: functionalContext; C4: functionalContextImpl (modelFunctionalArchitecture). B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (modelLogicalArchitecture). B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelProductArchitecture). B7 to C7: verificationContext (specifyVerificationContext), verificationContext.verificationReports (performVerification). Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
+Rendering `asSYSMODMap`: Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them: Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject). A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds). A2: systemObjectives (describeSystemIdea). A3: systemRequirementSpecification, verificationContext.verificationCases (specifySystem). A4: #refinement dependencies from the functional elements to the system requirements (modelSolutionArchitecture, nested step modelFunctionalArchitecture). A5: #refinement dependencies from the logical elements to the system requirements (modelSolutionArchitecture, nested step modelLogicalArchitecture). A6: productSystemImpl satisfies systemRequirementSpecification (modelSolutionArchitecture, nested step modelProductArchitecture). A7: verificationContext.verificationCases, i.e., the verification cases of A3 bound to the productSystem (specifyVerificationContext). B1: brownfieldContext; C1: brownfieldContextImpl (modelBrownfieldSystem). B2: systemIdeaContext; C2: systemIdeaContextImpl (describeSystemIdea). B3: specificationContext with the system use cases; C3: specificationContextImpl (specifySystem). B4: functionalContext; C4: functionalContextImpl (modelSolutionArchitecture, nested step modelFunctionalArchitecture). B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (modelSolutionArchitecture, nested step modelLogicalArchitecture). B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelSolutionArchitecture, nested step modelProductArchitecture). B7 to C7: verificationContext (specifyVerificationContext), verificationContext.verificationReports (performVerification). Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
 
 ```sysml
 rendering asSYSMODMap :> Views::renderings {
@@ -791,16 +791,16 @@ rendering asSYSMODMap :> Views::renderings {
             * A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds).
             * A2: systemObjectives (describeSystemIdea).
             * A3: systemRequirementSpecification, verificationContext.verificationCases (specifySystem).
-            * A4: #refinement dependencies from the functional elements to the system requirements (modelFunctionalArchitecture).
-            * A5: #refinement dependencies from the logical elements to the system requirements (modelLogicalArchitecture).
-            * A6: productSystemImpl satisfies systemRequirementSpecification (modelProductArchitecture).
+            * A4: #refinement dependencies from the functional elements to the system requirements (modelSolutionArchitecture, nested step modelFunctionalArchitecture).
+            * A5: #refinement dependencies from the logical elements to the system requirements (modelSolutionArchitecture, nested step modelLogicalArchitecture).
+            * A6: productSystemImpl satisfies systemRequirementSpecification (modelSolutionArchitecture, nested step modelProductArchitecture).
             * A7: verificationContext.verificationCases, i.e., the verification cases of A3 bound to the productSystem (specifyVerificationContext).
             * B1: brownfieldContext; C1: brownfieldContextImpl (modelBrownfieldSystem).
             * B2: systemIdeaContext; C2: systemIdeaContextImpl (describeSystemIdea).
             * B3: specificationContext with the system use cases; C3: specificationContextImpl (specifySystem).
-            * B4: functionalContext; C4: functionalContextImpl (modelFunctionalArchitecture).
-            * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (modelLogicalArchitecture).
-            * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelProductArchitecture).
+            * B4: functionalContext; C4: functionalContextImpl (modelSolutionArchitecture, nested step modelFunctionalArchitecture).
+            * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (modelSolutionArchitecture, nested step modelLogicalArchitecture).
+            * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelSolutionArchitecture, nested step modelProductArchitecture).
             * B7 to C7: verificationContext (specifyVerificationContext), verificationContext.verificationReports (performVerification).
             * Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
             */
@@ -835,7 +835,7 @@ Product "Problem Statement": the problemStatement of the Project with its projec
 - **Shows artifacts:** `problemStatement`
 - **Created by:** `DescribeProblemStatement`
 - **Builds on:** [ProjectView](#view-projectview) (`Project`), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) (`brownfieldContextImpl`)
-- **Information provided:** `problemStatementText`
+- **Information provided:** `problemStatementDescription`
 - **Traces to:** [BrownfieldArchitectureView](#view-brownfieldarchitectureview) (problemStatement has its subject in brownfieldContextImpl)
 - **Input for:** [StakeholdersView](#view-stakeholdersview), [StakeholderNeedsView](#view-stakeholderneedsview), [SystemIdeaView](#view-systemideaview), [SystemObjectivesView](#view-systemobjectivesview)
 
@@ -879,7 +879,7 @@ Product "Problem Statement" as an AI-generated summary: a short markdown text wi
 - **Shows artifacts:** `problemStatement` (inherited)
 - **Created by:** `DescribeProblemStatement`
 - **Builds on:** [ProjectView](#view-projectview) (`Project`), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) (`brownfieldContextImpl`)
-- **Information provided:** `problemStatementText`
+- **Information provided:** `problemStatementDescription`
 - **Traces to:** [BrownfieldArchitectureView](#view-brownfieldarchitectureview) (problemStatement has its subject in brownfieldContextImpl)
 - **Input for:** —
 
@@ -1019,7 +1019,7 @@ Product "The Brownfield Architecture": the brownfieldContext and brownfieldConte
 - **Shows artifacts:** `brownfieldContext`, `brownfieldContextImpl`
 - **Created by:** `ModelBrownfieldSystem`
 - **Builds on:** —
-- **Information provided:** `brownfieldArchitecture`
+- **Information provided:** `brownfieldArchitectureDescription`
 - **Traces to:** —
 - **Input for:** [ProblemStatementView](#view-problemstatementview)
 
@@ -1061,7 +1061,7 @@ Product "The System Idea": the systemIdeaContext and systemIdeaContextImpl of th
 - **Shows artifacts:** `systemIdeaContext`, `systemIdeaContextImpl`
 - **Created by:** `DescribeSystemIdea`
 - **Builds on:** [ProblemStatementView](#view-problemstatementview) (`problemStatement`), [StakeholderNeedsView](#view-stakeholderneedsview) (`stakeholderNeeds`)
-- **Information provided:** `systemIdeaArchitecture`
+- **Information provided:** `systemIdeaArchitectureDescription`
 - **Traces to:** [BrownfieldArchitectureView](#view-brownfieldarchitectureview) (systemIdeaContext specializes brownfieldContext; systemIdeaContextImpl specializes brownfieldContextImpl), [ProblemStatementView](#view-problemstatementview) (systemIdeaContextImpl satisfies problemStatement)
 - **Input for:** [SpecificationSystemView](#view-specificationsystemview)
 
@@ -1103,7 +1103,7 @@ Product "The System Idea": the systemObjectives of the Project, i.e., the measur
 - **Shows artifacts:** `systemObjectives`
 - **Created by:** `DescribeSystemIdea`
 - **Builds on:** [ProblemStatementView](#view-problemstatementview) (`problemStatement`), [StakeholderNeedsView](#view-stakeholderneedsview) (`stakeholderNeeds`)
-- **Information provided:** `systemIdeaArchitecture`
+- **Information provided:** `systemIdeaArchitectureDescription`
 - **Traces to:** [StakeholderNeedsView](#view-stakeholderneedsview) (systemObjectives frames stakeholderNeeds), [SystemIdeaView](#view-systemideaview) (systemObjectives has its subject in systemIdeaContext)
 - **Input for:** [SystemRequirementsView](#view-systemrequirementsview)
 
@@ -1275,7 +1275,7 @@ Product "System Requirements": the systemRequirementSpecification of the Project
 - **Builds on:** [StakeholderNeedsView](#view-stakeholderneedsview) (`stakeholderNeeds`), [SystemObjectivesView](#view-systemobjectivesview) (`systemObjectives`), [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`)
 - **Information provided:** —
 - **Traces to:** [StakeholderNeedsView](#view-stakeholderneedsview) (systemRequirementSpecification frames stakeholderNeeds), [SpecificationSystemView](#view-specificationsystemview) (systemRequirementSpecification has its subject in specificationContextImpl)
-- **Input for:** [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview)
+- **Input for:** [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview), [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview)
 
 **Definition**
 
@@ -1353,9 +1353,9 @@ The functionalContext and functionalContextImpl of the Project with the function
 **Dependencies**
 
 - **Shows artifacts:** `functionalContext`, `functionalContextImpl`
-- **Created by:** `ModelFunctionalArchitecture`
-- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContext`)
-- **Information provided:** `functionalArchitecture`
+- **Created by:** `ModelSolutionArchitecture`
+- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContext`), [SystemRequirementsView](#view-systemrequirementsview) (`systemRequirementSpecification`)
+- **Information provided:** `functionalArchitectureDescription`
 - **Traces to:** [SpecificationSystemView](#view-specificationsystemview) (functionalContext specializes specificationContext)
 - **Input for:** [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview)
 
@@ -1392,9 +1392,9 @@ The logicalContext and logicalContextImpl of the Project with the technology-ind
 **Dependencies**
 
 - **Shows artifacts:** `logicalContext`, `logicalContextImpl`
-- **Created by:** `ModelLogicalArchitecture`
-- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`), [FunctionalArchitectureView](#view-functionalarchitectureview) (`functionalContext`, `functionalContextImpl`)
-- **Information provided:** `logicalArchitecture`
+- **Created by:** `ModelSolutionArchitecture`
+- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`), [SystemRequirementsView](#view-systemrequirementsview) (`systemRequirementSpecification`), [FunctionalArchitectureView](#view-functionalarchitectureview) (`functionalContext`, `functionalContextImpl`)
+- **Information provided:** `logicalArchitectureDescription`
 - **Traces to:** [SpecificationSystemView](#view-specificationsystemview) (logicalContext specializes specificationContext; logicalContextImpl specializes specificationContextImpl)
 - **Input for:** [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview)
 
@@ -1431,9 +1431,9 @@ The productContext and productContextImpl of the Project with the concrete build
 **Dependencies**
 
 - **Shows artifacts:** `productContext`, `productContextImpl`
-- **Created by:** `ModelProductArchitecture`
-- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`), [FunctionalArchitectureView](#view-functionalarchitectureview) (`functionalContextImpl`), [LogicalArchitectureView](#view-logicalarchitectureview) (`logicalContext`, `logicalContextImpl`)
-- **Information provided:** `productArchitecture`
+- **Created by:** `ModelSolutionArchitecture`
+- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`), [SystemRequirementsView](#view-systemrequirementsview) (`systemRequirementSpecification`), [FunctionalArchitectureView](#view-functionalarchitectureview) (`functionalContextImpl`), [LogicalArchitectureView](#view-logicalarchitectureview) (`logicalContext`, `logicalContextImpl`)
+- **Information provided:** `productArchitectureDescription`
 - **Traces to:** [SpecificationSystemView](#view-specificationsystemview) (productContext specializes specificationContext; productContextImpl specializes specificationContextImpl), [SystemRequirementsView](#view-systemrequirementsview) (productContextImpl satisfies systemRequirementSpecification)
 - **Input for:** [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview)
 
@@ -1470,9 +1470,9 @@ The allocations functional2logical, logical2product, functionalImpl2logicalImpl,
 **Dependencies**
 
 - **Shows artifacts:** `functional2logical`, `logical2product`, `functionalImpl2logicalImpl`, `logicalImpl2productImpl`
-- **Created by:** `ModelLogicalArchitecture`, `ModelProductArchitecture`
-- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`), [FunctionalArchitectureView](#view-functionalarchitectureview) (`functionalContext`, `functionalContextImpl`), [LogicalArchitectureView](#view-logicalarchitectureview) (`logicalContext`, `logicalContextImpl`)
-- **Information provided:** `logicalArchitecture`, `productArchitecture`
+- **Created by:** `ModelSolutionArchitecture`
+- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`), [SystemRequirementsView](#view-systemrequirementsview) (`systemRequirementSpecification`), [FunctionalArchitectureView](#view-functionalarchitectureview) (`functionalContext`, `functionalContextImpl`), [LogicalArchitectureView](#view-logicalarchitectureview) (`logicalContext`, `logicalContextImpl`)
+- **Information provided:** `logicalArchitectureDescription`, `productArchitectureDescription`
 - **Traces to:** [FunctionalArchitectureView](#view-functionalarchitectureview) (functional2logical allocates functionalContext; functionalImpl2logicalImpl allocates functionalContextImpl), [LogicalArchitectureView](#view-logicalarchitectureview) (functional2logical allocates to logicalContext; logical2product allocates logicalContext; functionalImpl2logicalImpl allocates to logicalContextImpl; logicalImpl2productImpl allocates logicalContextImpl), [ProductArchitectureView](#view-productarchitectureview) (logical2product allocates to productContext; logicalImpl2productImpl allocates to productContextImpl)
 - **Input for:** —
 
@@ -1760,15 +1760,11 @@ flowchart TB
         VerificationAndValidationView[VerificationAndValidationView]
         VerificationMatrixView[VerificationMatrixView]
     end
-    subgraph ModelFunctionalArchitecture["Model Functional Architecture"]
+    subgraph ModelSolutionArchitecture["Model Solution Architecture"]
         FunctionalArchitectureView[FunctionalArchitectureView]
-    end
-    subgraph ModelLogicalArchitecture["Model Logical Architecture"]
         LogicalArchitectureView[LogicalArchitectureView]
-        ArchitectureAllocationView[ArchitectureAllocationView]
-    end
-    subgraph ModelProductArchitecture["Model Product Architecture"]
         ProductArchitectureView[ProductArchitectureView]
+        ArchitectureAllocationView[ArchitectureAllocationView]
     end
     ProjectView --> ProblemStatementView
     BrownfieldArchitectureView --> ProblemStatementView
@@ -1788,12 +1784,16 @@ flowchart TB
     SystemObjectivesView --> SystemRequirementsView
     SpecificationSystemView --> SystemRequirementsView
     SpecificationSystemView --> FunctionalArchitectureView
+    SystemRequirementsView --> FunctionalArchitectureView
     SpecificationSystemView --> LogicalArchitectureView
+    SystemRequirementsView --> LogicalArchitectureView
     FunctionalArchitectureView --> LogicalArchitectureView
     SpecificationSystemView --> ProductArchitectureView
+    SystemRequirementsView --> ProductArchitectureView
     FunctionalArchitectureView --> ProductArchitectureView
     LogicalArchitectureView --> ProductArchitectureView
     SpecificationSystemView --> ArchitectureAllocationView
+    SystemRequirementsView --> ArchitectureAllocationView
     FunctionalArchitectureView --> ArchitectureAllocationView
     LogicalArchitectureView --> ArchitectureAllocationView
     SpecificationSystemView --> VerificationAndValidationView
@@ -1805,7 +1805,6 @@ flowchart TB
     StakeholderNeedsView -.-> BrownfieldArchitectureView
     SystemIdeaView -.-> BrownfieldArchitectureView
     SystemObjectivesView -.-> SystemIdeaView
-    ProductArchitectureView -.-> SystemRequirementsView
     ArchitectureAllocationView -.-> ProductArchitectureView
 ```
 
@@ -1816,21 +1815,21 @@ _Solid arrow: the target view builds on the source view. Dotted arrow: the sourc
 | [ProjectView](#view-projectview) | `Project` | `SetupProject` | — | `projectOwnerName`, `projectPurpose` | — | [ProblemStatementView](#view-problemstatementview) |
 | [ProjectAIView](#view-projectaiview) | `Project` | `SetupProject` | — | `projectOwnerName`, `projectPurpose` | — | — |
 | [SYSMODMapView](#view-sysmodmapview) | `Project` | `SetupProject` | — | `projectOwnerName`, `projectPurpose` | — | — |
-| [ProblemStatementView](#view-problemstatementview) | `problemStatement` | `DescribeProblemStatement` | [ProjectView](#view-projectview), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | `problemStatementText` | [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | [StakeholdersView](#view-stakeholdersview), [StakeholderNeedsView](#view-stakeholderneedsview), [SystemIdeaView](#view-systemideaview), [SystemObjectivesView](#view-systemobjectivesview) |
-| [ProblemStatementAIView](#view-problemstatementaiview) | `problemStatement` | `DescribeProblemStatement` | [ProjectView](#view-projectview), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | `problemStatementText` | [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | — |
+| [ProblemStatementView](#view-problemstatementview) | `problemStatement` | `DescribeProblemStatement` | [ProjectView](#view-projectview), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | `problemStatementDescription` | [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | [StakeholdersView](#view-stakeholdersview), [StakeholderNeedsView](#view-stakeholderneedsview), [SystemIdeaView](#view-systemideaview), [SystemObjectivesView](#view-systemobjectivesview) |
+| [ProblemStatementAIView](#view-problemstatementaiview) | `problemStatement` | `DescribeProblemStatement` | [ProjectView](#view-projectview), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | `problemStatementDescription` | [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | — |
 | [StakeholdersView](#view-stakeholdersview) | `projectStakeholders` | `IdentifyStakeholders` | [ProblemStatementView](#view-problemstatementview) | — | — | [StakeholderNeedsView](#view-stakeholderneedsview) |
 | [StakeholderNeedsView](#view-stakeholderneedsview) | `stakeholderNeeds` | `IdentifyStakeholderNeeds` | [ProblemStatementView](#view-problemstatementview), [StakeholdersView](#view-stakeholdersview) | — | [ProblemStatementView](#view-problemstatementview), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | [SystemIdeaView](#view-systemideaview), [SystemObjectivesView](#view-systemobjectivesview), [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview) |
-| [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | `brownfieldContext`, `brownfieldContextImpl` | `ModelBrownfieldSystem` | — | `brownfieldArchitecture` | — | [ProblemStatementView](#view-problemstatementview) |
-| [SystemIdeaView](#view-systemideaview) | `systemIdeaContext`, `systemIdeaContextImpl` | `DescribeSystemIdea` | [ProblemStatementView](#view-problemstatementview), [StakeholderNeedsView](#view-stakeholderneedsview) | `systemIdeaArchitecture` | [BrownfieldArchitectureView](#view-brownfieldarchitectureview), [ProblemStatementView](#view-problemstatementview) | [SpecificationSystemView](#view-specificationsystemview) |
-| [SystemObjectivesView](#view-systemobjectivesview) | `systemObjectives` | `DescribeSystemIdea` | [ProblemStatementView](#view-problemstatementview), [StakeholderNeedsView](#view-stakeholderneedsview) | `systemIdeaArchitecture` | [StakeholderNeedsView](#view-stakeholderneedsview), [SystemIdeaView](#view-systemideaview) | [SystemRequirementsView](#view-systemrequirementsview) |
+| [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | `brownfieldContext`, `brownfieldContextImpl` | `ModelBrownfieldSystem` | — | `brownfieldArchitectureDescription` | — | [ProblemStatementView](#view-problemstatementview) |
+| [SystemIdeaView](#view-systemideaview) | `systemIdeaContext`, `systemIdeaContextImpl` | `DescribeSystemIdea` | [ProblemStatementView](#view-problemstatementview), [StakeholderNeedsView](#view-stakeholderneedsview) | `systemIdeaArchitectureDescription` | [BrownfieldArchitectureView](#view-brownfieldarchitectureview), [ProblemStatementView](#view-problemstatementview) | [SpecificationSystemView](#view-specificationsystemview) |
+| [SystemObjectivesView](#view-systemobjectivesview) | `systemObjectives` | `DescribeSystemIdea` | [ProblemStatementView](#view-problemstatementview), [StakeholderNeedsView](#view-stakeholderneedsview) | `systemIdeaArchitectureDescription` | [StakeholderNeedsView](#view-stakeholderneedsview), [SystemIdeaView](#view-systemideaview) | [SystemRequirementsView](#view-systemrequirementsview) |
 | [SpecificationSystemView](#view-specificationsystemview) | `specificationContext`, `specificationContextImpl` | `SpecifySystem` | [SystemIdeaView](#view-systemideaview) | — | [SystemIdeaView](#view-systemideaview) | [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview), [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview) |
 | [UseCasesView](#view-usecasesview) | `specificationContext.useCases` | `SpecifySystem` | [StakeholderNeedsView](#view-stakeholderneedsview), [SpecificationSystemView](#view-specificationsystemview) | — | — | — |
 | [UseCaseFlowView](#view-usecaseflowview) | `specificationContext.useCases` | `SpecifySystem` | [StakeholderNeedsView](#view-stakeholderneedsview), [SpecificationSystemView](#view-specificationsystemview) | — | — | — |
-| [SystemRequirementsView](#view-systemrequirementsview) | `systemRequirementSpecification` | `SpecifySystem` | [StakeholderNeedsView](#view-stakeholderneedsview), [SystemObjectivesView](#view-systemobjectivesview), [SpecificationSystemView](#view-specificationsystemview) | — | [StakeholderNeedsView](#view-stakeholderneedsview), [SpecificationSystemView](#view-specificationsystemview) | [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview) |
-| [FunctionalArchitectureView](#view-functionalarchitectureview) | `functionalContext`, `functionalContextImpl` | `ModelFunctionalArchitecture` | [SpecificationSystemView](#view-specificationsystemview) | `functionalArchitecture` | [SpecificationSystemView](#view-specificationsystemview) | [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview) |
-| [LogicalArchitectureView](#view-logicalarchitectureview) | `logicalContext`, `logicalContextImpl` | `ModelLogicalArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [FunctionalArchitectureView](#view-functionalarchitectureview) | `logicalArchitecture` | [SpecificationSystemView](#view-specificationsystemview) | [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview) |
-| [ProductArchitectureView](#view-productarchitectureview) | `productContext`, `productContextImpl` | `ModelProductArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview) | `productArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview) | [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview) |
-| [ArchitectureAllocationView](#view-architectureallocationview) | `functional2logical`, `logical2product`, `functionalImpl2logicalImpl`, `logicalImpl2productImpl` | `ModelLogicalArchitecture`, `ModelProductArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview) | `logicalArchitecture`, `productArchitecture` | [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview) | — |
+| [SystemRequirementsView](#view-systemrequirementsview) | `systemRequirementSpecification` | `SpecifySystem` | [StakeholderNeedsView](#view-stakeholderneedsview), [SystemObjectivesView](#view-systemobjectivesview), [SpecificationSystemView](#view-specificationsystemview) | — | [StakeholderNeedsView](#view-stakeholderneedsview), [SpecificationSystemView](#view-specificationsystemview) | [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview), [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview) |
+| [FunctionalArchitectureView](#view-functionalarchitectureview) | `functionalContext`, `functionalContextImpl` | `ModelSolutionArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview) | `functionalArchitectureDescription` | [SpecificationSystemView](#view-specificationsystemview) | [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview) |
+| [LogicalArchitectureView](#view-logicalarchitectureview) | `logicalContext`, `logicalContextImpl` | `ModelSolutionArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview) | `logicalArchitectureDescription` | [SpecificationSystemView](#view-specificationsystemview) | [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview) |
+| [ProductArchitectureView](#view-productarchitectureview) | `productContext`, `productContextImpl` | `ModelSolutionArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview) | `productArchitectureDescription` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview) | [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview) |
+| [ArchitectureAllocationView](#view-architectureallocationview) | `functional2logical`, `logical2product`, `functionalImpl2logicalImpl`, `logicalImpl2productImpl` | `ModelSolutionArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview) | `logicalArchitectureDescription`, `productArchitectureDescription` | [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview) | — |
 | [VerificationAndValidationView](#view-verificationandvalidationview) | `verificationContext.verificationCases` | `SpecifySystem`, `SpecifyVerificationContext` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview), [ProductArchitectureView](#view-productarchitectureview) | — | [ProductArchitectureView](#view-productarchitectureview) | — |
 | [VerificationMatrixView](#view-verificationmatrixview) | `verificationContext.verificationCases` | `SpecifySystem`, `SpecifyVerificationContext` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview), [ProductArchitectureView](#view-productarchitectureview) | — | [ProductArchitectureView](#view-productarchitectureview) | — |
 

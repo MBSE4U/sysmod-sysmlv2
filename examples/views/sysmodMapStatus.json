@@ -10,51 +10,68 @@
   "steps": [
     {
       "name": "setupProject",
-      "type": "SetupProject"
+      "type": "SetupProject",
+      "parent": ""
     },
     {
       "name": "modelBrownfieldSystem",
-      "type": "ModelBrownfieldSystem"
+      "type": "ModelBrownfieldSystem",
+      "parent": ""
     },
     {
       "name": "describeProblemStatement",
-      "type": "DescribeProblemStatement"
+      "type": "DescribeProblemStatement",
+      "parent": ""
     },
     {
       "name": "identifyStakeholders",
-      "type": "IdentifyStakeholders"
+      "type": "IdentifyStakeholders",
+      "parent": ""
     },
     {
       "name": "identifyStakeholderNeeds",
-      "type": "IdentifyStakeholderNeeds"
+      "type": "IdentifyStakeholderNeeds",
+      "parent": ""
     },
     {
       "name": "describeSystemIdea",
-      "type": "DescribeSystemIdea"
+      "type": "DescribeSystemIdea",
+      "parent": ""
     },
     {
       "name": "specifySystem",
-      "type": "SpecifySystem"
+      "type": "SpecifySystem",
+      "parent": ""
+    },
+    {
+      "name": "modelSolutionArchitecture",
+      "type": "ModelSolutionArchitecture",
+      "parent": ""
     },
     {
       "name": "modelFunctionalArchitecture",
-      "type": "ModelFunctionalArchitecture"
+      "type": "",
+      "parent": "modelSolutionArchitecture"
     },
     {
       "name": "modelLogicalArchitecture",
-      "type": "ModelLogicalArchitecture"
+      "type": "",
+      "parent": "modelSolutionArchitecture"
     },
     {
       "name": "modelProductArchitecture",
-      "type": "ModelProductArchitecture"
+      "type": "",
+      "parent": "modelSolutionArchitecture"
     },
     {
       "name": "specifyVerificationContext",
-      "type": "SpecifyVerificationContext"
+      "type": "SpecifyVerificationContext",
+      "parent": ""
     },
     {
       "name": "performVerification",
-      "type": "PerformVerification"
+      "type": "PerformVerification",
+      "parent": ""
     }
   ],
   "projects": [
@@ -93,6 +110,11 @@
           "source": "default"
         },
         "specifySystem": {
+          "status": "open",
+          "percentage": 0.0,
+          "source": "default"
+        },
+        "modelSolutionArchitecture": {
           "status": "open",
           "percentage": 0.0,
           "source": "default"
@@ -159,6 +181,11 @@
           "source": "model"
         },
         "specifySystem": {
+          "status": "done",
+          "percentage": 1.0,
+          "source": "model"
+        },
+        "modelSolutionArchitecture": {
           "status": "done",
           "percentage": 1.0,
           "source": "model"

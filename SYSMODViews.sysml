@@ -46,9 +46,8 @@ library package SYSMODViews {
             elements->forAll {
                 in e; e istype SYSMODDefaultProcess or e istype SetupProject or e istype ModelBrownfieldSystem
                     or e istype DescribeProblemStatement or e istype IdentifyStakeholders or e istype IdentifyStakeholderNeeds
-                    or e istype DescribeSystemIdea or e istype SpecifySystem or e istype ModelFunctionalArchitecture
-                    or e istype ModelLogicalArchitecture or e istype ModelProductArchitecture
-                    or e istype SpecifyVerificationContext
+                    or e istype DescribeSystemIdea or e istype SpecifySystem or e istype ModelSolutionArchitecture
+                    or e istype SpecifyVerificationContext or e istype PerformVerification
             }
         }
 
@@ -284,7 +283,7 @@ library package SYSMODViews {
                 * 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation.
                 * It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell
                 * is the StepStatus of the step of the Project's defaultProcess that creates the cell's features; if several steps
-                * create them, e.g., specifyVerificationContext and performVerification in B7 to C7, the cell shows the status of each step.
+                * create them, e.g., specifyVerificationContext and performVerification in B7 to C7, the cell shows the status of each step. For a step with nested steps, e.g., modelSolutionArchitecture, the cells show the StepStatus of the nested step that creates their features, e.g., modelFunctionalArchitecture in column 4.
                 */
         render asSYSMODMap;
     }
@@ -294,16 +293,16 @@ library package SYSMODViews {
                 * A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds).
                 * A2: systemObjectives (describeSystemIdea).
                 * A3: systemRequirementSpecification, verificationContext.verificationCases (specifySystem).
-                * A4: #refinement dependencies from the functional elements to the system requirements (modelFunctionalArchitecture).
-                * A5: #refinement dependencies from the logical elements to the system requirements (modelLogicalArchitecture).
-                * A6: productSystemImpl satisfies systemRequirementSpecification (modelProductArchitecture).
+                * A4: #refinement dependencies from the functional elements to the system requirements (modelSolutionArchitecture, nested step modelFunctionalArchitecture).
+                * A5: #refinement dependencies from the logical elements to the system requirements (modelSolutionArchitecture, nested step modelLogicalArchitecture).
+                * A6: productSystemImpl satisfies systemRequirementSpecification (modelSolutionArchitecture, nested step modelProductArchitecture).
                 * A7: verificationContext.verificationCases, i.e., the verification cases of A3 bound to the productSystem (specifyVerificationContext).
                 * B1: brownfieldContext; C1: brownfieldContextImpl (modelBrownfieldSystem).
                 * B2: systemIdeaContext; C2: systemIdeaContextImpl (describeSystemIdea).
                 * B3: specificationContext with the system use cases; C3: specificationContextImpl (specifySystem).
-                * B4: functionalContext; C4: functionalContextImpl (modelFunctionalArchitecture).
-                * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (modelLogicalArchitecture).
-                * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelProductArchitecture).
+                * B4: functionalContext; C4: functionalContextImpl (modelSolutionArchitecture, nested step modelFunctionalArchitecture).
+                * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (modelSolutionArchitecture, nested step modelLogicalArchitecture).
+                * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelSolutionArchitecture, nested step modelProductArchitecture).
                 * B7 to C7: verificationContext (specifyVerificationContext), verificationContext.verificationReports (performVerification).
                 * Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
                 */

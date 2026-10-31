@@ -7,4 +7,5 @@ webapp/
 output/
 *.kpar
 examples/SYSMOD-Example-DeliveryDrone.mdszip.bak
+examples/SYSMOD-Example-DeliveryDrone.mdszip
 sandbox.sysml

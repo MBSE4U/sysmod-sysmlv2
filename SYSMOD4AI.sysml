@@ -186,8 +186,9 @@ package SYSMOD4AI {
              * (SYSMODProcesses::SYSMODDefaultProcess) and reports where a project stands in it:
              * setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders,
              * identifyStakeholderNeeds, describeSystemIdea, specifySystem,
-             * modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture,
-             * specifyVerificationContext, and performVerification. Verification is split in two:
+             * modelSolutionArchitecture (nested steps modelFunctionalArchitecture,
+             * modelLogicalArchitecture, and modelProductArchitecture), specifyVerificationContext,
+             * and performVerification. Verification is split in two:
              * specifySystem specifies the verification cases against the black box specification
              * system and returns the verification context with them, and specifyVerificationContext
              * adds the test systems and binds the verification cases to the product system.
@@ -211,24 +212,25 @@ package SYSMOD4AI {
              */
             name = "sysmod-default-process";
             create_prompt =
-                "1. Read the SYSMODDefaultProcess action definition in SYSMOD::SYSMODProcesses and its steps in succession order: setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds, describeSystemIdea, specifySystem, modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture, specifyVerificationContext, performVerification.
+                "1. Read the SYSMODDefaultProcess action definition in SYSMOD::SYSMODProcesses and its steps in succession order: setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds, describeSystemIdea, specifySystem, modelSolutionArchitecture (nested steps modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture), specifyVerificationContext, performVerification.
                 2. Find the project. If no project exists, start with setupProject.
                 3. Determine the current position in the process: for each step, check whether its outputs (the project features it flows into) already exist in the project and are valid. The first step whose outputs are missing or invalid is the next step.
                 4. Execute the next step by delegating to the AI metadata of the project features it produces, using their create_questions, create_prompt, and validation_prompt:
                    - setupProject: projectAI and projectOwnerAI; set the project's purpose and the projectOwner's name from the process inputs projectPurpose and projectOwnerName.
-                   - modelBrownfieldSystem: brownfieldContextAI, using the process input brownfieldArchitecture (a description of the existing system).
-                   - describeProblemStatement: problemStatementAI, using the process input problemStatementText and the projectOwner.
+                   - modelBrownfieldSystem: brownfieldContextAI, using the process input brownfieldArchitectureDescription (a description of the existing system).
+                   - describeProblemStatement: problemStatementAI, using the process input problemStatementDescription and the projectOwner.
                    - identifyStakeholders: projectStakeholdersAI; optionally stakeholderPriorityMapAI.
                    - identifyStakeholderNeeds: stakeholderNeedsAI.
-                   - describeSystemIdea: systemIdeaContextAI, using the process input systemIdeaArchitecture, then systemObjectivesAI.
+                   - describeSystemIdea: systemIdeaContextAI, using the process input systemIdeaArchitectureDescription, then systemObjectivesAI.
                    - specifySystem: specificationContextAI (specification architecture and use cases), then systemRequirementSpecificationAI, then verificationCasesAI (nested step specifyVerificationCases: the verification case definitions with objective and verdict against the black box specification system, specified with the verification engineers before any solution architecture exists, and their usages in the project's verificationContext).
-                   - modelFunctionalArchitecture (optional): functionalContextAI, using the process input functionalArchitecture.
-                   - modelLogicalArchitecture (optional): logicalContextAI, using the process input logicalArchitecture.
-                   - modelProductArchitecture: productContextAI, using the process input productArchitecture.
+                   - modelSolutionArchitecture, with its nested steps in this order:
+                     - modelFunctionalArchitecture (optional): functionalContextAI, using the process input functionalArchitectureDescription.
+                     - modelLogicalArchitecture (optional): logicalContextAI, using the process input logicalArchitectureDescription.
+                     - modelProductArchitecture: productContextAI, using the process input productArchitectureDescription.
                    - specifyVerificationContext: verificationContextAI; type the project's verificationContext by a definition that specializes the productContextImpl definition, add the test systems needed for the verification as actors (e.g., a test bench or a wind tunnel), and bind the verification cases of the verificationContext to the product system: the productSystem (the soiImpl of the verificationContext) is their subject, typed by the white box product system definition. Do not create the verification cases anew; if a requirement has no verification case yet, go back to verificationCasesAI.
                    - performVerification: verificationContextAI; execute the verification cases of the verificationContext on the product system and add a verification report (item usage typed by VerificationReport, subsetting verificationReports of the verificationContext) per verification run with the verdict of each verification case, the verified requirements, and the evidence; its content is aligned with ISO/IEC/IEEE 15289. Do not change the verification cases; if one cannot be performed, report it and go back to specifyVerificationContext.
-                5. Respect the inputs of each step as defined by the bindings of SYSMODDefaultProcess: a step must only start when the project features it reads exist (e.g. identifyStakeholderNeeds needs the problemStatement and the projectStakeholders).
-                6. Steps after setupProject are optional ([0..1] successions). Skip a step only when it does not apply (e.g. modelBrownfieldSystem for a pure greenfield project, or modelFunctionalArchitecture and modelLogicalArchitecture), and tell the user which step was skipped and why.
+                5. Respect the inputs of each step as defined by the bindings and flows of SYSMODDefaultProcess and of the steps with nested steps: a step must only start when the project features it reads exist (e.g. identifyStakeholderNeeds needs the problemStatement and the projectStakeholders).
+                6. Steps after setupProject are optional ([0..1] successions). Skip a step only when it does not apply (e.g. modelBrownfieldSystem for a pure greenfield project, or the nested steps modelFunctionalArchitecture and modelLogicalArchitecture of modelSolutionArchitecture), and tell the user which step was skipped and why.
                 7. After each step, show the user the result and the step's validation findings, and ask whether to continue with the next step, revise the current one, or stop.
                 8. If the user asks how a step relates to ISO/IEC/IEEE 15288, answer from the #refinement dependencies in SYSMODProcesses (e.g. SpecifySystem refines ISO15288Processes::SystemRequirementsDefinition).
                 9. Do not redefine the project's defaultProcess action usage unless the user explicitly asks to tailor the process; if so, redefine defaultProcess in the project with a specialization of SYSMODDefaultProcess and document every deviation in a doc comment.";
@@ -241,10 +243,10 @@ package SYSMOD4AI {
             validation_prompt =
                 "Validate the project's progress against the SYSMOD default process and report findings grouped as errors, warnings, and suggestions.
                 Check:
-                1. For each step of SYSMODDefaultProcess, report its status: done (outputs exist and pass the validation_prompt of the corresponding AI metadata), in progress (outputs exist but have validation errors), skipped, or open.
+                1. For each step of SYSMODDefaultProcess and each nested step with StepStatus (modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture), report its status: done (outputs exist and pass the validation_prompt of the corresponding AI metadata), in progress (outputs exist but have validation errors), skipped, or open.
                 2. No step is done while one of its inputs is missing or invalid (e.g. stakeholderNeeds without a problemStatement, systemRequirementSpecification without stakeholderNeeds, productContextImpl without a specificationContextImpl).
                 3. setupProject: the project has a purpose and the projectOwner has a name.
-                4. Only optional steps are skipped (modelBrownfieldSystem for greenfield projects, modelFunctionalArchitecture, modelLogicalArchitecture); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification, productContext, productContextImpl) are not skipped.
+                4. Only optional steps are skipped (modelBrownfieldSystem for greenfield projects, the nested steps modelFunctionalArchitecture and modelLogicalArchitecture); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification, productContext, productContextImpl) are not skipped.
                 5. specifySystem: every requirement of the systemRequirementSpecification is verified by at least one verification case definition with the black box specification system as subject, and each of them has a verification case usage in the verificationContext subsetting verificationCases; specifyVerificationContext: the verificationContext specializes productContextImpl, contains the test systems, and its verification cases have the productSystem as subject. Flag verification case definitions created in specifyVerificationContext that do not exist in the specification. performVerification: each verification report subsets verificationReports of the verificationContext and states the verdicts of the verification cases it covers.
                 6. If the project redefines defaultProcess, the redefinition is typed by a specialization of SYSMODDefaultProcess and documents its deviations from the default process.
                 7. Name the next step to perform and the AI metadata to use for it.
@@ -772,7 +774,7 @@ package SYSMOD4AI {
                 "1. If a functional architecture is required, specialize specificationContext (black box view) within functionalContext. Neither functionalContext nor functionalContextImpl specializes specificationContextImpl — the functional architecture must not depend on the physical internal structure of the system.
                 2. Redefine the inherited functionalSystem part (which redefines the black box specification soi) as the root of the functional architecture (e.g., developed with the FAS method). It inherits the system ports, so functions can be related to the system's external interfaces. Define the top-level functions of the system as action usages within the functionalSystem.
                 3. Specialize functionalContext within functionalContextImpl (white box view) by redefining the inherited functionalSystemImpl part. Define the functional blocks as part usages within the functionalSystemImpl that perform the functions.
-                4. If allocations to the logical architecture are known, note them; the modelLogicalArchitecture step creates the functional2logical allocation (black box contexts) and the functionalImpl2logicalImpl allocation (white box contexts) in the project.
+                4. If allocations to the logical architecture are known, note them; the nested step modelLogicalArchitecture of modelSolutionArchitecture creates the functional2logical allocation (black box contexts) and the functionalImpl2logicalImpl allocation (white box contexts) in the project.
                 5. Create the SysML v2 textual notation for the functionalContext and the functionalContextImpl.
                 6. If the user asks to insert them into the SysML model, find the project and redefine the inherited functionalContext and functionalContextImpl part usages (note: multiplicity is [0..1]).";
             create_questions = (
@@ -818,7 +820,7 @@ package SYSMOD4AI {
                 "1. If a logical architecture is required, specialize specificationContext (black box view) within logicalContext by redefining the inherited logicalSystem part (the redefined black box soi).
                 2. Specialize logicalContext and specificationContextImpl within logicalContextImpl (white box view) by redefining the inherited logicalSystemImpl part. Define logical components as part usages within logicalSystemImpl, representing technology-independent building blocks that realize the functional architecture.
                 3. If a functional architecture is present, create the functional2logical allocation (black box contexts) and the functionalImpl2logicalImpl allocation (white box contexts) by redefining the inherited allocation usages in the project, and allocate the functional blocks to the logical components within functionalImpl2logicalImpl.
-                4. If allocations to the product architecture are known, note them; the modelProductArchitecture step creates the logical2product and logicalImpl2productImpl allocations in the project.
+                4. If allocations to the product architecture are known, note them; the nested step modelProductArchitecture of modelSolutionArchitecture creates the logical2product and logicalImpl2productImpl allocations in the project.
                 5. Create the SysML v2 textual notation for the logicalContext and the logicalContextImpl.
                 6. If the user asks to insert them into the SysML model, find the project and redefine the inherited logicalContext and logicalContextImpl part usages (note: multiplicity is [0..1]).";
             create_questions = (

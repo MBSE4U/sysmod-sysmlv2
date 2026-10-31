@@ -2,7 +2,7 @@
 
 ## v5.1.7
 
-- Renamed the SYSMOD steps to follow a verb terminology: step names are verb + product, and the verb states how formal the content of the step's output is, from informal to fully formal: describe, identify, define, model, specify. A step with nested steps takes the verb of its most formal nested step. The terminology is documented in the `SYSMODProcesses` package doc.
+- Renamed the SYSMOD steps to follow a verb terminology: step names are verb + product, and the verb states how formal the content of the step's output is, from informal to fully formal: describe, identify, define, model, specify. A step with nested steps takes the verb of its most formal nested step. The terminology is documented as a table (level, verb, result, test question, steps) in the `SYSMODProcesses` package doc.
   - `SpecifyBrownfieldSystem` → `ModelBrownfieldSystem` (`modelBrownfieldSystem`)
   - `SpecifyProblemStatement` → `DescribeProblemStatement` (`describeProblemStatement`)
   - `ElaborateStakeholderNeeds` → `IdentifyStakeholderNeeds` (`identifyStakeholderNeeds`)

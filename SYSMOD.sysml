@@ -543,11 +543,16 @@ library package SYSMOD {
          *
          * Step names follow the pattern verb + product. The verb states how formal the content of the step's output is,
          * from informal to fully formal:
-         *   1 describe  - text in natural language without a prescribed structure, e.g., an elevator pitch.
-         *   2 identify  - named elements with a short text, optionally traced or classified.
-         *   3 define    - elements with fixed attributes and clear boundaries.
-         *   4 model     - structure: contexts, parts, connections, allocations, and refinements.
-         *   5 specify   - verifiable or executable content: measurable requirements, constraints, and verification cases.
+         *
+         * | Level | Verb     | Result                                                                                         | Test question                                                              | Steps |
+         * |-------|----------|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|-------|
+         * | 1     | describe | Text in natural language without a prescribed structure, e.g., an elevator pitch               | Is a paragraph of prose enough?                                            | DescribeProblemStatement, DescribeSystemIdea |
+         * | 2     | identify | Named elements with a short text, optionally traced or classified                              | Is it about what exists, not how it is structured?                         | IdentifyStakeholders, IdentifyStakeholderNeeds, identifyUseCases |
+         * | 3     | define   | Elements with fixed attributes and clear boundaries                                            | Must ambiguity be ruled out, without needing structure yet?                | (none yet) |
+         * | 4     | model    | Structure: contexts, parts, connections, allocations, and refinements                          | Does the result connect to other model elements as structure?              | ModelBrownfieldSystem, modelSpecificationContext, ModelFunctionalArchitecture, ModelLogicalArchitecture, ModelProductArchitecture |
+         * | 5     | specify  | Verifiable or executable content: measurable requirements, constraints, and verification cases | Can a tool or test evaluate the result?                                    | SpecifySystem, specifySystemRequirements, SpecifyVerificationContext |
+         *
+         * SetupProject is outside the scale, as it organizes the project rather than producing a product.
          * A step that contains nested steps takes the verb of its most formal nested step.
          * Verbs outside this scale name activities, not step outputs: set up (project organization), elicit (gather
          * information from stakeholders), elaborate (refine an existing output without changing its level), derive,

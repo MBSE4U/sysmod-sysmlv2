@@ -41,8 +41,8 @@
   <text x="324" y="166" font-size="12" font-weight="600" fill="#222">Requirements</text>
   <text x="324" y="184" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">systemRequirement</text>
   <text x="324" y="198" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Specification</text>
-  <text x="324" y="212" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">+ specification</text>
-  <text x="324" y="226" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">VerificationCases</text>
+  <text x="324" y="212" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">+ verification</text>
+  <text x="324" y="226" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Cases</text>
   <text x="324" y="262" font-size="10" fill="#555">done · 100 %</text>
   <rect x="324" y="268" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
   <rect x="324" y="268" width="112.0" height="6" fill="#b7791f"/>
@@ -135,9 +135,16 @@
   <text x="852" y="358" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">:&gt; productContext-</text>
   <text x="852" y="372" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Impl</text>
   <text x="852" y="386" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">+ test systems</text>
-  <text x="852" y="582" font-size="10" fill="#555">in progress · 20 %</text>
+  <text x="852" y="400" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">+ verification</text>
+  <text x="852" y="414" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Reports</text>
+  <!-- Two steps create the features of B7–C7: one status bar each. -->
+  <text x="852" y="526" font-size="10" font-weight="600" fill="#555">Context</text>
+  <text x="852" y="540" font-size="10" fill="#555">in progress · 20 %</text>
+  <rect x="852" y="546" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
+  <rect x="852" y="546" width="22.4" height="6" fill="#2c7559"/>
+  <text x="852" y="568" font-size="10" font-weight="600" fill="#555">Reports</text>
+  <text x="852" y="582" font-size="10" fill="#555">open · 0 %</text>
   <rect x="852" y="588" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
-  <rect x="852" y="588" width="22.4" height="6" fill="#2c7559"/>
   <rect x="20" y="452" width="26" height="156" fill="#2c7559"/>
   <text x="33" y="472" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">C</text>
   <text transform="translate(37 598) rotate(-90)" font-size="11" font-weight="600" fill="#ffffff">White box</text>

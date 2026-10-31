@@ -285,6 +285,7 @@ class Artifact:
     name: str
     step: str = ""  # SYSMOD step (action def) creating the artifact
     action: str = ""  # nested action of the step creating the artifact, if any
+    updated_by: list = field(default_factory=list)  # later SYSMOD steps updating the artifact (inout parameter)
     inputs: list = field(default_factory=list)  # artifacts the creating step or action reads
     external_inputs: list = field(default_factory=list)
     relations: list = field(default_factory=list)  # (label, other artifact)
@@ -666,9 +667,9 @@ def read_artifacts(sysmod_elements):
         ins, outs = [], []
         for child in definition.children:
             direction, name, _ = parameter(child)
-            if direction == "in":
+            if direction in ("in", "inout"):
                 ins.append(name)
-            elif direction == "out":
+            if direction in ("out", "inout"):
                 outs.append(name)
 
         def resolve(param, ins=ins, outs=outs, usage=usage):
@@ -710,7 +711,12 @@ def read_artifacts(sysmod_elements):
                 continue
             if name not in created:
                 a = artifact(name)
-                a.step = step
+                if a.step and a.step != step:
+                    # an earlier step created the artifact, this step updates it, e.g., SpecifyVerificationContext
+                    if step not in a.updated_by:
+                        a.updated_by.append(step)
+                else:
+                    a.step = step
                 add_inputs(a, ins)
         if any(c.words[:3] == ["assign", "project", "."] for c in definition.children):
             a = artifact("this")
@@ -795,7 +801,8 @@ def link_view_dependencies(views, artifacts):
 
 
 def creating_steps(view, artifacts):
-    return unique(lookup(artifacts, a).step for a in view.artifacts if lookup(artifacts, a) and lookup(artifacts, a).step)
+    found = [lookup(artifacts, a) for a in view.artifacts]
+    return unique(step for a in found if a and a.step for step in [a.step] + a.updated_by)
 
 
 WARNINGS = []

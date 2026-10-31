@@ -74,7 +74,7 @@ The life cycle processes of ISO/IEC/IEEE 15288 as defined in the package `ISO152
 | <a id="process-systemanalysis"></a>**System Analysis** | [SystemAnalyst](#stakeholder-systemanalyst) | — | The System Analysis process provides a rigorous basis of data and information for technical understanding to aid decision-making across the life cycle. |
 | <a id="process-implementation"></a>**Implementation** | [DesignEngineer](#stakeholder-designengineer) | — | The Implementation process realizes a specified system element. |
 | <a id="process-integration"></a>**Integration** | [IntegrationEngineer](#stakeholder-integrationengineer) | — | The Integration process synthesizes a set of system elements into a realized system that satisfies the system requirements, architecture, and design. |
-| <a id="process-verification"></a>**Verification** | [VerificationEngineer](#stakeholder-verificationengineer) | `SpecifySystem`, `SpecifyVerificationContext` | The Verification process provides objective evidence that a system or system element fulfills its specified requirements and characteristics. |
+| <a id="process-verification"></a>**Verification** | [VerificationEngineer](#stakeholder-verificationengineer) | `SpecifySystem`, `SpecifyVerificationContext`, `PerformVerification` | The Verification process provides objective evidence that a system or system element fulfills its specified requirements and characteristics. |
 | <a id="process-transition"></a>**Transition** | — | — | The Transition process establishes a capability for a system to provide services specified by stakeholder requirements in the operational environment. |
 | <a id="process-validation"></a>**Validation** | [ValidationEngineer](#stakeholder-validationengineer) | `SpecifyVerificationContext` | The Validation process provides objective evidence that the system, when in use, fulfills its business or mission objectives and stakeholder requirements, achieving its intended use in its intended operational environment. |
 | <a id="process-operation"></a>**Operation** | [Operator](#stakeholder-operator) | — | The Operation process uses the system to deliver its services. |
@@ -574,7 +574,7 @@ Shows the system contexts with the actors, the systemOfInterest, their actorPort
 
 ### VerificationViewpoint
 
-Shows the systemRequirementSpecification and the verification cases that verify it: the specificationVerificationCases against the black box specification system, available before the solution architecture, and the verificationCases of the verificationContext that bind them to the productSystem.
+Shows the systemRequirementSpecification and the verification cases that verify it: the verificationCases of the verificationContext, specified against the black box specification system before the solution architecture, and bound to the productSystem once the verification context is complete.
 
 - **Frames concerns:** [VerificationCoverage](#concern-verificationcoverage)
 - **Stakeholders:** [VerificationEngineer](#stakeholder-verificationengineer), [RequirementsEngineer](#stakeholder-requirementsengineer)
@@ -746,7 +746,7 @@ _Illustrative example based on the Delivery Drone example model ([projectAIView.
 
 ### SYSMODMapView
 
-Product "The Project" as SYSMOD Map: the features of the exposed Project on one sheet with grid references, row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield, 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation. It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell is the StepStatus of the step of the Project's defaultProcess that creates the cell's features.
+Product "The Project" as SYSMOD Map: the features of the exposed Project on one sheet with grid references, row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield, 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation. It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell is the StepStatus of the step of the Project's defaultProcess that creates the cell's features; if several steps create them, e.g., specifyVerificationContext and performVerification in B7 to C7, the cell shows the status of each step.
 
 - **Specializes:** [ProjectView](#view-projectview)
 
@@ -775,13 +775,14 @@ view def SYSMODMapView :> ProjectView {
             * row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield,
             * 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation.
             * It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell
-            * is the StepStatus of the step of the Project's defaultProcess that creates the cell's features.
+            * is the StepStatus of the step of the Project's defaultProcess that creates the cell's features; if several steps
+            * create them, e.g., specifyVerificationContext and performVerification in B7 to C7, the cell shows the status of each step.
             */
     render asSYSMODMap;
 }
 ```
 
-Rendering `asSYSMODMap`: Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them: Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject). A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds). A2: systemObjectives (describeSystemIdea). A3: systemRequirementSpecification, specificationVerificationCases (specifySystem). A4: #refinement dependencies from the functional elements to the system requirements (modelFunctionalArchitecture). A5: #refinement dependencies from the logical elements to the system requirements (modelLogicalArchitecture). A6: productSystemImpl satisfies systemRequirementSpecification (modelProductArchitecture). A7: verificationContext.verificationCases, i.e., the specificationVerificationCases of A3 bound to the productSystem (specifyVerificationContext). B1: brownfieldContext; C1: brownfieldContextImpl (modelBrownfieldSystem). B2: systemIdeaContext; C2: systemIdeaContextImpl (describeSystemIdea). B3: specificationContext with the system use cases; C3: specificationContextImpl (specifySystem). B4: functionalContext; C4: functionalContextImpl (modelFunctionalArchitecture). B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (modelLogicalArchitecture). B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelProductArchitecture). B7 to C7: verificationContext (specifyVerificationContext). Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
+Rendering `asSYSMODMap`: Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them: Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject). A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds). A2: systemObjectives (describeSystemIdea). A3: systemRequirementSpecification, verificationContext.verificationCases (specifySystem). A4: #refinement dependencies from the functional elements to the system requirements (modelFunctionalArchitecture). A5: #refinement dependencies from the logical elements to the system requirements (modelLogicalArchitecture). A6: productSystemImpl satisfies systemRequirementSpecification (modelProductArchitecture). A7: verificationContext.verificationCases, i.e., the verification cases of A3 bound to the productSystem (specifyVerificationContext). B1: brownfieldContext; C1: brownfieldContextImpl (modelBrownfieldSystem). B2: systemIdeaContext; C2: systemIdeaContextImpl (describeSystemIdea). B3: specificationContext with the system use cases; C3: specificationContextImpl (specifySystem). B4: functionalContext; C4: functionalContextImpl (modelFunctionalArchitecture). B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (modelLogicalArchitecture). B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelProductArchitecture). B7 to C7: verificationContext (specifyVerificationContext), verificationContext.verificationReports (performVerification). Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
 
 ```sysml
 rendering asSYSMODMap :> Views::renderings {
@@ -789,18 +790,18 @@ rendering asSYSMODMap :> Views::renderings {
             * Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject).
             * A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds).
             * A2: systemObjectives (describeSystemIdea).
-            * A3: systemRequirementSpecification, specificationVerificationCases (specifySystem).
+            * A3: systemRequirementSpecification, verificationContext.verificationCases (specifySystem).
             * A4: #refinement dependencies from the functional elements to the system requirements (modelFunctionalArchitecture).
             * A5: #refinement dependencies from the logical elements to the system requirements (modelLogicalArchitecture).
             * A6: productSystemImpl satisfies systemRequirementSpecification (modelProductArchitecture).
-            * A7: verificationContext.verificationCases, i.e., the specificationVerificationCases of A3 bound to the productSystem (specifyVerificationContext).
+            * A7: verificationContext.verificationCases, i.e., the verification cases of A3 bound to the productSystem (specifyVerificationContext).
             * B1: brownfieldContext; C1: brownfieldContextImpl (modelBrownfieldSystem).
             * B2: systemIdeaContext; C2: systemIdeaContextImpl (describeSystemIdea).
             * B3: specificationContext with the system use cases; C3: specificationContextImpl (specifySystem).
             * B4: functionalContext; C4: functionalContextImpl (modelFunctionalArchitecture).
             * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (modelLogicalArchitecture).
             * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelProductArchitecture).
-            * B7 to C7: verificationContext (specifyVerificationContext).
+            * B7 to C7: verificationContext (specifyVerificationContext), verificationContext.verificationReports (performVerification).
             * Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
             */
 }
@@ -1149,7 +1150,7 @@ Product "The Specification System": the specificationContext of the Project that
 - **Builds on:** [SystemIdeaView](#view-systemideaview) (`systemIdeaContextImpl`)
 - **Information provided:** —
 - **Traces to:** [SystemIdeaView](#view-systemideaview) (specificationContext specializes systemIdeaContext; specificationContextImpl specializes systemIdeaContextImpl)
-- **Input for:** [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview), [VerificationMatrixView](#view-verificationmatrixview)
+- **Input for:** [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview), [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview)
 
 **Definition**
 
@@ -1511,8 +1512,8 @@ Product "Verification and Validation": the verificationCases of the verification
 **Dependencies**
 
 - **Shows artifacts:** `verificationContext.verificationCases`
-- **Created by:** `SpecifyVerificationContext`
-- **Builds on:** [SystemRequirementsView](#view-systemrequirementsview) (`systemRequirementSpecification`), [ProductArchitectureView](#view-productarchitectureview) (`productContextImpl`), [VerificationMatrixView](#view-verificationmatrixview) (`specificationVerificationCases`)
+- **Created by:** `SpecifySystem`, `SpecifyVerificationContext`
+- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContext`), [SystemRequirementsView](#view-systemrequirementsview) (`systemRequirementSpecification`), [ProductArchitectureView](#view-productarchitectureview) (`productContextImpl`)
 - **Information provided:** —
 - **Traces to:** [ProductArchitectureView](#view-productarchitectureview) (verificationContext.verificationCases specializes productContextImpl)
 - **Input for:** —
@@ -1542,7 +1543,7 @@ _Illustrative example based on the Delivery Drone example model ([verificationAn
 
 ### VerificationMatrixView
 
-Product "Verification and Validation": matrix of the system requirements and the verification cases that verify them. It shows the specificationVerificationCases, so that the verification coverage can be reviewed while the system is specified, and the verificationCases of the verificationContext once they are bound to the productSystem.
+Product "Verification and Validation": matrix of the system requirements and the verification cases that verify them. It shows the verificationCases of the verificationContext, so that the verification coverage can be reviewed while the system is specified, and again once they are bound to the productSystem.
 
 - **Specializes:** `GridView`
 
@@ -1556,20 +1557,20 @@ Product "Verification and Validation": matrix of the system requirements and the
 
 **Dependencies**
 
-- **Shows artifacts:** `specificationVerificationCases`, `verificationContext.verificationCases`
+- **Shows artifacts:** `verificationContext.verificationCases`
 - **Created by:** `SpecifySystem`, `SpecifyVerificationContext`
 - **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContext`), [SystemRequirementsView](#view-systemrequirementsview) (`systemRequirementSpecification`), [ProductArchitectureView](#view-productarchitectureview) (`productContextImpl`)
 - **Information provided:** —
-- **Traces to:** [SpecificationSystemView](#view-specificationsystemview) (specificationVerificationCases has its subject in specificationContext), [ProductArchitectureView](#view-productarchitectureview) (verificationContext.verificationCases specializes productContextImpl)
-- **Input for:** [VerificationAndValidationView](#view-verificationandvalidationview)
+- **Traces to:** [ProductArchitectureView](#view-productarchitectureview) (verificationContext.verificationCases specializes productContextImpl)
+- **Input for:** —
 
 **Definition**
 
 ```sysml
 view def VerificationMatrixView :> StandardViewDefinitions::GridView {
     doc /* Product "Verification and Validation": matrix of the system requirements and the verification cases that verify them.
-            * It shows the specificationVerificationCases, so that the verification coverage can be reviewed while the system is
-            * specified, and the verificationCases of the verificationContext once they are bound to the productSystem.
+            * It shows the verificationCases of the verificationContext, so that the verification coverage can be reviewed while the
+            * system is specified, and again once they are bound to the productSystem.
             */
     satisfy requirement vvp : VerificationViewpoint;
     filter @SysML::VerificationCaseUsage or @SysML::RequirementUsage or @ExtendedRequirementMetadata;
@@ -1756,6 +1757,7 @@ flowchart TB
         UseCasesView[UseCasesView]
         UseCaseFlowView[UseCaseFlowView]
         SystemRequirementsView[SystemRequirementsView]
+        VerificationAndValidationView[VerificationAndValidationView]
         VerificationMatrixView[VerificationMatrixView]
     end
     subgraph ModelFunctionalArchitecture["Model Functional Architecture"]
@@ -1767,9 +1769,6 @@ flowchart TB
     end
     subgraph ModelProductArchitecture["Model Product Architecture"]
         ProductArchitectureView[ProductArchitectureView]
-    end
-    subgraph SpecifyVerificationContext["Specify Verification Context"]
-        VerificationAndValidationView[VerificationAndValidationView]
     end
     ProjectView --> ProblemStatementView
     BrownfieldArchitectureView --> ProblemStatementView
@@ -1797,9 +1796,9 @@ flowchart TB
     SpecificationSystemView --> ArchitectureAllocationView
     FunctionalArchitectureView --> ArchitectureAllocationView
     LogicalArchitectureView --> ArchitectureAllocationView
+    SpecificationSystemView --> VerificationAndValidationView
     SystemRequirementsView --> VerificationAndValidationView
     ProductArchitectureView --> VerificationAndValidationView
-    VerificationMatrixView --> VerificationAndValidationView
     SpecificationSystemView --> VerificationMatrixView
     SystemRequirementsView --> VerificationMatrixView
     ProductArchitectureView --> VerificationMatrixView
@@ -1824,7 +1823,7 @@ _Solid arrow: the target view builds on the source view. Dotted arrow: the sourc
 | [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | `brownfieldContext`, `brownfieldContextImpl` | `ModelBrownfieldSystem` | — | `brownfieldArchitecture` | — | [ProblemStatementView](#view-problemstatementview) |
 | [SystemIdeaView](#view-systemideaview) | `systemIdeaContext`, `systemIdeaContextImpl` | `DescribeSystemIdea` | [ProblemStatementView](#view-problemstatementview), [StakeholderNeedsView](#view-stakeholderneedsview) | `systemIdeaArchitecture` | [BrownfieldArchitectureView](#view-brownfieldarchitectureview), [ProblemStatementView](#view-problemstatementview) | [SpecificationSystemView](#view-specificationsystemview) |
 | [SystemObjectivesView](#view-systemobjectivesview) | `systemObjectives` | `DescribeSystemIdea` | [ProblemStatementView](#view-problemstatementview), [StakeholderNeedsView](#view-stakeholderneedsview) | `systemIdeaArchitecture` | [StakeholderNeedsView](#view-stakeholderneedsview), [SystemIdeaView](#view-systemideaview) | [SystemRequirementsView](#view-systemrequirementsview) |
-| [SpecificationSystemView](#view-specificationsystemview) | `specificationContext`, `specificationContextImpl` | `SpecifySystem` | [SystemIdeaView](#view-systemideaview) | — | [SystemIdeaView](#view-systemideaview) | [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview), [VerificationMatrixView](#view-verificationmatrixview) |
+| [SpecificationSystemView](#view-specificationsystemview) | `specificationContext`, `specificationContextImpl` | `SpecifySystem` | [SystemIdeaView](#view-systemideaview) | — | [SystemIdeaView](#view-systemideaview) | [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview), [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview) |
 | [UseCasesView](#view-usecasesview) | `specificationContext.useCases` | `SpecifySystem` | [StakeholderNeedsView](#view-stakeholderneedsview), [SpecificationSystemView](#view-specificationsystemview) | — | — | — |
 | [UseCaseFlowView](#view-usecaseflowview) | `specificationContext.useCases` | `SpecifySystem` | [StakeholderNeedsView](#view-stakeholderneedsview), [SpecificationSystemView](#view-specificationsystemview) | — | — | — |
 | [SystemRequirementsView](#view-systemrequirementsview) | `systemRequirementSpecification` | `SpecifySystem` | [StakeholderNeedsView](#view-stakeholderneedsview), [SystemObjectivesView](#view-systemobjectivesview), [SpecificationSystemView](#view-specificationsystemview) | — | [StakeholderNeedsView](#view-stakeholderneedsview), [SpecificationSystemView](#view-specificationsystemview) | [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview) |
@@ -1832,7 +1831,7 @@ _Solid arrow: the target view builds on the source view. Dotted arrow: the sourc
 | [LogicalArchitectureView](#view-logicalarchitectureview) | `logicalContext`, `logicalContextImpl` | `ModelLogicalArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [FunctionalArchitectureView](#view-functionalarchitectureview) | `logicalArchitecture` | [SpecificationSystemView](#view-specificationsystemview) | [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview) |
 | [ProductArchitectureView](#view-productarchitectureview) | `productContext`, `productContextImpl` | `ModelProductArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview) | `productArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview) | [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview) |
 | [ArchitectureAllocationView](#view-architectureallocationview) | `functional2logical`, `logical2product`, `functionalImpl2logicalImpl`, `logicalImpl2productImpl` | `ModelLogicalArchitecture`, `ModelProductArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview) | `logicalArchitecture`, `productArchitecture` | [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview) | — |
-| [VerificationAndValidationView](#view-verificationandvalidationview) | `verificationContext.verificationCases` | `SpecifyVerificationContext` | [SystemRequirementsView](#view-systemrequirementsview), [ProductArchitectureView](#view-productarchitectureview), [VerificationMatrixView](#view-verificationmatrixview) | — | [ProductArchitectureView](#view-productarchitectureview) | — |
-| [VerificationMatrixView](#view-verificationmatrixview) | `specificationVerificationCases`, `verificationContext.verificationCases` | `SpecifySystem`, `SpecifyVerificationContext` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview), [ProductArchitectureView](#view-productarchitectureview) | — | [SpecificationSystemView](#view-specificationsystemview), [ProductArchitectureView](#view-productarchitectureview) | [VerificationAndValidationView](#view-verificationandvalidationview) |
+| [VerificationAndValidationView](#view-verificationandvalidationview) | `verificationContext.verificationCases` | `SpecifySystem`, `SpecifyVerificationContext` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview), [ProductArchitectureView](#view-productarchitectureview) | — | [ProductArchitectureView](#view-productarchitectureview) | — |
+| [VerificationMatrixView](#view-verificationmatrixview) | `verificationContext.verificationCases` | `SpecifySystem`, `SpecifyVerificationContext` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview), [ProductArchitectureView](#view-productarchitectureview) | — | [ProductArchitectureView](#view-productarchitectureview) | — |
 
 Not tied to Project artifacts: [SolutionArchitectureView](#view-solutionarchitectureview), [AIUseCaseView](#view-aiusecaseview), [AIUseCase4ManagersView](#view-aiusecase4managersview), [SystemContextView](#view-systemcontextview). They are base views or show whatever a project exposes, e.g., a use case package. See the views for the artifacts behind each dependency.

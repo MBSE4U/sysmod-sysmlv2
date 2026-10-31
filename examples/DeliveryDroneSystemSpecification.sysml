@@ -513,8 +513,9 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
         doc
         /* The verification case definitions of the delivery drone system, specified together
          * with the system requirements and before any solution architecture exists. Their
-         * subject is the black box specification system. The verification context of the
-         * product architecture binds them to the product system and adds the test systems. */
+         * subject is the black box specification system. Their usages are owned by the
+         * verification context of the project, which binds them to the product system and
+         * adds the test systems. */
         verification def MaxPayloadTest {
             doc
             /* Verifies that a drone of the system transports the maximum payload mass.

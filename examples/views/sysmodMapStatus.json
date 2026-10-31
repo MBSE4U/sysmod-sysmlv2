@@ -51,6 +51,10 @@
     {
       "name": "specifyVerificationContext",
       "type": "SpecifyVerificationContext"
+    },
+    {
+      "name": "performVerification",
+      "type": "PerformVerification"
     }
   ],
   "projects": [
@@ -109,6 +113,11 @@
           "source": "default"
         },
         "specifyVerificationContext": {
+          "status": "open",
+          "percentage": 0.0,
+          "source": "default"
+        },
+        "performVerification": {
           "status": "open",
           "percentage": 0.0,
           "source": "default"
@@ -172,6 +181,11 @@
         "specifyVerificationContext": {
           "status": "inProgress",
           "percentage": 0.2,
+          "source": "model"
+        },
+        "performVerification": {
+          "status": "open",
+          "percentage": 0.0,
           "source": "model"
         }
       }

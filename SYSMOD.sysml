@@ -61,6 +61,10 @@ library package SYSMOD {
             attribute :>> priority default LevelKind::critical;
         }
 
+
+        //
+        // Stakeholders and their Needs
+        //
         part projectStakeholders : ExtendedStakeholder [1..*] {
             doc
             /* Stakeholders are individuals and organizations that have an interest in the system. They have needs and are potential sources of system requirements. There is at least one stakeholder which is the project owner. */
@@ -71,6 +75,10 @@ library package SYSMOD {
             subject brownfieldSystem :> Project::brownfieldContextImpl.soiImpl;
             frame problemStatement;
         }
+
+        //
+        // The Brownfield Context (Black Box and White Box)
+        //
         part brownfieldContext : SystemContext {
             doc
             /* The Brownfield Context includes the system and actors that are already identified at the start of the Project. These constraints limit the set of possible solutions. This is the black box context without specifying the internals of the system of interest. */
@@ -138,16 +146,6 @@ library package SYSMOD {
             /* The System Requirement Specification is the root element for system requirements. They frame the stakeholder needs. */
             subject specificationSystem :> specificationContext.soi;
             frame stakeholderNeeds;
-        }
-        verification specificationVerificationCases[*] {
-            doc
-            /* The verification cases defined while specifying the system, before any solution architecture exists. Each verification case states
-             * its objective, i.e., the system requirements it verifies, and its verdict, e.g., with VerificationCases::PassIf. Its subject is the
-             * black box specification system, the same subject as the system requirements, so that verification engineers and systems engineers
-             * discuss the verification in SysML from the start instead of in a separate test language. The verificationContext binds them to the
-             * product system: its verificationCases subset the specificationVerificationCases and narrow the subject to the productSystem, which
-             * redefines the specification system along the context chain. */
-            subject specificationSystem :> specificationContext.soi;
         }
         part functionalContext[0..1] :> specificationContext {
             doc
@@ -226,14 +224,21 @@ library package SYSMOD {
             doc
             /* The context in which the verification takes place, including all relevant actors, e.g., the test systems, and the system of interest. */
 
-            verification verificationCases[*] :> specificationVerificationCases {
+            verification verificationCases[*] {
                 doc
-                /* The verification cases verify and validate the system requirements. They are the specificationVerificationCases defined while
-                 * specifying the system, bound to the product system: the subject productSystem redefines the black box specification system
-                 * and subsets the white box product system of the verification context. A verification case is not created anew here; a
-                 * verification case usage in the verification context is typed by the verification case definition from the specification
-                 * and binds its subject and, where needed, the subjects of its verified requirements to elements of the product system. */
-                subject productSystem :>> specificationSystem :> soiImpl;
+                /* The verification cases verify and validate the system requirements. They are specified while specifying the system,
+                 * before any solution architecture exists (step specifySystem, nested step specifyVerificationCases): each verification case
+                 * definition states its objective, i.e., the system requirements it verifies, and its verdict, e.g., with VerificationCases::PassIf,
+                 * against the black box specification system, so that verification engineers and systems engineers discuss the verification in
+                 * SysML from the start instead of in a separate test language. The subject productSystem subsets the white box product system of
+                 * the verification context; specifyVerificationContext adds the test systems and binds, where needed, the subjects of the
+                 * verified requirements to elements of the product system. */
+                subject productSystem :> soiImpl;
+            }
+
+            item verificationReports[*] : VerificationReport {
+                doc
+                /* The results of performing the verificationCases on the product system, created by the step performVerification. */
             }
         }
 
@@ -437,6 +442,20 @@ library package SYSMOD {
     }
 
     //
+    // Verification
+    //
+    item def VerificationReport {
+        doc
+        /* Verification Report — supports the Verification process of ISO/IEC/IEEE 15288; content aligned with ISO/IEC/IEEE 15289.
+         * It documents the results of performing the verification cases of the verification context on the product system:
+         * the verdict of each verification case, the verified requirements, and the evidence. */
+    }
+    dependency verificationReportSupportsVerification from VerificationReport to ISO15288Processes::Verification {
+        doc
+        /* The Verification Report supports the Verification process of ISO/IEC/IEEE 15288; its content is aligned with ISO/IEC/IEEE 15289. */
+    }
+
+    //
     // Common Concepts
     //
     enum def LevelKind :> ScalarValues::Real {
@@ -566,9 +585,11 @@ library package SYSMOD {
          * | 4     | model    | Structure: contexts, parts, connections, allocations, and refinements                          | Does the result connect to other model elements as structure?              | ModelBrownfieldSystem, modelSpecificationContext, ModelFunctionalArchitecture, ModelLogicalArchitecture, ModelProductArchitecture |
          * | 5     | specify  | Verifiable or executable content: measurable requirements, constraints, and verification cases | Can a tool or test evaluate the result?                                    | SpecifySystem, specifySystemRequirements, specifyVerificationCases, SpecifyVerificationContext |
          *
-         * SetupProject is outside the scale, as it organizes the project rather than producing a product.
+         * SetupProject and PerformVerification are outside the scale: SetupProject organizes the project rather than producing
+         * a product, and PerformVerification executes the specified verification cases and reports their results.
          * A step that contains nested steps takes the verb of its most formal nested step.
-         * Verbs outside this scale name activities, not step outputs: set up (project organization), elicit (gather
+         * Verbs outside this scale name activities, not step outputs: set up (project organization), perform (execute specified
+         * content, e.g., the verification cases), elicit (gather
          * information from stakeholders), elaborate (refine an existing output without changing its level), derive,
          * analyze, verify, and validate.
          */
@@ -579,10 +600,11 @@ library package SYSMOD {
             /*
              * The default SYSMOD process: setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders,
              * identifyStakeholderNeeds, describeSystemIdea, specifySystem, modelFunctionalArchitecture, modelLogicalArchitecture,
-             * modelProductArchitecture, and specifyVerificationContext, in this order.
+             * modelProductArchitecture, specifyVerificationContext, and performVerification, in this order.
              * Verification is split into two parts: specifySystem specifies the verification cases against the black box specification system
-             * (nested step specifyVerificationCases) before any solution architecture is modeled, and specifyVerificationContext binds these
-             * verification cases to the product system in the verification context. Verification engineers thus take part from the specification on.
+             * (nested step specifyVerificationCases) before any solution architecture is modeled and returns the verification context with them,
+             * and specifyVerificationContext completes the verification context with the test systems and binds the verification cases to the
+             * product system. Verification engineers thus take part from the specification on.
              * The project that performs the process is referenced by project. Outputs of the steps flow into the corresponding project features,
              * and the inputs of the steps are bound to the project features created by earlier steps.
              * The input parameters are the information a human or an AI assistant provides to start the process. */
@@ -632,7 +654,8 @@ library package SYSMOD {
             first [0..1]modelFunctionalArchitecture then [0..1]modelLogicalArchitecture;
             first [0..1]modelLogicalArchitecture then [0..1]modelProductArchitecture;
             first [0..1]modelProductArchitecture then [0..1]specifyVerificationContext;
-            first [0..1]specifyVerificationContext then done;
+            first [0..1]specifyVerificationContext then [0..1]performVerification;
+            first [0..1]performVerification then done;
 
             flow from modelBrownfieldSystem.brownfieldContext to project.brownfieldContext;
             flow from modelBrownfieldSystem.brownfieldContextImpl to project.brownfieldContextImpl;
@@ -645,7 +668,7 @@ library package SYSMOD {
             flow from specifySystem.specificationContext to project.specificationContext;
             flow from specifySystem.specificationContextImpl to project.specificationContextImpl;
             flow from specifySystem.systemRequirementSpecification to project.systemRequirementSpecification;
-            flow from specifySystem.specificationVerificationCases to project.specificationVerificationCases;
+            flow from specifySystem.verificationContext to project.verificationContext;
             flow from modelFunctionalArchitecture.functionalContext to project.functionalContext;
             flow from modelFunctionalArchitecture.functionalContextImpl to project.functionalContextImpl;
             flow from modelLogicalArchitecture.logicalContext to project.logicalContext;
@@ -657,6 +680,8 @@ library package SYSMOD {
             flow from modelProductArchitecture.logical2product to project.logical2product;
             flow from modelProductArchitecture.logicalImpl2productImpl to project.logicalImpl2productImpl;
             flow from specifyVerificationContext.verificationContext to project.verificationContext;
+            flow from performVerification.verificationReports to project.verificationContext.verificationReports;
+            
 
             bind project.brownfieldContextImpl = describeProblemStatement.brownfieldContextImpl;
             bind project.brownfieldContextImpl = modelBrownfieldSystem.brownfieldContextImpl;
@@ -678,7 +703,8 @@ library package SYSMOD {
             bind project.logicalContextImpl = modelProductArchitecture.logicalContextImpl;
             bind project.systemRequirementSpecification = specifyVerificationContext.systemRequirementSpecification;
             bind project.productContextImpl = specifyVerificationContext.productContextImpl;
-            bind project.specificationVerificationCases = specifyVerificationContext.specificationVerificationCases;
+            bind project.verificationContext = specifyVerificationContext.verificationContext;
+            bind project.verificationContext = performVerification.verificationContext;
 
             action setupProject : SetupProject {
                 @StepStatus;
@@ -714,6 +740,7 @@ library package SYSMOD {
                 in item productArchitecture = SYSMODDefaultProcess::productArchitecture;
             }
             action specifyVerificationContext : SpecifyVerificationContext { @StepStatus; }
+            action performVerification : PerformVerification { @StepStatus; }
         }
 
         action def SetupProject { 
@@ -791,7 +818,7 @@ library package SYSMOD {
             out part specificationContext : SystemContext;
             out part specificationContextImpl : SystemContext;
             out requirement systemRequirementSpecification : ExtendedRequirement;
-            out verification specificationVerificationCases[*] : VerificationCases::VerificationCase;
+            out part verificationContext : SystemContext;
 
             action modelSpecificationContext {
                 doc
@@ -817,10 +844,10 @@ library package SYSMOD {
             }
             action specifyVerificationCases {
                 doc
-                /* Specifies the verification cases of the system requirements against the black box specification system, alongside specifySystemRequirements and before any solution architecture exists: a verification case definition per verification case with the objective (verify) and the verdict (e.g., VerificationCases::PassIf), and a verification case usage in the project subsetting specificationVerificationCases. The VerificationEngineer is a stakeholder of this step and specifies the verification cases together with the RequirementsEngineer (concern VerificationCoverage), so that both discuss the verification in SysML rather than in a separate test language. The test systems and the binding to the product system follow in SpecifyVerificationContext. */
+                /* Specifies the verification cases of the system requirements against the black box specification system, alongside specifySystemRequirements and before any solution architecture exists: a verification case definition per verification case with the objective (verify) and the verdict (e.g., VerificationCases::PassIf), and a verification case usage in the verification context of the project, typed by the definition and subsetting verificationCases. The step returns the updated verification context. The VerificationEngineer is a stakeholder of this step and specifies the verification cases together with the RequirementsEngineer (concern VerificationCoverage), so that both discuss the verification in SysML rather than in a separate test language. The test systems and the binding to the product system follow in SpecifyVerificationContext. */
                 in part specificationContext : SystemContext = SpecifySystem::specificationContext;
                 in requirement systemRequirementSpecification : ExtendedRequirement = SpecifySystem::systemRequirementSpecification;
-                out verification specificationVerificationCases[*] : VerificationCases::VerificationCase = SpecifySystem::specificationVerificationCases;
+                out part verificationContext : SystemContext = SpecifySystem::verificationContext;
             }
         }
 
@@ -862,11 +889,17 @@ library package SYSMOD {
 
         action def SpecifyVerificationContext {
             doc
-            /* Specifies the verification context with the test systems, e.g., test benches or a wind tunnel, as additional actors, and binds the verification cases specified by SpecifySystem (specificationVerificationCases) to the product system: each verification case usage of the verification context is typed by a verification case definition from the specification, subsets verificationCases, and has the productSystem as subject. The step does not create the verification cases anew; it adds validation cases against the stakeholder needs and the problem statement where they are not yet specified. Refines the ISO 15288 Verification and Validation processes. */
+            /* Specifies the verification context returned by SpecifySystem: adds the test systems, e.g., test benches or a wind tunnel, as additional actors, and binds the verification cases specified by SpecifySystem to the product system: the verification context specializes productContextImpl, and the subject of its verificationCases is the productSystem. The step does not create the verification cases anew; it adds validation cases against the stakeholder needs and the problem statement where they are not yet specified. Refines the ISO 15288 Verification and Validation processes. */
             in requirement systemRequirementSpecification : ExtendedRequirement;
-            in verification specificationVerificationCases[*] : VerificationCases::VerificationCase;
             in part productContextImpl : SystemContext;
-            out part verificationContext : SystemContext;
+            inout part verificationContext : SystemContext;
+        }
+
+        action def PerformVerification {
+            doc
+            /* Performs the verification: executes the verification cases of the verification context on the product system and documents the results in verification reports (VerificationReport, content aligned with ISO/IEC/IEEE 15289), which become part of the verification context. Refines the ISO 15288 Verification process. */
+            in part verificationContext : SystemContext;
+            out item verificationReports[*] : VerificationReport;
         }
 
         item def ArchitectureDescription {
@@ -891,6 +924,7 @@ library package SYSMOD {
         #refinement dependency ModelProductArchitecture to ISO15288Processes::SystemArchitectureDefinition;
         #refinement dependency SpecifyVerificationContext to ISO15288Processes::Verification;
         #refinement dependency SpecifyVerificationContext to ISO15288Processes::Validation;
+        #refinement dependency PerformVerification to ISO15288Processes::Verification;
 
         //
         // Additional Elements

@@ -24,14 +24,14 @@ package <DD_SYSTEMIDEA> DeliveryDroneSystemIdea {
 
     #systemContext part def DeliveryDroneSystemIdeaContext :> DD_BROWNFIELD::DeliveryDroneSystemContext {
         doc
-        /* The black-box system idea context. The system boundary, actors, and
+        /* The black box system idea context. The system boundary, actors, and
          * interfaces are unchanged with respect to the brownfield context; the
          * idea changes the inside of the system only. */
         #system part deliveryDroneSystem :>> DD_BROWNFIELD::DeliveryDroneSystemContext::deliveryDroneSystem : DeliveryDroneSystem;
     }
     #systemContext part def DeliveryDroneSystemIdeaContextImpl :> DeliveryDroneSystemIdeaContext, DD_BROWNFIELD::DeliveryDroneSystemContextImpl {
         doc
-        /* The white-box system idea context: adds the internal structure of the
+        /* The white box system idea context: adds the internal structure of the
          * system idea. */
         #system part deliveryDroneSystemImpl :>> DD_BROWNFIELD::DeliveryDroneSystemContextImpl::deliveryDroneSystemImpl, DeliveryDroneSystemIdeaContext::deliveryDroneSystem : DeliveryDroneSystemIdeaImpl;
     }
@@ -64,5 +64,42 @@ package <DD_SYSTEMIDEA> DeliveryDroneSystemIdea {
         }
         connect airCharger to airChargerAdapter;
         connect airChargerAdapter to battery;
+    }
+
+    //
+    // System Objectives: the measurable goals of the system idea
+    //
+    #extendedConcern concern def FastRemoteDelivery {
+        doc
+        /* A delivery to a remote place takes at most half the time of today's
+         * ground-based delivery. Addresses the stakeholder need ReliableDelivery
+         * and the problem statement. */
+        subject systemIdea : DeliveryDroneSystem;
+        attribute maxDeliveryTimeRatio : ScalarValues::Real = 0.5 {
+            doc /* Delivery time with the drone system divided by the delivery time
+                   of today's ground-based delivery. */
+        }
+        attribute :>> priority = LevelKind::critical;
+    }
+    #extendedConcern concern def LowCostPerDelivery {
+        doc
+        /* The cost per delivery is at most 70 % of the cost of today's
+         * ground-based delivery. Addresses the stakeholder need LowDeliveryCost. */
+        subject systemIdea : DeliveryDroneSystem;
+        attribute maxCostRatio : ScalarValues::Real = 0.7 {
+            doc /* Cost per delivery with the drone system divided by the cost per
+                   delivery of today's ground-based delivery. */
+        }
+        attribute :>> priority = LevelKind::high;
+    }
+    #extendedConcern concern def OnTimeDelivery {
+        doc
+        /* At least 98 % of the deliveries arrive within the promised time window.
+         * Addresses the stakeholder need ReliableDelivery. */
+        subject systemIdea : DeliveryDroneSystem;
+        attribute minOnTimeRate : ScalarValues::Real = 0.98 {
+            doc /* Share of deliveries that arrive within the promised time window. */
+        }
+        attribute :>> priority = LevelKind::high;
     }
 }

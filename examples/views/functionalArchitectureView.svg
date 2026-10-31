@@ -1,8 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="660" viewBox="0 0 1000 660" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <!-- Rendering of DD::PRJ::functionalArchitectureView : SYSMODViews::FunctionalArchitectureView (render asInterconnectionDiagram).
-       Exposed: DD::PRJ::deliveryDroneFunctionalContext (DD_FUNCTIONAL_ARCHITECTURE::DeliveryDroneFunctionalContext).
+       Exposed: DD::PRJ::deliveryDroneFunctionalContextImpl (DD_FUNCTIONAL_ARCHITECTURE::DeliveryDroneFunctionalContextImpl),
+       the white box functional context.
        Shown: the actors and interfaces inherited from the brownfield context, the system ports, the functional
-       blocks of DeliveryDroneFunctionalSystem with their ports, and the two PositionInterface connections.
+       blocks of DeliveryDroneFunctionalSystemImpl with their ports, and the two PositionInterface connections.
        Binding connectors (e.g. operatorPort.order = deliveryManagement.deliveryPort.deliveryOrder) are not
        connection or interface usages and are therefore filtered out; performed actions are not shown.
        Illustrative example only; the view usage is not (yet) part of the example model. -->
@@ -13,12 +14,12 @@
   <!-- Context -->
   <rect x="10" y="42" width="980" height="570" fill="#f7f9fc" stroke="#333" stroke-width="1.5"/>
   <text x="22" y="60" font-size="11" fill="#555">«systemContext»</text>
-  <text x="22" y="77" font-size="14" font-weight="600" fill="#222">deliveryDroneFunctionalContext : DeliveryDroneFunctionalContext</text>
+  <text x="22" y="77" font-size="14" font-weight="600" fill="#222">deliveryDroneFunctionalContextImpl : DeliveryDroneFunctionalContextImpl</text>
 
   <!-- System of interest -->
   <rect x="262" y="100" width="476" height="490" fill="#ffffff" stroke="#2f6fb0" stroke-width="2"/>
   <text x="274" y="118" font-size="11" fill="#555">«system»</text>
-  <text x="274" y="135" font-size="13" font-weight="600" fill="#222">deliveryDroneSystem : DeliveryDroneFunctionalSystem</text>
+  <text x="274" y="135" font-size="13" font-weight="600" fill="#222">deliveryDroneSystemImpl : DeliveryDroneFunctionalSystemImpl</text>
 
   <!-- Interfaces actor - system -->
   <g stroke="#333" stroke-width="1.5">

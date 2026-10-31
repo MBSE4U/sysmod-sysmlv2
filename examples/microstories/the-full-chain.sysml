@@ -40,9 +40,11 @@ package MicroStory_TheFullChain {
             :>> systemRequirementSpecification : DeliveryDroneSystemRequirements {
             subject :>> specificationSystem, deliveryDroneSystem;
         }
-        verification airChargingTest :> verificationCases {
-            objective {
-                verify deliveryDroneSystemRequirementsSpecification.airCharging;
+        part :>> verificationContext {
+            verification airChargingTest :> verificationCases {
+                objective {
+                    verify deliveryDroneSystemRequirementsSpecification.airCharging;
+                }
             }
         }
 

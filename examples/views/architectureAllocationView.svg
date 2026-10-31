@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="440" viewBox="0 0 1000 440" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="690" viewBox="0 0 1000 690" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <!-- Rendering of DD::PRJ::architectureAllocationView : SYSMODViews::ArchitectureAllocationView (render asElementTable).
-       Exposed: DD::PRJ::functional2logical, DD::PRJ::logical2product (inherited from SYSMOD::Project) and the
-       solution architecture contexts deliveryDroneFunctionalContext, deliveryDroneLogicalContext and
-       deliveryDroneProductContext (system context elements pass the view filter as well).
+       Exposed: DD::PRJ::functional2logical, DD::PRJ::logical2product, DD::PRJ::functionalImpl2logicalImpl,
+       DD::PRJ::logicalImpl2productImpl (inherited from SYSMOD::Project) and the black box and white box solution
+       architecture contexts (system context elements pass the view filter as well).
        The example model allocates only the contexts as a whole; no element-level allocations are modeled,
        so none are shown. Illustrative example only; the view usage is not (yet) part of the example model. -->
-  <rect width="1000" height="440" fill="#ffffff"/>
+  <rect width="1000" height="690" fill="#ffffff"/>
 
   <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] architectureAllocationView : ArchitectureAllocationView — Delivery Drone architecture allocations</text>
 
@@ -13,72 +13,107 @@
   <text x="20" y="60" font-size="13" font-weight="600" fill="#333">Allocations</text>
   <rect x="20" y="70" width="960" height="28" fill="#eef2f7"/>
   <rect x="20" y="156" width="960" height="58" fill="#f7f9fc"/>
+  <rect x="20" y="272" width="960" height="58" fill="#f7f9fc"/>
   <g fill="none" stroke="#333" stroke-width="1.5">
-    <rect x="20" y="70" width="960" height="144"/>
+    <rect x="20" y="70" width="960" height="260"/>
   </g>
   <g stroke="#333" stroke-width="1">
     <line x1="20" y1="98" x2="980" y2="98"/>
     <line x1="20" y1="156" x2="980" y2="156"/>
-    <line x1="170" y1="70" x2="170" y2="214"/>
-    <line x1="430" y1="70" x2="430" y2="214"/>
-    <line x1="690" y1="70" x2="690" y2="214"/>
+    <line x1="20" y1="214" x2="980" y2="214"/>
+    <line x1="20" y1="272" x2="980" y2="272"/>
+    <line x1="210" y1="70" x2="210" y2="330"/>
+    <line x1="470" y1="70" x2="470" y2="330"/>
+    <line x1="730" y1="70" x2="730" y2="330"/>
   </g>
   <g font-size="13" font-weight="600" fill="#222">
     <text x="30" y="89">Allocation</text>
-    <text x="180" y="89">Source (allocated from)</text>
-    <text x="440" y="89">Target (allocated to)</text>
-    <text x="700" y="89">Documentation</text>
+    <text x="220" y="89">Source (allocated from)</text>
+    <text x="480" y="89">Target (allocated to)</text>
+    <text x="740" y="89">Documentation</text>
   </g>
   <!-- row 1 -->
   <text x="30" y="122" font-size="11" fill="#555">«allocation»</text>
   <text x="30" y="139" font-size="13" fill="#111">functional2logical</text>
-  <text x="180" y="122" font-size="13" fill="#111">deliveryDroneFunctionalContext</text>
-  <text x="180" y="139" font-size="11" fill="#555">:&gt;&gt; functionalContext</text>
-  <text x="440" y="122" font-size="13" fill="#111">deliveryDroneLogicalContext</text>
-  <text x="440" y="139" font-size="11" fill="#555">:&gt;&gt; logicalContext</text>
-  <text x="700" y="122" font-size="12" fill="#222">Allocation of the functional architecture</text>
-  <text x="700" y="138" font-size="12" fill="#222">to the logical architecture.</text>
+  <text x="220" y="122" font-size="13" fill="#111">deliveryDroneFunctionalContext</text>
+  <text x="220" y="139" font-size="11" fill="#555">:&gt;&gt; functionalContext</text>
+  <text x="480" y="122" font-size="13" fill="#111">deliveryDroneLogicalContext</text>
+  <text x="480" y="139" font-size="11" fill="#555">:&gt;&gt; logicalContext</text>
+  <text x="740" y="122" font-size="12" fill="#222">Allocation of the functional architecture</text>
+  <text x="740" y="138" font-size="12" fill="#222">to the logical architecture.</text>
   <!-- row 2 -->
   <text x="30" y="180" font-size="11" fill="#555">«allocation»</text>
   <text x="30" y="197" font-size="13" fill="#111">logical2product</text>
-  <text x="180" y="180" font-size="13" fill="#111">deliveryDroneLogicalContext</text>
-  <text x="180" y="197" font-size="11" fill="#555">:&gt;&gt; logicalContext</text>
-  <text x="440" y="180" font-size="13" fill="#111">deliveryDroneProductContext</text>
-  <text x="440" y="197" font-size="11" fill="#555">:&gt;&gt; productContext</text>
-  <text x="700" y="180" font-size="12" fill="#222">Allocation of the logical architecture to</text>
-  <text x="700" y="196" font-size="12" fill="#222">the product architecture.</text>
+  <text x="220" y="180" font-size="13" fill="#111">deliveryDroneLogicalContext</text>
+  <text x="220" y="197" font-size="11" fill="#555">:&gt;&gt; logicalContext</text>
+  <text x="480" y="180" font-size="13" fill="#111">deliveryDroneProductContext</text>
+  <text x="480" y="197" font-size="11" fill="#555">:&gt;&gt; productContext</text>
+  <text x="740" y="180" font-size="12" fill="#222">Allocation of the logical architecture</text>
+  <text x="740" y="196" font-size="12" fill="#222">to the product architecture.</text>
+  <!-- row 3 -->
+  <text x="30" y="238" font-size="11" fill="#555">«allocation»</text>
+  <text x="30" y="255" font-size="13" fill="#111">functionalImpl2logicalImpl</text>
+  <text x="220" y="238" font-size="13" fill="#111">deliveryDroneFunctionalContextImpl</text>
+  <text x="220" y="255" font-size="11" fill="#555">:&gt;&gt; functionalContextImpl</text>
+  <text x="480" y="238" font-size="13" fill="#111">deliveryDroneLogicalContextImpl</text>
+  <text x="480" y="255" font-size="11" fill="#555">:&gt;&gt; logicalContextImpl</text>
+  <text x="740" y="238" font-size="12" fill="#222">Allocation of the white box functional</text>
+  <text x="740" y="254" font-size="12" fill="#222">to the white box logical architecture.</text>
+  <!-- row 4 -->
+  <text x="30" y="296" font-size="11" fill="#555">«allocation»</text>
+  <text x="30" y="313" font-size="13" fill="#111">logicalImpl2productImpl</text>
+  <text x="220" y="296" font-size="13" fill="#111">deliveryDroneLogicalContextImpl</text>
+  <text x="220" y="313" font-size="11" fill="#555">:&gt;&gt; logicalContextImpl</text>
+  <text x="480" y="296" font-size="13" fill="#111">deliveryDroneProductContextImpl</text>
+  <text x="480" y="313" font-size="11" fill="#555">:&gt;&gt; productContextImpl</text>
+  <text x="740" y="296" font-size="12" fill="#222">Allocation of the white box logical</text>
+  <text x="740" y="312" font-size="12" fill="#222">to the white box product architecture.</text>
 
   <!-- Table 2: exposed system contexts -->
-  <text x="20" y="248" font-size="13" font-weight="600" fill="#333">Solution architecture contexts</text>
-  <rect x="20" y="258" width="960" height="28" fill="#eef2f7"/>
-  <rect x="20" y="320" width="960" height="34" fill="#f7f9fc"/>
+  <text x="20" y="364" font-size="13" font-weight="600" fill="#333">Solution architecture contexts</text>
+  <rect x="20" y="374" width="960" height="28" fill="#eef2f7"/>
+  <rect x="20" y="436" width="960" height="34" fill="#f7f9fc"/>
+  <rect x="20" y="504" width="960" height="34" fill="#f7f9fc"/>
+  <rect x="20" y="572" width="960" height="34" fill="#f7f9fc"/>
   <g fill="none" stroke="#333" stroke-width="1.5">
-    <rect x="20" y="258" width="960" height="130"/>
+    <rect x="20" y="374" width="960" height="232"/>
   </g>
   <g stroke="#333" stroke-width="1">
-    <line x1="20" y1="286" x2="980" y2="286"/>
-    <line x1="20" y1="320" x2="980" y2="320"/>
-    <line x1="20" y1="354" x2="980" y2="354"/>
-    <line x1="290" y1="258" x2="290" y2="388"/>
-    <line x1="560" y1="258" x2="560" y2="388"/>
+    <line x1="20" y1="402" x2="980" y2="402"/>
+    <line x1="20" y1="436" x2="980" y2="436"/>
+    <line x1="20" y1="470" x2="980" y2="470"/>
+    <line x1="20" y1="504" x2="980" y2="504"/>
+    <line x1="20" y1="538" x2="980" y2="538"/>
+    <line x1="20" y1="572" x2="980" y2="572"/>
+    <line x1="290" y1="374" x2="290" y2="606"/>
+    <line x1="560" y1="374" x2="560" y2="606"/>
   </g>
   <g font-size="13" font-weight="600" fill="#222">
-    <text x="30" y="277">«systemContext»</text>
-    <text x="300" y="277">Definition</text>
-    <text x="570" y="277">System of interest</text>
+    <text x="30" y="393">«systemContext»</text>
+    <text x="300" y="393">Definition</text>
+    <text x="570" y="393">System of interest</text>
   </g>
   <g font-size="13" fill="#111">
-    <text x="30" y="308">deliveryDroneFunctionalContext</text>
-    <text x="300" y="308">DeliveryDroneFunctionalContext</text>
-    <text x="570" y="308">deliveryDroneSystem : DeliveryDroneFunctionalSystem</text>
-    <text x="30" y="342">deliveryDroneLogicalContext</text>
-    <text x="300" y="342">DeliveryDroneLogicalContext</text>
-    <text x="570" y="342">deliveryDroneSystem : DeliveryDroneLogicalSystem</text>
-    <text x="30" y="376">deliveryDroneProductContext</text>
-    <text x="300" y="376">DeliveryDroneProductContext</text>
-    <text x="570" y="376">deliveryDroneProduct : DeliveryDroneProductSystem</text>
+    <text x="30" y="424">deliveryDroneFunctionalContext</text>
+    <text x="300" y="424">DeliveryDroneFunctionalContext</text>
+    <text x="570" y="424">deliveryDroneSystem : DeliveryDroneFunctionalSystem</text>
+    <text x="30" y="458">deliveryDroneFunctionalContextImpl</text>
+    <text x="300" y="458">DeliveryDroneFunctionalContextImpl</text>
+    <text x="570" y="458">deliveryDroneSystemImpl : DeliveryDroneFunctionalSystemImpl</text>
+    <text x="30" y="492">deliveryDroneLogicalContext</text>
+    <text x="300" y="492">DeliveryDroneLogicalContext</text>
+    <text x="570" y="492">deliveryDroneSystem : DeliveryDroneLogicalSystem</text>
+    <text x="30" y="526">deliveryDroneLogicalContextImpl</text>
+    <text x="300" y="526">DeliveryDroneLogicalContextImpl</text>
+    <text x="570" y="526">deliveryDroneSystemImpl : DeliveryDroneLogicalSystemImpl</text>
+    <text x="30" y="560">deliveryDroneProductContext</text>
+    <text x="300" y="560">DeliveryDroneProductContext</text>
+    <text x="570" y="560">deliveryDroneSystem : DeliveryDroneProductSystem</text>
+    <text x="30" y="594">deliveryDroneProductContextImpl</text>
+    <text x="300" y="594">DeliveryDroneProductContextImpl</text>
+    <text x="570" y="594">deliveryDroneProduct : DeliveryDroneProductSystemImpl</text>
   </g>
 
-  <text x="20" y="412" font-size="11" fill="#555">Both allocations are inherited from SYSMOD::Project and allocate the contexts as a whole; no element-level allocations are modeled.</text>
-  <text x="20" y="432" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
+  <text x="20" y="640" font-size="11" fill="#555">All four allocations are inherited from SYSMOD::Project and allocate the contexts as a whole; no element-level allocations are modeled.</text>
+  <text x="20" y="660" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
 </svg>

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="590" viewBox="0 0 1000 590" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <!-- Rendering of DD::PRJ::specificationSystemView : SYSMODViews::SpecificationSystemView (render asInterconnectionDiagram).
        Exposed: PRJ::deliveryDroneSpecificationContext::** (hypothetical view usage, not yet in the model).
-       Shows the system boundary of the specification context: the black-box deliveryDroneSystem
+       Shows the system boundary of the specification context: the black box deliveryDroneSystem
        (DD_SPECIFICATION::DeliveryDroneSystem) with its system ports, the actors with their ports
        (incl. multiplicities), the actorSystemInterfaces, and the system use cases of the context.
        Item features of the ports and the actions of the system are not shown (outside the view filter).

@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="360" viewBox="0 0 1000 360" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <!-- Rendering of DD::PRJ::verificationMatrixView : SYSMODViews::VerificationMatrixView (render asElementTable).
-       Exposed: DD_SPECIFICATION::Requirements::** and DD_VV::* (hypothetical view usage; not yet declared in the project),
+       Exposed: DD_SPECIFICATION::Requirements::** and DD::PRJ::deliveryDroneVerificationContext (hypothetical view usage; not yet declared in the project),
        filtered by @SysML::VerificationCaseUsage or @SysML::RequirementUsage or @ExtendedRequirementMetadata.
-       Rows are the two leaf system requirements; the only verification case in the model is MaxPayloadTest.
+       Rows are the two leaf system requirements; the only verification case in the model is maxPayloadTest : MaxPayloadTest.
        Illustrative example. -->
   <rect width="1000" height="360" fill="#ffffff"/>
 
@@ -28,9 +28,9 @@
     <text x="768" y="94">Coverage</text>
   </g>
   <g text-anchor="middle">
-    <text x="680" y="68" font-size="11" fill="#555">«verification def»</text>
-    <text x="680" y="85" font-size="13" font-weight="600" fill="#111">MaxPayloadTest</text>
-    <text x="680" y="99" font-size="11" fill="#555">DD_VV</text>
+    <text x="680" y="68" font-size="11" fill="#555">«verification»</text>
+    <text x="680" y="84" font-size="13" font-weight="600" fill="#111">maxPayloadTest</text>
+    <text x="680" y="98" font-size="11" fill="#555">: MaxPayloadTest</text>
   </g>
 
   <!-- Row: maxPayloadMass -->
@@ -60,7 +60,7 @@
   <!-- Summary -->
   <g font-size="12" fill="#555">
     <text x="20" y="246">Verification coverage: 1 of 2 system requirements (50 %). The root DeliveryDroneSystemRequirements is not listed as a row.</text>
-    <text x="20" y="264">MaxPayloadTest (subject testedSystem : DeliveryDroneProductSystem) is a verification def and not yet a verificationCases usage of the project.</text>
+    <text x="20" y="264">maxPayloadTest (subject testedSystem : DeliveryDroneProductSystemImpl) is a verificationCases usage of the verification context deliveryDroneVerificationContext.</text>
     <text x="20" y="290">✓ = the verification case's objective verifies the requirement; empty cell = no verify relationship.</text>
   </g>
 

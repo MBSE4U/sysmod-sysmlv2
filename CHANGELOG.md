@@ -1,9 +1,59 @@
 # Change Log
 
-## Unreleased
+## v5.1.7
 
 - MicroStory snippets `the-project` and `problem-statement`: the project now declares the views `projectCoverView`, `projectCoverAIView`, `problemStatementView`, and `problemStatementAIView` itself, as the Delivery Drone example does since 5.1.6 (they are no longer inherited from `SYSMOD::Project`).
 - Fixed the double bullet ("- - ") of the black box/white box entry in the 5.1.6 change log.
+- Fixed a parser error in the `Percentage` constraint (#39): the assert constraint now refers to the attribute value with `that` instead of `self` (`that >= 0.0 and that <= 1.0`).
+- Extracted the ISO/IEC/IEEE 15288 processes, the stakeholders, and the concerns into the new top-level library package `ISO15288Processes` in its own file `SYSMOD15288.sysml`:
+  - The process action definitions moved from `SYSMOD::ISO15288Processes`; the `#refinement` dependencies of the SYSMOD steps refer to the new package.
+  - The stakeholders and concerns moved from `SYSMODViews::Stakeholders` and `SYSMODViews::Concerns` to `ISO15288Processes::Stakeholders` and `ISO15288Processes::Concerns`. `SYSMODViews` imports the concerns for its viewpoints.
+  - Models that use the stakeholder roles import `ISO15288Processes::Stakeholders::*` instead of `SYSMODViews::Stakeholders::*` (Delivery Drone project, MicroStory `problem-statement`).
+  - `.meta.json` indexes the new package; `scripts/generate_views_doc.py` and the views-doc workflow read the processes, stakeholders, and concerns from `SYSMOD15288.sysml`. Updated `README.md` and the regenerated `SYSMODViews.md`.
+- Black box/white box separation for the solution architectures, as for the brownfield, system idea, and specification contexts:
+  - `functionalContext`, `logicalContext`, and `productContext` are the black box contexts and specialize `specificationContext`; `productContext` no longer specializes `specificationContextImpl`, and `productSystem` now redefines the black box `soi`.
+  - New white box contexts `functionalContextImpl`, `logicalContextImpl` (both optional), and `productContextImpl`, each specializing its black box context, with the systems `functionalSystemImpl`, `logicalSystemImpl`, and `productSystemImpl` (`soiImpl`).
+  - `productSystemImpl` now satisfies the `systemRequirementSpecification` and is the subject of the `verificationCases` (`productContextImpl.soiImpl`).
+  - `logicalContextImpl` and `productContextImpl` also specialize `specificationContextImpl`. `functionalContextImpl` does not, so the functional architecture, including its functional blocks, stays independent of the physical internal structure of the system. `CreateFunctionalArchitecture` therefore takes the black box `specificationContext` as input.
+  - New allocations `functionalImpl2logicalImpl` and `logicalImpl2productImpl` between the white box contexts.
+  - `VerifyAndValidateRequirements` takes `productContextImpl` as input.
+  - Docs aligned in `SYSMOD.sysml`, the architecture and process prompts of `SYSMOD4AI.sysml`, the architecture view docs of `SYSMODViews.sysml`, and `README.md`.
+- Split the process step `CreateSolutionArchitectures` into one step per architecture kind:
+  - `CreateFunctionalArchitecture` and `CreateLogicalArchitecture` (both optional) and `CreateProductArchitecture`, each outputting its black box and white box context; each refines the ISO 15288 System Architecture Definition process. The functional and logical steps also create the `#refinement` dependencies from their architecture elements to the system requirements.
+  - The architecture allocations are created by the step of their target architecture: `CreateLogicalArchitecture` outputs `functional2logical` and `functionalImpl2logicalImpl` (new input `functionalContext`), and `CreateProductArchitecture` outputs `logical2product` and `logicalImpl2productImpl` (new input `logicalContext`); the allocations flow to the project. The allocation docs and the logical and product architecture prompts of `SYSMOD4AI.sysml` say so.
+  - `SYSMODDefaultProcess` runs them in this order between `defineSystemSpecification` and `verifyAndValidateRequirements`. The logical step takes the white box functional context as input; the product step takes the white box functional and logical contexts.
+  - The process input `solutionArchitecture` is replaced by `functionalArchitecture`, `logicalArchitecture`, and `productArchitecture`.
+  - Updated the process prompts of `SYSMOD4AI.sysml`, the `OnlyProcessStepElements` constraint of `SYSMODViews.sysml`, and `README.md`.
+- Updated example model (architecture): the functional, logical, and product architectures of the Delivery Drone have a black box system (`DeliveryDrone…System`) and a white box system (`DeliveryDrone…SystemImpl`) with the building blocks, and white box contexts (`DeliveryDrone…ContextImpl`) that the project instantiates. `MaxPayloadTest` tests the `DeliveryDroneProductSystemImpl`. The example views of the architectures, the allocations, and V&V show the white box contexts.
+- Added `verificationContext` to `SYSMOD::Project`: it specializes `productContextImpl`, adds the test systems as actors (e.g., a test bench or a wind tunnel with constant wind speed), and owns the `verificationCases`, which moved from the project into the context.
+  - `VerifyAndValidateRequirements` now outputs the `verificationContext` instead of the `verificationCases`, and it flows to the project.
+  - Updated the process prompts of `SYSMOD4AI.sysml`, the viewpoint and view docs of `SYSMODViews.sysml`, and `README.md`.
+- Updated example model (verification): `DD_VV::DeliveryDroneVerificationContext` adds a `windTunnel` (`#externalSystem` with a constant `windSpeed`) to the white box product context. The project's `deliveryDroneVerificationContext` owns `maxPayloadTest : MaxPayloadTest`, the first verification case usage of the example. The example views `verificationAndValidationView.svg` and `verificationMatrixView.svg` show the usage.
+- MicroStory snippets `verification`, `validation`, and `the-full-chain`: the verification cases are owned by the project's `verificationContext`.
+- Added `systemObjectives` to `SYSMOD::Project`: the measurable goals of the system idea, an `ExtendedConcern` with the system idea (`systemIdeaContext.soi`) as subject and the `projectOwner` as stakeholder. It frames the `stakeholderNeeds` and is the basis for the system requirements and for validation.
+  - `PitchSystemIdea` now also outputs the `systemObjectives`, which flow to the project; `DefineSystemSpecification` and its nested step `elaborateSystemRequirements` take them as input.
+  - New AI metadata `systemObjectivesAI` (`sysmod-system-objectives`) in `SYSMOD4AI.sysml`. The project, process, and system requirements prompts include the system objectives.
+  - The objectives direct the development. They are not framed by the system requirements and not satisfied by a system, because that would be too strong a link: an objective may not be met.
+  - New view `SystemObjectivesView` (tree diagram of the `systemObjectives` with its nested objectives), satisfying `ProblemSolutionViewpoint`.
+  - Updated the docs of `ProjectViewpoint`, `ProblemSolutionViewpoint`, and `ValidationViewpoint` in `SYSMODViews.sysml`, and `README.md`.
+- Updated example model (system objectives): `DD_SYSTEMIDEA` defines the measurable objectives `FastRemoteDelivery` (at most 50 % of the ground delivery time), `LowCostPerDelivery` (at most 70 % of the ground delivery cost), and `OnTimeDelivery` (at least 98 % on time). The Delivery Drone project redefines `systemObjectives` with these three objectives for the project owner John Finch and declares the view usage `systemObjectivesView`; the example view `systemObjectivesView.svg` shows it.
+- Spelling: "black box" and "white box" are now written as two words everywhere, also before a noun ("the black box context", "the white box view"). This replaces the hyphenated adjective form of 5.1.6 (#31) in the library, the AI prompts, the views, the examples, the example views, and `README.md`.
+- Updated example model (requirements traceability): elements of the functional and logical architectures refine the system requirements with `#refinement` dependencies.
+  - Functional: `batteryManagement` and `flightControl` refine `AirCharging`; `packageManagement` refines `MaxPayloadMass`.
+  - Logical: `energyManagement`, `fleetCoordination`, and `flightControl` refine `AirCharging`.
+- `ArchitectureViewpoint`: the constraint `onlyArchitectureElements` now also allows dependencies (`SysML::Dependency`), so an architecture view can show the `#refinement` traces to the system requirements without violating the viewpoint.
+- View dependencies: the views do not depend on each other, but the content they show does. `SYSMODViews` now makes this explicit as correspondences in the sense of ISO/IEC/IEEE 42010:
+  - New metadata definition `ViewedArtifact` (`#viewedArtifact`) for dependencies from a view definition to the `Project` features it shows, e.g., `#viewedArtifact dependency ProblemStatementView to Project::problemStatement;`. All step-related view definitions declare them; specializations without own dependencies, e.g., `ProjectAIView`, inherit those of their general view.
+  - `SYSMODViews.md` has the new chapter 6 "View Dependencies" with a Mermaid diagram and a table, and every view has a "Dependencies" block: the artifacts it shows, the SYSMOD step creating them, the views it builds on (inputs of the creating step or nested action), the information provided by a human or an AI assistant, the views it traces to (specialization of the system contexts, `frame`, `satisfy`, `subject`, `allocate` in `Project`), and the views it is input for.
+  - The introduction of `SYSMODViews.md` separates the framework from the method: the framework defines what the views show and for whom; the SYSMOD process defines a default, optional, and iterative path through the steps that create the content, applied again to the `subProjects`.
+  - `scripts/generate_views_doc.py` derives the dependencies from `SYSMODViews.sysml` and `SYSMOD.sysml`; nothing is maintained by hand.
+
+- Step status for the SYSMOD Map:
+  - The Delivery Drone project redefines its `defaultProcess` and sets the `@StepStatus` of every step (all steps `done`, `verifyAndValidateRequirements` `inProgress` at 20 %, as verification has only started with `MaxPayloadTest`). It imports `SYSMOD::SYSMODProcesses::*` for `StepStatus`, `StepStatusKind`, and `Percentage`, and casts the percentage literals (`1.0 as Percentage`), because a real literal does not conform to `Percentage`.
+  - New script `scripts/generate_map_status.py` (reuses the parser of `generate_views_doc.py`) reads the steps of `SYSMODDefaultProcess`, the `StepStatusKind` literals, and the `StepStatus` defaults from `SYSMOD.sysml`, and the step status of every `#project` in `examples/`. It writes the read-only `examples/views/sysmodMapStatus.json` and warns about unknown steps, unknown status literals, and percentages outside 0..1. Steps a project does not redefine keep the library defaults.
+  - New workflow `.github/workflows/map-status.yml` regenerates the file on changes of the library, the examples, or the scripts.
+- New view `SYSMODMapView` (SYSMOD Map): the features of the exposed Project on one sheet with grid references, row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield to 7 verification and validation. It specializes `ProjectView` (`ProjectViewpoint`, `expose this`, `@ProjectMetadata`) and replaces the tree diagram by the new rendering `asSYSMODMap`, whose doc lists the cells with their Project features and the steps that create them. The cell status is the `@StepStatus` of those steps.
+  - Updated example model: the Delivery Drone project declares the view usage `sysmodMapView`; the example view `sysmodMapView.svg` shows it with the step status of `sysmodMapStatus.json`.
 
 ## v5.1.6
 

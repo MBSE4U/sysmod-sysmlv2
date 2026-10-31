@@ -91,7 +91,7 @@ package <DDCS> DeliveryDroneControlStation {
     //------------------------- Control Station Brownfield
     #systemContext part def ControlStationContext {
         doc
-        /* The black-box brownfield context of the existing control station,
+        /* The black box brownfield context of the existing control station,
          * built for manually piloted drones. */
         #system part controlStation : ControlStation :>> soi {
             doc /* The existing control station as a black box. */
@@ -106,19 +106,19 @@ package <DDCS> DeliveryDroneControlStation {
     }
     #systemContext part def ControlStationContextImpl :> ControlStationContext {
         doc
-        /* The white-box brownfield context of the existing control station. */
+        /* The white box brownfield context of the existing control station. */
         #system part controlStationImpl : ControlStationImpl :>> controlStation {
             doc /* The existing control station as a white box. */
         }
     }
     part def ControlStation {
         doc
-        /* Black-box definition of the existing control station. */
+        /* Black box definition of the existing control station. */
         port operatorPort;
     }
     part def ControlStationImpl :> ControlStation {
         doc
-        /* White-box definition of the existing control station: one console and
+        /* White box definition of the existing control station: one console and
          * one radio link per manually piloted drone. */
         part console {
             doc /* Operator console for a single drone. */

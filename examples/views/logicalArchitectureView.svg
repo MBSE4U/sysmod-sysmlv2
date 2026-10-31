@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="490" viewBox="0 0 1000 490" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <!-- Rendering of DD::PRJ::logicalArchitectureView : SYSMODViews::LogicalArchitectureView (render asInterconnectionDiagram).
-       Exposed: DD::PRJ::deliveryDroneLogicalContext (DD_LOGICAL::DeliveryDroneLogicalContext).
+       Exposed: DD::PRJ::deliveryDroneLogicalContextImpl (DD_LOGICAL::DeliveryDroneLogicalContextImpl), the white box logical context.
        Shown: the actors and interfaces inherited from the brownfield context, the system ports, and the three
-       logical building blocks of DeliveryDroneLogicalSystem (with their doc text). The logical blocks have no
+       logical building blocks of DeliveryDroneLogicalSystemImpl (with their doc text). The logical blocks have no
        ports or connections in the model, so none are drawn between them.
        Illustrative example only; the view usage is not (yet) part of the example model. -->
   <rect width="1000" height="490" fill="#ffffff"/>
@@ -12,12 +12,12 @@
   <!-- Context -->
   <rect x="10" y="42" width="980" height="408" fill="#f7f9fc" stroke="#333" stroke-width="1.5"/>
   <text x="22" y="60" font-size="11" fill="#555">«systemContext»</text>
-  <text x="22" y="77" font-size="14" font-weight="600" fill="#222">deliveryDroneLogicalContext : DeliveryDroneLogicalContext</text>
+  <text x="22" y="77" font-size="14" font-weight="600" fill="#222">deliveryDroneLogicalContextImpl : DeliveryDroneLogicalContextImpl</text>
 
   <!-- System of interest -->
   <rect x="262" y="100" width="476" height="330" fill="#ffffff" stroke="#2f6fb0" stroke-width="2"/>
   <text x="274" y="118" font-size="11" fill="#555">«system»</text>
-  <text x="274" y="135" font-size="13" font-weight="600" fill="#222">deliveryDroneSystem : DeliveryDroneLogicalSystem</text>
+  <text x="274" y="135" font-size="13" font-weight="600" fill="#222">deliveryDroneSystemImpl : DeliveryDroneLogicalSystemImpl</text>
 
   <!-- Interfaces actor - system -->
   <g stroke="#333" stroke-width="1.5">

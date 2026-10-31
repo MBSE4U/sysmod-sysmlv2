@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="520" viewBox="0 0 1000 520" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <!-- Rendering of DD::PRJ::systemIdeaView : SYSMODViews::SystemIdeaView (render asInterconnectionDiagram).
        Exposed: PRJ::deliveryDroneSystemIdeaContext::** and PRJ::deliveryDroneSystemIdeaContextImpl::**
-       (hypothetical view usage, not yet in the model). Shown as one diagram of the white-box context
+       (hypothetical view usage, not yet in the model). Shown as one diagram of the white box context
        DD_SYSTEMIDEA::DeliveryDroneSystemIdeaContextImpl: boundary, actors, and interfaces are unchanged
        from the brownfield context; the drones gain airCharger[0..1] and airChargerAdapter (connected to
        the battery). Other DeliveryDrone parts (engines, body, payloadAttachment, controlUnit) are omitted.
@@ -20,7 +20,7 @@
   <text x="500" y="143" font-size="14" font-weight="600" fill="#111" text-anchor="middle">deliveryDroneSystemImpl</text>
   <text x="500" y="160" font-size="12" fill="#222" text-anchor="middle">: DeliveryDroneSystemIdeaImpl</text>
 
-  <!-- White-box: system idea with air-charging drones -->
+  <!-- White box: system idea with air-charging drones -->
   <rect x="376" y="170" width="236" height="148" rx="8" fill="#f7f9fc" stroke="#333" stroke-width="1.5"/>
   <text x="388" y="190" font-size="13" fill="#111"><tspan font-weight="600">drones</tspan> : DeliveryDrone</text>
   <rect x="392" y="206" width="130" height="32" rx="8" fill="#ffffff" stroke="#333" stroke-width="1.5"/>

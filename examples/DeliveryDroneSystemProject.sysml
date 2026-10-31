@@ -23,7 +23,8 @@ package <DD> DeliveryDrone {
      */
 
     private import SYSMOD::*;
-    private import SYSMODViews::Stakeholders::*;
+    private import SYSMOD::SYSMODProcesses::*;
+    private import ISO15288Processes::Stakeholders::*;
 
     #project occurrence def <PRJ> 'Delivery Drone Project' {
         doc
@@ -113,6 +114,25 @@ package <DD> DeliveryDrone {
             satisfy PRJ::problemStatement;
         }
 
+        //------------------------- System Objectives
+        concern :>> systemObjectives {
+            doc /* The measurable goals of the system idea, agreed with the project owner.
+                   They frame the stakeholder needs and are the basis for the system
+                   requirements and for validation. */
+            subject :>> systemIdea = deliveryDroneSystemIdeaContext.deliveryDroneSystem;
+            stakeholder :>> projectOwner = johnFinch;
+            frame stakeholderNeeds :>> Project::systemObjectives::stakeholderNeeds :> PRJ::stakeholderNeeds;
+            concern fastRemoteDelivery : DD_SYSTEMIDEA::FastRemoteDelivery {
+                subject :>> systemIdea = deliveryDroneSystemIdeaContext.deliveryDroneSystem;
+            }
+            concern lowCostPerDelivery : DD_SYSTEMIDEA::LowCostPerDelivery {
+                subject :>> systemIdea = deliveryDroneSystemIdeaContext.deliveryDroneSystem;
+            }
+            concern onTimeDelivery : DD_SYSTEMIDEA::OnTimeDelivery {
+                subject :>> systemIdea = deliveryDroneSystemIdeaContext.deliveryDroneSystem;
+            }
+        }
+
         //------------------------- Specification
         part deliveryDroneSpecificationContext :>> specificationContext : DD_SPECIFICATION::DeliveryDroneSystemContext :> deliveryDroneSystemIdeaContext {
             part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSystemIdeaContext::deliveryDroneSystem, Project::specificationContext::soi;
@@ -129,22 +149,63 @@ package <DD> DeliveryDrone {
         part deliveryDroneFunctionalContext :>> functionalContext : DD_FUNCTIONAL_ARCHITECTURE::DeliveryDroneFunctionalContext :> deliveryDroneSpecificationContext {
             part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSpecificationContext::deliveryDroneSystem, Project::functionalContext::functionalSystem;
         }
+        part deliveryDroneFunctionalContextImpl :>> functionalContextImpl : DD_FUNCTIONAL_ARCHITECTURE::DeliveryDroneFunctionalContextImpl :> deliveryDroneFunctionalContext {
+            part deliveryDroneSystemImpl :>> deliveryDroneSystemImpl, deliveryDroneFunctionalContext::deliveryDroneSystem, Project::functionalContextImpl::functionalSystemImpl;
+        }
 
         //------------------------- Solution Architecture: Logical Architecture
         part deliveryDroneLogicalContext :>> logicalContext : DD_LOGICAL::DeliveryDroneLogicalContext :> deliveryDroneSpecificationContext {
-            part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSpecificationContext::deliveryDroneSystem, Project::logicalContext::logicalSystem;            
+            part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSpecificationContext::deliveryDroneSystem, Project::logicalContext::logicalSystem;
+        }
+        part deliveryDroneLogicalContextImpl :>> logicalContextImpl : DD_LOGICAL::DeliveryDroneLogicalContextImpl :> deliveryDroneLogicalContext, deliveryDroneSpecificationContextImpl {
+            part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSpecificationContextImpl::deliveryDroneSystemImpl, Project::logicalContextImpl::logicalSystemImpl;
         }
 
         //------------------------- Solution Architecture: Product Architecture
-        part deliveryDroneProductContext :>> productContext : DD_PRODUCT::DeliveryDroneProductContext :> deliveryDroneSpecificationContextImpl {
-            part deliveryDroneProduct :>> deliveryDroneSystemImpl, deliveryDroneSpecificationContextImpl::deliveryDroneSystemImpl, Project::productContext::productSystem;
+        part deliveryDroneProductContext :>> productContext : DD_PRODUCT::DeliveryDroneProductContext :> deliveryDroneSpecificationContext {
+            part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSpecificationContext::deliveryDroneSystem, Project::productContext::productSystem;
         }
-        // The functional2logical and logical2product allocations are inherited from SYSMOD::Project.
+        part deliveryDroneProductContextImpl :>> productContextImpl : DD_PRODUCT::DeliveryDroneProductContextImpl :> deliveryDroneProductContext, deliveryDroneSpecificationContextImpl {
+            part deliveryDroneProduct :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSpecificationContextImpl::deliveryDroneSystemImpl, Project::productContextImpl::productSystemImpl;
+        }
+        // The allocations functional2logical, logical2product, functionalImpl2logicalImpl,
+        // and logicalImpl2productImpl are inherited from SYSMOD::Project.
+
+        //------------------------- Verification
+        part deliveryDroneVerificationContext :>> verificationContext : DD_VV::DeliveryDroneVerificationContext :> deliveryDroneProductContextImpl {
+            doc /* The verification context adds the wind tunnel as test system and
+                   owns the verification cases of the Delivery Drone. */
+            verification maxPayloadTest : DD_VV::MaxPayloadTest :> verificationCases {
+                subject :>> productSystem, testedSystem;
+            }
+        }
 
         //------------------------- Sub-Projects
         occurrence controlStationProject : DDCS::DeliveryDroneControlStationProject :> subProjects {
             doc /* The control station is developed in a SYSMOD sub-project. It
                    subsets the subProjects list inherited from SYSMOD::Project. */
+        }
+
+        //
+        // Process Status
+        //
+        action :>> defaultProcess {
+            doc
+            /* The status of the SYSMOD steps in the Delivery Drone project. The project redefines the
+             * steps of the default process and sets their @StepStatus. The SYSMOD Map reads it with
+             * scripts/generate_map_status.py. Verification has only started: MaxPayloadTest is the
+             * first verification case. */
+            action :>> setupProject { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> specifyBrownfieldSystem { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> specifyProblemStatement { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> identifyStakeholders { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> elaborateStakeholderNeeds { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> pitchSystemIdea { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> defineSystemSpecification { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> createFunctionalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> createLogicalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> createProductArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> verifyAndValidateRequirements { @StepStatus { status = StepStatusKind::inProgress; percentage = 0.2 as Percentage; } }
         }
 
         //
@@ -162,6 +223,11 @@ package <DD> DeliveryDrone {
             /* The Project Cover view is an AI-generated management summary of the project. It exposes the project itself, i.e., its purpose, project owner, and the main engineering artifacts. */
             expose this;
         }
+        view sysmodMapView : SYSMODViews::SYSMODMapView {
+            doc
+            /* The SYSMOD Map shows the project's features by concerns, black box, and white box from the brownfield system to verification, with the status of the steps. */
+            expose this;
+        }
         view problemStatementView : SYSMODViews::ProblemStatementView {
             doc
             /* The Problem Statement view shows the problem statement with its project owner and the brownfield system. */
@@ -171,6 +237,11 @@ package <DD> DeliveryDrone {
             doc
             /* The Problem Statement view is an AI-generated summary of the problem statement. It exposes the problem statement itself, i.e., its project owner and the brownfield system. */
             expose problemStatement;
+        }
+        view systemObjectivesView : SYSMODViews::SystemObjectivesView {
+            doc
+            /* The System Objectives view shows the measurable goals of the system idea with the project owner, the system idea, and the stakeholder needs they frame. */
+            expose systemObjectives;
         }
 
 

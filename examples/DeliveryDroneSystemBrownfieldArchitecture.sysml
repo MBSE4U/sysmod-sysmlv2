@@ -24,7 +24,7 @@ package <DD_BROWNFIELD> DeliveryDroneSystemBrownfieldArchitecture {
 
     #systemContext part def DeliveryDroneSystemContext {
         doc
-        /* The black-box brownfield context: the delivery drone system as it exists at
+        /* The black box brownfield context: the delivery drone system as it exists at
          * the start of the project, together with the actors that already interact
          * with it. It constrains the set of possible solutions. */
         #system part deliveryDroneSystem : DeliveryDroneSystem :>> soi {
@@ -78,7 +78,7 @@ package <DD_BROWNFIELD> DeliveryDroneSystemBrownfieldArchitecture {
     }
     #systemContext part def DeliveryDroneSystemContextImpl :> DeliveryDroneSystemContext {
         doc
-        /* The white-box brownfield context: adds the internal structure of the
+        /* The white box brownfield context: adds the internal structure of the
          * existing delivery drone system. */
         #system part deliveryDroneSystemImpl : DeliveryDroneSystemImpl :>> deliveryDroneSystem {
             doc
@@ -87,7 +87,7 @@ package <DD_BROWNFIELD> DeliveryDroneSystemBrownfieldArchitecture {
     }
     part def DeliveryDroneSystem {
         doc
-        /* Black-box definition of the existing delivery drone system with its
+        /* Black box definition of the existing delivery drone system with its
          * external interfaces. */
         port operatorPort {
             doc
@@ -121,7 +121,7 @@ package <DD_BROWNFIELD> DeliveryDroneSystemBrownfieldArchitecture {
     }
     part def DeliveryDroneSystemImpl :> DeliveryDroneSystem {
         doc
-        /* White-box definition of the existing delivery drone system: a fleet of
+        /* White box definition of the existing delivery drone system: a fleet of
          * drones, a control station, and docks where the drones are charged. */
         part drones[1..*] : DeliveryDrone {
             doc

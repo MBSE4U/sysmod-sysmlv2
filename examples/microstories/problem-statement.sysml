@@ -1,6 +1,6 @@
 package MicroStory_ProblemStatement {
     private import SYSMOD::*;
-    private import SYSMODViews::Stakeholders::*;
+    private import ISO15288Processes::Stakeholders::*;
 
     #project occurrence def 'Delivery Drone Project' {
         // John is the project owner and plays the ISO 15288 role

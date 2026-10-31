@@ -24,7 +24,7 @@ package <DD_LOGICAL> DeliveryDroneSystemLogicalArchitecture {
 
     #systemContext part def DeliveryDroneLogicalContext :> DD_SPECIFICATION::DeliveryDroneSystemContext {
         doc
-        /* The context of the logical architecture. */
+        /* The black box context of the logical architecture. */
         #system part :>> deliveryDroneSystem : DeliveryDroneLogicalSystem;
 
         use case :>> deliverPackage : DD_SPECIFICATION::UseCases::DeliverPackage {
@@ -44,7 +44,18 @@ package <DD_LOGICAL> DeliveryDroneSystemLogicalArchitecture {
         }
 
     }
+    #systemContext part def DeliveryDroneLogicalContextImpl :> DeliveryDroneLogicalContext, DD_SPECIFICATION::DeliveryDroneSystemContextImpl {
+        doc
+        /* The white box context of the logical architecture: adds the
+         * technology-independent building blocks of the logical system. */
+        #system part :>> deliveryDroneSystemImpl : DeliveryDroneLogicalSystemImpl;
+    }
     part def DeliveryDroneLogicalSystem :> DD_SPECIFICATION::DeliveryDroneSystem {
+        doc
+        /* The logical system as a black box. It redefines the black box
+         * specification system and inherits the system ports. */
+    }
+    part def DeliveryDroneLogicalSystemImpl :> DeliveryDroneLogicalSystem, DD_SPECIFICATION::DeliveryDroneSystemImpl {
         doc
         /* The logical architecture: technology-independent building blocks that
          * realize the functional architecture. */
@@ -61,4 +72,16 @@ package <DD_LOGICAL> DeliveryDroneSystemLogicalArchitecture {
             /* Monitors batteries and decides when a drone needs an air charge. */
         }
     }
+
+    //
+    // Refinement of the system requirements by the logical architecture
+    //
+    private import ModelingMetadata::refinement;
+
+    // Deciding when a drone needs an air charge details the air charging requirement.
+    #refinement dependency DeliveryDroneLogicalSystemImpl::energyManagement to DD_SPECIFICATION::Requirements::AirCharging;
+    // Pairing charger drones with low-battery drones details the air charging requirement.
+    #refinement dependency DeliveryDroneLogicalSystemImpl::fleetCoordination to DD_SPECIFICATION::Requirements::AirCharging;
+    // The air charging rendezvous on the route details the air charging requirement.
+    #refinement dependency DeliveryDroneLogicalSystemImpl::flightControl to DD_SPECIFICATION::Requirements::AirCharging;
 }

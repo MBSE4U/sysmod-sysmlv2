@@ -25,7 +25,7 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
 
     #systemContext part def DeliveryDroneSystemContext :> DD_SYSTEMIDEA::DeliveryDroneSystemIdeaContext {
         doc
-        /* The black-box specification context. It fixes the system boundary for
+        /* The black box specification context. It fixes the system boundary for
          * the requirements analysis and owns the system use cases. */
         #system part deliveryDroneSystem :>> deliveryDroneSystem : DeliveryDroneSystem;
         use case deliverPackage : UseCases::DeliverPackage {
@@ -46,7 +46,7 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
     }
     #systemContext part def DeliveryDroneSystemContextImpl :> DeliveryDroneSystemContext, DD_SYSTEMIDEA::DeliveryDroneSystemIdeaContextImpl {
         doc
-        /* The white-box specification context: adds the internal structure of
+        /* The white box specification context: adds the internal structure of
          * the specification system. */
         #system part deliveryDroneSystemImpl :>> deliveryDroneSystemImpl : DeliveryDroneSystemImpl;
     }

@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::systemObjectivesView : SYSMODViews::SystemObjectivesView (render asTreeDiagram).
+       Exposed: DD::PRJ::systemObjectives, filtered by @SysML::ConcernUsage. Shown with its subject (system idea),
+       stakeholder (project owner), and framed stakeholderNeeds as owned members, and the three nested
+       objectives with their target values. Illustrative example. -->
+  <rect width="1000" height="560" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] systemObjectivesView : SystemObjectivesView — Delivery Drone System Objectives</text>
+
+  <!-- Membership edges -->
+  <g stroke="#333" stroke-width="1.5" fill="none">
+    <line x1="500" y1="263" x2="500" y2="282"/>
+    <line x1="170" y1="282" x2="830" y2="282"/>
+    <line x1="170" y1="282" x2="170" y2="310"/>
+    <line x1="500" y1="282" x2="500" y2="310"/>
+    <line x1="830" y1="282" x2="830" y2="310"/>
+  </g>
+  <g stroke="#333" stroke-width="1.5" fill="#ffffff">
+    <circle cx="500" cy="256" r="7"/>
+    <line x1="493" y1="256" x2="507" y2="256"/>
+    <line x1="500" y1="249" x2="500" y2="263"/>
+  </g>
+
+  <!-- Root: systemObjectives concern -->
+  <rect x="150" y="50" width="700" height="199" rx="8" fill="#f7f9fc" stroke="#333" stroke-width="2"/>
+  <text x="500" y="70" font-size="11" fill="#555" text-anchor="middle">«concern»</text>
+  <text x="500" y="90" font-size="15" font-weight="600" fill="#222" text-anchor="middle">systemObjectives : ExtendedConcern</text>
+  <text x="500" y="107" font-size="12" fill="#555" text-anchor="middle">:&gt;&gt; Project::systemObjectives</text>
+  <line x1="150" y1="117" x2="850" y2="117" stroke="#333" stroke-width="1.5"/>
+  <text x="500" y="133" font-size="11" font-style="italic" fill="#555" text-anchor="middle">doc</text>
+  <g font-size="13" fill="#222">
+    <text x="166" y="152">The measurable goals of the system idea, agreed with the project owner. They frame the</text>
+    <text x="166" y="169">stakeholder needs and are the basis for the system requirements and for validation.</text>
+  </g>
+  <line x1="150" y1="180" x2="850" y2="180" stroke="#333" stroke-width="1.5"/>
+  <text x="500" y="196" font-size="11" font-style="italic" fill="#555" text-anchor="middle">members</text>
+  <g font-size="12" fill="#222">
+    <text x="166" y="215"><tspan fill="#555">«subject»</tspan> systemIdea = deliveryDroneSystemIdeaContext.deliveryDroneSystem : DeliveryDroneSystem</text>
+    <text x="166" y="233"><tspan fill="#555">«stakeholder»</tspan> projectOwner = johnFinch : ProductManager</text>
+    <text x="540" y="233"><tspan fill="#555">«frame»</tspan> stakeholderNeeds :&gt; PRJ::stakeholderNeeds</text>
+  </g>
+
+  <!-- Objective 1 -->
+  <rect x="30" y="310" width="280" height="190" rx="8" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.5"/>
+  <text x="170" y="330" font-size="11" fill="#555" text-anchor="middle">«concern»</text>
+  <text x="170" y="348" font-size="14" font-weight="600" fill="#111" text-anchor="middle">fastRemoteDelivery</text>
+  <text x="170" y="365" font-size="12" fill="#555" text-anchor="middle">: FastRemoteDelivery</text>
+  <line x1="30" y1="375" x2="310" y2="375" stroke="#333" stroke-width="1"/>
+  <g font-size="12" fill="#222">
+    <text x="44" y="395">A delivery to a remote place takes at</text>
+    <text x="44" y="411">most half the time of today's</text>
+    <text x="44" y="427">ground-based delivery.</text>
+  </g>
+  <line x1="30" y1="440" x2="310" y2="440" stroke="#333" stroke-width="1"/>
+  <g font-size="12" fill="#222">
+    <text x="44" y="460">maxDeliveryTimeRatio = <tspan fill="#2f6fb0" font-weight="600">0.5</tspan></text>
+    <text x="44" y="480">priority = <tspan fill="#2f6fb0">critical</tspan></text>
+  </g>
+
+  <!-- Objective 2 -->
+  <rect x="360" y="310" width="280" height="190" rx="8" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.5"/>
+  <text x="500" y="330" font-size="11" fill="#555" text-anchor="middle">«concern»</text>
+  <text x="500" y="348" font-size="14" font-weight="600" fill="#111" text-anchor="middle">lowCostPerDelivery</text>
+  <text x="500" y="365" font-size="12" fill="#555" text-anchor="middle">: LowCostPerDelivery</text>
+  <line x1="360" y1="375" x2="640" y2="375" stroke="#333" stroke-width="1"/>
+  <g font-size="12" fill="#222">
+    <text x="374" y="395">The cost per delivery is at most 70 %</text>
+    <text x="374" y="411">of the cost of today's ground-based</text>
+    <text x="374" y="427">delivery.</text>
+  </g>
+  <line x1="360" y1="440" x2="640" y2="440" stroke="#333" stroke-width="1"/>
+  <g font-size="12" fill="#222">
+    <text x="374" y="460">maxCostRatio = <tspan fill="#2f6fb0" font-weight="600">0.7</tspan></text>
+    <text x="374" y="480">priority = <tspan fill="#2f6fb0">high</tspan></text>
+  </g>
+
+  <!-- Objective 3 -->
+  <rect x="690" y="310" width="280" height="190" rx="8" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.5"/>
+  <text x="830" y="330" font-size="11" fill="#555" text-anchor="middle">«concern»</text>
+  <text x="830" y="348" font-size="14" font-weight="600" fill="#111" text-anchor="middle">onTimeDelivery</text>
+  <text x="830" y="365" font-size="12" fill="#555" text-anchor="middle">: OnTimeDelivery</text>
+  <line x1="690" y1="375" x2="970" y2="375" stroke="#333" stroke-width="1"/>
+  <g font-size="12" fill="#222">
+    <text x="704" y="395">At least 98 % of the deliveries arrive</text>
+    <text x="704" y="411">within the promised time window.</text>
+  </g>
+  <line x1="690" y1="440" x2="970" y2="440" stroke="#333" stroke-width="1"/>
+  <g font-size="12" fill="#222">
+    <text x="704" y="460">minOnTimeRate = <tspan fill="#2f6fb0" font-weight="600">0.98</tspan></text>
+    <text x="704" y="480">priority = <tspan fill="#2f6fb0">high</tspan></text>
+  </g>
+
+  <text x="20" y="530" font-size="11" fill="#555">The objectives direct the development; they are not satisfied directly but reflected in the system requirements.</text>
+  <text x="20" y="550" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
+</svg>

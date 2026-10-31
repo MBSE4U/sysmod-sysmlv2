@@ -1,12 +1,12 @@
 <!--
   GENERATED FILE - DO NOT EDIT.
-  Generated from SYSMODViews.sysml and SYSMOD.sysml by scripts/generate_views_doc.py.
+  Generated from SYSMOD15288.sysml, SYSMODViews.sysml, and SYSMOD.sysml by scripts/generate_views_doc.py.
   Edit the library and rerun the script instead.
 -->
 
 # SYSMOD Views
 
-> This document is generated from the SYSMODViews library (v5.1.6). It is read-only; changes are made in [SYSMODViews.sysml](SYSMODViews.sysml) and the document is regenerated with `python scripts/generate_views_doc.py`.
+> This document is generated from the SYSMODViews library (v5.1.7). It is read-only; changes are made in [SYSMOD15288.sysml](SYSMOD15288.sysml) and [SYSMODViews.sysml](SYSMODViews.sysml) and the document is regenerated with `python scripts/generate_views_doc.py`.
 
 The SYSMOD views follow ISO/IEC/IEEE 42010: stakeholders derived from the ISO/IEC/IEEE 15288 life cycle processes have concerns, viewpoints frame these concerns, and views conform to the viewpoints. The SYSMOD process steps refine the ISO/IEC/IEEE 15288 processes and produce the project elements that the views of a SYSMOD project expose, e.g., in the Delivery Drone example.
 
@@ -16,6 +16,8 @@ flowchart LR
     P --> ST[SYSMOD Step] --> V
 ```
 
+**Views, dependencies, and paths.** The views do not depend on each other; the content they show does. Every view is a projection of the one SYSMOD Project model, and the model elements it exposes build on other model elements, e.g., the stakeholder needs on the problem statement and the stakeholders. SYSMOD therefore separates the framework from the method: the framework (this document) defines what the views show and for whom, the SYSMOD process (`Project::defaultProcess`) defines a path through the steps that create the content. The process is a default, not a mandatory sequence: all steps after `SetupProject` are optional, e.g., the brownfield system in a greenfield project, the steps can be revisited in iterations, and the whole process is applied again to the `subProjects` on the next level of the system hierarchy. Chapter [6. View Dependencies](#6-view-dependencies) shows which views build on which other views, derived from the library.
+
 ## Contents
 
 1. [ISO 15288 Processes](#1-iso-15288-processes)
@@ -23,10 +25,11 @@ flowchart LR
 3. [Concerns](#3-concerns)
 4. [Viewpoints](#4-viewpoints)
 5. [Views](#5-views)
+6. [View Dependencies](#6-view-dependencies)
 
 ## 1. ISO 15288 Processes
 
-The life cycle processes of ISO/IEC/IEEE 15288 as defined in the package `SYSMOD::ISO15288Processes`, the stakeholders responsible for them, and the SYSMOD process steps that refine them.
+The life cycle processes of ISO/IEC/IEEE 15288 as defined in the package `ISO15288Processes`, the stakeholders responsible for them, and the SYSMOD process steps that refine them.
 
 ### Agreement Processes
 
@@ -66,7 +69,7 @@ The life cycle processes of ISO/IEC/IEEE 15288 as defined in the package `SYSMOD
 | <a id="process-businessormissionanalysis"></a>**Business or Mission Analysis** | [ProductManager](#stakeholder-productmanager) | `SpecifyBrownfieldSystem`, `SpecifyProblemStatement`, `IdentifyStakeholders`, `PitchSystemIdea` | The Business or Mission Analysis process defines the business or mission problem or opportunity, characterizes the solution space, and determines potential solution class(es) that can address a problem or take advantage of an opportunity. |
 | <a id="process-stakeholderneedsandrequirementsdefinition"></a>**Stakeholder Needs and Requirements Definition** | [RequirementsEngineer](#stakeholder-requirementsengineer) | `IdentifyStakeholders`, `ElaborateStakeholderNeeds` | The Stakeholder Needs and Requirements Definition process defines the stakeholder requirements for a system that can provide the capabilities needed by users and other stakeholders in a defined environment. |
 | <a id="process-systemrequirementsdefinition"></a>**System Requirements Definition** | [RequirementsEngineer](#stakeholder-requirementsengineer) | `DefineSystemSpecification` | The System Requirements Definition process transforms the stakeholder, user-oriented view of desired capabilities into a technical view of a solution that meets the operational needs of the user. |
-| <a id="process-systemarchitecturedefinition"></a>**System Architecture Definition** | [SystemArchitect](#stakeholder-systemarchitect) | `CreateSolutionArchitectures` | The System Architecture Definition process generates system architecture alternatives, selects one or more alternatives that address stakeholder concerns and system requirements, and expresses this in consistent views and models. |
+| <a id="process-systemarchitecturedefinition"></a>**System Architecture Definition** | [SystemArchitect](#stakeholder-systemarchitect) | `CreateFunctionalArchitecture`, `CreateLogicalArchitecture`, `CreateProductArchitecture` | The System Architecture Definition process generates system architecture alternatives, selects one or more alternatives that address stakeholder concerns and system requirements, and expresses this in consistent views and models. |
 | <a id="process-designdefinition"></a>**Design Definition** | [DesignEngineer](#stakeholder-designengineer) | — | The Design Definition process provides sufficient detailed data and information about the system and its elements to enable the implementation consistent with the architectural entities as defined in the models and views of the system architecture. |
 | <a id="process-systemanalysis"></a>**System Analysis** | [SystemAnalyst](#stakeholder-systemanalyst) | — | The System Analysis process provides a rigorous basis of data and information for technical understanding to aid decision-making across the life cycle. |
 | <a id="process-implementation"></a>**Implementation** | [DesignEngineer](#stakeholder-designengineer) | — | The Implementation process realizes a specified system element. |
@@ -80,7 +83,7 @@ The life cycle processes of ISO/IEC/IEEE 15288 as defined in the package `SYSMOD
 
 ## 2. Stakeholders
 
-Stakeholders of the package `SYSMODViews::Stakeholders`. Each one specializes `ExtendedStakeholder`.
+Stakeholders of the package `ISO15288Processes::Stakeholders`. Each one specializes `ExtendedStakeholder`.
 
 <a id="stakeholder-acquirer"></a>
 
@@ -237,7 +240,7 @@ Sustains the capability of the system to provide its services (ISO/IEC/IEEE 1528
 
 ## 3. Concerns
 
-Concerns of the package `SYSMODViews::Concerns`. The subject of every concern is the SYSMOD `Project`.
+Concerns of the package `ISO15288Processes::Concerns`. The subject of every concern is the SYSMOD `Project`.
 
 | Concern | Stakeholders | Viewpoints |
 |---|---|---|
@@ -421,11 +424,11 @@ Viewpoints of the package `SYSMODViews::Viewpoints`. The stakeholders are the st
 | [AgreementViewpoint](#viewpoint-agreementviewpoint) | [ContractualAgreement](#concern-contractualagreement) | [Acquirer](#stakeholder-acquirer), [Supplier](#stakeholder-supplier) | — |
 | [PortfolioViewpoint](#viewpoint-portfolioviewpoint) | [PortfolioAlignment](#concern-portfolioalignment), [ProjectStatus](#concern-projectstatus) | [PortfolioManager](#stakeholder-portfoliomanager), [ProjectManager](#stakeholder-projectmanager) | — |
 | [QualityViewpoint](#viewpoint-qualityviewpoint) | [QualityCompliance](#concern-qualitycompliance) | [QualityManager](#stakeholder-qualitymanager) | — |
-| [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) | [ProjectView](#view-projectview), [ProjectAIView](#view-projectaiview) |
+| [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) | [ProjectView](#view-projectview), [ProjectAIView](#view-projectaiview), [SYSMODMapView](#view-sysmodmapview) |
 | [ProcessViewpoint](#viewpoint-processviewpoint) | [ProjectStatus](#concern-projectstatus) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager) | — |
 | [RiskViewpoint](#viewpoint-riskviewpoint) | [RiskExposure](#concern-riskexposure) | [RiskManager](#stakeholder-riskmanager), [ProjectManager](#stakeholder-projectmanager) | — |
 | [ConfigurationViewpoint](#viewpoint-configurationviewpoint) | [ConfigurationBaseline](#concern-configurationbaseline) | [ConfigurationManager](#stakeholder-configurationmanager) | — |
-| [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) | [ProblemStatementView](#view-problemstatementview), [ProblemStatementAIView](#view-problemstatementaiview), [SystemIdeaView](#view-systemideaview) |
+| [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) | [ProblemStatementView](#view-problemstatementview), [ProblemStatementAIView](#view-problemstatementaiview), [SystemIdeaView](#view-systemideaview), [SystemObjectivesView](#view-systemobjectivesview) |
 | [RequirementsViewpoint](#viewpoint-requirementsviewpoint) | [StakeholderNeedsCoverage](#concern-stakeholderneedscoverage) | [RequirementsEngineer](#stakeholder-requirementsengineer), [ProductManager](#stakeholder-productmanager) | [StakeholdersView](#view-stakeholdersview), [StakeholderNeedsView](#view-stakeholderneedsview), [SystemRequirementsView](#view-systemrequirementsview) |
 | [ArchitectureViewpoint](#viewpoint-architectureviewpoint) | [ProblemSolutionIntegration](#concern-problemsolutionintegration), [DesignConsistency](#concern-designconsistency) | [SystemArchitect](#stakeholder-systemarchitect), [DesignEngineer](#stakeholder-designengineer) | [SolutionArchitectureView](#view-solutionarchitectureview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview) |
 | [TradeOffViewpoint](#viewpoint-tradeoffviewpoint) | [TradeOffDecision](#concern-tradeoffdecision) | [SystemAnalyst](#stakeholder-systemanalyst), [SystemArchitect](#stakeholder-systemarchitect) | — |
@@ -439,7 +442,7 @@ Viewpoints of the package `SYSMODViews::Viewpoints`. The stakeholders are the st
 
 ### AgreementViewpoint
 
-Shows the SYSMOD artifacts that define the agreed scope and the acceptance criteria: the problemStatement, the systemRequirementSpecification, and the verificationCases of the Project.
+Shows the SYSMOD artifacts that define the agreed scope and the acceptance criteria: the problemStatement, the systemRequirementSpecification, and the verificationCases of the verificationContext of the Project.
 
 - **Frames concerns:** [ContractualAgreement](#concern-contractualagreement)
 - **Stakeholders:** [Acquirer](#stakeholder-acquirer), [Supplier](#stakeholder-supplier)
@@ -461,7 +464,7 @@ Shows the SYSMOD Projects with their purpose, projectOwner, and subProjects as a
 
 ### QualityViewpoint
 
-Shows the systemRequirementSpecification and the verificationCases of the Project as evidence that the system meets the quality objectives.
+Shows the systemRequirementSpecification and the verificationCases of the verificationContext of the Project as evidence that the system meets the quality objectives.
 
 - **Frames concerns:** [QualityCompliance](#concern-qualitycompliance)
 - **Stakeholders:** [QualityManager](#stakeholder-qualitymanager)
@@ -472,12 +475,12 @@ Shows the systemRequirementSpecification and the verificationCases of the Projec
 
 ### ProjectViewpoint
 
-Provides an overview of the SYSMOD Project and the integration of its problem artifacts (problemStatement, stakeholderNeeds, systemRequirementSpecification) and solution artifacts (the system contexts from the brownfieldContext to the productContext).
+Provides an overview of the SYSMOD Project and the integration of its problem artifacts (problemStatement, stakeholderNeeds, systemObjectives, systemRequirementSpecification) and solution artifacts (the system contexts from the brownfieldContext to the productContext).
 
 - **Frames concerns:** [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration)
 - **Stakeholders:** [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect)
 - **Allowed exposed elements:** `Project`
-- **Views:** [ProjectView](#view-projectview), [ProjectAIView](#view-projectaiview)
+- **Views:** [ProjectView](#view-projectview), [ProjectAIView](#view-projectaiview), [SYSMODMapView](#view-sysmodmapview)
 
 <a id="viewpoint-processviewpoint"></a>
 
@@ -487,7 +490,7 @@ Shows the steps of the SYSMOD process (Project::defaultProcess) together with th
 
 - **Frames concerns:** [ProjectStatus](#concern-projectstatus)
 - **Stakeholders:** [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager)
-- **Allowed exposed elements:** `SYSMODDefaultProcess`, `SetupProject`, `SpecifyBrownfieldSystem`, `SpecifyProblemStatement`, `IdentifyStakeholders`, `ElaborateStakeholderNeeds`, `PitchSystemIdea`, `DefineSystemSpecification`, `CreateSolutionArchitectures`, `VerifyAndValidateRequirements`
+- **Allowed exposed elements:** `SYSMODDefaultProcess`, `SetupProject`, `SpecifyBrownfieldSystem`, `SpecifyProblemStatement`, `IdentifyStakeholders`, `ElaborateStakeholderNeeds`, `PitchSystemIdea`, `DefineSystemSpecification`, `CreateFunctionalArchitecture`, `CreateLogicalArchitecture`, `CreateProductArchitecture`, `VerifyAndValidateRequirements`
 - **Views:** —
 
 <a id="viewpoint-riskviewpoint"></a>
@@ -516,12 +519,12 @@ Shows the Project, its subProjects, and the chain of system contexts from the br
 
 ### ProblemSolutionViewpoint
 
-Shows the problemStatement with its projectOwner and the brownfieldContext, and the systemIdeaContext that answers the problem. The stakeholders are those of the framed concerns: the ProductManager, a role typically played by the projectOwner, and the Acquirer, who has the problem and must agree with the problemStatement.
+Shows the problemStatement with its projectOwner and the brownfieldContext, the systemIdeaContext that answers the problem, and the systemObjectives, the measurable goals of the system idea. The stakeholders are those of the framed concerns: the ProductManager, a role typically played by the projectOwner, and the Acquirer, who has the problem and must agree with the problemStatement.
 
 - **Frames concerns:** [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures)
 - **Stakeholders:** [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer)
 - **Allowed exposed elements:** `ExtendedConcern`, `ExtendedStakeholder`, `SystemContext`
-- **Views:** [ProblemStatementView](#view-problemstatementview), [ProblemStatementAIView](#view-problemstatementaiview), [SystemIdeaView](#view-systemideaview)
+- **Views:** [ProblemStatementView](#view-problemstatementview), [ProblemStatementAIView](#view-problemstatementaiview), [SystemIdeaView](#view-systemideaview), [SystemObjectivesView](#view-systemobjectivesview)
 
 <a id="viewpoint-requirementsviewpoint"></a>
 
@@ -538,11 +541,11 @@ Shows the projectStakeholders, their stakeholderNeeds, and the systemRequirement
 
 ### ArchitectureViewpoint
 
-Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext, their allocations (functional2logical, logical2product), and the systemRequirementSpecification they satisfy.
+Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext with their white box contexts (functionalContextImpl, logicalContextImpl, productContextImpl), their allocations (functional2logical, logical2product, functionalImpl2logicalImpl, logicalImpl2productImpl), the systemRequirementSpecification they satisfy, and the #refinement dependencies from the functional and logical elements to the system requirements.
 
 - **Frames concerns:** [ProblemSolutionIntegration](#concern-problemsolutionintegration), [DesignConsistency](#concern-designconsistency)
 - **Stakeholders:** [SystemArchitect](#stakeholder-systemarchitect), [DesignEngineer](#stakeholder-designengineer)
-- **Allowed exposed elements:** `SystemContext`, `ExtendedRequirement`, `Allocation`
+- **Allowed exposed elements:** `SystemContext`, `ExtendedRequirement`, `Allocation`, `Dependency`
 - **Views:** [SolutionArchitectureView](#view-solutionarchitectureview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview)
 
 <a id="viewpoint-tradeoffviewpoint"></a>
@@ -582,7 +585,7 @@ Shows the systemRequirementSpecification and the verificationCases that verify t
 
 ### ValidationViewpoint
 
-Shows the problemStatement, the stakeholderNeeds, the system use cases describing the intended use, and the verificationCases that validate the productSystem against them.
+Shows the problemStatement, the stakeholderNeeds, the systemObjectives, the system use cases describing the intended use, and the verificationCases that validate the productSystem against them.
 
 - **Frames concerns:** [OperationalSuitability](#concern-operationalsuitability)
 - **Stakeholders:** [ValidationEngineer](#stakeholder-validationengineer), [Operator](#stakeholder-operator), [Acquirer](#stakeholder-acquirer)
@@ -619,12 +622,14 @@ View definitions of the SYSMODViews library with their backward traceability vie
 |---|---|---|---|---|
 | [ProjectView](#view-projectview) | `SetupProject` | [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) |
 | [ProjectAIView](#view-projectaiview) | `SetupProject` | [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) |
+| [SYSMODMapView](#view-sysmodmapview) | `SetupProject` | [ProjectViewpoint](#viewpoint-projectviewpoint) | [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration) | [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect) |
 | [ProblemStatementView](#view-problemstatementview) | `SpecifyProblemStatement` | [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) |
 | [ProblemStatementAIView](#view-problemstatementaiview) | `SpecifyProblemStatement` | [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) |
 | [StakeholdersView](#view-stakeholdersview) | — | [RequirementsViewpoint](#viewpoint-requirementsviewpoint) | [StakeholderNeedsCoverage](#concern-stakeholderneedscoverage) | [RequirementsEngineer](#stakeholder-requirementsengineer), [ProductManager](#stakeholder-productmanager) |
 | [StakeholderNeedsView](#view-stakeholderneedsview) | — | [RequirementsViewpoint](#viewpoint-requirementsviewpoint) | [StakeholderNeedsCoverage](#concern-stakeholderneedscoverage) | [RequirementsEngineer](#stakeholder-requirementsengineer), [ProductManager](#stakeholder-productmanager) |
 | [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | — | [InterfaceViewpoint](#viewpoint-interfaceviewpoint) | [InterfaceIntegration](#concern-interfaceintegration) | [IntegrationEngineer](#stakeholder-integrationengineer), [DesignEngineer](#stakeholder-designengineer) |
 | [SystemIdeaView](#view-systemideaview) | — | [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) |
+| [SystemObjectivesView](#view-systemobjectivesview) | `PitchSystemIdea` | [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint) | [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures) | [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer) |
 | [SpecificationSystemView](#view-specificationsystemview) | — | [InterfaceViewpoint](#viewpoint-interfaceviewpoint) | [InterfaceIntegration](#concern-interfaceintegration) | [IntegrationEngineer](#stakeholder-integrationengineer), [DesignEngineer](#stakeholder-designengineer) |
 | [UseCasesView](#view-usecasesview) | — | [UseCaseViewpoint](#viewpoint-usecaseviewpoint) | [SystemOperation](#concern-systemoperation) | [Operator](#stakeholder-operator) |
 | [UseCaseFlowView](#view-usecaseflowview) | — | [UseCaseViewpoint](#viewpoint-usecaseviewpoint) | [SystemOperation](#concern-systemoperation) | [Operator](#stakeholder-operator) |
@@ -647,7 +652,7 @@ View definitions of the SYSMODViews library with their backward traceability vie
 Product "The Project": the SYSMOD Project with its purpose, projectOwner, and subProjects.
 
 - **Specializes:** `GeneralView`
-- **Specialized by:** [ProjectAIView](#view-projectaiview)
+- **Specialized by:** [ProjectAIView](#view-projectaiview), [SYSMODMapView](#view-sysmodmapview)
 
 **Backward traceability**
 
@@ -656,6 +661,15 @@ Product "The Project": the SYSMOD Project with its purpose, projectOwner, and su
 - **Concerns:** [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration)
 - **Stakeholders:** [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect)
 - **ISO 15288 processes:** [Project Planning](#process-projectplanning), [Project Assessment and Control](#process-projectassessmentandcontrol), [Portfolio Management](#process-portfoliomanagement), [System Architecture Definition](#process-systemarchitecturedefinition)
+
+**Dependencies**
+
+- **Shows artifacts:** `Project`
+- **Created by:** `SetupProject`
+- **Builds on:** —
+- **Information provided:** `projectOwnerName`, `projectPurpose`
+- **Traces to:** —
+- **Input for:** [ProblemStatementView](#view-problemstatementview)
 
 **Definition**
 
@@ -690,6 +704,15 @@ Product "The Project" as an AI-generated management summary: a short markdown te
 - **Stakeholders:** [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect)
 - **ISO 15288 processes:** [Project Planning](#process-projectplanning), [Project Assessment and Control](#process-projectassessmentandcontrol), [Portfolio Management](#process-portfoliomanagement), [System Architecture Definition](#process-systemarchitecturedefinition)
 
+**Dependencies**
+
+- **Shows artifacts:** `Project` (inherited)
+- **Created by:** `SetupProject`
+- **Builds on:** —
+- **Information provided:** `projectOwnerName`, `projectPurpose`
+- **Traces to:** —
+- **Input for:** —
+
 **Definition**
 
 ```sysml
@@ -719,6 +742,76 @@ rendering asProjectFacts : AIRendering :> Views::renderings {
 
 _Illustrative example based on the Delivery Drone example model ([projectAIView.svg](examples/views/projectAIView.svg))._
 
+<a id="view-sysmodmapview"></a>
+
+### SYSMODMapView
+
+Product "The Project" as SYSMOD Map: the features of the exposed Project on one sheet with grid references, row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield, 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation. It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell is the StepStatus of the step of the Project's defaultProcess that creates the cell's features.
+
+- **Specializes:** [ProjectView](#view-projectview)
+
+**Backward traceability**
+
+- **SYSMOD steps:** `SetupProject` (`'Delivery Drone Project'::sysmodMapView`)
+- **Viewpoints:** [ProjectViewpoint](#viewpoint-projectviewpoint) (inherited)
+- **Concerns:** [ProjectStatus](#concern-projectstatus), [ProblemSolutionIntegration](#concern-problemsolutionintegration)
+- **Stakeholders:** [ProjectManager](#stakeholder-projectmanager), [PortfolioManager](#stakeholder-portfoliomanager), [SystemArchitect](#stakeholder-systemarchitect)
+- **ISO 15288 processes:** [Project Planning](#process-projectplanning), [Project Assessment and Control](#process-projectassessmentandcontrol), [Portfolio Management](#process-portfoliomanagement), [System Architecture Definition](#process-systemarchitecturedefinition)
+
+**Dependencies**
+
+- **Shows artifacts:** `Project` (inherited)
+- **Created by:** `SetupProject`
+- **Builds on:** —
+- **Information provided:** `projectOwnerName`, `projectPurpose`
+- **Traces to:** —
+- **Input for:** —
+
+**Definition**
+
+```sysml
+view def SYSMODMapView :> ProjectView {
+    doc /* Product "The Project" as SYSMOD Map: the features of the exposed Project on one sheet with grid references,
+            * row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield,
+            * 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation.
+            * It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell
+            * is the StepStatus of the step of the Project's defaultProcess that creates the cell's features.
+            */
+    render asSYSMODMap;
+}
+```
+
+Rendering `asSYSMODMap`: Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them: Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject). A1: problemStatement, projectStakeholders, stakeholderNeeds (specifyProblemStatement, identifyStakeholders, elaborateStakeholderNeeds). A2: systemObjectives (pitchSystemIdea). A3: systemRequirementSpecification (defineSystemSpecification). A4: #refinement dependencies from the functional elements to the system requirements (createFunctionalArchitecture). A5: #refinement dependencies from the logical elements to the system requirements (createLogicalArchitecture). A6: productSystemImpl satisfies systemRequirementSpecification (createProductArchitecture). A7: verificationContext.verificationCases (verifyAndValidateRequirements). B1: brownfieldContext; C1: brownfieldContextImpl (specifyBrownfieldSystem). B2: systemIdeaContext; C2: systemIdeaContextImpl (pitchSystemIdea). B3: specificationContext with the system use cases; C3: specificationContextImpl (defineSystemSpecification). B4: functionalContext; C4: functionalContextImpl (createFunctionalArchitecture). B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (createLogicalArchitecture). B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (createProductArchitecture). B7 to C7: verificationContext (verifyAndValidateRequirements). Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
+
+```sysml
+rendering asSYSMODMap :> Views::renderings {
+    doc /* Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them:
+            * Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject).
+            * A1: problemStatement, projectStakeholders, stakeholderNeeds (specifyProblemStatement, identifyStakeholders, elaborateStakeholderNeeds).
+            * A2: systemObjectives (pitchSystemIdea).
+            * A3: systemRequirementSpecification (defineSystemSpecification).
+            * A4: #refinement dependencies from the functional elements to the system requirements (createFunctionalArchitecture).
+            * A5: #refinement dependencies from the logical elements to the system requirements (createLogicalArchitecture).
+            * A6: productSystemImpl satisfies systemRequirementSpecification (createProductArchitecture).
+            * A7: verificationContext.verificationCases (verifyAndValidateRequirements).
+            * B1: brownfieldContext; C1: brownfieldContextImpl (specifyBrownfieldSystem).
+            * B2: systemIdeaContext; C2: systemIdeaContextImpl (pitchSystemIdea).
+            * B3: specificationContext with the system use cases; C3: specificationContextImpl (defineSystemSpecification).
+            * B4: functionalContext; C4: functionalContextImpl (createFunctionalArchitecture).
+            * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (createLogicalArchitecture).
+            * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (createProductArchitecture).
+            * B7 to C7: verificationContext (verifyAndValidateRequirements).
+            * Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
+            */
+}
+```
+
+**Example**
+
+![SYSMODMapView example](examples/views/sysmodMapView.svg)
+
+_Illustrative example based on the Delivery Drone example model ([sysmodMapView.svg](examples/views/sysmodMapView.svg))._
+
 <a id="view-problemstatementview"></a>
 
 ### ProblemStatementView
@@ -735,6 +828,15 @@ Product "Problem Statement": the problemStatement of the Project with its projec
 - **Concerns:** [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures)
 - **Stakeholders:** [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer)
 - **ISO 15288 processes:** [Business or Mission Analysis](#process-businessormissionanalysis), [Acquisition](#process-acquisition)
+
+**Dependencies**
+
+- **Shows artifacts:** `problemStatement`
+- **Created by:** `SpecifyProblemStatement`
+- **Builds on:** [ProjectView](#view-projectview) (`Project`), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) (`brownfieldContextImpl`)
+- **Information provided:** `problemStatementText`
+- **Traces to:** [BrownfieldArchitectureView](#view-brownfieldarchitectureview) (problemStatement has its subject in brownfieldContextImpl)
+- **Input for:** [StakeholdersView](#view-stakeholdersview), [StakeholderNeedsView](#view-stakeholderneedsview), [SystemIdeaView](#view-systemideaview), [SystemObjectivesView](#view-systemobjectivesview)
 
 **Definition**
 
@@ -770,6 +872,15 @@ Product "Problem Statement" as an AI-generated summary: a short markdown text wi
 - **Concerns:** [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures)
 - **Stakeholders:** [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer)
 - **ISO 15288 processes:** [Business or Mission Analysis](#process-businessormissionanalysis), [Acquisition](#process-acquisition)
+
+**Dependencies**
+
+- **Shows artifacts:** `problemStatement` (inherited)
+- **Created by:** `SpecifyProblemStatement`
+- **Builds on:** [ProjectView](#view-projectview) (`Project`), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) (`brownfieldContextImpl`)
+- **Information provided:** `problemStatementText`
+- **Traces to:** [BrownfieldArchitectureView](#view-brownfieldarchitectureview) (problemStatement has its subject in brownfieldContextImpl)
+- **Input for:** —
 
 **Definition**
 
@@ -816,6 +927,15 @@ Product "Stakeholders": the projectStakeholders with their risk, effort, attenti
 - **Stakeholders:** [RequirementsEngineer](#stakeholder-requirementsengineer), [ProductManager](#stakeholder-productmanager)
 - **ISO 15288 processes:** [Stakeholder Needs and Requirements Definition](#process-stakeholderneedsandrequirementsdefinition), [System Requirements Definition](#process-systemrequirementsdefinition), [Business or Mission Analysis](#process-businessormissionanalysis)
 
+**Dependencies**
+
+- **Shows artifacts:** `projectStakeholders`
+- **Created by:** `IdentifyStakeholders`
+- **Builds on:** [ProblemStatementView](#view-problemstatementview) (`problemStatement`)
+- **Information provided:** —
+- **Traces to:** —
+- **Input for:** [StakeholderNeedsView](#view-stakeholderneedsview)
+
 **Definition**
 
 ```sysml
@@ -848,6 +968,15 @@ Product "Stakeholder Needs": the stakeholderNeeds of the Project, framed by the 
 - **Concerns:** [StakeholderNeedsCoverage](#concern-stakeholderneedscoverage)
 - **Stakeholders:** [RequirementsEngineer](#stakeholder-requirementsengineer), [ProductManager](#stakeholder-productmanager)
 - **ISO 15288 processes:** [Stakeholder Needs and Requirements Definition](#process-stakeholderneedsandrequirementsdefinition), [System Requirements Definition](#process-systemrequirementsdefinition), [Business or Mission Analysis](#process-businessormissionanalysis)
+
+**Dependencies**
+
+- **Shows artifacts:** `stakeholderNeeds`
+- **Created by:** `ElaborateStakeholderNeeds`
+- **Builds on:** [ProblemStatementView](#view-problemstatementview) (`problemStatement`), [StakeholdersView](#view-stakeholdersview) (`projectStakeholders`)
+- **Information provided:** —
+- **Traces to:** [ProblemStatementView](#view-problemstatementview) (stakeholderNeeds frames problemStatement), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) (stakeholderNeeds has its subject in brownfieldContextImpl)
+- **Input for:** [SystemIdeaView](#view-systemideaview), [SystemObjectivesView](#view-systemobjectivesview), [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview)
 
 **Definition**
 
@@ -884,6 +1013,15 @@ Product "The Brownfield Architecture": the brownfieldContext and brownfieldConte
 - **Stakeholders:** [IntegrationEngineer](#stakeholder-integrationengineer), [DesignEngineer](#stakeholder-designengineer)
 - **ISO 15288 processes:** [Integration](#process-integration), [Design Definition](#process-designdefinition), [Implementation](#process-implementation)
 
+**Dependencies**
+
+- **Shows artifacts:** `brownfieldContext`, `brownfieldContextImpl`
+- **Created by:** `SpecifyBrownfieldSystem`
+- **Builds on:** —
+- **Information provided:** `brownfieldArchitecture`
+- **Traces to:** —
+- **Input for:** [ProblemStatementView](#view-problemstatementview)
+
 **Definition**
 
 ```sysml
@@ -917,6 +1055,15 @@ Product "The System Idea": the systemIdeaContext and systemIdeaContextImpl of th
 - **Stakeholders:** [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer)
 - **ISO 15288 processes:** [Business or Mission Analysis](#process-businessormissionanalysis), [Acquisition](#process-acquisition)
 
+**Dependencies**
+
+- **Shows artifacts:** `systemIdeaContext`, `systemIdeaContextImpl`
+- **Created by:** `PitchSystemIdea`
+- **Builds on:** [ProblemStatementView](#view-problemstatementview) (`problemStatement`), [StakeholderNeedsView](#view-stakeholderneedsview) (`stakeholderNeeds`)
+- **Information provided:** `systemIdeaArchitecture`
+- **Traces to:** [BrownfieldArchitectureView](#view-brownfieldarchitectureview) (systemIdeaContext specializes brownfieldContext; systemIdeaContextImpl specializes brownfieldContextImpl), [ProblemStatementView](#view-problemstatementview) (systemIdeaContextImpl satisfies problemStatement)
+- **Input for:** [SpecificationSystemView](#view-specificationsystemview)
+
 **Definition**
 
 ```sysml
@@ -934,6 +1081,51 @@ view def SystemIdeaView :> SystemContextView {
 
 _Illustrative example based on the Delivery Drone example model ([systemIdeaView.svg](examples/views/systemIdeaView.svg))._
 
+<a id="view-systemobjectivesview"></a>
+
+### SystemObjectivesView
+
+Product "The System Idea": the systemObjectives of the Project, i.e., the measurable goals of the system idea that direct the development, with the projectOwner as stakeholder, the system idea as subject, and the stakeholderNeeds they frame.
+
+- **Specializes:** `GeneralView`
+
+**Backward traceability**
+
+- **SYSMOD steps:** `PitchSystemIdea` (`'Delivery Drone Project'::systemObjectivesView`)
+- **Viewpoints:** [ProblemSolutionViewpoint](#viewpoint-problemsolutionviewpoint)
+- **Concerns:** [ProblemSolutionPitch](#concern-problemsolutionpitch), [MissionGoalsAndMeasures](#concern-missiongoalsandmeasures)
+- **Stakeholders:** [ProductManager](#stakeholder-productmanager), [Acquirer](#stakeholder-acquirer)
+- **ISO 15288 processes:** [Business or Mission Analysis](#process-businessormissionanalysis), [Acquisition](#process-acquisition)
+
+**Dependencies**
+
+- **Shows artifacts:** `systemObjectives`
+- **Created by:** `PitchSystemIdea`
+- **Builds on:** [ProblemStatementView](#view-problemstatementview) (`problemStatement`), [StakeholderNeedsView](#view-stakeholderneedsview) (`stakeholderNeeds`)
+- **Information provided:** `systemIdeaArchitecture`
+- **Traces to:** [StakeholderNeedsView](#view-stakeholderneedsview) (systemObjectives frames stakeholderNeeds), [SystemIdeaView](#view-systemideaview) (systemObjectives has its subject in systemIdeaContext)
+- **Input for:** [SystemRequirementsView](#view-systemrequirementsview)
+
+**Definition**
+
+```sysml
+view def SystemObjectivesView :> StandardViewDefinitions::GeneralView {
+    doc /* Product "The System Idea": the systemObjectives of the Project, i.e., the measurable goals of the system idea
+            * that direct the development, with the projectOwner as stakeholder, the system idea as subject,
+            * and the stakeholderNeeds they frame.
+            */
+    satisfy requirement psvp : ProblemSolutionViewpoint;
+    filter @SysML::ConcernUsage;
+    render Views::asTreeDiagram;
+}
+```
+
+**Example**
+
+![SystemObjectivesView example](examples/views/systemObjectivesView.svg)
+
+_Illustrative example based on the Delivery Drone example model ([systemObjectivesView.svg](examples/views/systemObjectivesView.svg))._
+
 <a id="view-specificationsystemview"></a>
 
 ### SpecificationSystemView
@@ -949,6 +1141,15 @@ Product "The Specification System": the specificationContext of the Project that
 - **Concerns:** [InterfaceIntegration](#concern-interfaceintegration)
 - **Stakeholders:** [IntegrationEngineer](#stakeholder-integrationengineer), [DesignEngineer](#stakeholder-designengineer)
 - **ISO 15288 processes:** [Integration](#process-integration), [Design Definition](#process-designdefinition), [Implementation](#process-implementation)
+
+**Dependencies**
+
+- **Shows artifacts:** `specificationContext`, `specificationContextImpl`
+- **Created by:** `DefineSystemSpecification`
+- **Builds on:** [SystemIdeaView](#view-systemideaview) (`systemIdeaContextImpl`)
+- **Information provided:** —
+- **Traces to:** [SystemIdeaView](#view-systemideaview) (specificationContext specializes systemIdeaContext; specificationContextImpl specializes systemIdeaContextImpl)
+- **Input for:** [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview)
 
 **Definition**
 
@@ -982,6 +1183,15 @@ Product "Use Cases": the system use cases of the specificationContext with their
 - **Concerns:** [SystemOperation](#concern-systemoperation)
 - **Stakeholders:** [Operator](#stakeholder-operator)
 - **ISO 15288 processes:** [Operation](#process-operation)
+
+**Dependencies**
+
+- **Shows artifacts:** `specificationContext.useCases`
+- **Created by:** `DefineSystemSpecification`
+- **Builds on:** [StakeholderNeedsView](#view-stakeholderneedsview) (`stakeholderNeeds`), [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`)
+- **Information provided:** —
+- **Traces to:** —
+- **Input for:** —
 
 **Definition**
 
@@ -1017,6 +1227,15 @@ Product "Use Cases": the flow of a single system use case, step by step.
 - **Stakeholders:** [Operator](#stakeholder-operator)
 - **ISO 15288 processes:** [Operation](#process-operation)
 
+**Dependencies**
+
+- **Shows artifacts:** `specificationContext.useCases`
+- **Created by:** `DefineSystemSpecification`
+- **Builds on:** [StakeholderNeedsView](#view-stakeholderneedsview) (`stakeholderNeeds`), [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`)
+- **Information provided:** —
+- **Traces to:** —
+- **Input for:** —
+
 **Definition**
 
 ```sysml
@@ -1047,6 +1266,15 @@ Product "System Requirements": the systemRequirementSpecification of the Project
 - **Concerns:** [StakeholderNeedsCoverage](#concern-stakeholderneedscoverage)
 - **Stakeholders:** [RequirementsEngineer](#stakeholder-requirementsengineer), [ProductManager](#stakeholder-productmanager)
 - **ISO 15288 processes:** [Stakeholder Needs and Requirements Definition](#process-stakeholderneedsandrequirementsdefinition), [System Requirements Definition](#process-systemrequirementsdefinition), [Business or Mission Analysis](#process-businessormissionanalysis)
+
+**Dependencies**
+
+- **Shows artifacts:** `systemRequirementSpecification`
+- **Created by:** `DefineSystemSpecification`
+- **Builds on:** [StakeholderNeedsView](#view-stakeholderneedsview) (`stakeholderNeeds`), [SystemObjectivesView](#view-systemobjectivesview) (`systemObjectives`), [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`)
+- **Information provided:** —
+- **Traces to:** [StakeholderNeedsView](#view-stakeholderneedsview) (systemRequirementSpecification frames stakeholderNeeds), [SpecificationSystemView](#view-specificationsystemview) (systemRequirementSpecification has its subject in specificationContext)
+- **Input for:** [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview)
 
 **Definition**
 
@@ -1084,6 +1312,10 @@ Product "Functional, Logical, Product Architecture": base view for the solution 
 - **Stakeholders:** [SystemArchitect](#stakeholder-systemarchitect), [DesignEngineer](#stakeholder-designengineer)
 - **ISO 15288 processes:** [System Architecture Definition](#process-systemarchitecturedefinition), [Design Definition](#process-designdefinition), [Implementation](#process-implementation)
 
+**Dependencies**
+
+_Not tied to Project artifacts; the view shows whatever a project exposes, see its specializations._
+
 **Definition**
 
 ```sysml
@@ -1105,7 +1337,7 @@ Abstract view definition; see the examples of [FunctionalArchitectureView](#view
 
 ### FunctionalArchitectureView
 
-The functionalContext of the Project with the functional blocks of the functional system.
+The functionalContext and functionalContextImpl of the Project with the functional blocks of the functional system.
 
 - **Specializes:** [SolutionArchitectureView](#view-solutionarchitectureview)
 
@@ -1117,11 +1349,20 @@ The functionalContext of the Project with the functional blocks of the functiona
 - **Stakeholders:** [SystemArchitect](#stakeholder-systemarchitect), [DesignEngineer](#stakeholder-designengineer)
 - **ISO 15288 processes:** [System Architecture Definition](#process-systemarchitecturedefinition), [Design Definition](#process-designdefinition), [Implementation](#process-implementation)
 
+**Dependencies**
+
+- **Shows artifacts:** `functionalContext`, `functionalContextImpl`
+- **Created by:** `CreateFunctionalArchitecture`
+- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContext`)
+- **Information provided:** `functionalArchitecture`
+- **Traces to:** [SpecificationSystemView](#view-specificationsystemview) (functionalContext specializes specificationContext)
+- **Input for:** [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview)
+
 **Definition**
 
 ```sysml
 view def FunctionalArchitectureView :> SolutionArchitectureView {
-    doc /* The functionalContext of the Project with the functional blocks of the functional system. */
+    doc /* The functionalContext and functionalContextImpl of the Project with the functional blocks of the functional system. */
 }
 ```
 
@@ -1135,7 +1376,7 @@ _Illustrative example based on the Delivery Drone example model ([functionalArch
 
 ### LogicalArchitectureView
 
-The logicalContext of the Project with the technology-independent building blocks of the logical system.
+The logicalContext and logicalContextImpl of the Project with the technology-independent building blocks of the logical system.
 
 - **Specializes:** [SolutionArchitectureView](#view-solutionarchitectureview)
 
@@ -1147,11 +1388,20 @@ The logicalContext of the Project with the technology-independent building block
 - **Stakeholders:** [SystemArchitect](#stakeholder-systemarchitect), [DesignEngineer](#stakeholder-designengineer)
 - **ISO 15288 processes:** [System Architecture Definition](#process-systemarchitecturedefinition), [Design Definition](#process-designdefinition), [Implementation](#process-implementation)
 
+**Dependencies**
+
+- **Shows artifacts:** `logicalContext`, `logicalContextImpl`
+- **Created by:** `CreateLogicalArchitecture`
+- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`), [FunctionalArchitectureView](#view-functionalarchitectureview) (`functionalContext`, `functionalContextImpl`)
+- **Information provided:** `logicalArchitecture`
+- **Traces to:** [SpecificationSystemView](#view-specificationsystemview) (logicalContext specializes specificationContext; logicalContextImpl specializes specificationContextImpl)
+- **Input for:** [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview)
+
 **Definition**
 
 ```sysml
 view def LogicalArchitectureView :> SolutionArchitectureView {
-    doc /* The logicalContext of the Project with the technology-independent building blocks of the logical system. */
+    doc /* The logicalContext and logicalContextImpl of the Project with the technology-independent building blocks of the logical system. */
 }
 ```
 
@@ -1165,7 +1415,7 @@ _Illustrative example based on the Delivery Drone example model ([logicalArchite
 
 ### ProductArchitectureView
 
-The productContext of the Project with the concrete building blocks of the product system.
+The productContext and productContextImpl of the Project with the concrete building blocks of the product system.
 
 - **Specializes:** [SolutionArchitectureView](#view-solutionarchitectureview)
 
@@ -1177,11 +1427,20 @@ The productContext of the Project with the concrete building blocks of the produ
 - **Stakeholders:** [SystemArchitect](#stakeholder-systemarchitect), [DesignEngineer](#stakeholder-designengineer)
 - **ISO 15288 processes:** [System Architecture Definition](#process-systemarchitecturedefinition), [Design Definition](#process-designdefinition), [Implementation](#process-implementation)
 
+**Dependencies**
+
+- **Shows artifacts:** `productContext`, `productContextImpl`
+- **Created by:** `CreateProductArchitecture`
+- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`), [FunctionalArchitectureView](#view-functionalarchitectureview) (`functionalContextImpl`), [LogicalArchitectureView](#view-logicalarchitectureview) (`logicalContext`, `logicalContextImpl`)
+- **Information provided:** `productArchitecture`
+- **Traces to:** [SpecificationSystemView](#view-specificationsystemview) (productContext specializes specificationContext; productContextImpl specializes specificationContextImpl), [SystemRequirementsView](#view-systemrequirementsview) (productContextImpl satisfies systemRequirementSpecification)
+- **Input for:** [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview)
+
 **Definition**
 
 ```sysml
 view def ProductArchitectureView :> SolutionArchitectureView {
-    doc /* The productContext of the Project with the concrete building blocks of the product system. */
+    doc /* The productContext and productContextImpl of the Project with the concrete building blocks of the product system. */
 }
 ```
 
@@ -1195,7 +1454,7 @@ _Illustrative example based on the Delivery Drone example model ([productArchite
 
 ### ArchitectureAllocationView
 
-The allocations functional2logical and logical2product between the solution architectures.
+The allocations functional2logical, logical2product, functionalImpl2logicalImpl, and logicalImpl2productImpl between the solution architectures.
 
 - **Specializes:** `GridView`
 
@@ -1207,11 +1466,20 @@ The allocations functional2logical and logical2product between the solution arch
 - **Stakeholders:** [SystemArchitect](#stakeholder-systemarchitect), [DesignEngineer](#stakeholder-designengineer)
 - **ISO 15288 processes:** [System Architecture Definition](#process-systemarchitecturedefinition), [Design Definition](#process-designdefinition), [Implementation](#process-implementation)
 
+**Dependencies**
+
+- **Shows artifacts:** `functional2logical`, `logical2product`, `functionalImpl2logicalImpl`, `logicalImpl2productImpl`
+- **Created by:** `CreateLogicalArchitecture`, `CreateProductArchitecture`
+- **Builds on:** [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`), [FunctionalArchitectureView](#view-functionalarchitectureview) (`functionalContext`, `functionalContextImpl`), [LogicalArchitectureView](#view-logicalarchitectureview) (`logicalContext`, `logicalContextImpl`)
+- **Information provided:** `logicalArchitecture`, `productArchitecture`
+- **Traces to:** [FunctionalArchitectureView](#view-functionalarchitectureview) (functional2logical allocates functionalContext; functionalImpl2logicalImpl allocates functionalContextImpl), [LogicalArchitectureView](#view-logicalarchitectureview) (functional2logical allocates to logicalContext; logical2product allocates logicalContext; functionalImpl2logicalImpl allocates to logicalContextImpl; logicalImpl2productImpl allocates logicalContextImpl), [ProductArchitectureView](#view-productarchitectureview) (logical2product allocates to productContext; logicalImpl2productImpl allocates to productContextImpl)
+- **Input for:** —
+
 **Definition**
 
 ```sysml
 view def ArchitectureAllocationView :> StandardViewDefinitions::GridView {
-    doc /* The allocations functional2logical and logical2product between the solution architectures. */
+    doc /* The allocations functional2logical, logical2product, functionalImpl2logicalImpl, and logicalImpl2productImpl between the solution architectures. */
     satisfy requirement avp : ArchitectureViewpoint;
     filter @SysML::AllocationUsage or @SystemContextMetadata;
     render Views::asElementTable;
@@ -1228,7 +1496,7 @@ _Illustrative example based on the Delivery Drone example model ([architectureAl
 
 ### VerificationAndValidationView
 
-Product "Verification and Validation": the verificationCases of the Project with the tested productSystem and the system requirements, stakeholder needs, and problem statement they verify and validate.
+Product "Verification and Validation": the verificationCases of the verificationContext of the Project with the tested productSystem and the system requirements, stakeholder needs, and problem statement they verify and validate.
 
 - **Specializes:** `GeneralView`
 
@@ -1240,11 +1508,20 @@ Product "Verification and Validation": the verificationCases of the Project with
 - **Stakeholders:** [VerificationEngineer](#stakeholder-verificationengineer), [RequirementsEngineer](#stakeholder-requirementsengineer), [ValidationEngineer](#stakeholder-validationengineer), [Operator](#stakeholder-operator), [Acquirer](#stakeholder-acquirer)
 - **ISO 15288 processes:** [Verification](#process-verification), [Stakeholder Needs and Requirements Definition](#process-stakeholderneedsandrequirementsdefinition), [System Requirements Definition](#process-systemrequirementsdefinition), [Validation](#process-validation), [Operation](#process-operation), [Acquisition](#process-acquisition)
 
+**Dependencies**
+
+- **Shows artifacts:** `verificationContext.verificationCases`
+- **Created by:** `VerifyAndValidateRequirements`
+- **Builds on:** [SystemRequirementsView](#view-systemrequirementsview) (`systemRequirementSpecification`), [ProductArchitectureView](#view-productarchitectureview) (`productContextImpl`)
+- **Information provided:** —
+- **Traces to:** [ProductArchitectureView](#view-productarchitectureview) (verificationContext.verificationCases specializes productContextImpl)
+- **Input for:** —
+
 **Definition**
 
 ```sysml
 view def VerificationAndValidationView :> StandardViewDefinitions::GeneralView {
-    doc /* Product "Verification and Validation": the verificationCases of the Project with the tested productSystem
+    doc /* Product "Verification and Validation": the verificationCases of the verificationContext of the Project with the tested productSystem
             * and the system requirements, stakeholder needs, and problem statement they verify and validate.
             */
     satisfy requirement vvp : VerificationViewpoint;
@@ -1276,6 +1553,15 @@ Product "Verification and Validation": matrix of the system requirements and the
 - **Concerns:** [VerificationCoverage](#concern-verificationcoverage)
 - **Stakeholders:** [VerificationEngineer](#stakeholder-verificationengineer), [RequirementsEngineer](#stakeholder-requirementsengineer)
 - **ISO 15288 processes:** [Verification](#process-verification), [Stakeholder Needs and Requirements Definition](#process-stakeholderneedsandrequirementsdefinition), [System Requirements Definition](#process-systemrequirementsdefinition)
+
+**Dependencies**
+
+- **Shows artifacts:** `verificationContext.verificationCases`
+- **Created by:** `VerifyAndValidateRequirements`
+- **Builds on:** [SystemRequirementsView](#view-systemrequirementsview) (`systemRequirementSpecification`), [ProductArchitectureView](#view-productarchitectureview) (`productContextImpl`)
+- **Information provided:** —
+- **Traces to:** [ProductArchitectureView](#view-productarchitectureview) (verificationContext.verificationCases specializes productContextImpl)
+- **Input for:** —
 
 **Definition**
 
@@ -1309,6 +1595,10 @@ Classical use case view. Shows the use case definitions exposed by the view, tog
 - **Concerns:** —
 - **Stakeholders:** —
 - **ISO 15288 processes:** —
+
+**Dependencies**
+
+_Not tied to Project artifacts; the view shows whatever a project exposes, e.g., a use case package._
 
 **Definition**
 
@@ -1355,6 +1645,10 @@ Management summary view. Shows the use case definitions exposed by the view as a
 - **Stakeholders:** —
 - **ISO 15288 processes:** —
 
+**Dependencies**
+
+_Not tied to Project artifacts; the view shows whatever a project exposes, e.g., a use case package._
+
 **Definition**
 
 ```sysml
@@ -1399,6 +1693,10 @@ Base view for the system contexts. Shows the parts, ports, interfaces, connectio
 - **Stakeholders:** —
 - **ISO 15288 processes:** —
 
+**Dependencies**
+
+_Not tied to Project artifacts; the view shows whatever a project exposes, see its specializations._
+
 **Definition**
 
 ```sysml
@@ -1417,3 +1715,119 @@ view def SystemContextView :> StandardViewDefinitions::InterconnectionView {
 ![SystemContextView example](examples/views/systemContextView.svg)
 
 _Illustrative example based on the Delivery Drone example model ([systemContextView.svg](examples/views/systemContextView.svg))._
+
+## 6. View Dependencies
+
+The dependencies between the views are the correspondences of the SYSMOD architecture description framework in the sense of ISO/IEC/IEEE 42010. They are not maintained by hand but derived from the library:
+
+- Each view definition names the Project features, i.e., the artifacts, that a conforming view shows (`#viewedArtifact` dependencies in [SYSMODViews.sysml](SYSMODViews.sysml)).
+- **Builds on:** the SYSMOD step that creates the artifacts of a view reads artifacts that earlier steps created (the inputs of the step or of its nested action in `SYSMOD::SYSMODProcesses`). The view builds on the views showing these artifacts.
+- **Traces to:** the Project relates its artifacts by model relationships, e.g., the specification context specializes the system idea context, the system requirements frame the stakeholder needs, and the product system satisfies the system requirements (`SYSMOD::Project`).
+- **Information provided:** step inputs that no step creates, e.g., the problem statement text or a description of the existing architecture, given by a human or an AI assistant. Views with such inputs and without a *builds on* dependency are entry points.
+
+A dependency states which content builds on which other content. It does not require the other view to be complete: SYSMOD lets you start with partial content, e.g., pitch the system idea before all stakeholder needs are elaborated, and revise earlier content when later steps reveal gaps. Following the dependencies keeps the content consistent and traceable; the default order is given by the SYSMOD process steps, and changes ripple along the *input for* direction.
+
+```mermaid
+flowchart TB
+    subgraph SetupProject["Setup Project"]
+        ProjectView[ProjectView]
+    end
+    subgraph SpecifyBrownfieldSystem["Specify Brownfield System"]
+        BrownfieldArchitectureView[BrownfieldArchitectureView]
+    end
+    subgraph SpecifyProblemStatement["Specify Problem Statement"]
+        ProblemStatementView[ProblemStatementView]
+    end
+    subgraph IdentifyStakeholders["Identify Stakeholders"]
+        StakeholdersView[StakeholdersView]
+    end
+    subgraph ElaborateStakeholderNeeds["Elaborate Stakeholder Needs"]
+        StakeholderNeedsView[StakeholderNeedsView]
+    end
+    subgraph PitchSystemIdea["Pitch System Idea"]
+        SystemIdeaView[SystemIdeaView]
+        SystemObjectivesView[SystemObjectivesView]
+    end
+    subgraph DefineSystemSpecification["Define System Specification"]
+        SpecificationSystemView[SpecificationSystemView]
+        UseCasesView[UseCasesView]
+        UseCaseFlowView[UseCaseFlowView]
+        SystemRequirementsView[SystemRequirementsView]
+    end
+    subgraph CreateFunctionalArchitecture["Create Functional Architecture"]
+        FunctionalArchitectureView[FunctionalArchitectureView]
+    end
+    subgraph CreateLogicalArchitecture["Create Logical Architecture"]
+        LogicalArchitectureView[LogicalArchitectureView]
+        ArchitectureAllocationView[ArchitectureAllocationView]
+    end
+    subgraph CreateProductArchitecture["Create Product Architecture"]
+        ProductArchitectureView[ProductArchitectureView]
+    end
+    subgraph VerifyAndValidateRequirements["Verify and Validate Requirements"]
+        VerificationAndValidationView[VerificationAndValidationView]
+        VerificationMatrixView[VerificationMatrixView]
+    end
+    ProjectView --> ProblemStatementView
+    BrownfieldArchitectureView --> ProblemStatementView
+    ProblemStatementView --> StakeholdersView
+    ProblemStatementView --> StakeholderNeedsView
+    StakeholdersView --> StakeholderNeedsView
+    ProblemStatementView --> SystemIdeaView
+    StakeholderNeedsView --> SystemIdeaView
+    ProblemStatementView --> SystemObjectivesView
+    StakeholderNeedsView --> SystemObjectivesView
+    SystemIdeaView --> SpecificationSystemView
+    StakeholderNeedsView --> UseCasesView
+    SpecificationSystemView --> UseCasesView
+    StakeholderNeedsView --> UseCaseFlowView
+    SpecificationSystemView --> UseCaseFlowView
+    StakeholderNeedsView --> SystemRequirementsView
+    SystemObjectivesView --> SystemRequirementsView
+    SpecificationSystemView --> SystemRequirementsView
+    SpecificationSystemView --> FunctionalArchitectureView
+    SpecificationSystemView --> LogicalArchitectureView
+    FunctionalArchitectureView --> LogicalArchitectureView
+    SpecificationSystemView --> ProductArchitectureView
+    FunctionalArchitectureView --> ProductArchitectureView
+    LogicalArchitectureView --> ProductArchitectureView
+    SpecificationSystemView --> ArchitectureAllocationView
+    FunctionalArchitectureView --> ArchitectureAllocationView
+    LogicalArchitectureView --> ArchitectureAllocationView
+    SystemRequirementsView --> VerificationAndValidationView
+    ProductArchitectureView --> VerificationAndValidationView
+    SystemRequirementsView --> VerificationMatrixView
+    ProductArchitectureView --> VerificationMatrixView
+    StakeholderNeedsView -.-> BrownfieldArchitectureView
+    SystemIdeaView -.-> BrownfieldArchitectureView
+    SystemObjectivesView -.-> SystemIdeaView
+    ProductArchitectureView -.-> SystemRequirementsView
+    ArchitectureAllocationView -.-> ProductArchitectureView
+```
+
+_Solid arrow: the target view builds on the source view. Dotted arrow: the source view traces to the target view by a model relationship only. Grouped by the SYSMOD step creating the content; views that inherit their artifacts, e.g., the AI views, are not shown and have the dependencies of their general view._
+
+| View | Shows artifacts | Created by | Builds on | Information provided | Traces to | Input for |
+|---|---|---|---|---|---|---|
+| [ProjectView](#view-projectview) | `Project` | `SetupProject` | — | `projectOwnerName`, `projectPurpose` | — | [ProblemStatementView](#view-problemstatementview) |
+| [ProjectAIView](#view-projectaiview) | `Project` | `SetupProject` | — | `projectOwnerName`, `projectPurpose` | — | — |
+| [SYSMODMapView](#view-sysmodmapview) | `Project` | `SetupProject` | — | `projectOwnerName`, `projectPurpose` | — | — |
+| [ProblemStatementView](#view-problemstatementview) | `problemStatement` | `SpecifyProblemStatement` | [ProjectView](#view-projectview), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | `problemStatementText` | [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | [StakeholdersView](#view-stakeholdersview), [StakeholderNeedsView](#view-stakeholderneedsview), [SystemIdeaView](#view-systemideaview), [SystemObjectivesView](#view-systemobjectivesview) |
+| [ProblemStatementAIView](#view-problemstatementaiview) | `problemStatement` | `SpecifyProblemStatement` | [ProjectView](#view-projectview), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | `problemStatementText` | [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | — |
+| [StakeholdersView](#view-stakeholdersview) | `projectStakeholders` | `IdentifyStakeholders` | [ProblemStatementView](#view-problemstatementview) | — | — | [StakeholderNeedsView](#view-stakeholderneedsview) |
+| [StakeholderNeedsView](#view-stakeholderneedsview) | `stakeholderNeeds` | `ElaborateStakeholderNeeds` | [ProblemStatementView](#view-problemstatementview), [StakeholdersView](#view-stakeholdersview) | — | [ProblemStatementView](#view-problemstatementview), [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | [SystemIdeaView](#view-systemideaview), [SystemObjectivesView](#view-systemobjectivesview), [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview) |
+| [BrownfieldArchitectureView](#view-brownfieldarchitectureview) | `brownfieldContext`, `brownfieldContextImpl` | `SpecifyBrownfieldSystem` | — | `brownfieldArchitecture` | — | [ProblemStatementView](#view-problemstatementview) |
+| [SystemIdeaView](#view-systemideaview) | `systemIdeaContext`, `systemIdeaContextImpl` | `PitchSystemIdea` | [ProblemStatementView](#view-problemstatementview), [StakeholderNeedsView](#view-stakeholderneedsview) | `systemIdeaArchitecture` | [BrownfieldArchitectureView](#view-brownfieldarchitectureview), [ProblemStatementView](#view-problemstatementview) | [SpecificationSystemView](#view-specificationsystemview) |
+| [SystemObjectivesView](#view-systemobjectivesview) | `systemObjectives` | `PitchSystemIdea` | [ProblemStatementView](#view-problemstatementview), [StakeholderNeedsView](#view-stakeholderneedsview) | `systemIdeaArchitecture` | [StakeholderNeedsView](#view-stakeholderneedsview), [SystemIdeaView](#view-systemideaview) | [SystemRequirementsView](#view-systemrequirementsview) |
+| [SpecificationSystemView](#view-specificationsystemview) | `specificationContext`, `specificationContextImpl` | `DefineSystemSpecification` | [SystemIdeaView](#view-systemideaview) | — | [SystemIdeaView](#view-systemideaview) | [UseCasesView](#view-usecasesview), [UseCaseFlowView](#view-usecaseflowview), [SystemRequirementsView](#view-systemrequirementsview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview) |
+| [UseCasesView](#view-usecasesview) | `specificationContext.useCases` | `DefineSystemSpecification` | [StakeholderNeedsView](#view-stakeholderneedsview), [SpecificationSystemView](#view-specificationsystemview) | — | — | — |
+| [UseCaseFlowView](#view-usecaseflowview) | `specificationContext.useCases` | `DefineSystemSpecification` | [StakeholderNeedsView](#view-stakeholderneedsview), [SpecificationSystemView](#view-specificationsystemview) | — | — | — |
+| [SystemRequirementsView](#view-systemrequirementsview) | `systemRequirementSpecification` | `DefineSystemSpecification` | [StakeholderNeedsView](#view-stakeholderneedsview), [SystemObjectivesView](#view-systemobjectivesview), [SpecificationSystemView](#view-specificationsystemview) | — | [StakeholderNeedsView](#view-stakeholderneedsview), [SpecificationSystemView](#view-specificationsystemview) | [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview) |
+| [FunctionalArchitectureView](#view-functionalarchitectureview) | `functionalContext`, `functionalContextImpl` | `CreateFunctionalArchitecture` | [SpecificationSystemView](#view-specificationsystemview) | `functionalArchitecture` | [SpecificationSystemView](#view-specificationsystemview) | [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview) |
+| [LogicalArchitectureView](#view-logicalarchitectureview) | `logicalContext`, `logicalContextImpl` | `CreateLogicalArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [FunctionalArchitectureView](#view-functionalarchitectureview) | `logicalArchitecture` | [SpecificationSystemView](#view-specificationsystemview) | [ProductArchitectureView](#view-productarchitectureview), [ArchitectureAllocationView](#view-architectureallocationview) |
+| [ProductArchitectureView](#view-productarchitectureview) | `productContext`, `productContextImpl` | `CreateProductArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview) | `productArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [SystemRequirementsView](#view-systemrequirementsview) | [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview) |
+| [ArchitectureAllocationView](#view-architectureallocationview) | `functional2logical`, `logical2product`, `functionalImpl2logicalImpl`, `logicalImpl2productImpl` | `CreateLogicalArchitecture`, `CreateProductArchitecture` | [SpecificationSystemView](#view-specificationsystemview), [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview) | `logicalArchitecture`, `productArchitecture` | [FunctionalArchitectureView](#view-functionalarchitectureview), [LogicalArchitectureView](#view-logicalarchitectureview), [ProductArchitectureView](#view-productarchitectureview) | — |
+| [VerificationAndValidationView](#view-verificationandvalidationview) | `verificationContext.verificationCases` | `VerifyAndValidateRequirements` | [SystemRequirementsView](#view-systemrequirementsview), [ProductArchitectureView](#view-productarchitectureview) | — | [ProductArchitectureView](#view-productarchitectureview) | — |
+| [VerificationMatrixView](#view-verificationmatrixview) | `verificationContext.verificationCases` | `VerifyAndValidateRequirements` | [SystemRequirementsView](#view-systemrequirementsview), [ProductArchitectureView](#view-productarchitectureview) | — | [ProductArchitectureView](#view-productarchitectureview) | — |
+
+Not tied to Project artifacts: [SolutionArchitectureView](#view-solutionarchitectureview), [AIUseCaseView](#view-aiusecaseview), [AIUseCase4ManagersView](#view-aiusecase4managersview), [SystemContextView](#view-systemcontextview). They are base views or show whatever a project exposes, e.g., a use case package. See the views for the artifacts behind each dependency.

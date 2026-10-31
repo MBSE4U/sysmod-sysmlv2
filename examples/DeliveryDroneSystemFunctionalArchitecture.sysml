@@ -25,10 +25,9 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
 
     #systemContext part def DeliveryDroneFunctionalContext :> DD_SPECIFICATION::DeliveryDroneSystemContext {
         doc
-        /* The context of the functional architecture. It specializes the
-         * black-box specification context only: the functional architecture contains
-         * functional blocks and must not depend on the physical internal
-         * structure of the system. */
+        /* The black box context of the functional architecture. It specializes the
+         * black box specification context only: the functional system must not
+         * depend on the physical internal structure of the system. */
         #system part :>> deliveryDroneSystem : DeliveryDroneFunctionalSystem;
 
         use case :>> deliverPackage : DD_SPECIFICATION::UseCases::DeliverPackage {
@@ -47,12 +46,25 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
             subject :>> droneSystem :> deliveryDroneSystem;
         }
     }
+    #systemContext part def DeliveryDroneFunctionalContextImpl :> DeliveryDroneFunctionalContext {
+        doc
+        /* The white box context of the functional architecture: adds the
+         * functional blocks of the functional system. It does not specialize the
+         * white box specification context, so the functional architecture stays
+         * independent of the physical internal structure of the system. */
+        #system part deliveryDroneSystemImpl :>> deliveryDroneSystem : DeliveryDroneFunctionalSystemImpl;
+    }
     part def DeliveryDroneFunctionalSystem :> DD_SPECIFICATION::DeliveryDroneSystem {
         doc
-        /* The root of the functional architecture, for example, developed with
-         * the FAS method. It redefines the black-box specification system and thereby
-         * inherits the system ports, so the functions can be related to the
-         * system's external interfaces. */
+        /* The root of the functional architecture as a black box, for example,
+         * developed with the FAS method. It redefines the black box specification
+         * system and thereby inherits the system ports, so the functions can be
+         * related to the system's external interfaces. */
+    }
+    part def DeliveryDroneFunctionalSystemImpl :> DeliveryDroneFunctionalSystem {
+        doc
+        /* The functional system as a white box: the functional blocks that
+         * perform the functions of the system. */
 
         bind operatorPort.order = deliveryManagement.deliveryPort.deliveryOrder;
         bind energyPort.energy = batteryManagement.energyPort.energy;
@@ -141,6 +153,18 @@ package <DD_FUNCTIONAL_ARCHITECTURE> DeliveryDroneSystemFunctionalArchitecture {
             perform pollDrones;
         }
     }
+
+    //
+    // Refinement of the system requirements by the functional architecture
+    //
+    private import ModelingMetadata::refinement;
+
+    // Charging in flight and transferring energy detail the air charging requirement.
+    #refinement dependency DeliveryDroneFunctionalSystemImpl::batteryManagement to DD_SPECIFICATION::Requirements::AirCharging;
+    // The rendezvous with a charger drone in flight details the air charging requirement.
+    #refinement dependency DeliveryDroneFunctionalSystemImpl::flightControl to DD_SPECIFICATION::Requirements::AirCharging;
+    // Picking up and dropping off the package detail the payload requirement.
+    #refinement dependency DeliveryDroneFunctionalSystemImpl::packageManagement to DD_SPECIFICATION::Requirements::MaxPayloadMass;
 
     package Interfaces {
         interface def PositionInterface {

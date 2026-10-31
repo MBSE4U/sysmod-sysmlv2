@@ -3,7 +3,7 @@ library package SYSMODViews {
     /* 
      * Definition of SYSMOD v5 Views
      *
-     * Version v5.1.6
+     * Version v5.1.7
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -21,235 +21,15 @@ library package SYSMODViews {
      */
     private import SYSMOD::*;
 
-    package Stakeholders {
-        doc /* Typical stakeholders of a systems engineering project that have concerns framed by the SYSMOD viewpoints.
-             * ISO/IEC/IEEE 15288 defines processes, not roles. The stakeholders are derived from the roles
-             * that are responsible for the respective life cycle processes.
-             * Each role specializes ExtendedStakeholder, so that a project stakeholder can play one or more roles by
-             * multiple typing, e.g., part johnFinch : ProductManager :>> projectOwner, or
-             * part logisticCompany : LogisticCompany, Acquirer :> projectStakeholders.
-             */
 
-        // Agreement processes
-        part def Acquirer :> ExtendedStakeholder {
-            doc /* Organization or person that acquires or procures the system from a supplier (ISO/IEC/IEEE 15288 Acquisition process). */
-        }
-        part def Supplier :> ExtendedStakeholder {
-            doc /* Organization or person that provides the system to an acquirer (ISO/IEC/IEEE 15288 Supply process). */
-        }
-
-        // Organizational project-enabling processes
-        part def PortfolioManager :> ExtendedStakeholder {
-            doc /* Responsible for initiating, sustaining, and terminating projects in line with the organization's strategy (ISO/IEC/IEEE 15288 Portfolio Management process). */
-        }
-        part def QualityManager :> ExtendedStakeholder {
-            doc /* Responsible for ensuring that products, services, and processes meet the organization's quality objectives (ISO/IEC/IEEE 15288 Quality Management process). */
-        }
-
-        // Technical management processes
-        part def ProjectManager :> ExtendedStakeholder {
-            doc /* Responsible for planning, assessing, and controlling the project, e.g., schedule, cost, resources, and progress (ISO/IEC/IEEE 15288 Project Planning and Project Assessment and Control processes). */
-        }
-        part def RiskManager :> ExtendedStakeholder {
-            doc /* Responsible for identifying, analyzing, treating, and monitoring risks (ISO/IEC/IEEE 15288 Risk Management process). */
-        }
-        part def ConfigurationManager :> ExtendedStakeholder {
-            doc /* Responsible for managing and controlling system elements, configurations, and baselines over the life cycle (ISO/IEC/IEEE 15288 Configuration Management process). */
-        }
-
-        // Technical processes
-        part def ProductManager :> ExtendedStakeholder {
-            doc /* Responsible for the business or mission problem or opportunity, the solution space, and the product's success on the market (ISO/IEC/IEEE 15288 Business or Mission Analysis process).
-                 * In a SYSMOD project, the projectOwner typically plays this role, since the projectOwner is the stakeholder of the problemStatement. */
-        }
-        part def RequirementsEngineer :> ExtendedStakeholder {
-            doc /* Responsible for eliciting stakeholder needs and defining stakeholder and system requirements (ISO/IEC/IEEE 15288 Stakeholder Needs and Requirements Definition and System Requirements Definition processes). */
-        }
-        part def SystemArchitect :> ExtendedStakeholder {
-            doc /* Responsible for the system architecture, i.e., the fundamental concepts and properties of the system and the integration of problem and solution across several levels (ISO/IEC/IEEE 15288 System Architecture Definition process). */
-        }
-        part def DesignEngineer :> ExtendedStakeholder {
-            doc /* Responsible for the detailed design of system elements so that they can be implemented (ISO/IEC/IEEE 15288 Design Definition and Implementation processes). */
-        }
-        part def SystemAnalyst :> ExtendedStakeholder {
-            doc /* Responsible for providing a rigorous basis of data and information for technical decisions, e.g., by simulations and trade studies (ISO/IEC/IEEE 15288 System Analysis process). */
-        }
-        part def IntegrationEngineer :> ExtendedStakeholder {
-            doc /* Responsible for assembling the system elements into a realized system (ISO/IEC/IEEE 15288 Integration process). */
-        }
-        part def VerificationEngineer :> ExtendedStakeholder {
-            doc /* Responsible for providing objective evidence that the system fulfills its specified requirements (ISO/IEC/IEEE 15288 Verification process). */
-        }
-        part def ValidationEngineer :> ExtendedStakeholder {
-            doc /* Responsible for providing objective evidence that the system fulfills its intended use in its intended operational environment (ISO/IEC/IEEE 15288 Validation process). */
-        }
-        part def Operator :> ExtendedStakeholder {
-            doc /* Uses the system to deliver its services (ISO/IEC/IEEE 15288 Operation process). */
-        }
-        part def Maintainer :> ExtendedStakeholder {
-            doc /* Sustains the capability of the system to provide its services (ISO/IEC/IEEE 15288 Maintenance and Disposal processes). */
-        }
-    }
-    package Concerns {
-        private import Stakeholders::*;
-        doc /* Concerns of the SYSMOD stakeholders, i.e., their interests in the system and the project.
-             * The concerns are derived from the outcomes of the ISO/IEC/IEEE 15288 life cycle processes.
-             *
-             * Entity of interest: the subject of all concerns is the SYSMOD Project (projectOfInterest). In the sense of
-             * ISO/IEC/IEEE 42010, the Project is the entity of interest of the SYSMOD architecture description framework.
-             * The system of interest is reached through the system contexts of the Project, e.g., the problemStatement
-             * has the brownfield system (brownfieldContextImpl.soiImpl) as its own subject.
-             */
-
-        // Agreement processes
-        concern def ContractualAgreement {
-            doc /* What is the agreed scope of the system, which deliverables are to be provided,
-                 * and what are the acceptance criteria? (ISO/IEC/IEEE 15288 Acquisition and Supply processes)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder acquirer : Acquirer;
-            stakeholder supplier : Supplier;
-        }
-
-        // Organizational project-enabling processes
-        concern def PortfolioAlignment {
-            doc /* Does the project contribute to the organization's strategy, and should it be
-                 * initiated, continued, redirected, or terminated? (ISO/IEC/IEEE 15288 Portfolio Management process)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder portfolioManager : PortfolioManager;
-        }
-        concern def QualityCompliance {
-            doc /* Do the system, the work products, and the applied processes meet the quality objectives
-                 * and the applicable standards? (ISO/IEC/IEEE 15288 Quality Management and Quality Assurance processes)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder qualityManager : QualityManager;
-        }
-
-        // Technical management processes
-        concern def ProjectStatus {
-            doc /* What is the current status and progress of the project, e.g., the state of the work products
-                 * and process steps, compared to the plan? (ISO/IEC/IEEE 15288 Project Planning and Project Assessment and Control processes)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder projectManager : ProjectManager;
-            stakeholder portfolioManager : PortfolioManager;
-        }
-        concern def RiskExposure {
-            doc /* Which risks threaten the system and the project, how likely and severe are they,
-                 * and how are they treated? (ISO/IEC/IEEE 15288 Risk Management process)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder riskManager : RiskManager;
-            stakeholder projectManager : ProjectManager;
-        }
-        concern def ConfigurationBaseline {
-            doc /* Which configuration items and baselines exist, what is their version and status,
-                 * and which changes are pending? (ISO/IEC/IEEE 15288 Configuration Management process)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder configurationManager : ConfigurationManager;
-        }
-
-        // Technical processes
-        concern def ProblemSolutionPitch {
-            doc /* What is the problem to be solved and what is the solution idea? Pitch both concisely
-                 * to decision makers. (ISO/IEC/IEEE 15288 Business or Mission Analysis process)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder productManager : ProductManager;
-            stakeholder acquirer : Acquirer;
-        }
-        concern def MissionGoalsAndMeasures {
-            doc /* Which mission, goals, and objectives does the project pursue, and by which measures of success
-                 * is it decided whether the problem is solved? (ISO/IEC/IEEE 15288 Business or Mission Analysis process)
-                 * In SYSMOD, the goals are stated with the problemStatement and become measurable in the
-                 * systemRequirementSpecification, e.g., with the SYSMODRequirementsBoilerplates.
-                 */
-            subject projectOfInterest : Project;
-            stakeholder productManager : ProductManager;
-            stakeholder acquirer : Acquirer;
-        }
-        concern def StakeholderNeedsCoverage {
-            doc /* Are all relevant stakeholders identified, and are their needs captured and transformed
-                 * into stakeholder and system requirements? (ISO/IEC/IEEE 15288 Stakeholder Needs and Requirements Definition
-                 * and System Requirements Definition processes)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder requirementsEngineer : RequirementsEngineer;
-            stakeholder productManager : ProductManager;
-        }
-        concern def ProblemSolutionIntegration {
-            doc /* How are the problem artifacts, e.g., requirements and use cases, integrated with the solution artifacts,
-                 * e.g., the architecture, across several levels of the system hierarchy? (ISO/IEC/IEEE 15288 System Architecture Definition process)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder systemArchitect : SystemArchitect;
-        }
-        concern def DesignConsistency {
-            doc /* Do the designs of the system elements conform to the architecture, and are they
-                 * sufficiently detailed to be implemented? (ISO/IEC/IEEE 15288 Design Definition and Implementation processes)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder designEngineer : DesignEngineer;
-            stakeholder systemArchitect : SystemArchitect;
-        }
-        concern def TradeOffDecision {
-            doc /* Which solution alternatives exist, how do they perform with respect to the relevant criteria,
-                 * and which one is preferred? (ISO/IEC/IEEE 15288 System Analysis and Decision Management processes)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder systemAnalyst : SystemAnalyst;
-            stakeholder systemArchitect : SystemArchitect;
-        }
-        concern def InterfaceIntegration {
-            doc /* Which interfaces exist between the system elements and to the system context,
-                 * and in which order are the system elements integrated? (ISO/IEC/IEEE 15288 Integration process)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder integrationEngineer : IntegrationEngineer;
-            stakeholder designEngineer : DesignEngineer;
-        }
-        concern def VerificationCoverage {
-            doc /* Is each requirement verified by an appropriate verification case,
-                 * and what are the verification results? (ISO/IEC/IEEE 15288 Verification process)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder verificationEngineer : VerificationEngineer;
-            stakeholder requirementsEngineer : RequirementsEngineer;
-        }
-        concern def OperationalSuitability {
-            doc /* Does the system fulfill its intended use and the stakeholder needs in its intended
-                 * operational environment? (ISO/IEC/IEEE 15288 Validation process)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder validationEngineer : ValidationEngineer;
-            stakeholder operator : Operator;
-            stakeholder acquirer : Acquirer;
-        }
-        concern def SystemOperation {
-            doc /* How is the system used to deliver its services, i.e., which use cases, operational modes,
-                 * and interactions with users and external systems exist? (ISO/IEC/IEEE 15288 Operation process)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder operator : Operator;
-        }
-        concern def MaintainabilityAndDisposal {
-            doc /* How is the system maintained, repaired, and supported during operation,
-                 * and how is it retired and disposed of at the end of its life? (ISO/IEC/IEEE 15288 Maintenance and Disposal processes)
-                 */
-            subject projectOfInterest : Project;
-            stakeholder maintainer : Maintainer;
-        }
-    }
     package Viewpoints {
         doc /* Viewpoints of SYSMOD according to ISO/IEC/IEEE 42010. A viewpoint frames one or more
              * stakeholder concerns and establishes the conventions for views that address them.
              * The conventions are based on the artifacts of the SYSMOD Project and formalized, where possible,
              * as required constraints on the SYSMOD concepts of the elements exposed by a conforming view.
+             * The stakeholders and their concerns are defined in the library package ISO15288Processes (SYSMOD15288.sysml).
              */
-        private import Concerns::*;
+        private import ISO15288Processes::Concerns::*;
         private import SYSMODProcesses::*;
         private import ControlFunctions::forAll;
 
@@ -266,7 +46,8 @@ library package SYSMODViews {
             elements->forAll {
                 in e; e istype SYSMODDefaultProcess or e istype SetupProject or e istype SpecifyBrownfieldSystem
                     or e istype SpecifyProblemStatement or e istype IdentifyStakeholders or e istype ElaborateStakeholderNeeds
-                    or e istype PitchSystemIdea or e istype DefineSystemSpecification or e istype CreateSolutionArchitectures
+                    or e istype PitchSystemIdea or e istype DefineSystemSpecification or e istype CreateFunctionalArchitecture
+                    or e istype CreateLogicalArchitecture or e istype CreateProductArchitecture
                     or e istype VerifyAndValidateRequirements
             }
         }
@@ -274,7 +55,7 @@ library package SYSMODViews {
         // Agreement processes
         viewpoint def AgreementViewpoint {
             doc /* Shows the SYSMOD artifacts that define the agreed scope and the acceptance criteria:
-                 * the problemStatement, the systemRequirementSpecification, and the verificationCases of the Project.
+                 * the problemStatement, the systemRequirementSpecification, and the verificationCases of the verificationContext of the Project.
                  */
             subject theView;
             frame concern cca : ContractualAgreement;
@@ -298,7 +79,7 @@ library package SYSMODViews {
             }
         }
         viewpoint def QualityViewpoint {
-            doc /* Shows the systemRequirementSpecification and the verificationCases of the Project
+            doc /* Shows the systemRequirementSpecification and the verificationCases of the verificationContext of the Project
                  * as evidence that the system meets the quality objectives.
                  */
             subject theView;
@@ -313,7 +94,7 @@ library package SYSMODViews {
         // Technical management processes
         viewpoint def ProjectViewpoint {
             doc /* Provides an overview of the SYSMOD Project and the integration of its problem artifacts
-                 * (problemStatement, stakeholderNeeds, systemRequirementSpecification) and solution artifacts
+                 * (problemStatement, stakeholderNeeds, systemObjectives, systemRequirementSpecification) and solution artifacts
                  * (the system contexts from the brownfieldContext to the productContext).
                  */
             subject theView;
@@ -359,7 +140,7 @@ library package SYSMODViews {
         // Technical processes
         viewpoint def ProblemSolutionViewpoint {
             doc /* Shows the problemStatement with its projectOwner and the brownfieldContext,
-                 * and the systemIdeaContext that answers the problem.
+                 * the systemIdeaContext that answers the problem, and the systemObjectives, the measurable goals of the system idea.
                  * The stakeholders are those of the framed concerns: the ProductManager, a role typically played by
                  * the projectOwner, and the Acquirer, who has the problem and must agree with the problemStatement.
                  */
@@ -385,8 +166,10 @@ library package SYSMODViews {
             }
         }
         viewpoint def ArchitectureViewpoint {
-            doc /* Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext,
-                 * their allocations (functional2logical, logical2product), and the systemRequirementSpecification they satisfy.
+            doc /* Shows the solution architectures, i.e., the functionalContext, logicalContext, and productContext with their white box
+                 * contexts (functionalContextImpl, logicalContextImpl, productContextImpl), their allocations (functional2logical,
+                 * logical2product, functionalImpl2logicalImpl, logicalImpl2productImpl), the systemRequirementSpecification they satisfy,
+                 * and the #refinement dependencies from the functional and logical elements to the system requirements.
                  */
             subject theView;
             frame concern cpsi : ProblemSolutionIntegration;
@@ -394,6 +177,7 @@ library package SYSMODViews {
             require constraint onlyArchitectureElements {
                 (theView as SysML::ViewUsage).exposedElement->forAll {
                     in e; e istype SystemContext or e istype ExtendedRequirement or e istype Allocations::Allocation
+                        or e istype SysML::Dependency
                 }
             }
         }
@@ -432,7 +216,7 @@ library package SYSMODViews {
             }
         }
         viewpoint def ValidationViewpoint {
-            doc /* Shows the problemStatement, the stakeholderNeeds, the system use cases describing the intended use,
+            doc /* Shows the problemStatement, the stakeholderNeeds, the systemObjectives, the system use cases describing the intended use,
                  * and the verificationCases that validate the productSystem against them.
                  */
             subject theView;
@@ -491,6 +275,35 @@ library package SYSMODViews {
                 */
         :>> create_prompt = "Create pure text in markdown with a headline #Project <project name> and below 'Project owner: <project owner name>', and below ##Documentation, new line: <project doc>, and finally ##Purpose, new line <project purpose>.";
     }
+    view def SYSMODMapView :> ProjectView {
+        doc /* Product "The Project" as SYSMOD Map: the features of the exposed Project on one sheet with grid references,
+                * row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield,
+                * 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation.
+                * It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell
+                * is the StepStatus of the step of the Project's defaultProcess that creates the cell's features.
+                */
+        render asSYSMODMap;
+    }
+    rendering asSYSMODMap :> Views::renderings {
+        doc /* Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them:
+                * Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject).
+                * A1: problemStatement, projectStakeholders, stakeholderNeeds (specifyProblemStatement, identifyStakeholders, elaborateStakeholderNeeds).
+                * A2: systemObjectives (pitchSystemIdea).
+                * A3: systemRequirementSpecification (defineSystemSpecification).
+                * A4: #refinement dependencies from the functional elements to the system requirements (createFunctionalArchitecture).
+                * A5: #refinement dependencies from the logical elements to the system requirements (createLogicalArchitecture).
+                * A6: productSystemImpl satisfies systemRequirementSpecification (createProductArchitecture).
+                * A7: verificationContext.verificationCases (verifyAndValidateRequirements).
+                * B1: brownfieldContext; C1: brownfieldContextImpl (specifyBrownfieldSystem).
+                * B2: systemIdeaContext; C2: systemIdeaContextImpl (pitchSystemIdea).
+                * B3: specificationContext with the system use cases; C3: specificationContextImpl (defineSystemSpecification).
+                * B4: functionalContext; C4: functionalContextImpl (createFunctionalArchitecture).
+                * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (createLogicalArchitecture).
+                * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (createProductArchitecture).
+                * B7 to C7: verificationContext (verifyAndValidateRequirements).
+                * Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
+                */
+    }
 
     // Step 02
     view def ProblemStatementView :> StandardViewDefinitions::GeneralView {
@@ -545,6 +358,15 @@ library package SYSMODViews {
                 */
         satisfy requirement psvp : ProblemSolutionViewpoint;
     }
+    view def SystemObjectivesView :> StandardViewDefinitions::GeneralView {
+        doc /* Product "The System Idea": the systemObjectives of the Project, i.e., the measurable goals of the system idea
+                * that direct the development, with the projectOwner as stakeholder, the system idea as subject,
+                * and the stakeholderNeeds they frame.
+                */
+        satisfy requirement psvp : ProblemSolutionViewpoint;
+        filter @SysML::ConcernUsage;
+        render Views::asTreeDiagram;
+    }
     // Step 07
     view def SpecificationSystemView :> SystemContextView {
         doc /* Product "The Specification System": the specificationContext of the Project that defines
@@ -583,23 +405,23 @@ library package SYSMODViews {
         render Views::asInterconnectionDiagram;
     }
     view def FunctionalArchitectureView :> SolutionArchitectureView {
-        doc /* The functionalContext of the Project with the functional blocks of the functional system. */
+        doc /* The functionalContext and functionalContextImpl of the Project with the functional blocks of the functional system. */
     }
     view def LogicalArchitectureView :> SolutionArchitectureView {
-        doc /* The logicalContext of the Project with the technology-independent building blocks of the logical system. */
+        doc /* The logicalContext and logicalContextImpl of the Project with the technology-independent building blocks of the logical system. */
     }
     view def ProductArchitectureView :> SolutionArchitectureView {
-        doc /* The productContext of the Project with the concrete building blocks of the product system. */
+        doc /* The productContext and productContextImpl of the Project with the concrete building blocks of the product system. */
     }
     view def ArchitectureAllocationView :> StandardViewDefinitions::GridView {
-        doc /* The allocations functional2logical and logical2product between the solution architectures. */
+        doc /* The allocations functional2logical, logical2product, functionalImpl2logicalImpl, and logicalImpl2productImpl between the solution architectures. */
         satisfy requirement avp : ArchitectureViewpoint;
         filter @SysML::AllocationUsage or @SystemContextMetadata;
         render Views::asElementTable;
     }
     // Step 11
     view def VerificationAndValidationView :> StandardViewDefinitions::GeneralView {
-        doc /* Product "Verification and Validation": the verificationCases of the Project with the tested productSystem
+        doc /* Product "Verification and Validation": the verificationCases of the verificationContext of the Project with the tested productSystem
                 * and the system requirements, stakeholder needs, and problem statement they verify and validate.
                 */
         satisfy requirement vvp : VerificationViewpoint;
@@ -653,6 +475,43 @@ library package SYSMODViews {
         filter not (@KerML::Element::isLibraryElement);
         render Views::asInterconnectionDiagram;
     }
+
+    //
+    // Viewed artifacts
+    //
+    metadata def <viewedArtifact> ViewedArtifact {
+        doc /* Marks a dependency from a view definition to the features of the SYSMOD Project, i.e., the artifacts,
+             * that a conforming view exposes in a project, e.g., the problemStatement for the ProblemStatementView.
+             * A view definition without a viewedArtifact dependency inherits the artifacts of its general view definition.
+             *
+             * The views do not depend on each other. The artifacts they show do: each SYSMOD step reads artifacts
+             * created by earlier steps (the inputs of the step) and creates its own (the outputs of the step), and the
+             * Project relates the artifacts, e.g., by frame, satisfy, allocate, and the specialization of the system contexts.
+             * Together with these dependencies, the viewedArtifact dependencies yield the correspondences between the views
+             * in the sense of ISO/IEC/IEEE 42010. They state which content builds on which other content,
+             * not an order in which views must be completed.
+             */
+        :>> annotatedElement : SysML::Dependency;
+    }
+
+    #viewedArtifact dependency ProjectView to Project;
+    #viewedArtifact dependency ProblemStatementView to Project::problemStatement;
+    #viewedArtifact dependency StakeholdersView to Project::projectStakeholders;
+    #viewedArtifact dependency StakeholderNeedsView to Project::stakeholderNeeds;
+    #viewedArtifact dependency BrownfieldArchitectureView to Project::brownfieldContext, Project::brownfieldContextImpl;
+    #viewedArtifact dependency SystemIdeaView to Project::systemIdeaContext, Project::systemIdeaContextImpl;
+    #viewedArtifact dependency SystemObjectivesView to Project::systemObjectives;
+    #viewedArtifact dependency SpecificationSystemView to Project::specificationContext, Project::specificationContextImpl;
+    #viewedArtifact dependency UseCasesView to Project::specificationContext::useCases;
+    #viewedArtifact dependency UseCaseFlowView to Project::specificationContext::useCases;
+    #viewedArtifact dependency SystemRequirementsView to Project::systemRequirementSpecification;
+    #viewedArtifact dependency FunctionalArchitectureView to Project::functionalContext, Project::functionalContextImpl;
+    #viewedArtifact dependency LogicalArchitectureView to Project::logicalContext, Project::logicalContextImpl;
+    #viewedArtifact dependency ProductArchitectureView to Project::productContext, Project::productContextImpl;
+    #viewedArtifact dependency ArchitectureAllocationView to Project::functional2logical, Project::logical2product,
+        Project::functionalImpl2logicalImpl, Project::logicalImpl2productImpl;
+    #viewedArtifact dependency VerificationAndValidationView to Project::verificationContext::verificationCases;
+    #viewedArtifact dependency VerificationMatrixView to Project::verificationContext::verificationCases;
 }
 
 

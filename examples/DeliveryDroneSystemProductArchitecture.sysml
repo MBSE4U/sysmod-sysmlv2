@@ -93,29 +93,20 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
 }
 package <DD_VV> DeliveryDroneVerificationValidation {
     private import DD_PRODUCT::*;
-    private import DD_SPECIFICATION::*;
     private import SYSMOD::*;
 
     #systemContext part def DeliveryDroneVerificationContext :> DeliveryDroneProductContextImpl {
         doc
         /* The verification context: the white box product context plus the
-         * test systems that the verification cases need as additional actors. */
+         * test systems that the verification cases need as additional actors.
+         * The verification case definitions, e.g., MaxPayloadTest, are part of the
+         * specification (DD_SPECIFICATION::Verification); the project binds them
+         * to the product system in its verification context. */
         #externalSystem part windTunnel :> actors {
             doc
             /* A wind tunnel that produces a constant wind speed to test the
              * flight of a drone under defined wind conditions. */
             attribute windSpeed :> ISQ::speed;
         }
-    }
-    verification def MaxPayloadTest {
-        subject testedSystem : DeliveryDroneProductSystemImpl;
-        requirement maxReq : Requirements::MaxPayloadMass {
-            subject :>> deliveryDrone :> testedSystem.drones;
-        }
-        objective {
-            verify maxReq;
-        }
-        action preparePayload;
-        return verdict = VerificationCases::PassIf(maxReq.result);
     }
 }

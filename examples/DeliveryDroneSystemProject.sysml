@@ -185,8 +185,8 @@ package <DD> DeliveryDrone {
         part deliveryDroneVerificationContext :>> verificationContext : DD_VV::DeliveryDroneVerificationContext :> deliveryDroneProductContextImpl {
             doc /* The verification context holds the verification cases specified with the
                    system requirements (step specifySystem), adds the wind tunnel as test system,
-                   and binds the verification cases to the product system
-                   (step specifyVerificationContext). */
+                   and binds the verification cases to the product system as system of
+                   interest (step specifyVerificationContext). */
             verification maxPayloadTest : DD_SPECIFICATION::Verification::MaxPayloadTest :> verificationCases {
                 doc /* Specified together with the system requirements, before the solution
                        architecture: the flightTestTeam (VerificationEngineer) and the systems
@@ -194,9 +194,9 @@ package <DD> DeliveryDrone {
                        verdict (PassIf) against the black box specification system. Bound to the
                        product system: the tested system is the white box product system, and the
                        drone under test is one of its drones. */
-                subject :>> productSystem, testedSystem : DD_PRODUCT::DeliveryDroneProductSystemImpl;
+                subject :>> testedSystem : DD_PRODUCT::DeliveryDroneProductSystemImpl;
                 requirement :>> maxReq {
-                    subject :>> deliveryDrone :> productSystem.drones;
+                    subject :>> deliveryDrone :> testedSystem.drones;
                 }
             }
         }

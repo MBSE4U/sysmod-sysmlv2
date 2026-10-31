@@ -40,10 +40,7 @@ package MicroStory_Verification {
     #project occurrence def 'Delivery Drone Project' {
         // the verification context owns the verification cases
         part :>> verificationContext {
-            verification maxPayloadTest : MaxPayloadTest :> verificationCases {
-                // one subject: the library's productSystem is the tested system
-                subject :>> productSystem, testedSystem;
-            }
+            verification maxPayloadTest : MaxPayloadTest :> verificationCases;
         }
     }
 }

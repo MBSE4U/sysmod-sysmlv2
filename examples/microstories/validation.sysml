@@ -33,10 +33,7 @@ package MicroStory_Validation {
         // SYSMOD adds nothing for V&V: the verificationCases of the
         // verification context hold verification and validation cases alike.
         part :>> verificationContext {
-            verification islandPilot : IslandPilotValidation :> verificationCases {
-                // one subject: the library's productSystem is the pilot system
-                subject :>> productSystem, pilotSystem;
-            }
+            verification islandPilot : IslandPilotValidation :> verificationCases;
         }
     }
 }

@@ -186,20 +186,20 @@ library package SYSMOD {
                 /* The white box view of the logical system. It redefines the logical system and the white box specification system and contains the technology-independent building blocks of the logical architecture. */
             }
         }
-        part productContext :> specificationContext {
+        part productContext[0..1] :> specificationContext {
             doc
-            /* The Product Context specializes the black box specification context. It provides the context for a product architecture with concrete, physical or deployable building blocks. */
+            /* The Product Context is optional and specializes the black box specification context. It provides the context for a product architecture with concrete, physical or deployable building blocks. */
             part <soi> productSystem :>> specificationContext::soi {
                 doc
                 /* The Product System is the root element of the product architecture. It redefines the black box specification system and thereby inherits the context information such as the system ports. */
             }
         }
-        part productContextImpl :> productContext, specificationContextImpl {
+        part productContextImpl[0..1] :> productContext, specificationContextImpl {
             doc
-            /* The Product Context Implementation is the white box view of the product context. It specializes the product context and the white box specification context and contains the internal structure of the product system, i.e., its concrete, physical or deployable building blocks. */
+            /* The Product Context Implementation is optional and the white box view of the product context. It specializes the product context and the white box specification context and contains the internal structure of the product system, i.e., its concrete, physical or deployable building blocks. */
             part <soiImpl> productSystemImpl :>> productContext::soi, specificationContextImpl::soiImpl {
                 doc
-                /* The white box view of the product system. It redefines the product system and the white box specification system and contains the concrete, physical or deployable building blocks of the product architecture. It satisfies the system requirements and is the subject of the verification cases. */
+                /* The white box view of the product system. It redefines the product system and the white box specification system and contains the concrete, physical or deployable building blocks of the product architecture. It satisfies the system requirements. */
                 satisfy systemRequirementSpecification;
             }
         }
@@ -227,9 +227,9 @@ library package SYSMOD {
         //
         // Verification
         //
-        part verificationContext :> productContextImpl {
+        part verificationContext : SystemContext {
             doc
-            /* The context in which the verification takes place, including all relevant actors, e.g., the test systems, and the system of interest. */
+            /* The context in which the verification takes place, including all relevant actors, e.g., the test systems, and the system of interest. It is not bound to an architecture: it can be any system context, e.g., one that specializes the white box product, logical, or specification context, or a context with a prototype or a simulation model as system of interest. */
 
             verification verificationCases[*] {
                 doc
@@ -237,15 +237,12 @@ library package SYSMOD {
                  * before any solution architecture exists (step specifySystem, nested step specifyVerificationCases): each verification case
                  * definition states its objective, i.e., the system requirements it verifies, and its verdict, e.g., with VerificationCases::PassIf,
                  * against the black box specification system, so that verification engineers and systems engineers discuss the verification in
-                 * SysML from the start instead of in a separate test language. The subject productSystem subsets the white box product system of
-                 * the verification context; specifyVerificationContext adds the test systems and binds, where needed, the subjects of the
-                 * verified requirements to elements of the product system. */
-                subject productSystem :> soiImpl;
+                 * SysML from the start instead of in a separate test language. */
             }
 
             item verificationReports[*] : VerificationReport {
                 doc
-                /* The results of performing the verificationCases on the product system, created by the step performVerification. */
+                /* The results of performing the verificationCases on the system of interest of the verification context, created by the step performVerification. */
             }
         }
 
@@ -454,7 +451,7 @@ library package SYSMOD {
     item def VerificationReport {
         doc
         /* Verification Report — supports the Verification process of ISO/IEC/IEEE 15288; content aligned with ISO/IEC/IEEE 15289.
-         * It documents the results of performing the verification cases of the verification context on the product system:
+         * It documents the results of performing the verification cases of the verification context on its system of interest:
          * the verdict of each verification case, the verified requirements, and the evidence. */
     }
     dependency verificationReportSupportsVerification from VerificationReport to ISO15288Processes::Verification {
@@ -611,8 +608,8 @@ library package SYSMOD {
              * performVerification, in this order.
              * Verification is split into two parts: specifySystem specifies the verification cases against the black box specification system
              * (nested step specifyVerificationCases) before any solution architecture is modeled and returns the verification context with them,
-             * and specifyVerificationContext completes the verification context with the test systems and binds the verification cases to the
-             * product system. Verification engineers thus take part from the specification on.
+             * and specifyVerificationContext completes the verification context with the test systems and the system of interest, which can be
+             * any system, e.g., the product system, a prototype, or a simulation model. Verification engineers thus take part from the specification on.
              * The project that performs the process is referenced by project. Outputs of the steps flow into the corresponding project features,
              * and the inputs of the steps are bound to the project features created by earlier steps.
              * The input parameters are the information a human or an AI assistant provides to start the process, e.g., the descriptions of
@@ -713,11 +710,8 @@ library package SYSMOD {
             bind project.specificationContextImpl = modelSolutionArchitecture.specificationContextImpl;
             bind project.systemRequirementSpecification = modelSolutionArchitecture.systemRequirementSpecification;    
             bind project.systemRequirementSpecification = specifyVerificationContext.systemRequirementSpecification;
-            bind project.productContextImpl = specifyVerificationContext.productContextImpl;
             bind project.verificationContext = specifyVerificationContext.verificationContext;
             bind project.verificationContext = performVerification.verificationContext;
-
-
 
             action setupProject : SetupProject { @StepStatus; }
             action modelBrownfieldSystem : ModelBrownfieldSystem { @StepStatus; }
@@ -831,7 +825,7 @@ library package SYSMOD {
             }
             action specifyVerificationCases {
                 doc
-                /* Specifies the verification cases of the system requirements against the black box specification system, alongside specifySystemRequirements and before any solution architecture exists: a verification case definition per verification case with the objective (verify) and the verdict (e.g., VerificationCases::PassIf), and a verification case usage in the verification context of the project, typed by the definition and subsetting verificationCases. The step returns the updated verification context. The VerificationEngineer is a stakeholder of this step and specifies the verification cases together with the RequirementsEngineer (concern VerificationCoverage), so that both discuss the verification in SysML rather than in a separate test language. The test systems and the binding to the product system follow in SpecifyVerificationContext. */
+                /* Specifies the verification cases of the system requirements against the black box specification system, alongside specifySystemRequirements and before any solution architecture exists: a verification case definition per verification case with the objective (verify) and the verdict (e.g., VerificationCases::PassIf), and a verification case usage in the verification context of the project, typed by the definition and subsetting verificationCases. The step returns the updated verification context. The VerificationEngineer is a stakeholder of this step and specifies the verification cases together with the RequirementsEngineer (concern VerificationCoverage), so that both discuss the verification in SysML rather than in a separate test language. The test systems and the system of interest of the verification context follow in SpecifyVerificationContext. */
                 in part specificationContext : SystemContext = SpecifySystem::specificationContext;
                 in requirement systemRequirementSpecification : ExtendedRequirement = SpecifySystem::systemRequirementSpecification;
                 out part verificationContext : SystemContext = SpecifySystem::verificationContext;
@@ -840,13 +834,13 @@ library package SYSMOD {
 
         action def ModelSolutionArchitecture {
             doc
-            /* Models the solution architecture based on the specification contexts and the system requirements, in the nested steps modelFunctionalArchitecture (optional), modelLogicalArchitecture (optional), and modelProductArchitecture, in this order. Each nested step creates the black box and the white box context of its architecture; the logical and product steps also create the allocations from the preceding architecture. Refines the ISO 15288 System Architecture Definition process. */
+            /* Models the solution architecture based on the specification contexts and the system requirements, in the nested steps modelFunctionalArchitecture (optional), modelLogicalArchitecture (optional), and modelProductArchitecture (optional), in this order. Each nested step creates the black box and the white box context of its architecture; the logical and product steps also create the allocations from the preceding architecture. Refines the ISO 15288 System Architecture Definition process. */
             in requirement systemRequirementSpecification : ExtendedRequirement;
             in part specificationContextImpl : SystemContext;                
             in part specificationContext[0..1] : SystemContext;                
             in item functionalArchitectureDescription[0..1] : ArchitectureDescription;
             in item logicalArchitectureDescription[0..1] : ArchitectureDescription;
-            in item productArchitectureDescription : ArchitectureDescription;
+            in item productArchitectureDescription[0..1] : ArchitectureDescription;
 
             out part functionalContext[0..1] : SystemContext;
             out part functionalContextImpl[0..1] : SystemContext;
@@ -854,8 +848,8 @@ library package SYSMOD {
             out part logicalContextImpl[0..1] : SystemContext;
             out abstract allocation functional2logical[0..1];
             out abstract allocation functionalImpl2logicalImpl[0..1];
-            out part productContext : SystemContext;
-            out part productContextImpl : SystemContext;
+            out part productContext[0..1] : SystemContext;
+            out part productContextImpl[0..1] : SystemContext;
             out abstract allocation logical2product[0..1];
             out abstract allocation logicalImpl2productImpl[0..1];
 
@@ -866,8 +860,8 @@ library package SYSMOD {
                 in item functionalArchitectureDescription : ArchitectureDescription = ModelSolutionArchitecture::functionalArchitectureDescription;
                 in requirement systemRequirementSpecification : ExtendedRequirement = ModelSolutionArchitecture::systemRequirementSpecification;
                 in part specificationContext : SystemContext = ModelSolutionArchitecture::specificationContext;
-                out part functionalContext[0..1] : SystemContext = ModelSolutionArchitecture::functionalContext;
-                out part functionalContextImpl[0..1] : SystemContext = ModelSolutionArchitecture::functionalContextImpl;
+                out part functionalContext : SystemContext = ModelSolutionArchitecture::functionalContext;
+                out part functionalContextImpl : SystemContext = ModelSolutionArchitecture::functionalContextImpl;
             }
 
             first [0..1]modelFunctionalArchitecture then [0..1]modelLogicalArchitecture;
@@ -884,22 +878,22 @@ library package SYSMOD {
                 in requirement systemRequirementSpecification : ExtendedRequirement = ModelSolutionArchitecture::systemRequirementSpecification;
                 in part functionalContext[0..1] : SystemContext;
                 in part functionalContextImpl[0..1] : SystemContext;
-                out part logicalContext[0..1] : SystemContext = ModelSolutionArchitecture::logicalContext;
-                out part logicalContextImpl[0..1] : SystemContext = ModelSolutionArchitecture::logicalContextImpl;
+                out part logicalContext : SystemContext = ModelSolutionArchitecture::logicalContext;
+                out part logicalContextImpl : SystemContext = ModelSolutionArchitecture::logicalContextImpl;
                 out abstract allocation functional2logical[0..1];
                 out abstract allocation functionalImpl2logicalImpl[0..1];
             }
             bind functional2logical = modelLogicalArchitecture.functional2logical;
             bind functionalImpl2logicalImpl = modelLogicalArchitecture.functionalImpl2logicalImpl;
 
-            first [0..1]modelLogicalArchitecture then modelProductArchitecture;
+            first [0..1]modelLogicalArchitecture then [0..1]modelProductArchitecture;
             flow from modelLogicalArchitecture.logicalContext to modelProductArchitecture.logicalContext;
             flow from modelLogicalArchitecture.logicalContextImpl to modelProductArchitecture.logicalContextImpl;
 
             action modelProductArchitecture {
                 @StepStatus;
                 doc
-                /* Models the product architecture based on the white box specification context and, if present, the white box functional and logical contexts: the black box product context and the white box product context with the concrete, physical or deployable building blocks, and, if a logical architecture is present, the allocations logical2product and logicalImpl2productImpl from the logical to the product architecture. Refines the ISO 15288 System Architecture Definition process. */
+                /* Models the optional product architecture based on the white box specification context and, if present, the white box functional and logical contexts: the black box product context and the white box product context with the concrete, physical or deployable building blocks, and, if a logical architecture is present, the allocations logical2product and logicalImpl2productImpl from the logical to the product architecture. Refines the ISO 15288 System Architecture Definition process. */
                 in item productArchitectureDescription : ArchitectureDescription = ModelSolutionArchitecture::productArchitectureDescription;
                 in part specificationContextImpl : SystemContext = ModelSolutionArchitecture::specificationContextImpl;
                 in requirement systemRequirementSpecification : ExtendedRequirement = ModelSolutionArchitecture::systemRequirementSpecification;
@@ -917,15 +911,14 @@ library package SYSMOD {
 
         action def SpecifyVerificationContext {
             doc
-            /* Specifies the verification context returned by SpecifySystem: adds the test systems, e.g., test benches or a wind tunnel, as additional actors, and binds the verification cases specified by SpecifySystem to the product system: the verification context specializes productContextImpl, and the subject of its verificationCases is the productSystem. The step does not create the verification cases anew; it adds validation cases against the stakeholder needs and the problem statement where they are not yet specified. Refines the ISO 15288 Verification and Validation processes. */
+            /* Specifies the verification context returned by SpecifySystem: adds the test systems, e.g., test benches or a wind tunnel, as additional actors. Refines the ISO 15288 Verification and Validation processes. */
             in requirement systemRequirementSpecification : ExtendedRequirement;
-            in part productContextImpl : SystemContext;
             inout part verificationContext : SystemContext;
         }
 
         action def PerformVerification {
             doc
-            /* Performs the verification: executes the verification cases of the verification context on the product system and documents the results in verification reports (VerificationReport, content aligned with ISO/IEC/IEEE 15289), which become part of the verification context. Refines the ISO 15288 Verification process. */
+            /* Performs the verification: executes the verification cases of the verification context on its system of interest and documents the results in verification reports (VerificationReport, content aligned with ISO/IEC/IEEE 15289), which become part of the verification context. Refines the ISO 15288 Verification process. */
             in part verificationContext : SystemContext;
             out item verificationReports[*] : VerificationReport;
         }

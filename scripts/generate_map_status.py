@@ -11,7 +11,7 @@ Sources:
                       redefining it in its default process (with SYSMOD::SYSMODProcesses::* imported):
 
                         action :>> defaultProcess {
-                            action :>> pitchSystemIdea { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+                            action :>> describeSystemIdea { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
                         }
 
                       Steps a project does not redefine keep the defaults of the library.

@@ -194,19 +194,19 @@ library package SYSMOD {
         //
         allocation functional2logical [0..1] allocate functionalContext to logicalContext {
             doc
-            /* Allocation of the functional architecture to the logical architecture. Created by the createLogicalArchitecture step. */
+            /* Allocation of the functional architecture to the logical architecture. Created by the modelLogicalArchitecture step. */
         }
         allocation functionalImpl2logicalImpl [0..1] allocate functionalContextImpl to logicalContextImpl {
             doc
-            /* Allocation of the white box functional architecture, i.e., its functional blocks, to the white box logical architecture. Created by the createLogicalArchitecture step. */
+            /* Allocation of the white box functional architecture, i.e., its functional blocks, to the white box logical architecture. Created by the modelLogicalArchitecture step. */
         }
         allocation logical2product [0..1] allocate logicalContext to productContext {
             doc
-            /* Allocation of the logical architecture to the product architecture. Created by the createProductArchitecture step. */
+            /* Allocation of the logical architecture to the product architecture. Created by the modelProductArchitecture step. */
         }
         allocation logicalImpl2productImpl [0..1] allocate logicalContextImpl to productContextImpl {
             doc
-            /* Allocation of the white box logical architecture, i.e., its logical building blocks, to the white box product architecture. Created by the createProductArchitecture step. */
+            /* Allocation of the white box logical architecture, i.e., its logical building blocks, to the white box product architecture. Created by the modelProductArchitecture step. */
         }
 
         //
@@ -536,19 +536,31 @@ library package SYSMOD {
          * It consists of one action definition per SYSMOD step. Each step reads artifacts of the project and produces
          * the project artifacts it is responsible for (flows to and bindings with the project features).
          * The successions define the default order; all steps after SetupProject are optional ([0..1]), for example,
-         * SpecifyBrownfieldSystem in a greenfield project or the functional and logical architectures.
+         * ModelBrownfieldSystem in a greenfield project or the functional and logical architectures.
          *
          * Each step refines one or more ISO/IEC/IEEE 15288 processes from the library package ISO15288Processes in SYSMOD15288.sysml (#refinement dependencies at the end of this package).
          * A project can tailor the process by redefining Project::defaultProcess with a specialization of SYSMODDefaultProcess.
+         *
+         * Step names follow the pattern verb + product. The verb states how formal the content of the step's output is,
+         * from informal to fully formal:
+         *   1 describe  - text in natural language without a prescribed structure, e.g., an elevator pitch.
+         *   2 identify  - named elements with a short text, optionally traced or classified.
+         *   3 define    - elements with fixed attributes and clear boundaries.
+         *   4 model     - structure: contexts, parts, connections, allocations, and refinements.
+         *   5 specify   - verifiable or executable content: measurable requirements, constraints, and verification cases.
+         * A step that contains nested steps takes the verb of its most formal nested step.
+         * Verbs outside this scale name activities, not step outputs: set up (project organization), elicit (gather
+         * information from stakeholders), elaborate (refine an existing output without changing its level), derive,
+         * analyze, verify, and validate.
          */
         private import ModelingMetadata::refinement;
 
         action def SYSMODDefaultProcess {
             doc
             /*
-             * The default SYSMOD process: setupProject, specifyBrownfieldSystem, specifyProblemStatement, identifyStakeholders,
-             * elaborateStakeholderNeeds, pitchSystemIdea, defineSystemSpecification, createFunctionalArchitecture, createLogicalArchitecture,
-             * createProductArchitecture, and verifyAndValidateRequirements, in this order.
+             * The default SYSMOD process: setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders,
+             * identifyStakeholderNeeds, describeSystemIdea, specifySystem, modelFunctionalArchitecture, modelLogicalArchitecture,
+             * modelProductArchitecture, and specifyVerificationContext, in this order.
              * The project that performs the process is referenced by project. Outputs of the steps flow into the corresponding project features,
              * and the inputs of the steps are bound to the project features created by earlier steps.
              * The input parameters are the information a human or an AI assistant provides to start the process. */
@@ -588,96 +600,96 @@ library package SYSMOD {
             }
 
             first start then setupProject;
-            first [0..1]setupProject then [0..1]specifyBrownfieldSystem;
-            first [0..1]specifyBrownfieldSystem then [0..1]specifyProblemStatement;
-            first [0..1]specifyProblemStatement then [0..1]identifyStakeholders;
-            first [0..1]identifyStakeholders then [0..1]elaborateStakeholderNeeds;
-            first [0..1]elaborateStakeholderNeeds then [0..1]pitchSystemIdea;
-            first [0..1]pitchSystemIdea then [0..1]defineSystemSpecification;
-            first [0..1]defineSystemSpecification then [0..1]createFunctionalArchitecture;
-            first [0..1]createFunctionalArchitecture then [0..1]createLogicalArchitecture;
-            first [0..1]createLogicalArchitecture then [0..1]createProductArchitecture;
-            first [0..1]createProductArchitecture then [0..1]verifyAndValidateRequirements;
-            first [0..1]verifyAndValidateRequirements then done;
+            first [0..1]setupProject then [0..1]modelBrownfieldSystem;
+            first [0..1]modelBrownfieldSystem then [0..1]describeProblemStatement;
+            first [0..1]describeProblemStatement then [0..1]identifyStakeholders;
+            first [0..1]identifyStakeholders then [0..1]identifyStakeholderNeeds;
+            first [0..1]identifyStakeholderNeeds then [0..1]describeSystemIdea;
+            first [0..1]describeSystemIdea then [0..1]specifySystem;
+            first [0..1]specifySystem then [0..1]modelFunctionalArchitecture;
+            first [0..1]modelFunctionalArchitecture then [0..1]modelLogicalArchitecture;
+            first [0..1]modelLogicalArchitecture then [0..1]modelProductArchitecture;
+            first [0..1]modelProductArchitecture then [0..1]specifyVerificationContext;
+            first [0..1]specifyVerificationContext then done;
 
-            flow from specifyBrownfieldSystem.brownfieldContext to project.brownfieldContext;
-            flow from specifyBrownfieldSystem.brownfieldContextImpl to project.brownfieldContextImpl;
-            flow from specifyProblemStatement.problemStatement to project.problemStatement;
+            flow from modelBrownfieldSystem.brownfieldContext to project.brownfieldContext;
+            flow from modelBrownfieldSystem.brownfieldContextImpl to project.brownfieldContextImpl;
+            flow from describeProblemStatement.problemStatement to project.problemStatement;
             flow from identifyStakeholders.projectStakeholders to project.projectStakeholders;
-            flow from elaborateStakeholderNeeds.stakeholderNeeds to project.stakeholderNeeds;
-            flow from pitchSystemIdea.systemIdeaContext to project.systemIdeaContext;
-            flow from pitchSystemIdea.systemIdeaContextImpl to project.systemIdeaContextImpl;
-            flow from pitchSystemIdea.systemObjectives to project.systemObjectives;
-            flow from defineSystemSpecification.specificationContext to project.specificationContext;
-            flow from defineSystemSpecification.specificationContextImpl to project.specificationContextImpl;
-            flow from defineSystemSpecification.systemRequirementSpecification to project.systemRequirementSpecification;
-            flow from createFunctionalArchitecture.functionalContext to project.functionalContext;
-            flow from createFunctionalArchitecture.functionalContextImpl to project.functionalContextImpl;
-            flow from createLogicalArchitecture.logicalContext to project.logicalContext;
-            flow from createLogicalArchitecture.logicalContextImpl to project.logicalContextImpl;
-            flow from createLogicalArchitecture.functional2logical to project.functional2logical;
-            flow from createLogicalArchitecture.functionalImpl2logicalImpl to project.functionalImpl2logicalImpl;
-            flow from createProductArchitecture.productContext to project.productContext;
-            flow from createProductArchitecture.productContextImpl to project.productContextImpl;
-            flow from createProductArchitecture.logical2product to project.logical2product;
-            flow from createProductArchitecture.logicalImpl2productImpl to project.logicalImpl2productImpl;
-            flow from verifyAndValidateRequirements.verificationContext to project.verificationContext;
+            flow from identifyStakeholderNeeds.stakeholderNeeds to project.stakeholderNeeds;
+            flow from describeSystemIdea.systemIdeaContext to project.systemIdeaContext;
+            flow from describeSystemIdea.systemIdeaContextImpl to project.systemIdeaContextImpl;
+            flow from describeSystemIdea.systemObjectives to project.systemObjectives;
+            flow from specifySystem.specificationContext to project.specificationContext;
+            flow from specifySystem.specificationContextImpl to project.specificationContextImpl;
+            flow from specifySystem.systemRequirementSpecification to project.systemRequirementSpecification;
+            flow from modelFunctionalArchitecture.functionalContext to project.functionalContext;
+            flow from modelFunctionalArchitecture.functionalContextImpl to project.functionalContextImpl;
+            flow from modelLogicalArchitecture.logicalContext to project.logicalContext;
+            flow from modelLogicalArchitecture.logicalContextImpl to project.logicalContextImpl;
+            flow from modelLogicalArchitecture.functional2logical to project.functional2logical;
+            flow from modelLogicalArchitecture.functionalImpl2logicalImpl to project.functionalImpl2logicalImpl;
+            flow from modelProductArchitecture.productContext to project.productContext;
+            flow from modelProductArchitecture.productContextImpl to project.productContextImpl;
+            flow from modelProductArchitecture.logical2product to project.logical2product;
+            flow from modelProductArchitecture.logicalImpl2productImpl to project.logicalImpl2productImpl;
+            flow from specifyVerificationContext.verificationContext to project.verificationContext;
 
-            bind project.brownfieldContextImpl = specifyProblemStatement.brownfieldContextImpl;
-            bind project.brownfieldContextImpl = specifyBrownfieldSystem.brownfieldContextImpl;
+            bind project.brownfieldContextImpl = describeProblemStatement.brownfieldContextImpl;
+            bind project.brownfieldContextImpl = modelBrownfieldSystem.brownfieldContextImpl;
             bind project.problemStatement = identifyStakeholders.problemStatement;
-            bind project.problemStatement = elaborateStakeholderNeeds.problemStatement;
-            bind project.projectStakeholders = elaborateStakeholderNeeds.projectStakeholders;
-            bind project.problemStatement = pitchSystemIdea.problemStatement;
-            bind project.stakeholderNeeds = pitchSystemIdea.stakeholderNeeds;
-            bind project.systemIdeaContextImpl = defineSystemSpecification.systemIdeaContextImpl;
-            bind project.stakeholderNeeds = defineSystemSpecification.stakeholderNeeds;
-            bind project.systemObjectives = defineSystemSpecification.systemObjectives;
-            bind project.specificationContext = createFunctionalArchitecture.specificationContext;
-            bind project.specificationContextImpl = createLogicalArchitecture.specificationContextImpl;
-            bind project.functionalContext = createLogicalArchitecture.functionalContext;
-            bind project.functionalContextImpl = createLogicalArchitecture.functionalContextImpl;
-            bind project.specificationContextImpl = createProductArchitecture.specificationContextImpl;
-            bind project.functionalContextImpl = createProductArchitecture.functionalContextImpl;
-            bind project.logicalContext = createProductArchitecture.logicalContext;
-            bind project.logicalContextImpl = createProductArchitecture.logicalContextImpl;
-            bind project.systemRequirementSpecification = verifyAndValidateRequirements.systemRequirementSpecification;
-            bind project.productContextImpl = verifyAndValidateRequirements.productContextImpl;
+            bind project.problemStatement = identifyStakeholderNeeds.problemStatement;
+            bind project.projectStakeholders = identifyStakeholderNeeds.projectStakeholders;
+            bind project.problemStatement = describeSystemIdea.problemStatement;
+            bind project.stakeholderNeeds = describeSystemIdea.stakeholderNeeds;
+            bind project.systemIdeaContextImpl = specifySystem.systemIdeaContextImpl;
+            bind project.stakeholderNeeds = specifySystem.stakeholderNeeds;
+            bind project.systemObjectives = specifySystem.systemObjectives;
+            bind project.specificationContext = modelFunctionalArchitecture.specificationContext;
+            bind project.specificationContextImpl = modelLogicalArchitecture.specificationContextImpl;
+            bind project.functionalContext = modelLogicalArchitecture.functionalContext;
+            bind project.functionalContextImpl = modelLogicalArchitecture.functionalContextImpl;
+            bind project.specificationContextImpl = modelProductArchitecture.specificationContextImpl;
+            bind project.functionalContextImpl = modelProductArchitecture.functionalContextImpl;
+            bind project.logicalContext = modelProductArchitecture.logicalContext;
+            bind project.logicalContextImpl = modelProductArchitecture.logicalContextImpl;
+            bind project.systemRequirementSpecification = specifyVerificationContext.systemRequirementSpecification;
+            bind project.productContextImpl = specifyVerificationContext.productContextImpl;
 
             action setupProject : SetupProject {
                 @StepStatus;
                 in attribute projectOwnerName = SYSMODDefaultProcess::projectOwnerName;
                 in attribute projectPurpose = SYSMODDefaultProcess::projectPurpose;
             }
-            action specifyBrownfieldSystem : SpecifyBrownfieldSystem {
+            action modelBrownfieldSystem : ModelBrownfieldSystem {
                 @StepStatus;
                 in item brownfieldArchitecture = SYSMODDefaultProcess::brownfieldArchitecture;
             }
-            action specifyProblemStatement : SpecifyProblemStatement {
+            action describeProblemStatement : DescribeProblemStatement {
                 @StepStatus;
                 in part projectOwner = SYSMODDefaultProcess::project.projectOwner;
                 in attribute problemStatementText = SYSMODDefaultProcess::problemStatementText;
             }
             action identifyStakeholders : IdentifyStakeholders { @StepStatus; }
-            action elaborateStakeholderNeeds : ElaborateStakeholderNeeds { @StepStatus; }
-            action pitchSystemIdea : PitchSystemIdea {
+            action identifyStakeholderNeeds : IdentifyStakeholderNeeds { @StepStatus; }
+            action describeSystemIdea : DescribeSystemIdea {
                 @StepStatus;
                 in item systemIdeaArchitecture = SYSMODDefaultProcess::systemIdeaArchitecture;
             }
-            action defineSystemSpecification : DefineSystemSpecification { @StepStatus; } 
-            action createFunctionalArchitecture : CreateFunctionalArchitecture {
+            action specifySystem : SpecifySystem { @StepStatus; } 
+            action modelFunctionalArchitecture : ModelFunctionalArchitecture {
                 @StepStatus;
                 in item functionalArchitecture = SYSMODDefaultProcess::functionalArchitecture;
             }
-            action createLogicalArchitecture : CreateLogicalArchitecture {
+            action modelLogicalArchitecture : ModelLogicalArchitecture {
                 @StepStatus;
                 in item logicalArchitecture = SYSMODDefaultProcess::logicalArchitecture;
             }
-            action createProductArchitecture : CreateProductArchitecture {
+            action modelProductArchitecture : ModelProductArchitecture {
                 @StepStatus;
                 in item productArchitecture = SYSMODDefaultProcess::productArchitecture;
             }
-            action verifyAndValidateRequirements : VerifyAndValidateRequirements { @StepStatus; }
+            action specifyVerificationContext : SpecifyVerificationContext { @StepStatus; }
         }
 
         action def SetupProject { 
@@ -698,17 +710,17 @@ library package SYSMOD {
             assign project.purpose := projectPurpose;
         }
 
-        action def SpecifyBrownfieldSystem {
+        action def ModelBrownfieldSystem {
             doc
-            /* Specifies the existing (brownfield) system and its actors as black box context (brownfieldContext) and white box context (brownfieldContextImpl), based on a given description of the existing architecture. Optional for greenfield projects. Refines the ISO 15288 Business or Mission Analysis process. */
+            /* Models the existing (brownfield) system and its actors as black box context (brownfieldContext) and white box context (brownfieldContextImpl), based on a given description of the existing architecture. Optional for greenfield projects. Refines the ISO 15288 Business or Mission Analysis process. */
             in item brownfieldArchitecture : ArchitectureDescription;
             out part brownfieldContext : SystemContext;
             out part brownfieldContextImpl : SystemContext;
         }
 
-        action def SpecifyProblemStatement {
+        action def DescribeProblemStatement {
             doc
-            /* Specifies the problem statement: a solution-free elevator pitch of the problem, with the brownfield system as subject and the project owner as stakeholder. Refines the ISO 15288 Business or Mission Analysis process. */
+            /* Describes the problem statement: a solution-free elevator pitch of the problem, with the brownfield system as subject and the project owner as stakeholder. Refines the ISO 15288 Business or Mission Analysis process. */
             in part projectOwner : ExtendedStakeholder;
             in attribute problemStatementText : ScalarValues::String {
                 doc
@@ -727,17 +739,17 @@ library package SYSMOD {
             }
         }
 
-        action def ElaborateStakeholderNeeds {
+        action def IdentifyStakeholderNeeds {
             doc
-            /* Elaborates the needs of the stakeholders at intent level, framed by the problem statement and traced to the stakeholders they come from. Refines the ISO 15288 Stakeholder Needs and Requirements Definition process. */
+            /* Identifies the needs of the stakeholders at intent level, framed by the problem statement and traced to the stakeholders they come from. Refines the ISO 15288 Stakeholder Needs and Requirements Definition process. */
             in concern problemStatement : ExtendedConcern;
             in part projectStakeholders[*] : ExtendedStakeholder;
             out concern stakeholderNeeds : ExtendedConcern;
         }
 
-        action def PitchSystemIdea {
+        action def DescribeSystemIdea {
             doc
-            /* Pitches the system idea: a conceptual, elevator-pitch-style outline of the new or changed system that answers the problem statement and the stakeholder needs, as black box (systemIdeaContext) and white box (systemIdeaContextImpl) context, and its measurable goals, the system objectives. Refines the ISO 15288 Business or Mission Analysis process. */
+            /* Describes the system idea: a conceptual, elevator-pitch-style outline of the new or changed system that answers the problem statement and the stakeholder needs, as black box (systemIdeaContext) and white box (systemIdeaContextImpl) context, and its measurable goals, the system objectives. Refines the ISO 15288 Business or Mission Analysis process. */
             in item systemIdeaArchitecture : ArchitectureDescription;
             in concern problemStatement : ExtendedConcern;
             in concern stakeholderNeeds : ExtendedConcern;
@@ -746,9 +758,9 @@ library package SYSMOD {
             out concern systemObjectives : ExtendedConcern;
         }
 
-        action def DefineSystemSpecification {
+        action def SpecifySystem {
             doc
-            /* Defines the system specification based on the system idea, the system objectives, and the stakeholder needs: the specification contexts, the system use cases, and the system requirements. Refines the ISO 15288 System Requirements Definition process. */
+            /* Specifies the system based on the system idea, the system objectives, and the stakeholder needs: the specification contexts, the system use cases, and the system requirements. Refines the ISO 15288 System Requirements Definition process. */
             in part systemIdeaContextImpl : SystemContext;
             in concern stakeholderNeeds : ExtendedConcern;
             in concern systemObjectives : ExtendedConcern;
@@ -756,42 +768,42 @@ library package SYSMOD {
             out part specificationContextImpl : SystemContext;
             out requirement systemRequirementSpecification : ExtendedRequirement;
 
-            action specifySpecificationArchitecture {
+            action modelSpecificationContext {
                 doc
-                /* Refines the system idea contexts into the black box and white box specification contexts. */
-                in part systemIdeaContextImpl : SystemContext = DefineSystemSpecification::systemIdeaContextImpl;
-                out part specificationContext : SystemContext = DefineSystemSpecification::specificationContext;
-                out part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
+                /* Models the black box and white box specification contexts by refining the system idea contexts. */
+                in part systemIdeaContextImpl : SystemContext = SpecifySystem::systemIdeaContextImpl;
+                out part specificationContext : SystemContext = SpecifySystem::specificationContext;
+                out part specificationContextImpl : SystemContext = SpecifySystem::specificationContextImpl;
             }
             action identifyUseCases {
                 doc
                 /* Identifies the system use cases of the specification context that describe how the actors interact with the system. */
-                in part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
-                in concern stakeholderNeeds : ExtendedConcern = DefineSystemSpecification::stakeholderNeeds;
-                out use case systemUseCases[*] : SystemUseCase = DefineSystemSpecification::specificationContext.useCases;
+                in part specificationContextImpl : SystemContext = SpecifySystem::specificationContextImpl;
+                in concern stakeholderNeeds : ExtendedConcern = SpecifySystem::stakeholderNeeds;
+                out use case systemUseCases[*] : SystemUseCase = SpecifySystem::specificationContext.useCases;
             }
-            action elaborateSystemRequirements {
+            action specifySystemRequirements {
                 doc
-                /* Elaborates the verifiable, solution-neutral system requirements that frame the stakeholder needs. */
-                in part specificationContextImpl : SystemContext = DefineSystemSpecification::specificationContextImpl;
-                in concern stakeholderNeeds : ExtendedConcern = DefineSystemSpecification::stakeholderNeeds;
-                in concern systemObjectives : ExtendedConcern = DefineSystemSpecification::systemObjectives;
-                out requirement systemRequirementSpecification : ExtendedRequirement = DefineSystemSpecification::systemRequirementSpecification;
+                /* Specifies the verifiable, solution-neutral system requirements that frame the stakeholder needs. */
+                in part specificationContextImpl : SystemContext = SpecifySystem::specificationContextImpl;
+                in concern stakeholderNeeds : ExtendedConcern = SpecifySystem::stakeholderNeeds;
+                in concern systemObjectives : ExtendedConcern = SpecifySystem::systemObjectives;
+                out requirement systemRequirementSpecification : ExtendedRequirement = SpecifySystem::systemRequirementSpecification;
             }
         }
 
-        action def CreateFunctionalArchitecture {
+        action def ModelFunctionalArchitecture {
             doc
-            /* Creates the optional functional architecture based on the black box specification context: the black box functional context and the white box functional context with the functional blocks, and the #refinement dependencies from the functional elements to the system requirements they refine. Refines the ISO 15288 System Architecture Definition process. */
+            /* Models the optional functional architecture based on the black box specification context: the black box functional context and the white box functional context with the functional blocks, and the #refinement dependencies from the functional elements to the system requirements they refine. Refines the ISO 15288 System Architecture Definition process. */
             in item functionalArchitecture : ArchitectureDescription;
             in part specificationContext : SystemContext;
             out part functionalContext[0..1] : SystemContext;
             out part functionalContextImpl[0..1] : SystemContext;
         }
 
-        action def CreateLogicalArchitecture {
+        action def ModelLogicalArchitecture {
             doc
-            /* Creates the optional logical architecture based on the white box specification context and, if present, the white box functional context: the black box logical context and the white box logical context with the technology-independent building blocks, the #refinement dependencies from the logical elements to the system requirements they refine, and, if a functional architecture is present, the allocations functional2logical and functionalImpl2logicalImpl from the functional to the logical architecture. Refines the ISO 15288 System Architecture Definition process. */
+            /* Models the optional logical architecture based on the white box specification context and, if present, the white box functional context: the black box logical context and the white box logical context with the technology-independent building blocks, the #refinement dependencies from the logical elements to the system requirements they refine, and, if a functional architecture is present, the allocations functional2logical and functionalImpl2logicalImpl from the functional to the logical architecture. Refines the ISO 15288 System Architecture Definition process. */
             in item logicalArchitecture : ArchitectureDescription;
             in part specificationContextImpl : SystemContext;
             in part functionalContext[0..1] : SystemContext;
@@ -802,9 +814,9 @@ library package SYSMOD {
             out abstract allocation functionalImpl2logicalImpl[0..1];
         }
 
-        action def CreateProductArchitecture {
+        action def ModelProductArchitecture {
             doc
-            /* Creates the product architecture based on the white box specification context and, if present, the white box functional and logical contexts: the black box product context and the white box product context with the concrete, physical or deployable building blocks, and, if a logical architecture is present, the allocations logical2product and logicalImpl2productImpl from the logical to the product architecture. Refines the ISO 15288 System Architecture Definition process. */
+            /* Models the product architecture based on the white box specification context and, if present, the white box functional and logical contexts: the black box product context and the white box product context with the concrete, physical or deployable building blocks, and, if a logical architecture is present, the allocations logical2product and logicalImpl2productImpl from the logical to the product architecture. Refines the ISO 15288 System Architecture Definition process. */
             in item productArchitecture : ArchitectureDescription;
             in part specificationContextImpl : SystemContext;
             in part functionalContextImpl[0..1] : SystemContext;
@@ -816,9 +828,9 @@ library package SYSMOD {
             out abstract allocation logicalImpl2productImpl[0..1];
         }
 
-        action def VerifyAndValidateRequirements {
+        action def SpecifyVerificationContext {
             doc
-            /* Creates the verification context with the test systems, e.g., test benches or a wind tunnel, as additional actors, and its verification cases that verify the product system against the system requirements and validate it against the stakeholder needs and the problem statement. Refines the ISO 15288 Verification and Validation processes. */
+            /* Specifies the verification context with the test systems, e.g., test benches or a wind tunnel, as additional actors, and its verification cases that verify the product system against the system requirements and validate it against the stakeholder needs and the problem statement. Refines the ISO 15288 Verification and Validation processes. */
             in requirement systemRequirementSpecification : ExtendedRequirement;
             in part productContextImpl : SystemContext;
             out part verificationContext : SystemContext;
@@ -833,18 +845,18 @@ library package SYSMOD {
         // Refinement of the ISO 15288 processes by the SYSMOD processes
         //
         #refinement dependency SetupProject to ISO15288Processes::ProjectPlanning;
-        #refinement dependency SpecifyBrownfieldSystem to ISO15288Processes::BusinessOrMissionAnalysis;
-        #refinement dependency SpecifyProblemStatement to ISO15288Processes::BusinessOrMissionAnalysis;
+        #refinement dependency ModelBrownfieldSystem to ISO15288Processes::BusinessOrMissionAnalysis;
+        #refinement dependency DescribeProblemStatement to ISO15288Processes::BusinessOrMissionAnalysis;
         #refinement dependency IdentifyStakeholders to ISO15288Processes::StakeholderNeedsAndRequirementsDefinition;
         #refinement dependency IdentifyStakeholders to ISO15288Processes::BusinessOrMissionAnalysis;
-        #refinement dependency ElaborateStakeholderNeeds to ISO15288Processes::StakeholderNeedsAndRequirementsDefinition;
-        #refinement dependency PitchSystemIdea to ISO15288Processes::BusinessOrMissionAnalysis;
-        #refinement dependency DefineSystemSpecification to ISO15288Processes::SystemRequirementsDefinition;
-        #refinement dependency CreateFunctionalArchitecture to ISO15288Processes::SystemArchitectureDefinition;
-        #refinement dependency CreateLogicalArchitecture to ISO15288Processes::SystemArchitectureDefinition;
-        #refinement dependency CreateProductArchitecture to ISO15288Processes::SystemArchitectureDefinition;
-        #refinement dependency VerifyAndValidateRequirements to ISO15288Processes::Verification;
-        #refinement dependency VerifyAndValidateRequirements to ISO15288Processes::Validation;
+        #refinement dependency IdentifyStakeholderNeeds to ISO15288Processes::StakeholderNeedsAndRequirementsDefinition;
+        #refinement dependency DescribeSystemIdea to ISO15288Processes::BusinessOrMissionAnalysis;
+        #refinement dependency SpecifySystem to ISO15288Processes::SystemRequirementsDefinition;
+        #refinement dependency ModelFunctionalArchitecture to ISO15288Processes::SystemArchitectureDefinition;
+        #refinement dependency ModelLogicalArchitecture to ISO15288Processes::SystemArchitectureDefinition;
+        #refinement dependency ModelProductArchitecture to ISO15288Processes::SystemArchitectureDefinition;
+        #refinement dependency SpecifyVerificationContext to ISO15288Processes::Verification;
+        #refinement dependency SpecifyVerificationContext to ISO15288Processes::Validation;
 
         //
         // Additional Elements

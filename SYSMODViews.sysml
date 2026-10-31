@@ -44,11 +44,11 @@ library package SYSMODViews {
             doc /* All given elements are the SYSMOD process or its steps. */
             in elements : Base::Anything;
             elements->forAll {
-                in e; e istype SYSMODDefaultProcess or e istype SetupProject or e istype SpecifyBrownfieldSystem
-                    or e istype SpecifyProblemStatement or e istype IdentifyStakeholders or e istype ElaborateStakeholderNeeds
-                    or e istype PitchSystemIdea or e istype DefineSystemSpecification or e istype CreateFunctionalArchitecture
-                    or e istype CreateLogicalArchitecture or e istype CreateProductArchitecture
-                    or e istype VerifyAndValidateRequirements
+                in e; e istype SYSMODDefaultProcess or e istype SetupProject or e istype ModelBrownfieldSystem
+                    or e istype DescribeProblemStatement or e istype IdentifyStakeholders or e istype IdentifyStakeholderNeeds
+                    or e istype DescribeSystemIdea or e istype SpecifySystem or e istype ModelFunctionalArchitecture
+                    or e istype ModelLogicalArchitecture or e istype ModelProductArchitecture
+                    or e istype SpecifyVerificationContext
             }
         }
 
@@ -287,20 +287,20 @@ library package SYSMODViews {
     rendering asSYSMODMap :> Views::renderings {
         doc /* Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them:
                 * Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject).
-                * A1: problemStatement, projectStakeholders, stakeholderNeeds (specifyProblemStatement, identifyStakeholders, elaborateStakeholderNeeds).
-                * A2: systemObjectives (pitchSystemIdea).
-                * A3: systemRequirementSpecification (defineSystemSpecification).
-                * A4: #refinement dependencies from the functional elements to the system requirements (createFunctionalArchitecture).
-                * A5: #refinement dependencies from the logical elements to the system requirements (createLogicalArchitecture).
-                * A6: productSystemImpl satisfies systemRequirementSpecification (createProductArchitecture).
-                * A7: verificationContext.verificationCases (verifyAndValidateRequirements).
-                * B1: brownfieldContext; C1: brownfieldContextImpl (specifyBrownfieldSystem).
-                * B2: systemIdeaContext; C2: systemIdeaContextImpl (pitchSystemIdea).
-                * B3: specificationContext with the system use cases; C3: specificationContextImpl (defineSystemSpecification).
-                * B4: functionalContext; C4: functionalContextImpl (createFunctionalArchitecture).
-                * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (createLogicalArchitecture).
-                * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (createProductArchitecture).
-                * B7 to C7: verificationContext (verifyAndValidateRequirements).
+                * A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds).
+                * A2: systemObjectives (describeSystemIdea).
+                * A3: systemRequirementSpecification (specifySystem).
+                * A4: #refinement dependencies from the functional elements to the system requirements (modelFunctionalArchitecture).
+                * A5: #refinement dependencies from the logical elements to the system requirements (modelLogicalArchitecture).
+                * A6: productSystemImpl satisfies systemRequirementSpecification (modelProductArchitecture).
+                * A7: verificationContext.verificationCases (specifyVerificationContext).
+                * B1: brownfieldContext; C1: brownfieldContextImpl (modelBrownfieldSystem).
+                * B2: systemIdeaContext; C2: systemIdeaContextImpl (describeSystemIdea).
+                * B3: specificationContext with the system use cases; C3: specificationContextImpl (specifySystem).
+                * B4: functionalContext; C4: functionalContextImpl (modelFunctionalArchitecture).
+                * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (modelLogicalArchitecture).
+                * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelProductArchitecture).
+                * B7 to C7: verificationContext (specifyVerificationContext).
                 * Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
                 */
     }

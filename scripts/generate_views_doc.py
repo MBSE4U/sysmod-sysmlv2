@@ -508,7 +508,7 @@ def read_step_views(sysmod_elements, project_files, views):
 
     A view usage in a project exposes a project feature, e.g., 'expose problemStatement'.
     The step producing that feature is found by the flows of SYSMODDefaultProcess,
-    e.g., 'flow from specifyProblemStatement.problemStatement to project.problemStatement'.
+    e.g., 'flow from describeProblemStatement.problemStatement to project.problemStatement'.
     'expose this' exposes the project itself, which the steps assigning project features set up.
     """
     process_package = find_package(sysmod_elements, "SYSMODProcesses")
@@ -1066,7 +1066,7 @@ def render(version, processes, stakeholders, concerns, viewpoints, views, render
       "without a *builds on* dependency are entry points.")
     w("")
     w("A dependency states which content builds on which other content. It does not require the other view to be "
-      "complete: SYSMOD lets you start with partial content, e.g., pitch the system idea before all stakeholder "
+      "complete: SYSMOD lets you start with partial content, e.g., describe the system idea before all stakeholder "
       "needs are elaborated, and revise earlier content when later steps reveal gaps. Following the dependencies "
       "keeps the content consistent and traceable; the default order is given by the SYSMOD process steps, "
       "and changes ripple along the *input for* direction.")

@@ -2,6 +2,17 @@
 
 ## v5.1.7
 
+- Renamed the SYSMOD steps to follow a verb terminology: step names are verb + product, and the verb states how formal the content of the step's output is, from informal to fully formal: describe, identify, define, model, specify. A step with nested steps takes the verb of its most formal nested step. The terminology is documented in the `SYSMODProcesses` package doc.
+  - `SpecifyBrownfieldSystem` → `ModelBrownfieldSystem` (`modelBrownfieldSystem`)
+  - `SpecifyProblemStatement` → `DescribeProblemStatement` (`describeProblemStatement`)
+  - `ElaborateStakeholderNeeds` → `IdentifyStakeholderNeeds` (`identifyStakeholderNeeds`)
+  - `PitchSystemIdea` → `DescribeSystemIdea` (`describeSystemIdea`)
+  - `DefineSystemSpecification` → `SpecifySystem` (`specifySystem`), with the nested steps `specifySpecificationArchitecture` → `modelSpecificationContext` and `elaborateSystemRequirements` → `specifySystemRequirements`; `identifyUseCases` is unchanged
+  - `CreateFunctionalArchitecture`, `CreateLogicalArchitecture`, `CreateProductArchitecture` → `ModelFunctionalArchitecture`, `ModelLogicalArchitecture`, `ModelProductArchitecture` (`model…Architecture`)
+  - `VerifyAndValidateRequirements` → `SpecifyVerificationContext` (`specifyVerificationContext`)
+  - `SetupProject` and `IdentifyStakeholders` are unchanged.
+  - The step doc comments use the new verbs. Updated the references in `SYSMOD4AI.sysml` (process prompts), `SYSMODViews.sysml` (`OnlyProcessStepElements` constraint, SYSMOD Map docs), `README.md`, the Delivery Drone project (`@StepStatus` redefinitions), and the docstrings of the generator scripts; regenerated `SYSMODViews.md` and `examples/views/sysmodMapStatus.json`.
+  - Models that redefine steps of `defaultProcess` must use the new names.
 - Renamed the fictional drone company in the examples and MicroStory snippets from AmperDrones to Quite Remote Deliveries Ltd. (doc comments and the example views `projectView.svg` and `projectAIView.svg`; no identifiers changed).
 - MicroStory snippets `the-project` and `problem-statement`: the project now declares the views `projectCoverView`, `projectCoverAIView`, `problemStatementView`, and `problemStatementAIView` itself, as the Delivery Drone example does since 5.1.6 (they are no longer inherited from `SYSMOD::Project`).
 - Fixed the double bullet ("- - ") of the black box/white box entry in the 5.1.6 change log.

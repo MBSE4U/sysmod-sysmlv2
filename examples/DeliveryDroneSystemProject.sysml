@@ -196,16 +196,16 @@ package <DD> DeliveryDrone {
              * scripts/generate_map_status.py. Verification has only started: MaxPayloadTest is the
              * first verification case. */
             action :>> setupProject { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> specifyBrownfieldSystem { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> specifyProblemStatement { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> modelBrownfieldSystem { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> describeProblemStatement { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
             action :>> identifyStakeholders { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> elaborateStakeholderNeeds { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> pitchSystemIdea { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> defineSystemSpecification { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> createFunctionalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> createLogicalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> createProductArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> verifyAndValidateRequirements { @StepStatus { status = StepStatusKind::inProgress; percentage = 0.2 as Percentage; } }
+            action :>> identifyStakeholderNeeds { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> describeSystemIdea { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> specifySystem { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> modelFunctionalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> modelLogicalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> modelProductArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+            action :>> specifyVerificationContext { @StepStatus { status = StepStatusKind::inProgress; percentage = 0.2 as Percentage; } }
         }
 
         //

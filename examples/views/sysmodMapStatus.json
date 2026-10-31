@@ -13,44 +13,44 @@
       "type": "SetupProject"
     },
     {
-      "name": "specifyBrownfieldSystem",
-      "type": "SpecifyBrownfieldSystem"
+      "name": "modelBrownfieldSystem",
+      "type": "ModelBrownfieldSystem"
     },
     {
-      "name": "specifyProblemStatement",
-      "type": "SpecifyProblemStatement"
+      "name": "describeProblemStatement",
+      "type": "DescribeProblemStatement"
     },
     {
       "name": "identifyStakeholders",
       "type": "IdentifyStakeholders"
     },
     {
-      "name": "elaborateStakeholderNeeds",
-      "type": "ElaborateStakeholderNeeds"
+      "name": "identifyStakeholderNeeds",
+      "type": "IdentifyStakeholderNeeds"
     },
     {
-      "name": "pitchSystemIdea",
-      "type": "PitchSystemIdea"
+      "name": "describeSystemIdea",
+      "type": "DescribeSystemIdea"
     },
     {
-      "name": "defineSystemSpecification",
-      "type": "DefineSystemSpecification"
+      "name": "specifySystem",
+      "type": "SpecifySystem"
     },
     {
-      "name": "createFunctionalArchitecture",
-      "type": "CreateFunctionalArchitecture"
+      "name": "modelFunctionalArchitecture",
+      "type": "ModelFunctionalArchitecture"
     },
     {
-      "name": "createLogicalArchitecture",
-      "type": "CreateLogicalArchitecture"
+      "name": "modelLogicalArchitecture",
+      "type": "ModelLogicalArchitecture"
     },
     {
-      "name": "createProductArchitecture",
-      "type": "CreateProductArchitecture"
+      "name": "modelProductArchitecture",
+      "type": "ModelProductArchitecture"
     },
     {
-      "name": "verifyAndValidateRequirements",
-      "type": "VerifyAndValidateRequirements"
+      "name": "specifyVerificationContext",
+      "type": "SpecifyVerificationContext"
     }
   ],
   "projects": [
@@ -63,12 +63,12 @@
           "percentage": 0.0,
           "source": "default"
         },
-        "specifyBrownfieldSystem": {
+        "modelBrownfieldSystem": {
           "status": "open",
           "percentage": 0.0,
           "source": "default"
         },
-        "specifyProblemStatement": {
+        "describeProblemStatement": {
           "status": "open",
           "percentage": 0.0,
           "source": "default"
@@ -78,37 +78,37 @@
           "percentage": 0.0,
           "source": "default"
         },
-        "elaborateStakeholderNeeds": {
+        "identifyStakeholderNeeds": {
           "status": "open",
           "percentage": 0.0,
           "source": "default"
         },
-        "pitchSystemIdea": {
+        "describeSystemIdea": {
           "status": "open",
           "percentage": 0.0,
           "source": "default"
         },
-        "defineSystemSpecification": {
+        "specifySystem": {
           "status": "open",
           "percentage": 0.0,
           "source": "default"
         },
-        "createFunctionalArchitecture": {
+        "modelFunctionalArchitecture": {
           "status": "open",
           "percentage": 0.0,
           "source": "default"
         },
-        "createLogicalArchitecture": {
+        "modelLogicalArchitecture": {
           "status": "open",
           "percentage": 0.0,
           "source": "default"
         },
-        "createProductArchitecture": {
+        "modelProductArchitecture": {
           "status": "open",
           "percentage": 0.0,
           "source": "default"
         },
-        "verifyAndValidateRequirements": {
+        "specifyVerificationContext": {
           "status": "open",
           "percentage": 0.0,
           "source": "default"
@@ -124,12 +124,12 @@
           "percentage": 1.0,
           "source": "model"
         },
-        "specifyBrownfieldSystem": {
+        "modelBrownfieldSystem": {
           "status": "done",
           "percentage": 1.0,
           "source": "model"
         },
-        "specifyProblemStatement": {
+        "describeProblemStatement": {
           "status": "done",
           "percentage": 1.0,
           "source": "model"
@@ -139,37 +139,37 @@
           "percentage": 1.0,
           "source": "model"
         },
-        "elaborateStakeholderNeeds": {
+        "identifyStakeholderNeeds": {
           "status": "done",
           "percentage": 1.0,
           "source": "model"
         },
-        "pitchSystemIdea": {
+        "describeSystemIdea": {
           "status": "done",
           "percentage": 1.0,
           "source": "model"
         },
-        "defineSystemSpecification": {
+        "specifySystem": {
           "status": "done",
           "percentage": 1.0,
           "source": "model"
         },
-        "createFunctionalArchitecture": {
+        "modelFunctionalArchitecture": {
           "status": "done",
           "percentage": 1.0,
           "source": "model"
         },
-        "createLogicalArchitecture": {
+        "modelLogicalArchitecture": {
           "status": "done",
           "percentage": 1.0,
           "source": "model"
         },
-        "createProductArchitecture": {
+        "modelProductArchitecture": {
           "status": "done",
           "percentage": 1.0,
           "source": "model"
         },
-        "verifyAndValidateRequirements": {
+        "specifyVerificationContext": {
           "status": "inProgress",
           "percentage": 0.2,
           "source": "model"

@@ -183,10 +183,10 @@ package SYSMOD4AI {
             doc
             /* Guides the user step by step through the SYSMOD default process
              * (SYSMODProcesses::SYSMODDefaultProcess) and reports where a project stands in it:
-             * setupProject, specifyBrownfieldSystem, specifyProblemStatement, identifyStakeholders,
-             * elaborateStakeholderNeeds, pitchSystemIdea, defineSystemSpecification,
-             * createFunctionalArchitecture, createLogicalArchitecture, createProductArchitecture,
-             * and verifyAndValidateRequirements.
+             * setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders,
+             * identifyStakeholderNeeds, describeSystemIdea, specifySystem,
+             * modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture,
+             * and specifyVerificationContext.
              *
              * When to use:
              * - The user asks what to do next in a SYSMOD project, how far the project has
@@ -206,25 +206,25 @@ package SYSMOD4AI {
              */
             name = "sysmod-default-process";
             create_prompt =
-                "1. Read the SYSMODDefaultProcess action definition in SYSMOD::SYSMODProcesses and its steps in succession order: setupProject, specifyBrownfieldSystem, specifyProblemStatement, identifyStakeholders, elaborateStakeholderNeeds, pitchSystemIdea, defineSystemSpecification, createFunctionalArchitecture, createLogicalArchitecture, createProductArchitecture, verifyAndValidateRequirements.
+                "1. Read the SYSMODDefaultProcess action definition in SYSMOD::SYSMODProcesses and its steps in succession order: setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds, describeSystemIdea, specifySystem, modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture, specifyVerificationContext.
                 2. Find the project. If no project exists, start with setupProject.
                 3. Determine the current position in the process: for each step, check whether its outputs (the project features it flows into) already exist in the project and are valid. The first step whose outputs are missing or invalid is the next step.
                 4. Execute the next step by delegating to the AI metadata of the project features it produces, using their create_questions, create_prompt, and validation_prompt:
                    - setupProject: projectAI and projectOwnerAI; set the project's purpose and the projectOwner's name from the process inputs projectPurpose and projectOwnerName.
-                   - specifyBrownfieldSystem: brownfieldContextAI, using the process input brownfieldArchitecture (a description of the existing system).
-                   - specifyProblemStatement: problemStatementAI, using the process input problemStatementText and the projectOwner.
+                   - modelBrownfieldSystem: brownfieldContextAI, using the process input brownfieldArchitecture (a description of the existing system).
+                   - describeProblemStatement: problemStatementAI, using the process input problemStatementText and the projectOwner.
                    - identifyStakeholders: projectStakeholdersAI; optionally stakeholderPriorityMapAI.
-                   - elaborateStakeholderNeeds: stakeholderNeedsAI.
-                   - pitchSystemIdea: systemIdeaContextAI, using the process input systemIdeaArchitecture, then systemObjectivesAI.
-                   - defineSystemSpecification: specificationContextAI (specification architecture and use cases), then systemRequirementSpecificationAI.
-                   - createFunctionalArchitecture (optional): functionalContextAI, using the process input functionalArchitecture.
-                   - createLogicalArchitecture (optional): logicalContextAI, using the process input logicalArchitecture.
-                   - createProductArchitecture: productContextAI, using the process input productArchitecture.
-                   - verifyAndValidateRequirements: redefine the project's verificationContext (it specializes productContextImpl), add the test systems needed for the verification as actors (e.g., a test bench or a wind tunnel), and create verification case usages within it subsetting its verificationCases, with the productSystem (the soiImpl of the verificationContext) as subject, each verifying one or more requirements of the systemRequirementSpecification.
-                5. Respect the inputs of each step as defined by the bindings of SYSMODDefaultProcess: a step must only start when the project features it reads exist (e.g. elaborateStakeholderNeeds needs the problemStatement and the projectStakeholders).
-                6. Steps after setupProject are optional ([0..1] successions). Skip a step only when it does not apply (e.g. specifyBrownfieldSystem for a pure greenfield project, or createFunctionalArchitecture and createLogicalArchitecture), and tell the user which step was skipped and why.
+                   - identifyStakeholderNeeds: stakeholderNeedsAI.
+                   - describeSystemIdea: systemIdeaContextAI, using the process input systemIdeaArchitecture, then systemObjectivesAI.
+                   - specifySystem: specificationContextAI (specification architecture and use cases), then systemRequirementSpecificationAI.
+                   - modelFunctionalArchitecture (optional): functionalContextAI, using the process input functionalArchitecture.
+                   - modelLogicalArchitecture (optional): logicalContextAI, using the process input logicalArchitecture.
+                   - modelProductArchitecture: productContextAI, using the process input productArchitecture.
+                   - specifyVerificationContext: redefine the project's verificationContext (it specializes productContextImpl), add the test systems needed for the verification as actors (e.g., a test bench or a wind tunnel), and create verification case usages within it subsetting its verificationCases, with the productSystem (the soiImpl of the verificationContext) as subject, each verifying one or more requirements of the systemRequirementSpecification.
+                5. Respect the inputs of each step as defined by the bindings of SYSMODDefaultProcess: a step must only start when the project features it reads exist (e.g. identifyStakeholderNeeds needs the problemStatement and the projectStakeholders).
+                6. Steps after setupProject are optional ([0..1] successions). Skip a step only when it does not apply (e.g. modelBrownfieldSystem for a pure greenfield project, or modelFunctionalArchitecture and modelLogicalArchitecture), and tell the user which step was skipped and why.
                 7. After each step, show the user the result and the step's validation findings, and ask whether to continue with the next step, revise the current one, or stop.
-                8. If the user asks how a step relates to ISO/IEC/IEEE 15288, answer from the #refinement dependencies in SYSMODProcesses (e.g. DefineSystemSpecification refines ISO15288Processes::SystemRequirementsDefinition).
+                8. If the user asks how a step relates to ISO/IEC/IEEE 15288, answer from the #refinement dependencies in SYSMODProcesses (e.g. SpecifySystem refines ISO15288Processes::SystemRequirementsDefinition).
                 9. Do not redefine the project's defaultProcess action usage unless the user explicitly asks to tailor the process; if so, redefine defaultProcess in the project with a specialization of SYSMODDefaultProcess and document every deviation in a doc comment.";
             create_questions = (
                 "Which project should the process be applied to?",
@@ -238,8 +238,8 @@ package SYSMOD4AI {
                 1. For each step of SYSMODDefaultProcess, report its status: done (outputs exist and pass the validation_prompt of the corresponding AI metadata), in progress (outputs exist but have validation errors), skipped, or open.
                 2. No step is done while one of its inputs is missing or invalid (e.g. stakeholderNeeds without a problemStatement, systemRequirementSpecification without stakeholderNeeds, productContextImpl without a specificationContextImpl).
                 3. setupProject: the project has a purpose and the projectOwner has a name.
-                4. Only optional steps are skipped (specifyBrownfieldSystem for greenfield projects, createFunctionalArchitecture, createLogicalArchitecture); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification, productContext, productContextImpl) are not skipped.
-                5. verifyAndValidateRequirements: the verificationContext specializes productContextImpl, verification case usages exist within it with the productSystem as subject, and every requirement of the systemRequirementSpecification is verified by at least one verification case.
+                4. Only optional steps are skipped (modelBrownfieldSystem for greenfield projects, modelFunctionalArchitecture, modelLogicalArchitecture); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification, productContext, productContextImpl) are not skipped.
+                5. specifyVerificationContext: the verificationContext specializes productContextImpl, verification case usages exist within it with the productSystem as subject, and every requirement of the systemRequirementSpecification is verified by at least one verification case.
                 6. If the project redefines defaultProcess, the redefinition is typed by a specialization of SYSMODDefaultProcess and documents its deviations from the default process.
                 7. Name the next step to perform and the AI metadata to use for it.
                 Report each finding with the step name, the affected element, the violated SYSMOD rule, and a concrete suggestion for correction.";
@@ -719,7 +719,7 @@ package SYSMOD4AI {
                 "1. If a functional architecture is required, specialize specificationContext (black box view) within functionalContext. Neither functionalContext nor functionalContextImpl specializes specificationContextImpl — the functional architecture must not depend on the physical internal structure of the system.
                 2. Redefine the inherited functionalSystem part (which redefines the black box specification soi) as the root of the functional architecture (e.g., developed with the FAS method). It inherits the system ports, so functions can be related to the system's external interfaces. Define the top-level functions of the system as action usages within the functionalSystem.
                 3. Specialize functionalContext within functionalContextImpl (white box view) by redefining the inherited functionalSystemImpl part. Define the functional blocks as part usages within the functionalSystemImpl that perform the functions.
-                4. If allocations to the logical architecture are known, note them; the createLogicalArchitecture step creates the functional2logical allocation (black box contexts) and the functionalImpl2logicalImpl allocation (white box contexts) in the project.
+                4. If allocations to the logical architecture are known, note them; the modelLogicalArchitecture step creates the functional2logical allocation (black box contexts) and the functionalImpl2logicalImpl allocation (white box contexts) in the project.
                 5. Create the SysML v2 textual notation for the functionalContext and the functionalContextImpl.
                 6. If the user asks to insert them into the SysML model, find the project and redefine the inherited functionalContext and functionalContextImpl part usages (note: multiplicity is [0..1]).";
             create_questions = (
@@ -765,7 +765,7 @@ package SYSMOD4AI {
                 "1. If a logical architecture is required, specialize specificationContext (black box view) within logicalContext by redefining the inherited logicalSystem part (the redefined black box soi).
                 2. Specialize logicalContext and specificationContextImpl within logicalContextImpl (white box view) by redefining the inherited logicalSystemImpl part. Define logical components as part usages within logicalSystemImpl, representing technology-independent building blocks that realize the functional architecture.
                 3. If a functional architecture is present, create the functional2logical allocation (black box contexts) and the functionalImpl2logicalImpl allocation (white box contexts) by redefining the inherited allocation usages in the project, and allocate the functional blocks to the logical components within functionalImpl2logicalImpl.
-                4. If allocations to the product architecture are known, note them; the createProductArchitecture step creates the logical2product and logicalImpl2productImpl allocations in the project.
+                4. If allocations to the product architecture are known, note them; the modelProductArchitecture step creates the logical2product and logicalImpl2productImpl allocations in the project.
                 5. Create the SysML v2 textual notation for the logicalContext and the logicalContextImpl.
                 6. If the user asks to insert them into the SysML model, find the project and redefine the inherited logicalContext and logicalContextImpl part usages (note: multiplicity is [0..1]).";
             create_questions = (

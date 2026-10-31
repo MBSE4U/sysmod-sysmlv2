@@ -1,6 +1,6 @@
 # Change Log
 
-## v5.1.7
+## v5.1.8
 
 - Renamed the SYSMOD steps to follow a verb terminology: step names are verb + product, and the verb states how formal the content of the step's output is, from informal to fully formal: describe, identify, define, model, specify. A step with nested steps takes the verb of its most formal nested step. The terminology is documented as a table (level, verb, result, test question, steps) in the `SYSMODProcesses` package doc.
   - `SpecifyBrownfieldSystem` → `ModelBrownfieldSystem` (`modelBrownfieldSystem`)
@@ -14,6 +14,9 @@
   - The step doc comments use the new verbs. Updated the references in `SYSMOD4AI.sysml` (process prompts), `SYSMODViews.sysml` (`OnlyProcessStepElements` constraint, SYSMOD Map docs), `README.md`, the Delivery Drone project (`@StepStatus` redefinitions), and the docstrings of the generator scripts; regenerated `SYSMODViews.md` and `examples/views/sysmodMapStatus.json`.
   - Models that redefine steps of `defaultProcess` must use the new names.
 - Renamed the fictional drone company in the examples and MicroStory snippets from AmperDrones to Quite Remote Deliveries Ltd. (doc comments and the example views `projectView.svg` and `projectAIView.svg`; no identifiers changed).
+
+## v5.1.7
+
 - MicroStory snippets `the-project` and `problem-statement`: the project now declares the views `projectCoverView`, `projectCoverAIView`, `problemStatementView`, and `problemStatementAIView` itself, as the Delivery Drone example does since 5.1.6 (they are no longer inherited from `SYSMOD::Project`).
 - Fixed the double bullet ("- - ") of the black box/white box entry in the 5.1.6 change log.
 - Fixed a parser error in the `Percentage` constraint (#39): the assert constraint now refers to the attribute value with `that` instead of `self` (`that >= 0.0 and that <= 1.0`).

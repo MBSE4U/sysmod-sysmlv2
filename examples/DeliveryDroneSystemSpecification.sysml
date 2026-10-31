@@ -478,10 +478,13 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
     package Requirements {
         requirement def DeliveryDroneSystemRequirements :> ExtendedRequirement {
             doc
-            /* Root of the delivery drone system requirements. */
-            subject deliveryDroneSystem : DD_SPECIFICATION::DeliveryDroneSystem;
+            /* Root of the delivery drone system requirements. Its subject is the white box
+             * specification system, so that MaxPayloadMass can refer to its drones. */
+            subject deliveryDroneSystem : DD_SPECIFICATION::DeliveryDroneSystemImpl;
             stakeholder projectOwner : ExtendedStakeholder;
-            requirement maxPayloadMass : MaxPayloadMass;
+            requirement maxPayloadMass : MaxPayloadMass {
+                subject :>> deliveryDrone :> deliveryDroneSystem.drones;
+            }
             requirement airCharging : AirCharging;
         }
         #extendedRequirement requirement def MaxPayloadMass :> SYSMODRequirementsBoilerplates::MaxValue {

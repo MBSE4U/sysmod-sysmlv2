@@ -127,24 +127,24 @@ library package SYSMOD {
         }
         part specificationContext :> systemIdeaContext {
             doc
-            /* The specification context includes the actors and the system, along with specific subcomponents, which are defined during the requirements analysis. The specification context is also the owner of the system use cases. The context specializes the black box system idea context. */
+            /* The specification context includes the actors and the system, which are defined during the requirements analysis. The specification context is also the owner of the system use cases. The context specializes the black box system idea context. */
             part <soi> specificationSystem :>> systemIdeaContext::soi {
                 doc
-                /* The specification system as a black box. It redefines the system idea and is the subject of the system requirements and use cases. */
+                /* The specification system as a black box. It redefines the system idea and is the subject of the use cases. */
             }
         }
         part specificationContextImpl :> specificationContext, systemIdeaContextImpl {
             doc
-            /* The white box view of the specification context. It combines the black box specification context with the internal structure view inherited from the system idea implementation context. */
+            /* The white box view of the specification context. It combines the black box specification context with the internal structure view inherited from the system idea implementation context. Additional features, such as subparts or attributes, which are used by use cases and requirements can be defined here. */
             part <soiImpl> specificationSystemImpl :>> specificationContext::soi, systemIdeaContextImpl::soiImpl {
                 doc
-                /* The white box view of the specification system including its internal structure. */
+                /* The white box view of the specification system including its internal structure. It is the subject of the system requirements, so that requirements can refer to its subparts and attributes. */
             }
         }
         requirement systemRequirementSpecification : ExtendedRequirement {
             doc
-            /* The System Requirement Specification is the root element for system requirements. They frame the stakeholder needs. */
-            subject specificationSystem :> specificationContext.soi;
+            /* The System Requirement Specification is the root element for system requirements. They frame the stakeholder needs. Its subject is the white box specification system, so that nested requirements can refer to subparts of the system, e.g., a requirement on a drone of a drone delivery system. */
+            subject specificationSystemImpl :> specificationContextImpl.soiImpl;
             frame stakeholderNeeds;
         }
         part functionalContext[0..1] :> specificationContext {
@@ -822,7 +822,7 @@ library package SYSMOD {
 
             action modelSpecificationContext {
                 doc
-                /* Models the black box and white box specification contexts by refining the system idea contexts. */
+                /* Models the black box and white box specification contexts by refining the system idea contexts: the actors at the system boundary in the black box context, and the subparts or attributes of the system used by use cases and requirements in the white box context. */
                 in part systemIdeaContextImpl : SystemContext = SpecifySystem::systemIdeaContextImpl;
                 out part specificationContext : SystemContext = SpecifySystem::specificationContext;
                 out part specificationContextImpl : SystemContext = SpecifySystem::specificationContextImpl;

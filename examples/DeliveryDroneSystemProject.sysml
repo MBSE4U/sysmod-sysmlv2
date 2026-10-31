@@ -151,7 +151,7 @@ package <DD> DeliveryDrone {
             part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSystemIdeaContextImpl::deliveryDroneSystemImpl, Project::specificationContextImpl::soiImpl;
         }
         requirement deliveryDroneSystemRequirementsSpecification :>> systemRequirementSpecification : DD_SPECIFICATION::Requirements::DeliveryDroneSystemRequirements {
-            subject deliveryDroneSystem :>> specificationSystem, deliveryDroneSystem :> deliveryDroneSpecificationContext.deliveryDroneSystem;
+            subject deliveryDroneSystem :>> specificationSystemImpl, deliveryDroneSystem :> deliveryDroneSpecificationContextImpl.deliveryDroneSystemImpl;
             stakeholder :>> projectOwner = johnFinch;
         }
 

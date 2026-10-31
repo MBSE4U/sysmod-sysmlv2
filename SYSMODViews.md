@@ -1274,7 +1274,7 @@ Product "System Requirements": the systemRequirementSpecification of the Project
 - **Created by:** `SpecifySystem`
 - **Builds on:** [StakeholderNeedsView](#view-stakeholderneedsview) (`stakeholderNeeds`), [SystemObjectivesView](#view-systemobjectivesview) (`systemObjectives`), [SpecificationSystemView](#view-specificationsystemview) (`specificationContextImpl`)
 - **Information provided:** —
-- **Traces to:** [StakeholderNeedsView](#view-stakeholderneedsview) (systemRequirementSpecification frames stakeholderNeeds), [SpecificationSystemView](#view-specificationsystemview) (systemRequirementSpecification has its subject in specificationContext)
+- **Traces to:** [StakeholderNeedsView](#view-stakeholderneedsview) (systemRequirementSpecification frames stakeholderNeeds), [SpecificationSystemView](#view-specificationsystemview) (systemRequirementSpecification has its subject in specificationContextImpl)
 - **Input for:** [VerificationAndValidationView](#view-verificationandvalidationview), [VerificationMatrixView](#view-verificationmatrixview)
 
 **Definition**

@@ -21,8 +21,8 @@ package MicroStory_SystemRequirements {
         // frames the stakeholderNeeds.
         requirement deliveryDroneSystemRequirementsSpecification
             :>> systemRequirementSpecification : DeliveryDroneSystemRequirements {
-            // one subject: the library's specificationSystem is the drone system
-            subject :>> specificationSystem, deliveryDroneSystem;
+            // one subject: the library's specificationSystemImpl (white box) is the drone system
+            subject :>> specificationSystemImpl, deliveryDroneSystem;
         }
     }
 }

@@ -39,7 +39,7 @@ package MicroStory_Traceability {
         // systemRequirementSpecification.
         requirement deliveryDroneSystemRequirementsSpecification
             :>> systemRequirementSpecification : DeliveryDroneSystemRequirements {
-            subject :>> specificationSystem, deliveryDroneSystem;
+            subject :>> specificationSystemImpl, deliveryDroneSystem;
             requirement :>> maxPayloadMass {
                 subject;
                 stakeholder :>> logisticCompany = logisticCompany;

@@ -590,14 +590,14 @@ package SYSMOD4AI {
             name = "sysmod-specification-context";
             create_prompt =
                 "1. Specialize systemIdeaContext by redefining the soi part (black box view) with a specification-level system definition, within specificationContext. Specialize specificationContext and systemIdeaContextImpl by redefining the soiImpl part (white box view) with the matching specification implementation, within specificationContextImpl.
-                2. Identify and add any actors or subcomponents that become visible during requirements analysis (e.g., specific interfaces, subsystems defined at the black box level).
+                2. Identify and add any actors and interfaces at the system boundary that become visible during requirements analysis to the specificationContext (black box). Add subparts or attributes of the system that use cases and requirements refer to, e.g., the drones of a drone delivery system, to the soiImpl within specificationContextImpl (white box), not to the black box soi.
                 3. Add system use cases to the specificationContext that describe how actors interact with the system of interest at the specification level.
                 4. Each use case definition declares the specification system as its first parameter (subject) and a typed actor parameter for each participating actor. Each use case usage in the specificationContext subsets its subject from the context's soi and binds each actor parameter to the context's actor part usage.
                 5. Create the SysML v2 textual notation for the specificationContext and specificationContextImpl, including actor parts and use case usages.
                 6. If the user asks to insert the specificationContext into the SysML model, find the project and redefine the inherited specificationContext and specificationContextImpl part usages.";
             create_questions = (
                 "Which use cases describe how actors interact with the system?",
-                "Are there additional actors or subcomponents that become visible at the specification level?"
+                "Are there additional actors that become visible at the specification level, or subparts and attributes of the system that the use cases and requirements refer to?"
             );
             validation_prompt =
                 "Validate the specificationContext and specificationContextImpl against the SYSMOD Specification Context concept and report findings grouped as errors, warnings, and suggestions.
@@ -609,7 +609,7 @@ package SYSMOD4AI {
                 5. Each use case has at least one actor parameter, and in the specificationContext every actor parameter is bound to an actor part usage subsetting actors.
                 6. Each use case has a meaningful name and doc comment describing the interaction goal.
                 7. All actors from the systemIdeaContext are inherited or redefined — no actor should silently disappear.
-                8. The specificationContext does not contain solution elements — it should remain a black box view of the system.
+                8. The specificationContext does not contain solution elements or subparts of the system — it should remain a black box view of the system; subparts and attributes used by use cases and requirements are defined in the specificationContextImpl.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -674,8 +674,8 @@ package SYSMOD4AI {
              */
             name = "sysmod-system-requirements";
             create_prompt =
-                "1. Derive system requirements from the stakeholderNeeds and the systemObjectives, framed by the stakeholderNeeds and referencing the specificationSystem as subject. Each measurable system objective is reflected in at least one requirement with the target value.
-                2. For each requirement, create a requirement usage or definition specializing ExtendedRequirement. Set obligation (mandatory/optional), stability (stable/unstable), and a brief motivation. Declare the specification system as the first parameter (subject) and a typed stakeholder parameter for the stakeholders of the framed need. In the root requirement, bind each nested requirement usage's subject to the root subject.
+                "1. Derive system requirements from the stakeholderNeeds and the systemObjectives, framed by the stakeholderNeeds and referencing the white box specification system (specificationSystemImpl, the soiImpl of specificationContextImpl) as subject. Each measurable system objective is reflected in at least one requirement with the target value.
+                2. For each requirement, create a requirement usage or definition specializing ExtendedRequirement. Set obligation (mandatory/optional), stability (stable/unstable), and a brief motivation. Declare the specification system as the first parameter (subject) and a typed stakeholder parameter for the stakeholders of the framed need. In the root requirement, bind each nested requirement usage's subject to the root subject or, for a requirement on a subpart of the system, to that subpart of the root subject (e.g., 'requirement maxPayloadMass : MaxPayloadMass { subject :>> deliveryDrone :> deliveryDroneSystem.drones; }').
                 3. Ensure each requirement is verifiable, unambiguous, and solution-neutral where possible.
                 4. Group requirements logically (e.g., functional, performance, safety, interface) using nested requirement usages if appropriate.
                 5. Create the SysML v2 textual notation for the systemRequirementSpecification.
@@ -689,7 +689,7 @@ package SYSMOD4AI {
                 "Validate the systemRequirementSpecification against the SYSMOD System Requirements concept and report findings grouped as errors, warnings, and suggestions.
                 Check:
                 1. The systemRequirementSpecification requirement usage is present in the project, framing the stakeholderNeeds.
-                2. The subject references the specificationContext soi (the specification system is the subject of the requirements).
+                2. The subject references the specificationContextImpl soiImpl (the white box specification system is the subject of the requirements), and the subject of each nested requirement is bound to the root subject or one of its subparts.
                 3. At least one system requirement is defined as a nested requirement usage or definition.
                 4. Each requirement specializes ExtendedRequirement and has the obligation attribute set (not ObligationKind::none).
                 5. Each requirement has the stability attribute set (not StabilityKind::none).

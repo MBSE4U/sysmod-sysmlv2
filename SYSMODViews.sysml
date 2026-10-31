@@ -206,7 +206,10 @@ library package SYSMODViews {
             }
         }
         viewpoint def VerificationViewpoint {
-            doc /* Shows the systemRequirementSpecification and the verificationCases that verify the productSystem against it. */
+            doc /* Shows the systemRequirementSpecification and the verification cases that verify it: the specificationVerificationCases
+                 * against the black box specification system, available before the solution architecture, and the verificationCases
+                 * of the verificationContext that bind them to the productSystem.
+                 */
             subject theView;
             frame concern cvc : VerificationCoverage;
             require constraint onlyVerificationElements {
@@ -289,11 +292,11 @@ library package SYSMODViews {
                 * Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject).
                 * A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds).
                 * A2: systemObjectives (describeSystemIdea).
-                * A3: systemRequirementSpecification (specifySystem).
+                * A3: systemRequirementSpecification, specificationVerificationCases (specifySystem).
                 * A4: #refinement dependencies from the functional elements to the system requirements (modelFunctionalArchitecture).
                 * A5: #refinement dependencies from the logical elements to the system requirements (modelLogicalArchitecture).
                 * A6: productSystemImpl satisfies systemRequirementSpecification (modelProductArchitecture).
-                * A7: verificationContext.verificationCases (specifyVerificationContext).
+                * A7: verificationContext.verificationCases, i.e., the specificationVerificationCases of A3 bound to the productSystem (specifyVerificationContext).
                 * B1: brownfieldContext; C1: brownfieldContextImpl (modelBrownfieldSystem).
                 * B2: systemIdeaContext; C2: systemIdeaContextImpl (describeSystemIdea).
                 * B3: specificationContext with the system use cases; C3: specificationContextImpl (specifySystem).
@@ -431,7 +434,10 @@ library package SYSMODViews {
         render Views::asTreeDiagram;
     }
     view def VerificationMatrixView :> StandardViewDefinitions::GridView {
-        doc /* Product "Verification and Validation": matrix of the system requirements and the verificationCases that verify them. */
+        doc /* Product "Verification and Validation": matrix of the system requirements and the verification cases that verify them.
+                * It shows the specificationVerificationCases, so that the verification coverage can be reviewed while the system is
+                * specified, and the verificationCases of the verificationContext once they are bound to the productSystem.
+                */
         satisfy requirement vvp : VerificationViewpoint;
         filter @SysML::VerificationCaseUsage or @SysML::RequirementUsage or @ExtendedRequirementMetadata;
         render Views::asElementTable;
@@ -511,7 +517,7 @@ library package SYSMODViews {
     #viewedArtifact dependency ArchitectureAllocationView to Project::functional2logical, Project::logical2product,
         Project::functionalImpl2logicalImpl, Project::logicalImpl2productImpl;
     #viewedArtifact dependency VerificationAndValidationView to Project::verificationContext::verificationCases;
-    #viewedArtifact dependency VerificationMatrixView to Project::verificationContext::verificationCases;
+    #viewedArtifact dependency VerificationMatrixView to Project::specificationVerificationCases, Project::verificationContext::verificationCases;
 }
 
 

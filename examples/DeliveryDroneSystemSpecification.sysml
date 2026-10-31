@@ -508,4 +508,25 @@ package <DD_SPECIFICATION> DeliveryDroneSystemSpecification {
             frame concern :DD_STAKEHOLDERNEEDS::ReliableDelivery;
         }
     }
+
+    package Verification {
+        doc
+        /* The verification case definitions of the delivery drone system, specified together
+         * with the system requirements and before any solution architecture exists. Their
+         * subject is the black box specification system. The verification context of the
+         * product architecture binds them to the product system and adds the test systems. */
+        verification def MaxPayloadTest {
+            doc
+            /* Verifies that a drone of the system transports the maximum payload mass.
+             * The objective and the verdict are fixed here; the drone under test is bound
+             * in the verification context, since the drones are not part of the black box. */
+            subject testedSystem : DeliveryDroneSystem;
+            requirement maxReq : Requirements::MaxPayloadMass;
+            objective {
+                verify maxReq;
+            }
+            action preparePayload;
+            return verdict = VerificationCases::PassIf(maxReq.result);
+        }
+    }
 }

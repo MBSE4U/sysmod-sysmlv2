@@ -41,6 +41,8 @@
   <text x="324" y="166" font-size="12" font-weight="600" fill="#222">Requirements</text>
   <text x="324" y="184" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">systemRequirement</text>
   <text x="324" y="198" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">Specification</text>
+  <text x="324" y="212" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">+ specification</text>
+  <text x="324" y="226" font-size="10" font-family="Consolas, Menlo, monospace" fill="#333">VerificationCases</text>
   <text x="324" y="262" font-size="10" fill="#555">done · 100 %</text>
   <rect x="324" y="268" width="112" height="6" fill="#ffffff" stroke="#bbb" stroke-width="0.8"/>
   <rect x="324" y="268" width="112.0" height="6" fill="#b7791f"/>

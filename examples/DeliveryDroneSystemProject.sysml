@@ -144,6 +144,14 @@ package <DD> DeliveryDrone {
             subject deliveryDroneSystem :>> specificationSystem, deliveryDroneSystem :> deliveryDroneSpecificationContext.deliveryDroneSystem;
             stakeholder :>> projectOwner = johnFinch;
         }
+        verification maxPayloadTest : DD_SPECIFICATION::Verification::MaxPayloadTest :> specificationVerificationCases {
+            doc /* Specified together with the system requirements, before the solution
+                   architecture: the verification engineers and the systems engineers agree
+                   in SysML on the objective (verify MaxPayloadMass) and the verdict (PassIf)
+                   against the black box specification system. The verification context
+                   binds it to the product system. */
+            subject :>> specificationSystem, testedSystem;
+        }
 
         //------------------------- Solution Architecture: Functional Architecture
         part deliveryDroneFunctionalContext :>> functionalContext : DD_FUNCTIONAL_ARCHITECTURE::DeliveryDroneFunctionalContext :> deliveryDroneSpecificationContext {
@@ -174,9 +182,16 @@ package <DD> DeliveryDrone {
         //------------------------- Verification
         part deliveryDroneVerificationContext :>> verificationContext : DD_VV::DeliveryDroneVerificationContext :> deliveryDroneProductContextImpl {
             doc /* The verification context adds the wind tunnel as test system and
-                   owns the verification cases of the Delivery Drone. */
-            verification maxPayloadTest : DD_VV::MaxPayloadTest :> verificationCases {
-                subject :>> productSystem, testedSystem;
+                   binds the verification cases specified with the system requirements
+                   to the product system. */
+            verification maxPayloadTest : DD_SPECIFICATION::Verification::MaxPayloadTest :> verificationCases {
+                doc /* The MaxPayloadTest of the specification, bound to the product system:
+                       the tested system is the white box product system, and the drone under
+                       test is one of its drones. */
+                subject :>> productSystem, testedSystem : DD_PRODUCT::DeliveryDroneProductSystemImpl;
+                requirement :>> maxReq {
+                    subject :>> deliveryDrone :> productSystem.drones;
+                }
             }
         }
 
@@ -194,7 +209,8 @@ package <DD> DeliveryDrone {
             /* The status of the SYSMOD steps in the Delivery Drone project. The project redefines the
              * steps of the default process and sets their @StepStatus. The SYSMOD Map reads it with
              * scripts/generate_map_status.py. Verification has only started: MaxPayloadTest is the
-             * first verification case. */
+             * first verification case; it is specified in specifySystem and bound to the product
+             * system in specifyVerificationContext. */
             action :>> setupProject { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
             action :>> modelBrownfieldSystem { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
             action :>> describeProblemStatement { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }

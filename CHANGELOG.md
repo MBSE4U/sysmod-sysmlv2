@@ -2,6 +2,15 @@
 
 ## v5.1.8
 
+- Split verification into define and bind, so that verification engineers enter the model while the system is specified and discuss the verification with the systems engineers in SysML instead of in a separate test language. Previously, all verification happened in the last step, after the product architecture.
+  - New Project feature `specificationVerificationCases[*]`: the verification cases specified with the system requirements; the subject `specificationSystem` subsets the black box `specificationContext.soi`, the same subject as the `systemRequirementSpecification`.
+  - `verificationContext.verificationCases` now subsets `specificationVerificationCases`; its subject `productSystem` redefines `specificationSystem` and subsets `soiImpl`. A verification case is the same case before and after the product architecture exists: the product system redefines the specification system along the context chain.
+  - Define: new nested step `specifyVerificationCases` of `SpecifySystem` (and new output `specificationVerificationCases`, flowing to the project). It specifies the verification case definitions with objective (`verify`) and verdict (`PassIf`) against the black box specification system; the `VerificationEngineer` is a stakeholder of this step. `SYSMODDefaultProcess` therefore creates the verification case definitions before `modelFunctionalArchitecture`. `SpecifySystem` additionally refines the ISO 15288 Verification process (preparation for verification). Added `specifyVerificationCases` to the verb table (level specify).
+  - Bind: `SpecifyVerificationContext` takes `specificationVerificationCases` as new input (bound to the project) and binds them to the product system in the verification context, typed by the definitions from the specification; it no longer creates verification cases anew.
+  - Delivery Drone: `MaxPayloadTest` moved from `DD_VV` (product architecture) to the new package `DD_SPECIFICATION::Verification`, with the black box `DeliveryDroneSystem` as subject. The project specifies it as `maxPayloadTest :> specificationVerificationCases` and binds it in `deliveryDroneVerificationContext` to `DeliveryDroneProductSystemImpl`, including the drone under test (`maxReq` subject `:> productSystem.drones`).
+  - `SYSMOD4AI.sysml`: new AI metadata `specificationVerificationCasesAI` (sysmod-verification-cases) and `verificationContextAI` (sysmod-verification-context); updated the process prompts of `defaultProcessAI` and the project prompts of `projectAI`.
+  - `SYSMODViews.sysml`: the SYSMOD Map shows `specificationVerificationCases` in A3 (`specifySystem`); `VerificationMatrixView` also views `specificationVerificationCases`, so the verification coverage can be reviewed during the specification; updated the `VerificationViewpoint` doc. Updated the example views `sysmodMapView.svg` and `verificationMatrixView.svg`, `README.md`, and the regenerated `SYSMODViews.md`.
+  - Models whose verification case usages subset `verificationCases` are implicitly `specificationVerificationCases`; models that typed the subject of their verification case definitions with a product architecture definition should move the definition to the specification, type the subject with the black box specification system, and bind it in the verification context.
 - Renamed the SYSMOD steps to follow a verb terminology: step names are verb + product, and the verb states how formal the content of the step's output is, from informal to fully formal: describe, identify, define, model, specify. A step with nested steps takes the verb of its most formal nested step. The terminology is documented as a table (level, verb, result, test question, steps) in the `SYSMODProcesses` package doc.
   - `SpecifyBrownfieldSystem` → `ModelBrownfieldSystem` (`modelBrownfieldSystem`)
   - `SpecifyProblemStatement` → `DescribeProblemStatement` (`describeProblemStatement`)
@@ -13,6 +22,9 @@
   - `SetupProject` and `IdentifyStakeholders` are unchanged.
   - The step doc comments use the new verbs. Updated the references in `SYSMOD4AI.sysml` (process prompts), `SYSMODViews.sysml` (`OnlyProcessStepElements` constraint, SYSMOD Map docs), `README.md`, the Delivery Drone project (`@StepStatus` redefinitions), and the docstrings of the generator scripts; regenerated `SYSMODViews.md` and `examples/views/sysmodMapStatus.json`.
   - Models that redefine steps of `defaultProcess` must use the new names.
+
+## v5.1.7
+
 - Renamed the fictional drone company in the examples and MicroStory snippets from AmperDrones to Quite Remote Deliveries Ltd. (doc comments and the example views `projectView.svg` and `projectAIView.svg`; no identifiers changed).
 
 ## v5.1.7

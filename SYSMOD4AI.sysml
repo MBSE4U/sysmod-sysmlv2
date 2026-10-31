@@ -156,7 +156,7 @@ package SYSMOD4AI {
                 "1. Create the SysML v2 textual notation for the project definition using the SYSMOD-defined keyword: '#project occurrence def PROJECTNAME {}'
                 2. Use the create_prompt of the AI metadata of the projectOwner to create the project owner of the project.
                 3. If not given by the user, use the questions to get the name of the project and the location where the project should be added.
-                4. Optionally continue with the other engineering artifacts in SYSMOD order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification, functionalContext, logicalContext, productContext, each with its Impl context) using the create_prompts of their AI metadata.";
+                4. Optionally continue with the other engineering artifacts in SYSMOD order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification, specificationVerificationCases, functionalContext, logicalContext, productContext, each with its Impl context, and verificationContext) using the create_prompts of their AI metadata.";
             create_questions = (
                 "What is the name of the project?", 
                 "Where should I add the project definition?",
@@ -176,6 +176,7 @@ package SYSMOD4AI {
                 9. A productContext part usage is present and specializes specificationContext; a productContextImpl part usage is present and specializes productContext and specificationContextImpl. A present functionalContextImpl part usage specializes functionalContext only; a present logicalContextImpl part usage specializes logicalContext and specificationContextImpl.
                 10. The cross-artifact traceability chain is intact: problemStatement <- stakeholderNeeds <- systemRequirementSpecification, and satisfy relationships exist at the system idea and functional, logical, and product architecture levels.
                 11. If both functionalContext and logicalContext are present, the functional2logical allocation is defined; if logicalContext is present, the logical2product allocation is defined. The same holds for the white box contexts and the functionalImpl2logicalImpl and logicalImpl2productImpl allocations.
+                12. Verification cases are specified before the solution architecture: verification case usages subsetting specificationVerificationCases have the black box specificationSystem as subject; a present verificationContext specializes productContextImpl, and its verification case usages subset verificationCases and are typed by the verification case definitions of the specification.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -186,7 +187,9 @@ package SYSMOD4AI {
              * setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders,
              * identifyStakeholderNeeds, describeSystemIdea, specifySystem,
              * modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture,
-             * and specifyVerificationContext.
+             * and specifyVerificationContext. Verification is split in two: specifySystem specifies
+             * the verification cases against the black box specification system, and
+             * specifyVerificationContext binds them to the product system.
              *
              * When to use:
              * - The user asks what to do next in a SYSMOD project, how far the project has
@@ -216,11 +219,11 @@ package SYSMOD4AI {
                    - identifyStakeholders: projectStakeholdersAI; optionally stakeholderPriorityMapAI.
                    - identifyStakeholderNeeds: stakeholderNeedsAI.
                    - describeSystemIdea: systemIdeaContextAI, using the process input systemIdeaArchitecture, then systemObjectivesAI.
-                   - specifySystem: specificationContextAI (specification architecture and use cases), then systemRequirementSpecificationAI.
+                   - specifySystem: specificationContextAI (specification architecture and use cases), then systemRequirementSpecificationAI, then specificationVerificationCasesAI (nested step specifyVerificationCases: the verification case definitions with objective and verdict against the black box specificationSystem, specified with the verification engineers before any solution architecture exists).
                    - modelFunctionalArchitecture (optional): functionalContextAI, using the process input functionalArchitecture.
                    - modelLogicalArchitecture (optional): logicalContextAI, using the process input logicalArchitecture.
                    - modelProductArchitecture: productContextAI, using the process input productArchitecture.
-                   - specifyVerificationContext: redefine the project's verificationContext (it specializes productContextImpl), add the test systems needed for the verification as actors (e.g., a test bench or a wind tunnel), and create verification case usages within it subsetting its verificationCases, with the productSystem (the soiImpl of the verificationContext) as subject, each verifying one or more requirements of the systemRequirementSpecification.
+                   - specifyVerificationContext: verificationContextAI; redefine the project's verificationContext (it specializes productContextImpl), add the test systems needed for the verification as actors (e.g., a test bench or a wind tunnel), and bind the specificationVerificationCases to the product system: for each one, create a verification case usage within the verificationContext typed by its verification case definition and subsetting verificationCases, with the productSystem (the soiImpl of the verificationContext) as subject. Do not create the verification cases anew; if a requirement has no verification case yet, go back to specificationVerificationCasesAI.
                 5. Respect the inputs of each step as defined by the bindings of SYSMODDefaultProcess: a step must only start when the project features it reads exist (e.g. identifyStakeholderNeeds needs the problemStatement and the projectStakeholders).
                 6. Steps after setupProject are optional ([0..1] successions). Skip a step only when it does not apply (e.g. modelBrownfieldSystem for a pure greenfield project, or modelFunctionalArchitecture and modelLogicalArchitecture), and tell the user which step was skipped and why.
                 7. After each step, show the user the result and the step's validation findings, and ask whether to continue with the next step, revise the current one, or stop.
@@ -239,7 +242,7 @@ package SYSMOD4AI {
                 2. No step is done while one of its inputs is missing or invalid (e.g. stakeholderNeeds without a problemStatement, systemRequirementSpecification without stakeholderNeeds, productContextImpl without a specificationContextImpl).
                 3. setupProject: the project has a purpose and the projectOwner has a name.
                 4. Only optional steps are skipped (modelBrownfieldSystem for greenfield projects, modelFunctionalArchitecture, modelLogicalArchitecture); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification, productContext, productContextImpl) are not skipped.
-                5. specifyVerificationContext: the verificationContext specializes productContextImpl, verification case usages exist within it with the productSystem as subject, and every requirement of the systemRequirementSpecification is verified by at least one verification case.
+                5. specifySystem: every requirement of the systemRequirementSpecification is verified by at least one verification case subsetting specificationVerificationCases, with the black box specificationSystem as subject; specifyVerificationContext: the verificationContext specializes productContextImpl, and every specificationVerificationCase is bound in it by a verification case usage typed by the same verification case definition, subsetting verificationCases, with the productSystem as subject. Flag verification case definitions created in specifyVerificationContext that do not exist in the specification.
                 6. If the project redefines defaultProcess, the redefinition is typed by a specialization of SYSMODDefaultProcess and documents its deviations from the default process.
                 7. Name the next step to perform and the AI metadata to use for it.
                 Report each finding with the step name, the affected element, the violated SYSMOD rule, and a concrete suggestion for correction.";
@@ -695,6 +698,52 @@ package SYSMOD4AI {
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
+        metadata specificationVerificationCasesAI : AI about specificationVerificationCases {
+            doc
+            /* Specifies the verification cases of the system requirements against the black box
+             * specification system while the system is specified — before any solution
+             * architecture exists — so that verification engineers and systems engineers
+             * discuss the verification in SysML rather than in a separate test language
+             * (nested step specifyVerificationCases of specifySystem).
+             *
+             * When to use:
+             * - System requirements exist, and the user wants to state how they will be
+             *   verified: the objective, the verdict, and the test procedure at the system
+             *   boundary.
+             * - A verification engineer joins the project early and wants to review the
+             *   requirements for verifiability or to agree on acceptance criteria.
+             *
+             * When not to use:
+             * - The user wants to add test systems (test benches, wind tunnels) or to bind a
+             *   verification case to the product architecture — use verificationContextAI.
+             * - The requirement itself is not yet verifiable — fix it with
+             *   systemRequirementSpecificationAI first.
+             */
+            name = "sysmod-verification-cases";
+            create_prompt =
+                "1. For each requirement of the systemRequirementSpecification, create at least one verification case definition (verification def) in the specification package of the system, e.g., in a nested package Verification next to the requirements.
+                2. Declare the subject of each verification case definition typed by the black box specification system definition (the type of specificationContext.soi), not by a definition of the functional, logical, or product architecture.
+                3. Declare the verified requirements as requirement usages typed by the requirement definitions, and state the objective with 'objective { verify <requirement>; }'. Leave the subjects of the verified requirements unbound when they refer to internal elements of the system that the black box does not contain; the verification context binds them.
+                4. Return the verdict, e.g., 'return verdict = VerificationCases::PassIf(<requirement>.result);', and outline the test procedure as actions at the system boundary where helpful.
+                5. In the project, create one verification case usage per verification case definition, typed by it and subsetting specificationVerificationCases, and redefine its subject together with the library subject: 'subject :>> specificationSystem, <subject of the definition>;'.
+                6. Name the VerificationEngineer (ISO15288Processes::Stakeholders) as stakeholder who specifies the verification cases together with the RequirementsEngineer (concern VerificationCoverage); add a project stakeholder playing this role if the user names one.
+                7. Create the SysML v2 textual notation for the verification case definitions and usages.";
+            create_questions = (
+                "Which requirements should be verified first, and by which method (test, analysis, inspection, demonstration)?",
+                "What is the pass criterion of each verification case?",
+                "Who are the verification engineers who specify the verification cases with the systems engineers?"
+            );
+            validation_prompt =
+                "Validate the specificationVerificationCases against the SYSMOD verification concept and report findings grouped as errors, warnings, and suggestions.
+                Check:
+                1. Each verification case usage in the project subsets specificationVerificationCases and is typed by a verification case definition.
+                2. The subject of each verification case definition is typed by the black box specification system definition, and the usage redefines specificationSystem.
+                3. Each verification case definition has an objective that verifies at least one requirement of the systemRequirementSpecification, and a verdict.
+                4. Every requirement of the systemRequirementSpecification is verified by at least one verification case (VerificationCoverage).
+                5. No verification case definition depends on elements of the functional, logical, or product architecture.
+                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        }
+
         metadata functionalContextAI : AI about functionalContext {
             doc
             /* Defines the optional functional architecture — technology-independent
@@ -829,6 +878,48 @@ package SYSMOD4AI {
                 7. All system requirements are satisfied — verify that a satisfy relationship chain exists from the product architecture back to the systemRequirementSpecification.
                 8. Every dependency between two product components crosses only through a defined port/interface — flag any part-to-part reference that bypasses the published interface. A back-door dependency is both a MOSA violation and the exact thing that breaks module-scoped context retrieval.
                 9. Each component's published interface is specified completely enough that a neighbor — or an AI assistant — never needs that component's internal structure to use it correctly.
+                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        }
+
+        metadata verificationContextAI : AI about verificationContext {
+            doc
+            /* Specifies the verification context — the white box product context plus the test
+             * systems — and binds the verification cases specified with the system requirements
+             * to the product system (step specifyVerificationContext).
+             *
+             * When to use:
+             * - The product architecture exists and the user wants to set up the test
+             *   environment (test benches, wind tunnels, simulators) as actors.
+             * - The verification cases of the specification are to be bound to the product
+             *   system and its elements, e.g., the drone under test.
+             *
+             * When not to use:
+             * - The user wants to state what is verified and when a verification case passes —
+             *   that is specified earlier against the black box; use
+             *   specificationVerificationCasesAI.
+             * - No product architecture exists yet — use productContextAI first.
+             */
+            name = "sysmod-verification-context";
+            create_prompt =
+                "1. Redefine the project's verificationContext with a system context definition that specializes the productContextImpl definition.
+                2. Add the test systems needed for the verification as actors, e.g., '#externalSystem part windTunnel :> actors'.
+                3. For each verification case usage subsetting specificationVerificationCases, create a verification case usage within the verificationContext, typed by the same verification case definition and subsetting verificationCases. Do not create new verification case definitions; if a requirement has no verification case yet, use specificationVerificationCasesAI first.
+                4. Redefine the subject with the library subject and type it by the white box product system definition: 'subject :>> productSystem, <subject of the definition> : <product system impl definition>;'.
+                5. Bind the subjects of the verified requirements that refer to internal elements to elements of the product system, e.g., 'requirement :>> maxReq { subject :>> deliveryDrone :> productSystem.drones; }'.
+                6. Add validation cases against the stakeholder needs, the system objectives, and the problem statement as verification case usages subsetting verificationCases.
+                7. Create the SysML v2 textual notation for the verificationContext.";
+            create_questions = (
+                "Which test systems (test benches, simulators, test sites) are needed?",
+                "Which element of the product system does each verification case test?"
+            );
+            validation_prompt =
+                "Validate the verificationContext against the SYSMOD verification concept and report findings grouped as errors, warnings, and suggestions.
+                Check:
+                1. The verificationContext part usage is present in the project and specializes productContextImpl.
+                2. The test systems are actors of the verificationContext.
+                3. Each verification case usage of the verificationContext subsets verificationCases, has the productSystem as subject, and is typed by a verification case definition of the specification (no definitions created anew in the verification context).
+                4. Each specificationVerificationCase is bound by at least one verification case usage of the verificationContext.
+                5. The subjects of the verified requirements are bound to elements of the product system where the verification case definition leaves them open.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 

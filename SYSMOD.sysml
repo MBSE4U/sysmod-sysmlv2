@@ -665,16 +665,16 @@ library package SYSMOD {
             first [0..1]performVerification then done;
 
             // Flows for information coming from the outside or created by steps for project features
-            flow from projectOwnerName to setupProject.projectOwnerName;
-            flow from projectPurpose to setupProject.projectPurpose;
-            flow from brownfieldArchitectureDescription to modelBrownfieldSystem.brownfieldArchitectureDescription;
+            bind setupProject.projectOwnerName = projectOwnerName;
+            bind setupProject.projectPurpose = projectPurpose;
+            bind modelBrownfieldSystem.brownfieldArchitectureDescription = brownfieldArchitectureDescription;
             flow from modelBrownfieldSystem.brownfieldContext to project.brownfieldContext;
             flow from modelBrownfieldSystem.brownfieldContextImpl to project.brownfieldContextImpl;
-            flow from problemStatementDescription to describeProblemStatement.problemStatementDescription;
+            bind describeProblemStatement.problemStatementDescription = problemStatementDescription;
             flow from describeProblemStatement.problemStatement to project.problemStatement;
             flow from identifyStakeholders.projectStakeholders to project.projectStakeholders;
             flow from identifyStakeholderNeeds.stakeholderNeeds to project.stakeholderNeeds;
-            flow from systemIdeaArchitectureDescription to describeSystemIdea.systemIdeaArchitectureDescription;
+            bind describeSystemIdea.systemIdeaArchitectureDescription = systemIdeaArchitectureDescription;
             flow from describeSystemIdea.systemIdeaContext to project.systemIdeaContext;
             flow from describeSystemIdea.systemIdeaContextImpl to project.systemIdeaContextImpl;
             flow from describeSystemIdea.systemObjectives to project.systemObjectives;
@@ -682,9 +682,9 @@ library package SYSMOD {
             flow from specifySystem.specificationContextImpl to project.specificationContextImpl;
             flow from specifySystem.systemRequirementSpecification to project.systemRequirementSpecification;
             flow from specifySystem.verificationContext to project.verificationContext;
-            flow from functionalArchitectureDescription to modelSolutionArchitecture.functionalArchitectureDescription;
-            flow from logicalArchitectureDescription to modelSolutionArchitecture.logicalArchitectureDescription;
-            flow from productArchitectureDescription to modelSolutionArchitecture.productArchitectureDescription;
+            bind modelSolutionArchitecture.functionalArchitectureDescription = functionalArchitectureDescription;
+            bind modelSolutionArchitecture.logicalArchitectureDescription = logicalArchitectureDescription;
+            bind modelSolutionArchitecture.productArchitectureDescription = productArchitectureDescription;
             flow from modelSolutionArchitecture.functionalContext to project.functionalContext;
             flow from modelSolutionArchitecture.functionalContextImpl to project.functionalContextImpl;
             flow from modelSolutionArchitecture.logicalContext to project.logicalContext;

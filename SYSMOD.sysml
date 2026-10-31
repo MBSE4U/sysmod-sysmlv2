@@ -292,8 +292,8 @@ library package SYSMOD {
     interface def ActorSystemInterface {
         doc
         /* Common interface definition for the link between actors and the system of interest. */
-        end [1..*] port actorPort;
-        end [1] port systemPort;
+        end port actorPort;
+        end port systemPort;
     }
 
     // System

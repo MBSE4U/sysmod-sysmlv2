@@ -2,7 +2,7 @@
   <!-- Rendering of DD::PRJ::stakeholderNeedsView : SYSMODViews::StakeholderNeedsView (render asTreeDiagram).
        Exposed (assumed usage, not in the model): DD::PRJ::stakeholderNeeds with its nested needs and the
        projectStakeholders they come from, filtered by @SysML::ConcernUsage or @ExtendedConcernMetadata or @StakeholderMetadata.
-       recipient, regulator, and johnFinch pass the filter but have no needs yet and are omitted for brevity.
+       recipient, regulator, flightTestTeam, and johnFinch pass the filter but have no needs yet and are omitted for brevity.
        Illustrative example. -->
   <defs>
     <marker id="open" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">

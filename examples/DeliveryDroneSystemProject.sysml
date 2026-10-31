@@ -77,6 +77,16 @@ package <DD> DeliveryDrone {
         part regulator : Regulator :> projectStakeholders {
             attribute :>> name = "Aviation Authority";
         }
+        part flightTestTeam : VerificationEngineer :> projectStakeholders {
+            doc /* The flight test team of the contractor plays the VerificationEngineer role
+                   (ISO 15288 Verification). It joins the project while the system is specified
+                   and specifies the verification cases together with the systems engineers
+                   (step specifySystem, nested step specifyVerificationCases). */
+            attribute :>> name = "Flight Test Team";
+            attribute :>> risk = LevelKind::middle;
+            attribute :>> effort = LevelKind::middle;
+            attribute :>> categories = StakeholderCategoryKind::expert;
+        }
 
         //------------------------- Stakeholder Needs
         private import DD_STAKEHOLDERNEEDS::*;
@@ -146,10 +156,10 @@ package <DD> DeliveryDrone {
         }
         verification maxPayloadTest : DD_SPECIFICATION::Verification::MaxPayloadTest :> specificationVerificationCases {
             doc /* Specified together with the system requirements, before the solution
-                   architecture: the verification engineers and the systems engineers agree
-                   in SysML on the objective (verify MaxPayloadMass) and the verdict (PassIf)
-                   against the black box specification system. The verification context
-                   binds it to the product system. */
+                   architecture: the flightTestTeam (VerificationEngineer) and the systems
+                   engineers agree in SysML on the objective (verify MaxPayloadMass) and the
+                   verdict (PassIf) against the black box specification system. The
+                   verification context binds it to the product system. */
             subject :>> specificationSystem, testedSystem;
         }
 

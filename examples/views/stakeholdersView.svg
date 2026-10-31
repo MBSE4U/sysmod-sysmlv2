@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="360" viewBox="0 0 1000 360" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="394" viewBox="0 0 1000 394" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <!-- Rendering of DD::PRJ::stakeholdersView : SYSMODViews::StakeholdersView (render asElementTable).
        Exposed (assumed usage, not in the model): DD::PRJ::projectStakeholders, filtered by @StakeholderMetadata,
-       i.e., johnFinch (projectOwner), logisticCompany, droneOperator, recipient, and regulator.
+       i.e., johnFinch (projectOwner), logisticCompany, droneOperator, recipient, regulator, and flightTestTeam.
        One row per stakeholder; attention = risk * effort with the LevelKind values. Illustrative example. -->
-  <rect width="1000" height="360" fill="#ffffff"/>
+  <rect width="1000" height="394" fill="#ffffff"/>
 
   <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] stakeholdersView : StakeholdersView — Delivery Drone Project stakeholders</text>
 
@@ -11,10 +11,11 @@
   <rect x="20" y="50" width="960" height="34" fill="#eef2f7"/>
   <rect x="20" y="118" width="960" height="34" fill="#f7f9fc"/>
   <rect x="20" y="186" width="960" height="34" fill="#f7f9fc"/>
+  <rect x="20" y="254" width="960" height="34" fill="#f7f9fc"/>
 
   <!-- Grid -->
   <g stroke="#333" stroke-width="1.5" fill="none">
-    <rect x="20" y="50" width="960" height="204"/>
+    <rect x="20" y="50" width="960" height="238"/>
     <line x1="20" y1="84" x2="980" y2="84"/>
   </g>
   <g stroke="#333" stroke-width="1" fill="none">
@@ -22,12 +23,13 @@
     <line x1="20" y1="152" x2="980" y2="152"/>
     <line x1="20" y1="186" x2="980" y2="186"/>
     <line x1="20" y1="220" x2="980" y2="220"/>
-    <line x1="170" y1="50" x2="170" y2="254"/>
-    <line x1="330" y1="50" x2="330" y2="254"/>
-    <line x1="560" y1="50" x2="560" y2="254"/>
-    <line x1="660" y1="50" x2="660" y2="254"/>
-    <line x1="760" y1="50" x2="760" y2="254"/>
-    <line x1="850" y1="50" x2="850" y2="254"/>
+    <line x1="20" y1="254" x2="980" y2="254"/>
+    <line x1="170" y1="50" x2="170" y2="288"/>
+    <line x1="330" y1="50" x2="330" y2="288"/>
+    <line x1="560" y1="50" x2="560" y2="288"/>
+    <line x1="660" y1="50" x2="660" y2="288"/>
+    <line x1="760" y1="50" x2="760" y2="288"/>
+    <line x1="850" y1="50" x2="850" y2="288"/>
   </g>
 
   <!-- Header text -->
@@ -82,14 +84,22 @@
     <text x="670" y="242">middle</text>
     <text x="770" y="242" font-weight="600" fill="#2f6fb0">0.375</text>
     <text x="860" y="242">requirementOwner</text>
+
+    <text x="30" y="276">flightTestTeam</text>
+    <text x="180" y="276">"Flight Test Team"</text>
+    <text x="340" y="276">VerificationEngineer</text>
+    <text x="570" y="276">middle</text>
+    <text x="670" y="276">middle</text>
+    <text x="770" y="276">0.25</text>
+    <text x="860" y="276">expert</text>
   </g>
 
   <!-- Notes -->
   <g font-size="12" fill="#555">
-    <text x="20" y="282">¹ johnFinch redefines projectOwner; its risk, effort, and categories are the projectOwner defaults.</text>
-    <text x="20" y="300">attention = risk × effort (derived), with LevelKind values low = 0.25, middle = 0.5, high = 0.75, critical = 1.0.</text>
-    <text x="20" y="318">No contact values are set in the model, so the optional contact column is omitted.</text>
+    <text x="20" y="316">¹ johnFinch redefines projectOwner; its risk, effort, and categories are the projectOwner defaults.</text>
+    <text x="20" y="334">attention = risk × effort (derived), with LevelKind values low = 0.25, middle = 0.5, high = 0.75, critical = 1.0.</text>
+    <text x="20" y="352">No contact values are set in the model, so the optional contact column is omitted.</text>
   </g>
 
-  <text x="20" y="352" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
+  <text x="20" y="386" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
 </svg>

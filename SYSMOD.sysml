@@ -779,7 +779,7 @@ library package SYSMOD {
             doc
             /* Identifies the needs of the stakeholders at intent level, framed by the problem statement and traced to the stakeholders they come from. Refines the ISO 15288 Stakeholder Needs and Requirements Definition process. */
             in concern problemStatement : ExtendedConcern;
-            in part projectStakeholders[*] : ExtendedStakeholder;
+            in part projectStakeholders[1..*] : ExtendedStakeholder;
             out concern stakeholderNeeds : ExtendedConcern;
         }
 

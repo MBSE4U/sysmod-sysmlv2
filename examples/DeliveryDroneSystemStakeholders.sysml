@@ -33,13 +33,13 @@ package <DD_STAKEHOLDERS> DeliveryDroneSystemStakeholders {
         attribute :>> effort = LevelKind::low;
         attribute :>> categories = StakeholderCategoryKind::requirementOwner;
     }
-    #extendedStakeholder part def DroneOperator {
+    #extendedStakeholder part def DroneOperator :> DDCS_HANDOVER::DroneOperator {
         doc
         /* The operator who supervises the drone fleet in daily operation. Source
-         * of usability and fleet-monitoring requirements. */
+         * of usability and fleet-monitoring requirements. It specializes the stakeholder
+         * that is handed over to the control station sub-project, which sets its category (user). */
         attribute :>> risk = LevelKind::middle;
         attribute :>> effort = LevelKind::low;
-        attribute :>> categories = StakeholderCategoryKind::user;
     }
     #extendedStakeholder part def Recipient {
         doc

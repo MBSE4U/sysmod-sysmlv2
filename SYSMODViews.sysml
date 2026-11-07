@@ -563,7 +563,7 @@ library package SYSMODViews {
     #viewedArtifact dependency ProductArchitectureView to Project::productContext, Project::productContextImpl;
     #viewedArtifact dependency ArchitectureAllocationView to Project::functional2logical, Project::logical2product,
         Project::functionalImpl2logicalImpl, Project::logicalImpl2productImpl;
-    #viewedArtifact dependency SpecificationTreeView to Project::subProjects, Project::subProjects::handOverElement,
+    #viewedArtifact dependency SpecificationTreeView to Project::subProjects, Project::subProjects::handOverElement, Project::subProjects::handoverRequirements,
         Project::systemRequirementSpecification, Project::requirementFlowDowns;
     #viewedArtifact dependency VerificationAndValidationView to Project::verificationContext::verificationCases;
     #viewedArtifact dependency VerificationMatrixView to Project::verificationContext::verificationCases;

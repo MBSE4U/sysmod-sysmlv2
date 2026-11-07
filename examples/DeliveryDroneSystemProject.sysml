@@ -299,14 +299,16 @@ package <DD> DeliveryDrone {
             doc /* The control station is developed in a SYSMOD sub-project. It
                    subsets the subProjects list inherited from SYSMOD::Project, and its
                    parentElement is the control station building block of the white box
-                   product context (sub-project contract). */
+                   product context (sub-project contract). Its handoverRequirements are typed by
+                   the handover requirements of the handover package. */
+            ref part :>> parentElement = deliveryDroneProductContextImpl.deliveryDroneProduct.controlStation;
         }
         #derivation connection airChargingFlowDown :> requirementFlowDowns {
             doc /* Requirement flow-down to the control station sub-project: the requirement AirCharging
                    flows down to the control station, which coordinates the air charging of the fleet. */
             end #original ::> deliveryDroneSystemRequirementsSpecification.airCharging;
-            end #derive ::> controlStationProject.controlStationRequirementSpecification.chargerAssignment;
-            end #derive ::> controlStationProject.controlStationRequirementSpecification.batteryTracking;
+            end #derive ::> controlStationProject.handoverRequirements.chargerAssignment;
+            end #derive ::> controlStationProject.handoverRequirements.batteryTracking;
         }
 
         //

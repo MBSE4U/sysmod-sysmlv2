@@ -5,10 +5,12 @@ package <DDCS_HANDOVER> DeliveryDroneControlStationHandover {
      *
      * Handover Package of the Control Station Sub-Project
      *
-     * The handover context is the only part of the Delivery Drone architecture that the control station
+     * The handover package is the only part of the Delivery Drone model that the control station
      * sub-project gets. The sub-project, e.g., a supplier, needs no access to the parent project:
-     * it uses the handover context as its black box brownfield context. The parent project
-     * specializes the elements of the handover context in its white box product context.
+     * it uses the handover context as its black box brownfield context, the handover stakeholders as
+     * its stakeholders, and derives its system requirements from the handover requirements. The parent
+     * project specializes the elements of the handover context and the handover stakeholders, and
+     * derives the handover requirements from its own requirements.
      *
      * based on SYSMOD v5.1.8
      *
@@ -85,5 +87,45 @@ package <DDCS_HANDOVER> DeliveryDroneControlStationHandover {
             doc /* Commands and monitoring. */
             out item order : DeliveryDroneDomainLibrary::Items::DeliveryOrder;
         }
+    }
+
+    //------------------------- Handover Stakeholders
+    #extendedStakeholder part def DroneOperator {
+        doc
+        /* The operator who supervises the drone fleet with the control station. The stakeholder definition
+         * DroneOperator of the parent project specializes it. */
+        attribute :>> categories = StakeholderCategoryKind::user;
+    }
+
+    //------------------------- Handover Requirements
+    requirement def ControlStationRequirements :> ExtendedRequirement {
+        doc
+        /* The requirements that the parent project hands over to the control station sub-project. The parent
+         * project derives them from its own requirements (requirementFlowDowns), and the sub-project derives
+         * its system requirements from them. */
+        subject controlStation : ControlStation;
+        requirement chargerAssignment : ChargerAssignmentTime;
+        requirement batteryTracking : BatteryLevelTracking;
+    }
+    #extendedRequirement requirement def ChargerAssignmentTime :> SYSMODRequirementsBoilerplates::MaxValue {
+        doc
+        /* The control station shall assign a charger drone to a drone with low battery within 10 s. */
+        subject controlStation : ControlStation;
+        stakeholder droneOperator : DroneOperator;
+        attribute :>> obligation = ObligationKind::mandatory;
+        attribute :>> stability = StabilityKind::unstable;
+        attribute :>> motivation = "A low-battery drone can only be recharged in flight if a charger drone is assigned in time.";
+        attribute :>> currentValue :> ISQ::duration = controlStation.chargerAssignmentTime;
+        attribute :>> maxValue :> ISQ::duration = 10 [SI::s];
+        attribute :>> tolerance :> ISQ::duration = 0 [SI::s];
+    }
+    #extendedRequirement requirement def BatteryLevelTracking {
+        doc
+        /* The control station shall track the battery level of every drone in flight. */
+        subject controlStation : ControlStation;
+        stakeholder droneOperator : DroneOperator;
+        attribute :>> obligation = ObligationKind::mandatory;
+        attribute :>> stability = StabilityKind::stable;
+        attribute :>> motivation = "Charger drones can only be assigned in time if the battery levels of all drones are known.";
     }
 }

@@ -296,18 +296,26 @@ library package SYSMOD {
              *    sub-project uses the handover context as its black box brownfield context. The handover package is the only package
              *    that both projects share, so the sub-project, e.g., a supplier, needs no access to the parent project. These decisions
              *    of the parent architecture are fixed at the start of the sub-project.
-             * 2. Flow-down: the parent project derives the system requirements of the sub-project from the parent requirements
-             *    that constrain the parent element, with its requirementFlowDowns.
+             * 2. Flow-down: the handover package also contains the handover requirements and the stakeholders that are handed over.
+             *    The parent project derives the handover requirements from its requirements that constrain the parent element, with
+             *    its requirementFlowDowns; the sub-project derives its system requirements from the handover requirements.
              * 3. Integration: the parent project redefines the parent element in its white box product context with the white box
              *    product system (productSystemImpl) of the sub-project. */
+        }
+        requirement handoverRequirements : ExtendedRequirement [0..1] {
+            doc
+            /* Only for a sub-project: the requirements that the parent project hands over to this sub-project, typed by a requirement
+             * definition of the handover package. The parent project derives them from its own requirements (requirementFlowDowns),
+             * and the sub-project derives its systemRequirementSpecification from them with #derivation connections. Created by the
+             * modelSubProjects step of the parent project. */
         }
         abstract connection requirementFlowDowns : DerivationConnections::Derivation [0..*] :> DerivationConnections::derivations {
             doc
             /* The requirement flow-down to the subProjects: #derivation connections from the requirements of this project that
-             * constrain the parentElement of a sub-project (#original) to the system requirements of that sub-project (#derive),
-             * e.g., end #derive ::> <sub-project usage>.<requirement specification>.<requirement>. They are declared in this project,
-             * where the requirements of both levels are accessible. Together with the subProjects, they form the specification tree.
-             * Created by the modelSubProjects step. */
+             * constrain the parentElement of a sub-project (#original) to the handoverRequirements of that sub-project (#derive),
+             * e.g., end #derive ::> <sub-project usage>.handoverRequirements.<requirement>. They are declared in this project, where
+             * the requirements of both levels are accessible; the sub-project does not need access to this project. Together with the
+             * subProjects, they form the specification tree. Created by the modelSubProjects step. */
         }
     }
     abstract occurrence projects : Project [*] {

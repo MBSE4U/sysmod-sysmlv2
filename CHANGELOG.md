@@ -1,5 +1,35 @@
 # Change Log
 
+## Unreleased (draft)
+
+Two additions for projects with sub-projects and for architecture decisions: the sub-project contract and trade studies. The new step names follow the verb terminology of v5.1.8.
+
+- Sub-project contract: a sub-project is now formally linked to the architecture of its parent project.
+  - New `Project::parentElement` (`ref part`, `[0..1]`): the building block of the parent's white box product context that the sub-project develops. The parent sets it in the sub-project usage. Its doc defines the contract: the black box brownfield context of the sub-project is derived from the parent white box as seen from the parent element (the parent element, typed by its black box definition, is the system of interest; its neighbors are the actors; its connections and the delegations of parent system ports to it are the actor/system interfaces), the parent requirements flow down, and the parent integrates the product system of the sub-project by redefining the parent element.
+  - New `Project::requirementFlowDowns` (`abstract connection`, `DerivationConnections::Derivation [0..*]`, subsets `DerivationConnections::derivations`): the `#derivation` connections from the requirements of a project (`#original`) to the system requirements of its sub-projects (`#derive`). They are declared in the parent project, because SysML v2 only allows connection ends that are accessible from the owner of the connection; a sub-project cannot refer to a requirement nested in a parent definition.
+  - New steps `ModelSubProjects` (verb level model; outputs `subProjects` and `requirementFlowDowns`; refines System Architecture Definition) and `IntegrateSubProjects` (outside the verb scale, like `PerformVerification`; `inout productContextImpl`; refines Integration). `SYSMODDefaultProcess` performs them between `modelSolutionArchitecture` and `specifyVerificationContext`; between them, each sub-project performs its own process. The verb table lists `ModelSubProjects` (model) and names integrate as an activity verb outside the scale.
+  - Doc of `subProjects` and `SpecifyVerificationContext` aligned (created by `modelSubProjects`; the integrated product system can be the system of interest of the verification context).
+- Trade studies for architecture decisions.
+  - New `SYSMODTradeStudy` analysis def specializing `TradeStudies::TradeStudy`: subject `alternatives : SystemContext [1..*]`, `criteria` (system objectives), `assessments : Assessment [0..*]`, the `evaluationFunction` as the weighted sum of the assessments of an alternative, a `MaximizeObjective`, and the typed `selectedAlternative`.
+  - New attribute def `Assessment`: `alternative`, `criterion`, `weight` (default: the `priority` of the system objective), `score` (degree of achievement, asserted to lie between 0.0 and 1.0), and `weightedScore`.
+  - New `Project::architectureAlternatives : SystemContext [0..*]` and `Project::tradeStudies : SYSMODTradeStudy [0..*]`. The definition of the selected alternative types the respective project context, which records the decision with `ModelingMetadata::Rationale` whose `explanation` is the trade study.
+  - New step `SpecifyTradeStudy` (verb level specify, `[0..*]`, refines Decision Management and System Analysis). It has no succession: a project performs it for any architecture decision with alternatives, e.g., between candidate system ideas or candidate product architectures.
+- Views (`SYSMODViews.sysml`):
+  - New `SpecificationTreeViewpoint` (frames `ProblemSolutionIntegration` and `ContractualAgreement`) and `SpecificationTreeView`.
+  - New `TradeStudyView`, a decision matrix, and the first view for the `TradeOffViewpoint`. The `TradeOffViewpoint` now allows `ExtendedConcern` (the system objectives as criteria) instead of `ExtendedRequirement` only.
+  - `OnlyProcessStepElements` includes the three new steps; the doc of the `asSYSMODMap` rendering assigns `subProjects` to `modelSubProjects` and names the steps without a cell of their own.
+  - `#viewedArtifact` dependencies for the new views.
+- AI metadata (`SYSMOD4AI.sysml`):
+  - New `tradeStudiesAI` (`sysmod-trade-studies`) and `parentElementAI` (`sysmod-sub-project-contract`), the sub-project side of the contract: derive the brownfield context and the system requirements from the parent and propose the flow-down.
+  - `subProjectsAI` covers the parent side of the contract: binding the parent element, declaring the flow-down, and integrating the sub-projects.
+  - `defaultProcessAI` and `projectAI` know the new steps and artifacts.
+- Updated example model (Delivery Drone):
+  - `DD_PRODUCT::ControlStation`: the black box definition of the control station building block (element specification) with `radioPort`, `operatorPort`, and `chargerAssignmentTime`; the white box product system delegates its `operatorPort` to it.
+  - Control station sub-project: `parentElement` typed by `DD_PRODUCT::ControlStation`; black box brownfield context derived from the parent white box (drones and operator as actors); the existing control station as white box; derived system requirements `ChargerAssignmentTime` and `BatteryLevelTracking` with the white box specification system as subject; a minimal product architecture (`ControlStationProductSystemImpl`).
+  - Delivery Drone project: binds the `parentElement` of the sub-project, declares `airChargingFlowDown` (`#original airCharging`, `#derive` the two control station requirements), integrates `DDCS::ControlStationProductSystemImpl`, adds the trade study `chargingConceptStudy` (convertible drones vs. dedicated charger drones, `DD_PRODUCT::DedicatedChargerProductContextImpl`) with `@Rationale` on `deliveryDroneProductContextImpl`, and the views `specificationTreeView` and `tradeStudyView`. The Delivery Drone MBSE environment sets the status of the new steps.
+  - New example renderings `specificationTreeView.svg` and `tradeStudyView.svg`.
+- `scripts/generate_views_doc.py`: recognizes `analysis` and `connection` usages, names Project features by their first word after the keywords (e.g., `ref part parentElement`), and links a view usage that exposes a subsetting project feature (e.g., `chargingConceptStudy :> tradeStudies`) to the step that produces the subsetted Project feature. `SYSMODViews.md` and `sysmodMapStatus.json` are not regenerated, because the generators do not yet follow the file layout of the methodology metamodel.
+
 ## v5.1.8
 
 - Split verification into define and bind, so that verification engineers enter the model while the system is specified and discuss the verification with the systems engineers in SysML instead of in a separate test language. Previously, all verification happened in the last step, after the product architecture.

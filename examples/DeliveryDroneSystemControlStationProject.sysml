@@ -27,6 +27,7 @@ package <DDCS> DeliveryDroneControlStation {
      */
 
     private import SYSMOD::*;
+
     #SYSMOD::project occurrence def <PRJ> DeliveryDroneControlStationProject {
         doc
         /* Project Charter: Delivery Drone Control Station
@@ -41,6 +42,15 @@ package <DDCS> DeliveryDroneControlStation {
          * supervise the entire autonomous delivery drone fleet.
          *
          */
+
+        //------------------------- Sub-Project Contract
+        ref part :>> parentElement : DD_PRODUCT::ControlStation {
+            doc /* The control station building block of the white box product context of the
+                   Delivery Drone project. The parent project binds it in its sub-project usage.
+                   Its black box definition is the system of interest of the brownfield context,
+                   the parent requirement AirCharging flows down to the system requirements, and
+                   the parent integrates the product system of this sub-project. */
+        }
 
         part tomSchilling :>> projectOwner {
             doc /* Tom Schilling leads the ground-segment team and is accountable
@@ -76,6 +86,8 @@ package <DDCS> DeliveryDroneControlStation {
         }
 
         //------------------------- Brownfield Architecture
+        // The black box brownfield context is derived from the white box product context of the
+        // parent project (sub-project contract); the white box adds the existing control station.
         part controlStationBrownfieldContext :>> brownfieldContext : ControlStationContext;
         part controlStationBrownfieldContextImpl :>> brownfieldContextImpl : ControlStationContextImpl :> controlStationBrownfieldContext;
 
@@ -84,50 +96,123 @@ package <DDCS> DeliveryDroneControlStation {
         // as the parent Delivery Drone project.
 
         //------------------------- Specification
-        // Omitted in this oversimplified example.
+        // The specification contexts are omitted in this oversimplified example. The system
+        // requirements are derived from the parent requirements (requirement flow-down).
+        requirement controlStationRequirementSpecification :>> systemRequirementSpecification : ControlStationRequirements {
+            subject controlStation :>> specificationSystemImpl, controlStation;
+            stakeholder :>> projectOwner = tomSchilling;
+        }
+        // The parent project declares the requirement flow-down from its requirement AirCharging
+        // to these requirements (requirementFlowDowns), where both levels are accessible.
 
-        //------------------------- Solution Architecture
-        // Omitted in this oversimplified example.
+        //------------------------- Solution Architecture: Product Architecture
+        // The functional and logical architectures are omitted in this oversimplified example.
+        part controlStationProductContext :>> productContext : ControlStationProductContext :> controlStationBrownfieldContext;
+        part controlStationProductContextImpl :>> productContextImpl : ControlStationProductContextImpl :> controlStationProductContext, controlStationBrownfieldContextImpl;
     }
 
     //------------------------- Control Station Brownfield
     #systemContext part def ControlStationContext {
         doc
-        /* The black box brownfield context of the existing control station,
-         * built for manually piloted drones. */
-        #system part controlStation : ControlStation :>> soi {
-            doc /* The existing control station as a black box. */
+        /* The black box brownfield context of the control station. It is derived from the white box
+         * product context of the parent Delivery Drone project (sub-project contract): the parent element
+         * controlStation is the system of interest, its neighbor drones and the operator, whose interface
+         * the parent delegates to the control station, are the actors, and the connection and delegation
+         * in the parent white box are the actor/system interfaces. */
+        #system part controlStation : DD_PRODUCT::ControlStation :>> soi {
+            doc /* The control station as a black box, typed by the element specification of the parent. */
+        }
+        #externalSystem part drones :> actors {
+            doc /* The delivery drones of the fleet: the neighbors of the control station in the parent white box. */
+            port radioPort :>> actorPorts;
         }
         #user part operator :> actors {
-            doc /* The operator manually piloting one drone at a time. */
-            port stationPort;
+            doc /* The operator, an actor of the parent system whose interface the parent delegates to the control station. */
+            port controlPort :>> actorPorts;
         }
-        interface operatorInterface :> asis connect operator.stationPort to controlStation.operatorPort {
-            doc /* Manual command and monitoring interface. */
+        interface radioInterface :> asis connect drones.radioPort to controlStation.radioPort {
+            doc /* Derived from the parent connection of drones.radioPort to controlStation.radioPort. */
+        }
+        interface operatorInterface :> asis connect operator.controlPort to controlStation.operatorPort {
+            doc /* Derived from the parent delegation of operatorPort to controlStation.operatorPort. */
         }
     }
     #systemContext part def ControlStationContextImpl :> ControlStationContext {
         doc
-        /* The white box brownfield context of the existing control station. */
+        /* The white box brownfield context: adds the internal structure of the existing control station. */
         #system part controlStationImpl : ControlStationImpl :>> controlStation {
             doc /* The existing control station as a white box. */
         }
     }
-    part def ControlStation {
+    part def ControlStationImpl :> DD_PRODUCT::ControlStation {
         doc
-        /* Black box definition of the existing control station. */
-        port operatorPort;
-    }
-    part def ControlStationImpl :> ControlStation {
-        doc
-        /* White box definition of the existing control station: one console and
-         * one radio link per manually piloted drone. */
-        part console {
+        /* White box definition of the existing control station, built for manually piloted drones:
+         * one console and one radio link per drone. */
+        part console [1..*] {
             doc /* Operator console for a single drone. */
         }
-        part radioLink {
+        part radioLink [1..*] {
             doc /* Radio link to the piloted drone. */
         }
         connect console to radioLink;
+    }
+
+    //------------------------- Control Station Requirements
+    requirement def ControlStationRequirements :> ExtendedRequirement {
+        doc
+        /* Root of the control station system requirements. */
+        subject controlStation : DD_PRODUCT::ControlStation;
+        stakeholder projectOwner : ExtendedStakeholder;
+        requirement chargerAssignment : ChargerAssignmentTime;
+        requirement batteryTracking : BatteryLevelTracking;
+    }
+    #extendedRequirement requirement def ChargerAssignmentTime :> SYSMODRequirementsBoilerplates::MaxValue {
+        doc
+        /* The control station shall assign a charger drone to a drone with low battery within 10 s. */
+        subject controlStation : DD_PRODUCT::ControlStation;
+        stakeholder droneOperator : DD_STAKEHOLDERS::DroneOperator;
+        attribute :>> obligation = ObligationKind::mandatory;
+        attribute :>> stability = StabilityKind::unstable;
+        attribute :>> motivation = "Derived from AirCharging: a low-battery drone can only be recharged in flight if a charger drone is assigned in time.";
+        attribute :>> currentValue :> ISQ::duration = controlStation.chargerAssignmentTime;
+        attribute :>> maxValue :> ISQ::duration = 10 [SI::s];
+        attribute :>> tolerance :> ISQ::duration = 0 [SI::s];
+    }
+    #extendedRequirement requirement def BatteryLevelTracking {
+        doc
+        /* The control station shall track the battery level of every drone in flight. */
+        subject controlStation : DD_PRODUCT::ControlStation;
+        stakeholder droneOperator : DD_STAKEHOLDERS::DroneOperator;
+        attribute :>> obligation = ObligationKind::mandatory;
+        attribute :>> stability = StabilityKind::stable;
+        attribute :>> motivation = "Derived from AirCharging: charger drones can only be assigned in time if the battery levels of all drones are known.";
+    }
+
+    //------------------------- Control Station Product Architecture
+    #systemContext part def ControlStationProductContext :> ControlStationContext {
+        doc
+        /* The black box context of the product architecture of the control station. */
+    }
+    #systemContext part def ControlStationProductContextImpl :> ControlStationProductContext, ControlStationContextImpl {
+        doc
+        /* The white box context of the product architecture of the control station. */
+        #system part :>> controlStationImpl : ControlStationProductSystemImpl;
+    }
+    part def ControlStationProductSystemImpl :> ControlStationImpl {
+        doc
+        /* The product architecture of the control station: one fleet console, fleet management software,
+         * and one radio gateway for the whole fleet. The Delivery Drone project integrates it by redefining
+         * its control station building block with this definition. */
+        part :>> console [1] {
+            doc /* A single fleet console from which one operator supervises the whole fleet. */
+        }
+        part :>> radioLink [1] {
+            doc /* A radio gateway that links all drones of the fleet. */
+        }
+        part fleetManager {
+            doc /* Fleet management software that tracks the battery levels and assigns charger drones. */
+        }
+        connect console to fleetManager;
+        connect fleetManager to radioLink;
     }
 }

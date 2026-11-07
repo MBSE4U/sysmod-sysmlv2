@@ -544,10 +544,32 @@ def read_step_views(sysmod_elements, project_files, views):
                     continue
                 # exposed elements outside the project, e.g., a use case package, have no producing step
                 feature = re.split(r"::|\.", child.words[1])[0]
-                for usage in producers.get(feature, []):
+                # a project feature that subsets a Project feature, e.g., 'analysis s : T :> tradeStudies',
+                # is produced by the step producing that Project feature
+                features = [feature] + subsetted_features(project, feature)
+                for usage in (u for f in features for u in producers.get(f, [])):
                     entry = (step_types[usage], f"{project_name}::{words[1]}")
                     if entry not in views[vtype].steps:
                         views[vtype].steps.append(entry)
+
+
+def subsetted_features(project, name):
+    """The features that the feature 'name' of the project subsets (':>'), e.g., ['tradeStudies']."""
+    for element in project.children:
+        words = element.words
+        if len(words) < 2 or words[0] not in PARAMETER_KEYWORDS or ":>" not in words:
+            continue
+        if next((w for w in words if w not in PARAMETER_KEYWORDS), None) != name:
+            continue
+        result = []
+        for w in words[words.index(":>") + 1:]:
+            if w == ",":
+                continue
+            if w in (":", ":>", ":>>", "=", "[", "default"):
+                break
+            result.append(short(w))
+        return result
+    return []
 
 
 def find_examples(views):
@@ -569,7 +591,8 @@ def find_examples(views):
 # ---------------------------------------------------------------------------
 
 PARAMETER_KEYWORDS = {"in", "out", "inout", "abstract", "part", "item", "attribute", "concern", "requirement",
-                      "verification", "use", "case", "ref", "occurrence", "action", "allocation"}
+                      "verification", "use", "case", "ref", "occurrence", "action", "allocation", "analysis",
+                      "connection"}
 
 
 def parameter(element):
@@ -751,7 +774,10 @@ def read_artifacts(sysmod_elements):
     for child in project.children:
         words = child.words
         if len(words) > 1 and words[0] in PARAMETER_KEYWORDS:
-            features[words[1]] = child
+            # the feature name is the first word after the keywords, e.g., 'ref part parentElement'
+            name = next((w for w in words if w not in PARAMETER_KEYWORDS), None)
+            if name:
+                features[name] = child
 
     def feature_of(words):
         path = dotted(words).split("::")[-1].split(".")

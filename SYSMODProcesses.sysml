@@ -231,12 +231,15 @@ library package SYSMODProcesses {
         action describeSystemIdea : DescribeSystemIdea :> submethods { @StepStatus; }
         action specifySystem : SpecifySystem :> submethods { @StepStatus; } 
         action modelSolutionArchitecture : ModelSolutionArchitecture :> submethods { @StepStatus; }
+        connection :> responsibleFor connect systemArchitect to modelSubProjects;
         action modelSubProjects : ModelSubProjects :> submethods { @StepStatus; }
+        connection :> responsibleFor connect systemArchitect to integrateSubProjects;
         action integrateSubProjects : IntegrateSubProjects :> submethods { @StepStatus; }
         action specifyVerificationContext : SpecifyVerificationContext :> submethods { @StepStatus; }
         action performVerification : PerformVerification :> submethods { @StepStatus; }
 
         // No succession: performed for any architecture decision with alternatives.
+        connection :> responsibleFor connect systemArchitect to specifyTradeStudy;
         action specifyTradeStudy : SpecifyTradeStudy [0..*] :> submethods { @StepStatus; }
     }
 
@@ -424,20 +427,23 @@ library package SYSMODProcesses {
         bind logicalImpl2productImpl = modelProductArchitecture.logicalImpl2productImpl;
     }
 
-    action def ModelSubProjects {
+    action def ModelSubProjects :> MBSEMethodology::Method {
         doc
         /* Models a sub-project for each building block of the white box product context that is developed separately, e.g., by another team or a supplier, and the sub-project contract: the sub-project usage subsets subProjects and refers to the building block as its parentElement; the black box brownfield context of the sub-project is derived from the parent white box as seen from the parent element (the parent element is the system of interest, its neighbors are the actors, its connections and the delegations of parent system ports to it are the actor/system interfaces); and the parent requirements that constrain the parent element flow down to the system requirements of the sub-project via the requirementFlowDowns of the parent project. Optional; each sub-project then performs its own process. Refines the ISO 15288 System Architecture Definition process. */
-        in part productContextImpl : SystemContext;
+        in part productContextImpl : SystemContext :> inputs;
+        // Only parameters that can also be a Product (an item) subset inputs or outputs. Requirements, concerns, and analyses
+        // cannot: they are performances, and Performance is disjoint from Object. Connections cannot either: a connection
+        // usage may only be typed by connection definitions.
         in requirement systemRequirementSpecification : ExtendedRequirement;
-        out occurrence subProjects [*] : Project;
+        out occurrence subProjects [1..*] : Project :> outputs;
         out abstract connection requirementFlowDowns [*] : DerivationConnections::Derivation;
     }
 
-    action def IntegrateSubProjects {
+    action def IntegrateSubProjects :> MBSEMethodology::Method {
         doc
         /* Integrates the products of the sub-projects into the white box product context: the parent project redefines each parentElement in its productContextImpl with the white box product system (productSystemImpl) of the sub-project that developed it. The integrated product system can be the system of interest of the verification context. Optional; performed when the product architectures of the sub-projects are available. Refines the ISO 15288 Integration process. */
-        in occurrence subProjects [*] : Project;
-        inout part productContextImpl : SystemContext;
+        in occurrence subProjects [1..*] : Project :> inputs;
+        inout part productContextImpl : SystemContext :> inputs, outputs;
     }
 
     action def SpecifyVerificationContext {
@@ -454,12 +460,13 @@ library package SYSMODProcesses {
         out item verificationReports[*] : VerificationReport;
     }
 
-    action def SpecifyTradeStudy {
+    action def SpecifyTradeStudy :> MBSEMethodology::Method {
         doc
         /* Specifies a SYSMOD trade study for an architecture decision, e.g., between candidate system ideas or candidate product architectures: models the architectureAlternatives, assesses each alternative against the system objectives (criteria weighted by their priority), selects the alternative with the maximum evaluation, makes its context definition the definition of the respective context of the project, and records the decision there with Rationale metadata whose explanation is the trade study. Mandatory system requirements, if already defined, exclude ineligible alternatives. Optional and without succession: performed whenever a step faces an architecture decision with alternatives. Refines the ISO 15288 Decision Management and System Analysis processes. */
+        // The concern, the requirement, and the analysis do not subset inputs or outputs (see ModelSubProjects).
         in concern systemObjectives : ExtendedConcern;
         in requirement systemRequirementSpecification [0..1] : ExtendedRequirement;
-        out part architectureAlternatives [1..*] : SystemContext;
+        out part architectureAlternatives [1..*] : SystemContext :> outputs;
         out analysis tradeStudies [1..*] : SYSMODTradeStudy;
     }
 

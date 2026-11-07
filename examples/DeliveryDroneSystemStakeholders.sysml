@@ -5,6 +5,8 @@ package <DD_STAKEHOLDERS> DeliveryDroneSystemStakeholders {
      *
      * Definition of the Stakeholders
      *
+     * based on SYSMOD v5.1.8
+     *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
      * You may obtain a copy of the License at
@@ -65,6 +67,8 @@ package <DD_STAKEHOLDERNEEDS> DeliveryDroneSystemStakeholderNeeds {
      * SYSMOD Example Model: Delivery Drone
      *
      * Definition of the Stakeholder Needs
+     *
+     * based on SYSMOD v5.1.8
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.

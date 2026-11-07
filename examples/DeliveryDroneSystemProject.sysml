@@ -7,6 +7,8 @@ package <DD> DeliveryDrone {
      *
      * The focus is on demonstrating how to use SYSMOD. Therefore, the model is oversimplified and does not cover the subject in either breadth or depth.
      *
+     * based on SYSMOD v5.1.8
+     *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
      * You may obtain a copy of the License at
@@ -23,8 +25,57 @@ package <DD> DeliveryDrone {
      */
 
     private import SYSMOD::*;
-    private import SYSMOD::SYSMODProcesses::*;
+    private import SYSMODProcesses::*;
     private import ISO15288Processes::Stakeholders::*;
+
+    occurrence def <DDMBSEEnvironment> 'Delivery Drone MBSE Environment' :> MBSEMethodology::MBSEEnvironment {
+
+        // Tools used in the Delivery Drone MBSE Environment
+        part matlab :> tools;
+        part requirementsTool :> tools;
+
+        // Roles involved in the Delivery Drone MBSE Environment
+        part systemArchitect : SystemArchitect :> roles;
+        part verificationEngineer : VerificationEngineer :> roles;
+        part projectManager : ProjectManager :> roles;
+        part requirementsEngineer : RequirementsEngineer :> roles;
+    
+        // Methodology used in the Delivery Drone MBSE Environment
+        part sysmodMethodology :>> methodology {
+            part :>> tools :> SYSMODEnvironment::tools;
+            part :>> roles :> SYSMODEnvironment::roles;
+
+            //
+            // Process Status
+            //
+            action SYSMODDefaultProcess : SYSMODProcesses::SYSMODDefaultProcess :> processes {
+                doc
+                /* The status of the SYSMOD steps in the Delivery Drone project. The project redefines the
+                * steps of the default process and sets their @StepStatus. The SYSMOD Map reads it with
+                * scripts/generate_map_status.py. Verification has only started: MaxPayloadTest is the
+                * first verification case of the verification context; it is specified in specifySystem
+                * and bound to the product system in specifyVerificationContext. */
+                action :>> setupProject { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+                action :>> modelBrownfieldSystem { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+                action :>> describeProblemStatement { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+                action :>> identifyStakeholders { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+                action :>> identifyStakeholderNeeds { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+                action :>> describeSystemIdea { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+                action :>> specifySystem { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+                action :>> modelSolutionArchitecture {
+                    @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; }
+                    action :>> modelFunctionalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+                    action :>> modelLogicalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+                    action :>> modelProductArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
+                }
+                action :>> specifyVerificationContext { @StepStatus { status = StepStatusKind::inProgress; percentage = 0.2 as Percentage; } }
+                action :>> performVerification { @StepStatus { status = StepStatusKind::open; percentage = 0.0 as Percentage; } }
+            }
+
+        }    
+        occurrence sysmodProject : 'Delivery Drone Project' :>> rootProduct;
+    }
+
 
     #project occurrence def <PRJ> 'Delivery Drone Project' {
         doc
@@ -42,7 +93,8 @@ package <DD> DeliveryDrone {
          */
 
         attribute :>> purpose = "Develop an autonomous delivery drone system for remote last-mile deliveries that is faster and cheaper than the client's ground-based delivery.";
-
+        attribute :>> scope = "The project covers the model-based systems engineering of the delivery drone system with in-flight recharging between drones: the model of the existing system, the problem statement, the stakeholders and their needs, the system idea, the system specification with the verification cases, and the functional, logical, and product architectures. Not included: the detailed design of the mechanics, electronics, and software, and building and flight-testing a hardware prototype, which stakeholders could expect as a result of the project.";
+        
         part johnFinch : ProductManager :>> projectOwner {
             doc /* John Finch is the head of drone engineering at the contractor
                    and accountable for the Delivery Drone project. As project owner,
@@ -205,33 +257,6 @@ package <DD> DeliveryDrone {
         occurrence controlStationProject : DDCS::DeliveryDroneControlStationProject :> subProjects {
             doc /* The control station is developed in a SYSMOD sub-project. It
                    subsets the subProjects list inherited from SYSMOD::Project. */
-        }
-
-        //
-        // Process Status
-        //
-        action :>> defaultProcess {
-            doc
-            /* The status of the SYSMOD steps in the Delivery Drone project. The project redefines the
-             * steps of the default process and sets their @StepStatus. The SYSMOD Map reads it with
-             * scripts/generate_map_status.py. Verification has only started: MaxPayloadTest is the
-             * first verification case of the verification context; it is specified in specifySystem
-             * and bound to the product system in specifyVerificationContext. */
-            action :>> setupProject { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> modelBrownfieldSystem { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> describeProblemStatement { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> identifyStakeholders { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> identifyStakeholderNeeds { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> describeSystemIdea { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> specifySystem { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            action :>> modelSolutionArchitecture {
-                @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; }
-                action :>> modelFunctionalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-                action :>> modelLogicalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-                action :>> modelProductArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-            }
-            action :>> specifyVerificationContext { @StepStatus { status = StepStatusKind::inProgress; percentage = 0.2 as Percentage; } }
-            action :>> performVerification { @StepStatus { status = StepStatusKind::open; percentage = 0.0 as Percentage; } }
         }
 
         //

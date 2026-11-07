@@ -27,7 +27,7 @@ library package SYSMODViews {
              * stakeholder concerns and establishes the conventions for views that address them.
              * The conventions are based on the artifacts of the SYSMOD Project and formalized, where possible,
              * as required constraints on the SYSMOD concepts of the elements exposed by a conforming view.
-             * The stakeholders and their concerns are defined in the library package ISO15288Processes (SYSMOD15288.sysml).
+             * The stakeholders and their concerns are defined in the library package ISO15288Processes (ISO15288Processes.sysml).
              */
         private import ISO15288Processes::Concerns::*;
         private import SYSMODProcesses::*;
@@ -323,13 +323,6 @@ library package SYSMODViews {
             :>> title = "Problem Statement";
         }
     }
-    rendering asMarkdown : AIRendering :> Views::renderings {
-        doc /* AI rendering that turns the exposed Problem Statement into markdown text. The create_prompt defines the structure:
-                * headline with the problem statement, the project owner, and the brownfield system.
-                */
-        attribute title : ScalarValues::String;
-        :>> create_prompt = "Create pure text in markdown with a headline <title>, and below the exposed element as text.";
-    }
 
     // Step 03
     view def StakeholdersView :> StandardViewDefinitions::GridView {
@@ -460,6 +453,21 @@ library package SYSMODViews {
         filter @SysML::UseCaseDefinition;
         render as4Managers;
     }
+    view def SystemContextView :> StandardViewDefinitions::InterconnectionView {
+        doc /* Base view for the system contexts. Shows the parts, ports, interfaces, connections, and use cases
+             * of the exposed system context as an interconnection diagram, without library elements.
+             */
+        filter @SysML::PartUsage or @SysML::PortUsage or @SysML::InterfaceUsage or @SysML::ConnectionUsage or @SysML::UseCaseUsage;
+        filter not (@KerML::Element::isLibraryElement);
+        render Views::asInterconnectionDiagram;
+    }
+
+    //
+    // Common Renderings
+    //
+    rendering def JustTextRendering :> Views::TextualRendering;
+    rendering asText[1] : JustTextRendering :> Views::renderings;
+
     rendering def AIRendering :> Views::Rendering {
         doc /* Rendering that is produced by an AI assistant instead of a fixed notation. */
         attribute create_prompt : ScalarValues::String {
@@ -473,14 +481,14 @@ library package SYSMODViews {
         doc /* AI rendering that summarizes the exposed and filtered information as a single slide for managers. */
         :>> create_prompt = "Create a single slide that presents the exposed and filtered information from the view, summarizing it concisely for managers: What does this mean, and how can we use it to make decisions? Assume that the managers cannot read SysML.";
     }
-    view def SystemContextView :> StandardViewDefinitions::InterconnectionView {
-        doc /* Base view for the system contexts. Shows the parts, ports, interfaces, connections, and use cases
-             * of the exposed system context as an interconnection diagram, without library elements.
-             */
-        filter @SysML::PartUsage or @SysML::PortUsage or @SysML::InterfaceUsage or @SysML::ConnectionUsage or @SysML::UseCaseUsage;
-        filter not (@KerML::Element::isLibraryElement);
-        render Views::asInterconnectionDiagram;
+    rendering asMarkdown : AIRendering :> Views::renderings {
+        doc /* AI rendering that turns the exposed Problem Statement into markdown text. The create_prompt defines the structure:
+                * headline with the problem statement, the project owner, and the brownfield system.
+                */
+        attribute title : ScalarValues::String;
+        :>> create_prompt = "Create pure text in markdown with a headline <title>, and below the exposed element as text.";
     }
+
 
     //
     // Viewed artifacts

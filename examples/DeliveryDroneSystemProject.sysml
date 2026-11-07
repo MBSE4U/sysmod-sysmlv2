@@ -301,7 +301,6 @@ package <DD> DeliveryDrone {
                    parentElement is the control station building block of the white box
                    product context (sub-project contract). Its handoverRequirements are typed by
                    the handover requirements of the handover package. */
-            ref part :>> parentElement = deliveryDroneProductContextImpl.deliveryDroneProduct.controlStation;
         }
         #derivation connection airChargingFlowDown :> requirementFlowDowns {
             doc /* Requirement flow-down to the control station sub-project: the requirement AirCharging

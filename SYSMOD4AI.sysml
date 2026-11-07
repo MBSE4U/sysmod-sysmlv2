@@ -1042,52 +1042,5 @@ package SYSMOD4AI {
                 9. Each sub-project has a meaningful name and doc comment describing its scope and relationship to the parent project.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
-
-        metadata parentElementAI : AI about handOverElement {
-            doc
-            /* Sets up the element specification of a sub-project from its parent project (sub-project
-             * contract): the handover context of the parent as the brownfield context, and the system
-             * requirements derived from the handover requirements of the parent.
-             *
-             * When to use:
-             * - A sub-project has been created for a building block of the parent's product architecture
-             *   and needs its starting point: the system boundary, the actors, the interfaces, and the
-             *   requirements that the parent imposes.
-             * - The parent architecture or the parent requirements changed, and the sub-project must check
-             *   the impact on its brownfield context and its requirements.
-             *
-             * When not to use:
-             * - The project is a top-level project without a parent — use brownfieldContextAI and
-             *   systemRequirementSpecificationAI directly.
-             * - The user wants to decompose a project into sub-projects or to integrate their results —
-             *   use subProjectsAI in the parent project.
-             */
-            name = "sysmod-sub-project-contract";
-            create_prompt =
-                "1. Find the handover package that the parent project provides for this sub-project. In the sub-project, redefine parentElement with the system of interest definition of the handover context as type (ref part :>> parentElement : <handover package>::<black box definition>); the parent project binds the value in its sub-project usage.
-                2. Use the handover context as the black box brownfield context of the sub-project (part <name> :>> brownfieldContext : <handover package>::<handover context>). Do not use any other element of the parent architecture: the sub-project, e.g., a supplier, may have no access to it.
-                3. If the sub-project needs an actor or interface that the handover context lacks, report it as a request to the parent project instead of adding it in the sub-project.
-                4. Put the internal structure of an existing implementation of the element, if any, into the white box brownfield context; its definition specializes the black box definition of the parent element.
-                5. Redefine handoverRequirements with the handover requirement definition of the handover package (requirement :>> handoverRequirements : <handover package>::<handover requirement definition>), and use the handover stakeholders as the stakeholders of the sub-project.
-                6. Derive the system requirements of the sub-project from the handover requirements in its systemRequirementSpecification, with the system of interest definition of the handover context as subject and a motivation that explains the derivation. Declare the derivation in the sub-project: one #derivation connection per handover requirement, with end #original ::> handoverRequirements.<handover requirement> and one end #derive ::> <requirement specification usage>.<requirement> per derived requirement (private import RequirementDerivation::*).
-                7. If a requirement that the sub-project needs is missing from the handover requirements, report it as a request to the parent project instead of adding it as a handover requirement.
-                8. Create the SysML v2 textual notation for the parentElement and handoverRequirements redefinitions, the brownfield contexts, the derived requirements, and their #derivation connections.";
-            create_questions = (
-                "Which project is the parent, and which building block does this sub-project develop?",
-                "Does an implementation of the building block already exist (brownfield)?",
-                "Which parent requirements constrain the building block?"
-            );
-            validation_prompt =
-                "Validate the sub-project contract and report findings grouped as errors, warnings, and suggestions.
-                Check:
-                1. parentElement is typed in the sub-project and bound in the parent's sub-project usage to a building block of the parent's productContextImpl.
-                2. The brownfieldContext is typed by the handover context of the parent project or a specialization of it, and parentElement is typed by the system of interest definition of the handover context.
-                3. The sub-project uses no element of the parent architecture other than the handover package (shared definitions such as stakeholders or domain items are allowed).
-                4. If the sub-project has access to the parent model: each actor of the handover context corresponds to a neighbor of the parent element in the parent white box or to a parent actor delegated to it, each actor/system interface to a connection or delegation, and the parent white box specializes them.
-                5. handoverRequirements is typed by the handover requirement definition of the handover package, and each handover requirement is the #original of a #derivation connection in the sub-project, or a doc comment explains why it is not refined.
-                6. Every system requirement of the sub-project is either the #derive end of such a #derivation connection or frames a stakeholder need of the sub-project.
-                7. The derived requirements are consistent with the handover requirements, i.e., they do not relax them, and their subject is the system of interest definition of the handover context.
-                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
-        }
     }
 }

@@ -281,27 +281,6 @@ library package SYSMOD {
                  * (sub-project contract). Created by the modelSubProjects step. */
         }
 
-        //
-        // Sub-Project Handover Element
-        //
-        ref part handOverElement [0..1] {
-            doc
-            /* Only for a sub-project: the building block of the white box product context (productContextImpl) of the parent project that
-             * this sub-project develops. The parent project sets it in the usage of the sub-project. It anchors the sub-project contract:
-             * 1. Boundary: the parent project specifies a handover context in a separate handover package: a system context whose
-             *    system of interest is the black box of the parent element and whose actors are the external entities of the parent
-             *    element that are handed over (its neighbors in the parent white box and the parent actors whose interfaces the parent
-             *    delegates to it), with the actor/system interfaces. The parent white box specializes the elements of the handover
-             *    context, e.g., the definition of the parent element specializes the definition of the system of interest. The
-             *    sub-project uses the handover context as its black box brownfield context. The handover package is the only package
-             *    that both projects share, so the sub-project, e.g., a supplier, needs no access to the parent project. These decisions
-             *    of the parent architecture are fixed at the start of the sub-project.
-             * 2. Flow-down: the handover package also contains the handover requirements and the stakeholders that are handed over.
-             *    The parent project derives the handover requirements from its requirements that constrain the parent element, with
-             *    its requirementFlowDowns; the sub-project derives its system requirements from the handover requirements.
-             * 3. Integration: the parent project redefines the parent element in its white box product context with the white box
-             *    product system (productSystemImpl) of the sub-project. */
-        }
         requirement handoverRequirements : ExtendedRequirement [0..1] {
             doc
             /* Only for a sub-project: the requirements that the parent project hands over to this sub-project, typed by a requirement

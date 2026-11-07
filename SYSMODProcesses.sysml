@@ -33,13 +33,14 @@ library package SYSMODProcesses {
      * | 1     | describe | Text in natural language without a prescribed structure, e.g., an elevator pitch               | Is a paragraph of prose enough?                                            | DescribeProblemStatement, DescribeSystemIdea |
      * | 2     | identify | Named elements with a short text, optionally traced or classified                              | Is it about what exists, not how it is structured?                         | IdentifyStakeholders, IdentifyStakeholderNeeds, identifyUseCases |
      * | 3     | define   | Elements with fixed attributes and clear boundaries                                            | Must ambiguity be ruled out, without needing structure yet?                | (none yet) |
-     * | 4     | model    | Structure: contexts, parts, connections, allocations, and refinements                          | Does the result connect to other model elements as structure?              | ModelBrownfieldSystem, modelSpecificationContext, ModelSolutionArchitecture, modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture |
-     * | 5     | specify  | Verifiable or executable content: measurable requirements, constraints, and verification cases | Can a tool or test evaluate the result?                                    | SpecifySystem, specifySystemRequirements, specifyVerificationCases, SpecifyVerificationContext |
+     * | 4     | model    | Structure: contexts, parts, connections, allocations, and refinements                          | Does the result connect to other model elements as structure?              | ModelBrownfieldSystem, modelSpecificationContext, ModelSolutionArchitecture, modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture, ModelSubProjects |
+     * | 5     | specify  | Verifiable or executable content: measurable requirements, constraints, and verification cases | Can a tool or test evaluate the result?                                    | SpecifySystem, specifySystemRequirements, specifyVerificationCases, SpecifyVerificationContext, SpecifyTradeStudy |
      *
-     * SetupProject and PerformVerification are outside the scale: SetupProject organizes the project rather than producing
-     * a product, and PerformVerification executes the specified verification cases and reports their results.
+     * SetupProject, IntegrateSubProjects, and PerformVerification are outside the scale: SetupProject organizes the project rather
+     * than producing a product, IntegrateSubProjects combines the products of the sub-projects into the architecture of the parent
+     * project, and PerformVerification executes the specified verification cases and reports their results.
      * A step that contains nested steps takes the verb of its most formal nested step.
-     * Verbs outside this scale name activities, not step outputs: set up (project organization), perform (execute specified
+     * Verbs outside this scale name activities, not step outputs: set up (project organization), integrate (combine the products of sub-projects), perform (execute specified
      * content, e.g., the verification cases), elicit (gather information from stakeholders), elaborate (refine an existing
      * output without changing its level), derive, analyze, verify, and validate.
      *
@@ -89,8 +90,10 @@ library package SYSMODProcesses {
         /*
             * The default SYSMOD process: setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders,
             * identifyStakeholderNeeds, describeSystemIdea, specifySystem, modelSolutionArchitecture (with the nested steps
-            * modelFunctionalArchitecture, modelLogicalArchitecture, and modelProductArchitecture), specifyVerificationContext, and
-            * performVerification, in this order.
+            * modelFunctionalArchitecture, modelLogicalArchitecture, and modelProductArchitecture), modelSubProjects, integrateSubProjects,
+            * specifyVerificationContext, and performVerification, in this order. Between modelSubProjects and integrateSubProjects, each
+            * sub-project performs its own process. specifyTradeStudy has no succession: it is performed for any architecture decision
+            * with alternatives.
             * Verification is split into two parts: specifySystem specifies the verification cases against the black box specification system
             * (nested step specifyVerificationCases) before any solution architecture is modeled and returns the verification context with them,
             * and specifyVerificationContext completes the verification context with the test systems and the system of interest, which can be
@@ -150,7 +153,9 @@ library package SYSMODProcesses {
         first [0..1]identifyStakeholderNeeds then [0..1]describeSystemIdea;
         first [0..1]describeSystemIdea then [0..1]specifySystem;
         first [0..1]specifySystem then [0..1]modelSolutionArchitecture;
-        first [0..1]modelSolutionArchitecture then [0..1]specifyVerificationContext;
+        first [0..1]modelSolutionArchitecture then [0..1]modelSubProjects;
+        first [0..1]modelSubProjects then [0..1]integrateSubProjects;
+        first [0..1]integrateSubProjects then [0..1]specifyVerificationContext;
         first [0..1]specifyVerificationContext then [0..1]performVerification;
         first [0..1]performVerification then done;
 
@@ -177,7 +182,12 @@ library package SYSMODProcesses {
         flow from modelSolutionArchitecture.productContextImpl to project.productContextImpl;
         flow from modelSolutionArchitecture.logical2product to project.logical2product;
         flow from modelSolutionArchitecture.logicalImpl2productImpl to project.logicalImpl2productImpl;
+        flow from modelSubProjects.subProjects to project.subProjects;
+        flow from modelSubProjects.requirementFlowDowns to project.requirementFlowDowns;
+        flow from integrateSubProjects.productContextImpl to project.productContextImpl;
         flow from specifyVerificationContext.verificationContext to project.verificationContext;
+        flow from specifyTradeStudy.architectureAlternatives to project.architectureAlternatives;
+        flow from specifyTradeStudy.tradeStudies to project.tradeStudies;
         flow from performVerification.verificationReports to project.verificationContext.verificationReports;        
 
         // Bindings to process parameters and project features: inputs to process steps which are already available in the project
@@ -201,6 +211,12 @@ library package SYSMODProcesses {
         bind project.specificationContext = modelSolutionArchitecture.specificationContext;
         bind project.specificationContextImpl = modelSolutionArchitecture.specificationContextImpl;
         bind project.systemRequirementSpecification = modelSolutionArchitecture.systemRequirementSpecification;    
+        bind project.productContextImpl = modelSubProjects.productContextImpl;
+        bind project.systemRequirementSpecification = modelSubProjects.systemRequirementSpecification;
+        bind project.subProjects = integrateSubProjects.subProjects;
+        bind project.productContextImpl = integrateSubProjects.productContextImpl;
+        bind project.systemObjectives = specifyTradeStudy.systemObjectives;
+        bind project.systemRequirementSpecification = specifyTradeStudy.systemRequirementSpecification;
         bind project.systemRequirementSpecification = specifyVerificationContext.systemRequirementSpecification;
         bind project.verificationContext = specifyVerificationContext.verificationContext;
         bind project.verificationContext = performVerification.verificationContext;
@@ -215,8 +231,13 @@ library package SYSMODProcesses {
         action describeSystemIdea : DescribeSystemIdea :> submethods { @StepStatus; }
         action specifySystem : SpecifySystem :> submethods { @StepStatus; } 
         action modelSolutionArchitecture : ModelSolutionArchitecture :> submethods { @StepStatus; }
+        action modelSubProjects : ModelSubProjects :> submethods { @StepStatus; }
+        action integrateSubProjects : IntegrateSubProjects :> submethods { @StepStatus; }
         action specifyVerificationContext : SpecifyVerificationContext :> submethods { @StepStatus; }
         action performVerification : PerformVerification :> submethods { @StepStatus; }
+
+        // No succession: performed for any architecture decision with alternatives.
+        action specifyTradeStudy : SpecifyTradeStudy [0..*] :> submethods { @StepStatus; }
     }
 
     action def SetupProject :> MBSEMethodology::Method {
@@ -403,6 +424,22 @@ library package SYSMODProcesses {
         bind logicalImpl2productImpl = modelProductArchitecture.logicalImpl2productImpl;
     }
 
+    action def ModelSubProjects {
+        doc
+        /* Models a sub-project for each building block of the white box product context that is developed separately, e.g., by another team or a supplier, and the sub-project contract: the sub-project usage subsets subProjects and refers to the building block as its parentElement; the black box brownfield context of the sub-project is derived from the parent white box as seen from the parent element (the parent element is the system of interest, its neighbors are the actors, its connections and the delegations of parent system ports to it are the actor/system interfaces); and the parent requirements that constrain the parent element flow down to the system requirements of the sub-project via the requirementFlowDowns of the parent project. Optional; each sub-project then performs its own process. Refines the ISO 15288 System Architecture Definition process. */
+        in part productContextImpl : SystemContext;
+        in requirement systemRequirementSpecification : ExtendedRequirement;
+        out occurrence subProjects [*] : Project;
+        out abstract connection requirementFlowDowns [*] : DerivationConnections::Derivation;
+    }
+
+    action def IntegrateSubProjects {
+        doc
+        /* Integrates the products of the sub-projects into the white box product context: the parent project redefines each parentElement in its productContextImpl with the white box product system (productSystemImpl) of the sub-project that developed it. The integrated product system can be the system of interest of the verification context. Optional; performed when the product architectures of the sub-projects are available. Refines the ISO 15288 Integration process. */
+        in occurrence subProjects [*] : Project;
+        inout part productContextImpl : SystemContext;
+    }
+
     action def SpecifyVerificationContext {
         doc
         /* Specifies the verification context returned by SpecifySystem: adds the test systems, e.g., test benches or a wind tunnel, as additional actors, and the system of interest, which can be any system, e.g., the product system, a prototype, or a simulation model. Refines the ISO 15288 Verification and Validation processes. */
@@ -415,6 +452,15 @@ library package SYSMODProcesses {
         /* Performs the verification: executes the verification cases of the verification context on its system of interest and documents the results in verification reports (VerificationReport, content aligned with ISO/IEC/IEEE 15289), which become part of the verification context. Refines the ISO 15288 Verification process. */
         in part verificationContext : SystemContext;
         out item verificationReports[*] : VerificationReport;
+    }
+
+    action def SpecifyTradeStudy {
+        doc
+        /* Specifies a SYSMOD trade study for an architecture decision, e.g., between candidate system ideas or candidate product architectures: models the architectureAlternatives, assesses each alternative against the system objectives (criteria weighted by their priority), selects the alternative with the maximum evaluation, makes its context definition the definition of the respective context of the project, and records the decision there with Rationale metadata whose explanation is the trade study. Mandatory system requirements, if already defined, exclude ineligible alternatives. Optional and without succession: performed whenever a step faces an architecture decision with alternatives. Refines the ISO 15288 Decision Management and System Analysis processes. */
+        in concern systemObjectives : ExtendedConcern;
+        in requirement systemRequirementSpecification [0..1] : ExtendedRequirement;
+        out part architectureAlternatives [1..*] : SystemContext;
+        out analysis tradeStudies [1..*] : SYSMODTradeStudy;
     }
 
     //
@@ -477,9 +523,13 @@ library package SYSMODProcesses {
     #refinement dependency SpecifySystem to ISO15288Processes::SystemRequirementsDefinition;
     #refinement dependency SpecifySystem to ISO15288Processes::Verification;
     #refinement dependency ModelSolutionArchitecture to ISO15288Processes::SystemArchitectureDefinition;
+    #refinement dependency ModelSubProjects to ISO15288Processes::SystemArchitectureDefinition;
+    #refinement dependency IntegrateSubProjects to ISO15288Processes::Integration;
     #refinement dependency SpecifyVerificationContext to ISO15288Processes::Verification;
     #refinement dependency SpecifyVerificationContext to ISO15288Processes::Validation;
     #refinement dependency PerformVerification to ISO15288Processes::Verification;
+    #refinement dependency SpecifyTradeStudy to ISO15288Processes::DecisionManagement;
+    #refinement dependency SpecifyTradeStudy to ISO15288Processes::SystemAnalysis;
 
     //
     // Additional Elements

@@ -47,7 +47,8 @@ library package SYSMODViews {
                 in e; e istype SYSMODDefaultProcess or e istype SetupProject or e istype ModelBrownfieldSystem
                     or e istype DescribeProblemStatement or e istype IdentifyStakeholders or e istype IdentifyStakeholderNeeds
                     or e istype DescribeSystemIdea or e istype SpecifySystem or e istype ModelSolutionArchitecture
-                    or e istype SpecifyVerificationContext or e istype PerformVerification
+                    or e istype ModelSubProjects or e istype IntegrateSubProjects
+                    or e istype SpecifyVerificationContext or e istype PerformVerification or e istype SpecifyTradeStudy
             }
         }
 
@@ -180,15 +181,31 @@ library package SYSMODViews {
                 }
             }
         }
+        viewpoint def SpecificationTreeViewpoint {
+            doc /* Shows the specification tree: the Project with its subProjects, the parentElement that each subProject develops,
+                 * the systemRequirementSpecification of each level, and the requirementFlowDowns from the parent requirements to the
+                 * system requirements of the subProjects. For a supplied subProject, it is the technical part of the agreement
+                 * between the parent project and the supplier.
+                 */
+            subject theView;
+            frame concern cpsi : ProblemSolutionIntegration;
+            frame concern cca : ContractualAgreement;
+            require constraint onlySpecificationTreeElements {
+                (theView as SysML::ViewUsage).exposedElement->forAll {
+                    in e; e istype Project or e istype ExtendedRequirement or e istype DerivationConnections::Derivation
+                }
+            }
+        }
         viewpoint def TradeOffViewpoint {
-            doc /* Shows alternative system contexts, the system requirements as evaluation criteria,
-                 * and the analysis cases that compare the alternatives.
+            doc /* Shows the alternative system contexts (architectureAlternatives), the systemObjectives as evaluation criteria
+                 * weighted by their priority, the system requirements that exclude ineligible alternatives, and the tradeStudies
+                 * (analysis cases) that compare the alternatives and select one.
                  */
             subject theView;
             frame concern ctod : TradeOffDecision;
             require constraint onlyTradeOffElements {
                 (theView as SysML::ViewUsage).exposedElement->forAll {
-                    in e; e istype SystemContext or e istype ExtendedRequirement or e istype AnalysisCases::AnalysisCase
+                    in e; e istype SystemContext or e istype ExtendedConcern or e istype AnalysisCases::AnalysisCase
                 }
             }
         }
@@ -289,7 +306,7 @@ library package SYSMODViews {
     }
     rendering asSYSMODMap :> Views::renderings {
         doc /* Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them:
-                * Title block: purpose, projectOwner, defaultProcess, subProjects (setupProject).
+                * Title block: purpose, projectOwner, defaultProcess (setupProject), subProjects (modelSubProjects).
                 * A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds).
                 * A2: systemObjectives (describeSystemIdea).
                 * A3: systemRequirementSpecification, verificationContext.verificationCases (specifySystem).
@@ -304,6 +321,8 @@ library package SYSMODViews {
                 * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (modelSolutionArchitecture, nested step modelLogicalArchitecture).
                 * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelSolutionArchitecture, nested step modelProductArchitecture).
                 * B7 to C7: verificationContext (specifyVerificationContext), verificationContext.verificationReports (performVerification).
+                * The steps without a cell of their own: integrateSubProjects updates C6, and specifyTradeStudy creates the
+                * architectureAlternatives and tradeStudies for the cell whose context the selected alternative defines.
                 * Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
                 */
     }
@@ -415,6 +434,16 @@ library package SYSMODViews {
         filter @SysML::AllocationUsage or @SystemContextMetadata;
         render Views::asElementTable;
     }
+    // Sub-Projects (modelSubProjects, integrateSubProjects)
+    view def SpecificationTreeView :> StandardViewDefinitions::GeneralView {
+        doc /* Product "Sub-Projects": the specification tree of the exposed Project, i.e., the Project and its subProjects (recursively),
+                * the parentElement that each subProject develops, the systemRequirementSpecification of each level,
+                * and the requirementFlowDowns (#derivation) from the parent requirements to the system requirements of the subProjects.
+                */
+        satisfy requirement stvp : SpecificationTreeViewpoint;
+        filter @ProjectMetadata or @SysML::RequirementUsage or @ExtendedRequirementMetadata or @RequirementDerivation::DerivationMetadata;
+        render Views::asTreeDiagram;
+    }
     // Step 11
     view def VerificationAndValidationView :> StandardViewDefinitions::GeneralView {
         doc /* Product "Verification and Validation": the verificationCases of the verificationContext of the Project with the system under verification
@@ -433,6 +462,16 @@ library package SYSMODViews {
                 */
         satisfy requirement vvp : VerificationViewpoint;
         filter @SysML::VerificationCaseUsage or @SysML::RequirementUsage or @ExtendedRequirementMetadata;
+        render Views::asElementTable;
+    }
+    // Specify Trade Study (no fixed position in the process)
+    view def TradeStudyView :> StandardViewDefinitions::GridView {
+        doc /* Product "Trade Studies": a trade study of the Project as a decision matrix with the alternatives (architectureAlternatives)
+                * as rows, the criteria (systemObjectives) with their weights as columns, the scores of the assessments as cells,
+                * the evaluation of each alternative, and the selected alternative.
+                */
+        satisfy requirement tovp : TradeOffViewpoint;
+        filter @SysML::AnalysisCaseUsage or @SysML::ReferenceUsage or @SysML::ConcernUsage or @SysML::AttributeUsage;
         render Views::asElementTable;
     }
 
@@ -524,8 +563,11 @@ library package SYSMODViews {
     #viewedArtifact dependency ProductArchitectureView to Project::productContext, Project::productContextImpl;
     #viewedArtifact dependency ArchitectureAllocationView to Project::functional2logical, Project::logical2product,
         Project::functionalImpl2logicalImpl, Project::logicalImpl2productImpl;
+    #viewedArtifact dependency SpecificationTreeView to Project::subProjects, Project::subProjects::parentElement,
+        Project::systemRequirementSpecification, Project::requirementFlowDowns;
     #viewedArtifact dependency VerificationAndValidationView to Project::verificationContext::verificationCases;
     #viewedArtifact dependency VerificationMatrixView to Project::verificationContext::verificationCases;
+    #viewedArtifact dependency TradeStudyView to Project::tradeStudies, Project::architectureAlternatives, Project::systemObjectives;
 }
 
 

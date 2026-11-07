@@ -156,7 +156,7 @@ package SYSMOD4AI {
                 "1. Create the SysML v2 textual notation for the project definition using the SYSMOD-defined keyword: '#project occurrence def PROJECTNAME {}'
                 2. Use the create_prompt of the AI metadata of the projectOwner to create the project owner of the project.
                 3. If not given by the user, use the questions to get the name of the project and the location where the project should be added.
-                4. Optionally continue with the other engineering artifacts in SYSMOD order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification, the verification cases of the verificationContext, functionalContext, logicalContext, productContext, each with its Impl context, and the verificationContext with its test systems) using the create_prompts of their AI metadata.";
+                4. Optionally continue with the other engineering artifacts in SYSMOD order (brownfieldContext, problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification, the verification cases of the verificationContext, functionalContext, logicalContext, productContext, each with its Impl context, the verificationContext with its test systems, and subProjects) using the create_prompts of their AI metadata; use tradeStudiesAI for any architecture decision with alternatives.";
             create_questions = (
                 "What is the name of the project?", 
                 "Where should I add the project definition?",
@@ -177,6 +177,8 @@ package SYSMOD4AI {
                 10. The cross-artifact traceability chain is intact: problemStatement <- stakeholderNeeds <- systemRequirementSpecification, and satisfy relationships exist at the system idea and functional, logical, and product architecture levels.
                 11. If both functionalContext and logicalContext are present, the functional2logical allocation is defined; if logicalContext is present, the logical2product allocation is defined. The same holds for the white box contexts and the functionalImpl2logicalImpl and logicalImpl2productImpl allocations.
                 12. Verification cases are specified before the solution architecture: the verification case definitions of the specification have the black box specification system as subject; a present verificationContext is a system context whose system of interest is the system under verification, e.g., the product system, a prototype, or a simulation model, and its verification case usages subset verificationCases and are typed by the verification case definitions of the specification.
+                13. If tradeStudies are present, each is typed by SYSMODTradeStudy and compares architectureAlternatives, and the context definition of its selected alternative types the respective project context, which carries Rationale metadata referring to the trade study.
+                14. If subProjects are present, each binds parentElement to a building block of the productContextImpl, the project's requirementFlowDowns derive the system requirements of each sub-project from the project's requirements, and after integration the productContextImpl redefines each parent element with the white box product system of its sub-project.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -187,8 +189,9 @@ package SYSMOD4AI {
              * setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders,
              * identifyStakeholderNeeds, describeSystemIdea, specifySystem,
              * modelSolutionArchitecture (nested steps modelFunctionalArchitecture,
-             * modelLogicalArchitecture, and modelProductArchitecture), specifyVerificationContext,
-             * and performVerification. Verification is split in two:
+             * modelLogicalArchitecture, and modelProductArchitecture), modelSubProjects,
+             * integrateSubProjects, specifyVerificationContext, and performVerification, plus
+             * specifyTradeStudy, which has no fixed position. Verification is split in two:
              * specifySystem specifies the verification cases against the black box specification
              * system and returns the verification context with them, and specifyVerificationContext
              * adds the test systems and binds the verification cases to the system under verification.
@@ -212,7 +215,7 @@ package SYSMOD4AI {
              */
             name = "sysmod-default-process";
             create_prompt =
-                "1. Read the SYSMODDefaultProcess action definition in SYSMOD::SYSMODProcesses and its steps in succession order: setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds, describeSystemIdea, specifySystem, modelSolutionArchitecture (nested steps modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture), specifyVerificationContext, performVerification.
+                "1. Read the SYSMODDefaultProcess action definition in SYSMOD::SYSMODProcesses and its steps in succession order: setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds, describeSystemIdea, specifySystem, modelSolutionArchitecture (nested steps modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture), modelSubProjects, integrateSubProjects, specifyVerificationContext, performVerification. The step specifyTradeStudy has no succession: offer it whenever a step faces an architecture decision with alternatives.
                 2. Find the project. If no project exists, start with setupProject.
                 3. Determine the current position in the process: for each step, check whether its outputs (the project features it flows into) already exist in the project and are valid. The first step whose outputs are missing or invalid is the next step.
                 4. Execute the next step by delegating to the AI metadata of the project features it produces, using their create_questions, create_prompt, and validation_prompt:
@@ -227,10 +230,13 @@ package SYSMOD4AI {
                      - modelFunctionalArchitecture (optional): functionalContextAI, using the process input functionalArchitectureDescription.
                      - modelLogicalArchitecture (optional): logicalContextAI, using the process input logicalArchitectureDescription.
                      - modelProductArchitecture: productContextAI, using the process input productArchitectureDescription.
+                   - modelSubProjects (optional): subProjectsAI in the parent project, then parentElementAI in each sub-project. Each sub-project then performs its own SYSMOD process.
+                   - integrateSubProjects (optional): the integration part of subProjectsAI, once the product architectures of the sub-projects are available.
+                   - specifyTradeStudy (optional, at any architecture decision with alternatives): tradeStudiesAI.
                    - specifyVerificationContext: verificationContextAI; type the project's verificationContext by a system context definition with the system under verification as system of interest (any system, e.g., the white box product system, a prototype, or a simulation model; the context may specialize an architecture context such as productContextImpl), add the test systems needed for the verification as actors (e.g., a test bench or a wind tunnel), and bind the subjects of the verification cases of the verificationContext to the system under verification. Do not create the verification cases anew; if a requirement has no verification case yet, go back to verificationCasesAI.
                    - performVerification: verificationContextAI; execute the verification cases of the verificationContext on the system under verification and add a verification report (item usage typed by VerificationReport, subsetting verificationReports of the verificationContext) per verification run with the verdict of each verification case, the verified requirements, and the evidence; its content is aligned with ISO/IEC/IEEE 15289. Do not change the verification cases; if one cannot be performed, report it and go back to specifyVerificationContext.
                 5. Respect the inputs of each step as defined by the bindings and flows of SYSMODDefaultProcess and of the steps with nested steps: a step must only start when the project features it reads exist (e.g. identifyStakeholderNeeds needs the problemStatement and the projectStakeholders).
-                6. Steps after setupProject are optional ([0..1] successions). Skip a step only when it does not apply (e.g. modelBrownfieldSystem for a pure greenfield project, or the nested steps modelFunctionalArchitecture, modelLogicalArchitecture, and modelProductArchitecture of modelSolutionArchitecture), and tell the user which step was skipped and why.
+                6. Steps after setupProject are optional ([0..1] successions). Skip a step only when it does not apply (e.g. modelBrownfieldSystem for a pure greenfield project, the nested steps modelFunctionalArchitecture, modelLogicalArchitecture, and modelProductArchitecture of modelSolutionArchitecture, modelSubProjects and integrateSubProjects for a project without sub-projects, or specifyTradeStudy when a decision has no alternatives), and tell the user which step was skipped and why.
                 7. After each step, show the user the result and the step's validation findings, and ask whether to continue with the next step, revise the current one, or stop.
                 8. If the user asks how a step relates to ISO/IEC/IEEE 15288, answer from the #refinement dependencies in SYSMODProcesses (e.g. SpecifySystem refines ISO15288Processes::SystemRequirementsDefinition).
                 9. Do not redefine the project's defaultProcess action usage unless the user explicitly asks to tailor the process; if so, redefine defaultProcess in the project with a specialization of SYSMODDefaultProcess and document every deviation in a doc comment.";
@@ -246,10 +252,12 @@ package SYSMOD4AI {
                 1. For each step of SYSMODDefaultProcess and each nested step with StepStatus (modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture), report its status: done (outputs exist and pass the validation_prompt of the corresponding AI metadata), in progress (outputs exist but have validation errors), skipped, or open.
                 2. No step is done while one of its inputs is missing or invalid (e.g. stakeholderNeeds without a problemStatement, systemRequirementSpecification without stakeholderNeeds, productContextImpl without a specificationContextImpl).
                 3. setupProject: the project has a purpose and the projectOwner has a name.
-                4. Only optional steps are skipped (modelBrownfieldSystem for greenfield projects, the nested steps modelFunctionalArchitecture, modelLogicalArchitecture, and modelProductArchitecture); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification) are not skipped.
+                4. Only optional steps are skipped (modelBrownfieldSystem for greenfield projects, the nested steps modelFunctionalArchitecture, modelLogicalArchitecture, and modelProductArchitecture, modelSubProjects, integrateSubProjects, specifyTradeStudy); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification) are not skipped.
                 5. specifySystem: every requirement of the systemRequirementSpecification is verified by at least one verification case definition with the black box specification system as subject, and each of them has a verification case usage in the verificationContext subsetting verificationCases; specifyVerificationContext: the verificationContext has the system under verification as system of interest, contains the test systems, and the subjects of its verification cases are bound to the system under verification. Flag verification case definitions created in specifyVerificationContext that do not exist in the specification. performVerification: each verification report subsets verificationReports of the verificationContext and states the verdicts of the verification cases it covers.
-                6. If the project redefines defaultProcess, the redefinition is typed by a specialization of SYSMODDefaultProcess and documents its deviations from the default process.
-                7. Name the next step to perform and the AI metadata to use for it.
+                6. modelSubProjects and integrateSubProjects: every sub-project binds its parentElement and receives requirementFlowDowns from the project; specifyVerificationContext uses the integrated product system or documents which parent elements are still black boxes.
+                7. specifyTradeStudy: every trade study passes the validation_prompt of tradeStudiesAI, and every architecture decision with documented alternatives has a trade study or a Rationale.
+                8. If the project redefines defaultProcess, the redefinition is typed by a specialization of SYSMODDefaultProcess and documents its deviations from the default process.
+                9. Name the next step to perform and the AI metadata to use for it.
                 Report each finding with the step name, the affected element, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -932,48 +940,152 @@ package SYSMOD4AI {
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
-        metadata subProjectsAI : AI about subProjects {
+        metadata tradeStudiesAI : AI about tradeStudies {
             doc
-            /* Decomposes a project into sub-projects for distinct subsystems or components, each
-             * with its own narrower-scoped project artifacts.
+            /* Evaluates alternative architectures for an architecture decision with a SYSMOD trade study
+             * (SYSMODTradeStudy) against the system objectives, selects one, and records the decision.
              *
              * When to use:
-             * - The user wants to split a large project into subsystem- or component-level
-             *   projects, or asks how a subsystem/component should be organized as its own
-             *   project.
-             * - The system is complex enough that separate teams or scopes need their own
-             *   project context, sharing stakeholders or requirements with the parent.
+             * - An architecture decision has two or more viable alternatives, e.g., candidate system ideas,
+             *   logical decompositions, or product architectures, and the project needs a traceable choice.
+             * - The user asks to compare alternatives, to run a trade-off analysis, or to justify why an
+             *   architecture was selected.
              *
              * When not to use:
-             * - The project is small enough to stay a single, non-decomposed project — do not
-             *   create sub-projects speculatively.
-             * - The user wants to define an artifact within the current project's own scope —
-             *   use that artifact's own AI metadata instead of creating a sub-project.
+             * - There is only one viable alternative, or the decision is fixed by the brownfield system —
+             *   record a short Rationale on the context instead of a trade study.
+             * - The user wants to define the selected architecture itself — use the AI metadata of that
+             *   context (e.g. productContextAI) after the trade study.
+             */
+            name = "sysmod-trade-studies";
+            create_prompt =
+                "1. Identify the architecture decision and the project context it is about (e.g. productContextImpl for a product architecture, systemIdeaContextImpl for a system idea).
+                2. Exclude alternatives that violate a mandatory requirement of the systemRequirementSpecification, if it already exists, and tell the user which ones and why.
+                3. For each remaining alternative, create a #systemContext part definition that specializes the definition of the base context of the decision (e.g. the definition of the white box specification context for product architecture alternatives) and a part usage typed by it subsetting architectureAlternatives, each with a doc comment describing the alternative.
+                4. Create an analysis usage typed by SYSMODTradeStudy subsetting tradeStudies, with a doc comment stating the decision question. Bind its subject alternatives to the alternative usages and its criteria to the relevant system objectives (concern usages nested in systemObjectives).
+                5. Create one assessment per alternative and criterion as an attribute usage subsetting assessments that refers to the alternative and the criterion and sets the score from 0.0 (objective not achieved) to 1.0 (objective fully achieved). Keep the default weight, i.e., the priority of the objective, unless the user gives another weight. Ask for the evidence of each score (analysis, simulation, or expert judgment) and document it in a doc comment.
+                6. Compute the evaluation of each alternative (the sum of weight times score over its assessments) and name the selected alternative, i.e., the one with the maximum evaluation. Report ties or close results to the user instead of deciding silently.
+                7. Make the context definition of the selected alternative the definition of the respective project context (e.g. of the productContextImpl) and annotate that context usage with ModelingMetadata::Rationale, whose text summarizes the decision and whose explanation refers to the trade study (explanation = <project>::<trade study> meta SysML::Usage).
+                8. Create the SysML v2 textual notation for the alternatives, the trade study, and the Rationale.";
+            create_questions = (
+                "Which architecture decision should be evaluated, and which project context does it concern?",
+                "Which alternatives are considered?",
+                "Which system objectives are the criteria, and should any weight differ from the priority of the objective?",
+                "How well does each alternative achieve each objective (0.0 to 1.0), and what is the evidence?"
+            );
+            validation_prompt =
+                "Validate the tradeStudies against the SYSMOD trade study concept and report findings grouped as errors, warnings, and suggestions.
+                Check:
+                1. Each trade study is an analysis usage typed by SYSMODTradeStudy (or a specialization) and subsets tradeStudies.
+                2. The subject alternatives is bound to at least two part usages that subset architectureAlternatives and are typed by #systemContext part definitions specializing the same base context definition.
+                3. The criteria are bound to concern usages of systemObjectives; each criterion has a priority, or each of its assessments sets an explicit weight.
+                4. There is exactly one assessment per alternative and criterion; each score lies between 0.0 and 1.0 and has documented evidence.
+                5. No alternative violates a mandatory requirement of the systemRequirementSpecification.
+                6. The alternative with the maximum evaluation is the one whose context definition types the respective project context, and that context usage carries Rationale metadata whose explanation refers to the trade study.
+                7. If the evaluations of the best alternatives differ only slightly, a sensitivity remark is documented, e.g., which change of weights or scores would change the selection.
+                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        }
+
+        metadata subProjectsAI : AI about subProjects {
+            doc
+            /* Decomposes a project into sub-projects for building blocks that are developed separately,
+             * sets up the sub-project contract (parentElement, derived brownfield context, requirement
+             * flow-down), and integrates the designs of the sub-projects into the parent architecture.
+             *
+             * When to use:
+             * - The user wants to split a large project into subsystem- or component-level projects, e.g.,
+             *   for another team or a supplier, or asks how a subsystem/component should be organized as
+             *   its own project.
+             * - The product architecture of the parent project is at least roughly defined, and some of
+             *   its building blocks need their own project context (modelSubProjects).
+             * - The product architectures of the sub-projects are available and must be integrated into
+             *   the parent architecture (integrateSubProjects).
+             *
+             * When not to use:
+             * - The project is small enough to stay a single, non-decomposed project — do not create
+             *   sub-projects speculatively.
+             * - The user works inside an existing sub-project and wants to derive its element
+             *   specification from the parent — use parentElementAI in the sub-project.
+             * - The user wants to define an artifact within the current project's own scope — use that
+             *   artifact's own AI metadata instead of creating a sub-project.
              */
             name = "sysmod-sub-projects";
             create_prompt =
-                "1. If the project is decomposed into sub-projects, create occurrence definitions specializing Project (or AIProject) for each sub-project.
-                2. Add each sub-project as an occurrence usage subsetting subProjects within the parent project.
-                3. Ensure each sub-project has its own projectOwner, brownfieldContext, and problemStatement as appropriate.
-                4. Cross-reference shared artifacts (e.g., shared stakeholders or requirements) by subsetting or referencing the parent project's elements.
-                5. Create the SysML v2 textual notation for all sub-project definitions and their usages.
-                6. If the user asks to insert sub-projects into the SysML model, find the parent project and add the sub-project occurrence usages.";
+                "1. Identify the building blocks of the white box product context (productContextImpl) that are developed separately. Each must be typed by a black box part definition whose ports describe its interfaces.
+                2. For each of them, create an occurrence definition specializing Project (or a #project occurrence def) for the sub-project, with its own projectOwner and problemStatement.
+                3. Add each sub-project as an occurrence usage subsetting subProjects within the parent project, and bind its parentElement to the building block, e.g. ref part :>> parentElement = <productContextImpl usage>.<soiImpl usage>.<building block>.
+                4. In each sub-project, apply parentElementAI to derive its brownfield context and its system requirements from the parent.
+                5. Declare the requirement flow-down in the parent project: one #derivation connection subsetting requirementFlowDowns per parent requirement that constrains the parent element, with end #original ::> <parent requirement> and one end #derive ::> <sub-project usage>.<requirement specification usage>.<derived requirement> per derived requirement (private import RequirementDerivation::*). The parent project declares it because only there the requirements of both levels are accessible.
+                6. Cross-reference shared artifacts (e.g., shared stakeholders) by subsetting or referencing the parent project's elements.
+                7. Integration (integrateSubProjects): when the product architecture of a sub-project is available, redefine the building block in the parent's productContextImpl usage with the white box product system definition of the sub-project, e.g. part :>> <building block> : <sub-project package>::<white box product system definition>.
+                8. Create the SysML v2 textual notation for the sub-project definitions, their usages, the requirementFlowDowns, and the integration redefinitions.
+                9. If the user asks to insert sub-projects into the SysML model, find the parent project and add the sub-project occurrence usages.";
             create_questions = (
-                "Should the project be decomposed into sub-projects?",
-                "What are the names and scopes of the sub-projects?",
-                "Do the sub-projects share stakeholders or requirements with the parent project?"
+                "Which building blocks of the product architecture are developed in sub-projects?",
+                "Who owns each sub-project (team or supplier)?",
+                "Do the sub-projects share stakeholders with the parent project?",
+                "Are the product architectures of the sub-projects available for integration?"
             );
             validation_prompt =
-                "Validate the subProjects against the SYSMOD sub-project decomposition concept and report findings grouped as errors, warnings, and suggestions.
+                "Validate the subProjects against the SYSMOD sub-project concept and report findings grouped as errors, warnings, and suggestions.
                 Check:
                 1. Each sub-project occurrence usage subsets the inherited subProjects and is typed by an occurrence definition specializing Project or AIProject.
-                2. Each sub-project has at least a projectOwner and a brownfieldContext defined.
-                3. Each sub-project has a problemStatement that is consistent with and narrower in scope than the parent project's problemStatement.
-                4. Shared stakeholders between parent and sub-projects are referenced by subsetting the parent project's stakeholder part usages rather than duplicated as independent definitions.
-                5. There are no overlapping scopes between sibling sub-projects — each sub-project addresses a distinct part of the parent problem.
-                6. Each sub-project has a meaningful name and doc comment describing its scope and relationship to the parent project.
+                2. Each sub-project usage binds parentElement to a building block of the parent's productContextImpl, and the building block is typed by a black box part definition with ports.
+                3. Each sub-project has a projectOwner, a problemStatement that is consistent with and narrower in scope than the parent project's problemStatement, and a brownfieldContext derived from its parentElement (see the validation_prompt of parentElementAI).
+                4. The parent project has requirementFlowDowns whose #original ends are its own requirements and whose #derive ends are system requirements of the sub-projects, reached via the sub-project usages; every parent requirement that constrains a parent element is the original of at least one flow-down, or a doc comment explains why it does not flow down.
+                5. Shared stakeholders between parent and sub-projects are referenced by subsetting the parent project's stakeholder part usages rather than duplicated as independent definitions.
+                6. There are no overlapping scopes between sibling sub-projects — each sub-project develops a distinct building block.
+                7. After integration, the parent's productContextImpl redefines each parent element with a white box product system definition of the sub-project that specializes the black box definition of the parent element.
+                8. Each sub-project has a meaningful name and doc comment describing its scope and relationship to the parent project.
+                Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
+        }
+
+        metadata parentElementAI : AI about parentElement {
+            doc
+            /* Derives the element specification of a sub-project from its parent project (sub-project
+             * contract): the brownfield context from the parent white box, and the system requirements
+             * from the parent requirements via requirement flow-down.
+             *
+             * When to use:
+             * - A sub-project has been created for a building block of the parent's product architecture
+             *   and needs its starting point: the system boundary, the actors, the interfaces, and the
+             *   requirements that the parent imposes.
+             * - The parent architecture or the parent requirements changed, and the sub-project must check
+             *   the impact on its brownfield context and its requirements.
+             *
+             * When not to use:
+             * - The project is a top-level project without a parent — use brownfieldContextAI and
+             *   systemRequirementSpecificationAI directly.
+             * - The user wants to decompose a project into sub-projects or to integrate their results —
+             *   use subProjectsAI in the parent project.
+             */
+            name = "sysmod-sub-project-contract";
+            create_prompt =
+                "1. Find the parent project and the building block that this sub-project develops. In the sub-project, redefine parentElement with the black box part definition of the building block as type (ref part :>> parentElement : <black box definition>); the parent project binds the value in its sub-project usage.
+                2. Derive the black box brownfield context of the sub-project from the parent's white box product context as seen from the parent element: a #systemContext part definition specializing SystemContext whose system of interest redefines soi and is typed by the black box definition of the parent element.
+                3. Add an actor (subsetting actors, with ports redefining actorPorts) for each neighbor of the parent element in the parent white box, and for each parent actor whose interface the parent delegates to the parent element. Tag each actor with #user, #externalSystem, or #environmentalEffect.
+                4. Add an actor/system interface (subsetting asis) for each connection of the parent element in the parent white box and for each delegation of a parent system port to it, connecting the actor port with the port of the system of interest; document the parent connection it is derived from.
+                5. Put the internal structure of an existing implementation of the element, if any, into the white box brownfield context; its definition specializes the black box definition of the parent element.
+                6. Identify the parent requirements that constrain the parent element, i.e., requirements whose subject features or functions the parent element realizes, including requirements allocated to it.
+                7. Derive the system requirements of the sub-project from them in its systemRequirementSpecification, with the black box definition of the parent element as subject and a motivation that names the original requirement.
+                8. Propose the requirement flow-down for the parent project: one #derivation connection subsetting requirementFlowDowns per original requirement, with end #original ::> <parent requirement> and one end #derive ::> <sub-project usage>.<requirement specification usage>.<derived requirement> per derived requirement (private import RequirementDerivation::*). It belongs to the parent project, because only there the requirements of both levels are accessible.
+                9. Create the SysML v2 textual notation for the parentElement redefinition, the brownfield contexts, the derived requirements, and the proposed requirementFlowDowns.";
+            create_questions = (
+                "Which project is the parent, and which building block does this sub-project develop?",
+                "Does an implementation of the building block already exist (brownfield)?",
+                "Which parent requirements constrain the building block?"
+            );
+            validation_prompt =
+                "Validate the sub-project contract and report findings grouped as errors, warnings, and suggestions.
+                Check:
+                1. parentElement is typed in the sub-project and bound in the parent's sub-project usage to a building block of the parent's productContextImpl.
+                2. The system of interest of the brownfieldContext is typed by the black box definition of the parent element or a specialization of it.
+                3. Each actor of the brownfieldContext corresponds to a neighbor of the parent element in the parent white box or to a parent actor delegated to it, and no neighbor of the parent element is missing.
+                4. Each actor/system interface corresponds to a connection or delegation of the parent element in the parent white box, and the connected ports are compatible.
+                5. Each requirementFlowDowns connection of the parent project that targets this sub-project has exactly one #original end that refers to a parent requirement and at least one #derive end that refers to a requirement of the systemRequirementSpecification of this sub-project.
+                6. Every system requirement of the sub-project is either the #derive end of a requirementFlowDowns connection of the parent project or frames a stakeholder need of the sub-project.
+                7. The derived requirements are consistent with their originals, i.e., they do not relax them, and their subject is the black box definition of the parent element.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
     }
 }
-

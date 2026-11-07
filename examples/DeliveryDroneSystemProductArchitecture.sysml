@@ -73,13 +73,10 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
                 /* Physical charging contact used while docked. */
             }
         }
-        part :>> controlStation {
+        part :>> controlStation : ControlStation {
             doc
-            /* The ground control station operating the fleet. */
-            port radioPort {
-                doc
-                /* Radio link to the fleet. */
-            }
+            /* The ground control station operating the fleet. It is developed in the control station
+             * sub-project, which refers to it as its parentElement (sub-project contract). */
         }
         part :>> droneDocks {
             doc
@@ -91,6 +88,54 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
         }
         connect drones.radioPort to controlStation.radioPort;
         connect drones.chargingPort to droneDocks.chargingPort;
+        interface connect operatorPort to controlStation.operatorPort {
+            doc
+            /* Delegation of the operator interface of the system to the control station. */
+        }
+    }
+    part def ControlStation {
+        doc
+        /* The control station as a black box: the element specification of the building block that the
+         * control station sub-project develops. Its ports and attributes are fixed by the product
+         * architecture of the Delivery Drone project. */
+        port radioPort {
+            doc
+            /* Radio link to the fleet. */
+        }
+        port operatorPort {
+            doc
+            /* Command and monitoring interface to the operator, delegated from the system. */
+            in item order : DeliveryDroneDomainLibrary::Items::DeliveryOrder;
+        }
+        attribute chargerAssignmentTime :> ISQ::duration {
+            doc
+            /* Time from the low-battery signal of a drone to the assignment of a charger drone. */
+        }
+    }
+
+    //
+    // Alternative product architecture, evaluated in the charging concept trade study of the project
+    //
+    #systemContext part def DedicatedChargerProductContextImpl :> DeliveryDroneProductContext, DD_SPECIFICATION::DeliveryDroneSystemContextImpl {
+        doc
+        /* Alternative product architecture (not selected): a separate fleet of dedicated charger drones
+         * recharges the delivery drones in flight. */
+        #system part :>> deliveryDroneSystemImpl : DedicatedChargerProductSystemImpl;
+    }
+    part def DedicatedChargerProductSystemImpl :> DeliveryDroneProductSystem, DD_SPECIFICATION::DeliveryDroneSystemImpl {
+        doc
+        /* The building blocks of the alternative: delivery drones without air charger and dedicated
+         * charger drones with large batteries. */
+        part :>> drones : DD_SPECIFICATION::DeliveryDrone {
+            doc
+            /* The delivery drones; they receive energy in flight but carry no air charger. */
+            part :>> airCharger [0];
+        }
+        part chargerDrones [1..*] {
+            doc
+            /* Dedicated charger drones with large batteries that recharge the delivery drones in flight. */
+        }
+        part :>> controlStation : ControlStation;
     }
 }
 package <DD_VV> DeliveryDroneVerificationValidation {

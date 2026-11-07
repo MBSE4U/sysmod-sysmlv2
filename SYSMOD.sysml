@@ -221,6 +221,24 @@ library package SYSMOD {
         }
 
         //
+        // Alternatives and Trade Studies
+        //
+        part architectureAlternatives : SystemContext [0..*] {
+            doc
+            /* Candidate architectures: alternative system contexts for an architecture decision, which the tradeStudies evaluate against each other.
+             * An alternative is typed by a context definition that specializes the definition of the context it is an alternative for, e.g., the
+             * definition of the white box specification context for an alternative product architecture, or the definition of the white box
+             * brownfield context for an alternative system idea. The definition of the selected alternative becomes the definition of the
+             * respective context of the project, e.g., of the productContextImpl, which records the decision with Rationale metadata whose
+             * explanation is the trade study. Created by the specifyTradeStudy step. */
+        }
+        analysis tradeStudies : SYSMODTradeStudy [0..*] {
+            doc
+            /* The trade studies of the project. Each trade study evaluates some of the architectureAlternatives against the systemObjectives
+             * and selects the preferred alternative. Created by the specifyTradeStudy step. */
+        }
+
+        //
         // Verification
         //
         part verificationContext : SystemContext {
@@ -258,7 +276,34 @@ library package SYSMOD {
         // Sub Projects
         //
         occurrence subProjects : Project [*] {
-            doc /* List of all subProjects, for example, a standalone project for a subsystem or component of the system. */
+            doc /* List of all subProjects, for example, a standalone project for a subsystem or component of the system.
+                 * A sub-project that develops a building block of the white box product context refers to it as its parentElement
+                 * (sub-project contract). Created by the modelSubProjects step. */
+        }
+
+        //
+        // Sub-Project Contract
+        //
+        ref part parentElement [0..1] {
+            doc
+            /* Only for a sub-project: the building block of the white box product context (productContextImpl) of the parent project that
+             * this sub-project develops. The parent project sets it in the usage of the sub-project. It anchors the sub-project contract:
+             * 1. Boundary: the black box brownfield context of the sub-project is derived from the parent white box as seen from the
+             *    parent element. The parent element, typed by its black box definition, is the system of interest; its neighbors in the
+             *    parent white box are the actors; its connections and the delegations of parent system ports to it are the actor/system
+             *    interfaces. These decisions of the parent architecture are fixed at the start of the sub-project.
+             * 2. Flow-down: the parent project derives the system requirements of the sub-project from the parent requirements
+             *    that constrain the parent element, with its requirementFlowDowns.
+             * 3. Integration: the parent project redefines the parent element in its white box product context with the white box
+             *    product system (productSystemImpl) of the sub-project. */
+        }
+        abstract connection requirementFlowDowns : DerivationConnections::Derivation [0..*] :> DerivationConnections::derivations {
+            doc
+            /* The requirement flow-down to the subProjects: #derivation connections from the requirements of this project that
+             * constrain the parentElement of a sub-project (#original) to the system requirements of that sub-project (#derive),
+             * e.g., end #derive ::> <sub-project usage>.<requirement specification>.<requirement>. They are declared in this project,
+             * where the requirements of both levels are accessible. Together with the subProjects, they form the specification tree.
+             * Created by the modelSubProjects step. */
         }
     }
     abstract occurrence projects : Project [*] {
@@ -451,6 +496,67 @@ library package SYSMOD {
         none;
         unstable;
         stable;
+    }
+
+    //
+    // SYSMOD Trade Studies
+    //
+    analysis def SYSMODTradeStudy :> TradeStudies::TradeStudy {
+        doc
+        /* A SYSMOD trade study evaluates alternative system contexts (architectureAlternatives) for an architecture decision
+         * and selects the preferred one (ISO/IEC/IEEE 15288 Decision Management and System Analysis processes).
+         * The criteria are system objectives of the project. The evaluation of an alternative is the weighted sum of its
+         * assessments: for each criterion, the weight (by default the priority of the system objective) times the score, i.e.,
+         * the degree to which the alternative achieves the objective, from 0.0 (not at all) to 1.0 (fully), determined by
+         * analysis, simulation, or expert judgment. The trade study selects the alternative with the maximum evaluation.
+         * Mandatory system requirements are must-criteria: an alternative that violates one is not eligible and is not an
+         * alternative of the trade study.
+         */
+        subject alternatives : SystemContext [1..*] :>> studyAlternatives {
+            doc /* The alternative system contexts compared by the trade study. */
+        }
+        ref concern criteria : ExtendedConcern [1..*] {
+            doc /* The evaluation criteria: the system objectives, or individual objectives nested in them, against which the alternatives are evaluated. */
+        }
+        attribute assessments : Assessment [0..*] {
+            doc /* The assessments of the alternatives, one per alternative and criterion. */
+        }
+        calc :>> evaluationFunction {
+            doc /* The evaluation of an alternative: the sum of the weighted scores of its assessments. */
+            in ref :>> alternative : SystemContext;
+            return :>> result : ScalarValues::Real = NumericalFunctions::sum(
+                assessments->ControlFunctions::select { in a : Assessment; a.alternative == alternative }
+                    ->ControlFunctions::collect { in a : Assessment; a.weightedScore });
+        }
+        objective :>> tradeStudyObjective : TradeStudies::MaximizeObjective {
+            doc /* Select the alternative with the maximum evaluation. */
+        }
+        return :>> selectedAlternative : SystemContext {
+            doc /* The selected alternative. Its context definition becomes the definition of the respective context of the project. */
+        }
+    }
+
+    attribute def Assessment {
+        doc /* The assessment of one alternative of a SYSMOD trade study for one criterion. */
+        ref part alternative : SystemContext {
+            doc /* The assessed alternative. */
+        }
+        ref concern criterion : ExtendedConcern {
+            doc /* The criterion, i.e., a system objective. */
+        }
+        attribute weight : ScalarValues::Real default criterion.priority {
+            doc /* The weight of the criterion; by default the priority of the system objective. */
+        }
+        attribute score : ScalarValues::Real {
+            doc /* The degree to which the alternative achieves the criterion, from 0.0 (not at all) to 1.0 (fully). */
+        }
+        attribute weightedScore : ScalarValues::Real = weight * score {
+            doc /* The contribution of this assessment to the evaluation of the alternative. */
+        }
+        assert constraint scoreRange {
+            doc /* The score is a degree between 0.0 and 1.0. */
+            score >= 0.0 and score <= 1.0
+        }
     }
 
     //

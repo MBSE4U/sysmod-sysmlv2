@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="380" viewBox="0 0 1000 380" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- Rendering of DD::PRJ::tradeStudyView : SYSMODViews::TradeStudyView (render asElementTable).
+       Exposed: DD::PRJ::chargingConceptStudy, filtered by @SysML::AnalysisCaseUsage or @SysML::ReferenceUsage
+       or @SysML::ConcernUsage or @SysML::AttributeUsage.
+       Rows are the alternatives (subject alternatives), columns the criteria (systemObjectives) with their weights,
+       cells the scores of the assessments; the evaluation is the weighted sum (SYSMODTradeStudy::evaluationFunction).
+       Illustrative example. -->
+  <rect width="1000" height="380" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#333">[view] tradeStudyView : TradeStudyView — charging concept trade study</text>
+  <text x="20" y="48" font-size="12" fill="#555">chargingConceptStudy : SYSMODTradeStudy — Which product architecture realizes the air charging of the system idea best?</text>
+
+  <!-- Table background -->
+  <rect x="20" y="62" width="960" height="66" fill="#eef2f7"/>
+  <rect x="20" y="128" width="960" height="58" fill="#eaf2fb"/>
+  <rect x="20" y="186" width="960" height="58" fill="#ffffff"/>
+  <g stroke="#333" stroke-width="1">
+    <rect x="20" y="62" width="960" height="182" fill="none" stroke-width="1.5"/>
+    <line x1="20" y1="128" x2="980" y2="128" stroke-width="1.5"/>
+    <line x1="20" y1="186" x2="980" y2="186"/>
+    <line x1="320" y1="62" x2="320" y2="244" stroke-width="1.5"/>
+    <line x1="480" y1="62" x2="480" y2="244"/>
+    <line x1="640" y1="62" x2="640" y2="244"/>
+    <line x1="800" y1="62" x2="800" y2="244" stroke-width="1.5"/>
+  </g>
+
+  <!-- Header -->
+  <g font-size="12" font-weight="600" fill="#222">
+    <text x="28" y="118">Alternative (architectureAlternatives)</text>
+    <text x="808" y="118">Evaluation</text>
+  </g>
+  <g text-anchor="middle">
+    <text x="400" y="80" font-size="11" fill="#555">«extendedConcern»</text>
+    <text x="400" y="96" font-size="13" font-weight="600" fill="#111">fastRemoteDelivery</text>
+    <text x="400" y="114" font-size="11" fill="#555">weight 1.0 (critical)</text>
+    <text x="560" y="80" font-size="11" fill="#555">«extendedConcern»</text>
+    <text x="560" y="96" font-size="13" font-weight="600" fill="#111">lowCostPerDelivery</text>
+    <text x="560" y="114" font-size="11" fill="#555">weight 0.75 (high)</text>
+    <text x="720" y="80" font-size="11" fill="#555">«extendedConcern»</text>
+    <text x="720" y="96" font-size="13" font-weight="600" fill="#111">onTimeDelivery</text>
+    <text x="720" y="114" font-size="11" fill="#555">weight 0.75 (high)</text>
+  </g>
+
+  <!-- Row: convertibleDronesAlternative (selected) -->
+  <text x="28" y="146" font-size="13" font-weight="600" fill="#111">convertibleDronesAlternative</text>
+  <text x="28" y="162" font-size="11" fill="#555">: DeliveryDroneProductContextImpl</text>
+  <text x="28" y="178" font-size="11" fill="#2f6fb0" font-weight="600">✓ selected — every drone can carry the air charger</text>
+  <g text-anchor="middle">
+    <text x="400" y="158" font-size="16" fill="#111">0.9</text>
+    <text x="400" y="176" font-size="11" fill="#555">0.90</text>
+    <text x="560" y="158" font-size="16" fill="#111">0.8</text>
+    <text x="560" y="176" font-size="11" fill="#555">0.60</text>
+    <text x="720" y="158" font-size="16" fill="#111">0.8</text>
+    <text x="720" y="176" font-size="11" fill="#555">0.60</text>
+  </g>
+  <text x="808" y="160" font-size="18" font-weight="600" fill="#2f6fb0">2.10</text>
+  <text x="808" y="177" font-size="11" fill="#555">maximum → selected</text>
+
+  <!-- Row: dedicatedChargerDronesAlternative -->
+  <text x="28" y="204" font-size="13" font-weight="600" fill="#111">dedicatedChargerDronesAlternative</text>
+  <text x="28" y="220" font-size="11" fill="#555">: DedicatedChargerProductContextImpl</text>
+  <text x="28" y="236" font-size="11" fill="#555">separate fleet of dedicated charger drones</text>
+  <g text-anchor="middle">
+    <text x="400" y="216" font-size="16" fill="#111">0.8</text>
+    <text x="400" y="234" font-size="11" fill="#555">0.80</text>
+    <text x="560" y="216" font-size="16" fill="#111">0.5</text>
+    <text x="560" y="234" font-size="11" fill="#555">0.375</text>
+    <text x="720" y="216" font-size="16" fill="#111">0.9</text>
+    <text x="720" y="234" font-size="11" fill="#555">0.675</text>
+  </g>
+  <text x="808" y="218" font-size="18" font-weight="600" fill="#111">1.85</text>
+
+  <!-- Summary -->
+  <g font-size="12" fill="#555">
+    <text x="20" y="272">Cells: score of the assessment (0.0 = objective not achieved, 1.0 = fully achieved); below: weighted score = weight × score.</text>
+    <text x="20" y="290">Evaluation = sum of the weighted scores (SYSMODTradeStudy::evaluationFunction); weights = priorities of the system objectives (LevelKind).</text>
+    <text x="20" y="308">The context definition of the selected alternative types deliveryDroneProductContextImpl, which records the decision with</text>
+    <text x="20" y="326">@Rationale (explanation = chargingConceptStudy). Scores: expert judgments of the drone engineering team.</text>
+  </g>
+
+  <text x="20" y="372" font-size="11" fill="#777">Illustrative example based on the Delivery Drone example model.</text>
+</svg>

@@ -61,10 +61,11 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
         doc
         /* The product architecture: the concrete, physical building blocks of
          * the delivery drone system. */
-        part :>> drones : DD_SPECIFICATION::DeliveryDrone {
+        part :>> drones : DD_SPECIFICATION::DeliveryDrone, DDCS_HANDOVER::Drone {
             doc
-            /* The delivery drone fleet, including charger-equipped drones. */
-            port radioPort {
+            /* The delivery drone fleet, including charger-equipped drones. They specialize the drones of the
+             * handover context of the control station sub-project. */
+            port :>> radioPort {
                 doc
                 /* Radio link to the control station for commands and telemetry. */
             }
@@ -93,24 +94,10 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
             /* Delegation of the operator interface of the system to the control station. */
         }
     }
-    part def ControlStation {
+    part def ControlStation :> DDCS_HANDOVER::ControlStation {
         doc
-        /* The control station as a black box: the element specification of the building block that the
-         * control station sub-project develops. Its ports and attributes are fixed by the product
-         * architecture of the Delivery Drone project. */
-        port radioPort {
-            doc
-            /* Radio link to the fleet. */
-        }
-        port operatorPort {
-            doc
-            /* Command and monitoring interface to the operator, delegated from the system. */
-            in item order : DeliveryDroneDomainLibrary::Items::DeliveryOrder;
-        }
-        attribute chargerAssignmentTime :> ISQ::duration {
-            doc
-            /* Time from the low-battery signal of a drone to the assignment of a charger drone. */
-        }
+        /* The control station building block. It specializes the system of interest of the handover context of the
+         * control station sub-project (DeliveryDroneControlStationHandover), which fixes its ports and attributes. */
     }
 
     //
@@ -126,7 +113,7 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
         doc
         /* The building blocks of the alternative: delivery drones without air charger and dedicated
          * charger drones with large batteries. */
-        part :>> drones : DD_SPECIFICATION::DeliveryDrone {
+        part :>> drones : DD_SPECIFICATION::DeliveryDrone, DDCS_HANDOVER::Drone {
             doc
             /* The delivery drones; they receive energy in flight but carry no air charger. */
             part :>> airCharger [0];

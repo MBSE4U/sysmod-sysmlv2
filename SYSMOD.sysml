@@ -288,10 +288,14 @@ library package SYSMOD {
             doc
             /* Only for a sub-project: the building block of the white box product context (productContextImpl) of the parent project that
              * this sub-project develops. The parent project sets it in the usage of the sub-project. It anchors the sub-project contract:
-             * 1. Boundary: the black box brownfield context of the sub-project is derived from the parent white box as seen from the
-             *    parent element. The parent element, typed by its black box definition, is the system of interest; its neighbors in the
-             *    parent white box are the actors; its connections and the delegations of parent system ports to it are the actor/system
-             *    interfaces. These decisions of the parent architecture are fixed at the start of the sub-project.
+             * 1. Boundary: the parent project specifies a handover context in a separate handover package: a system context whose
+             *    system of interest is the black box of the parent element and whose actors are the external entities of the parent
+             *    element that are handed over (its neighbors in the parent white box and the parent actors whose interfaces the parent
+             *    delegates to it), with the actor/system interfaces. The parent white box specializes the elements of the handover
+             *    context, e.g., the definition of the parent element specializes the definition of the system of interest. The
+             *    sub-project uses the handover context as its black box brownfield context. The handover package is the only package
+             *    that both projects share, so the sub-project, e.g., a supplier, needs no access to the parent project. These decisions
+             *    of the parent architecture are fixed at the start of the sub-project.
              * 2. Flow-down: the parent project derives the system requirements of the sub-project from the parent requirements
              *    that constrain the parent element, with its requirementFlowDowns.
              * 3. Integration: the parent project redefines the parent element in its white box product context with the white box

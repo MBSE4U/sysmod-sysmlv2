@@ -6,7 +6,10 @@ package <DDCS> DeliveryDroneControlStation {
      * Definition of the Control Station Sub-Project
      *
      * The focus is on demonstrating how to use SYSMOD, in particular how a
-     * sub-project relates to its parent project. Therefore, the model is
+     * sub-project relates to its parent project: it only gets the handover
+     * context of the parent project (DeliveryDroneControlStationHandover) and
+     * needs no access to the parent architecture; it only shares the stakeholder
+     * definitions. Therefore, the model is
      * oversimplified and does not cover the subject in either breadth or depth.
      *
      * based on SYSMOD v5.1.8
@@ -44,10 +47,10 @@ package <DDCS> DeliveryDroneControlStation {
          */
 
         //------------------------- Sub-Project Contract
-        ref part :>> parentElement : DD_PRODUCT::ControlStation {
+        ref part :>> parentElement : DDCS_HANDOVER::ControlStation {
             doc /* The control station building block of the white box product context of the
                    Delivery Drone project. The parent project binds it in its sub-project usage.
-                   Its black box definition is the system of interest of the brownfield context,
+                   The handover context with its black box definition is the brownfield context,
                    the parent requirement AirCharging flows down to the system requirements, and
                    the parent integrates the product system of this sub-project. */
         }
@@ -86,9 +89,9 @@ package <DDCS> DeliveryDroneControlStation {
         }
 
         //------------------------- Brownfield Architecture
-        // The black box brownfield context is derived from the white box product context of the
-        // parent project (sub-project contract); the white box adds the existing control station.
-        part controlStationBrownfieldContext :>> brownfieldContext : ControlStationContext;
+        // The black box brownfield context is the handover context of the parent project
+        // (sub-project contract); the white box adds the existing control station.
+        part controlStationBrownfieldContext :>> brownfieldContext : DDCS_HANDOVER::ControlStationContext;
         part controlStationBrownfieldContextImpl :>> brownfieldContextImpl : ControlStationContextImpl :> controlStationBrownfieldContext;
 
         //------------------------- System Idea
@@ -112,39 +115,14 @@ package <DDCS> DeliveryDroneControlStation {
     }
 
     //------------------------- Control Station Brownfield
-    #systemContext part def ControlStationContext {
-        doc
-        /* The black box brownfield context of the control station. It is derived from the white box
-         * product context of the parent Delivery Drone project (sub-project contract): the parent element
-         * controlStation is the system of interest, its neighbor drones and the operator, whose interface
-         * the parent delegates to the control station, are the actors, and the connection and delegation
-         * in the parent white box are the actor/system interfaces. */
-        #system part controlStation : DD_PRODUCT::ControlStation :>> soi {
-            doc /* The control station as a black box, typed by the element specification of the parent. */
-        }
-        #externalSystem part drones :> actors {
-            doc /* The delivery drones of the fleet: the neighbors of the control station in the parent white box. */
-            port radioPort :>> actorPorts;
-        }
-        #user part operator :> actors {
-            doc /* The operator, an actor of the parent system whose interface the parent delegates to the control station. */
-            port controlPort :>> actorPorts;
-        }
-        interface radioInterface :> asis connect drones.radioPort to controlStation.radioPort {
-            doc /* Derived from the parent connection of drones.radioPort to controlStation.radioPort. */
-        }
-        interface operatorInterface :> asis connect operator.controlPort to controlStation.operatorPort {
-            doc /* Derived from the parent delegation of operatorPort to controlStation.operatorPort. */
-        }
-    }
-    #systemContext part def ControlStationContextImpl :> ControlStationContext {
+    #systemContext part def ControlStationContextImpl :> DDCS_HANDOVER::ControlStationContext {
         doc
         /* The white box brownfield context: adds the internal structure of the existing control station. */
         #system part controlStationImpl : ControlStationImpl :>> controlStation {
             doc /* The existing control station as a white box. */
         }
     }
-    part def ControlStationImpl :> DD_PRODUCT::ControlStation {
+    part def ControlStationImpl :> DDCS_HANDOVER::ControlStation {
         doc
         /* White box definition of the existing control station, built for manually piloted drones:
          * one console and one radio link per drone. */
@@ -161,7 +139,7 @@ package <DDCS> DeliveryDroneControlStation {
     requirement def ControlStationRequirements :> ExtendedRequirement {
         doc
         /* Root of the control station system requirements. */
-        subject controlStation : DD_PRODUCT::ControlStation;
+        subject controlStation : DDCS_HANDOVER::ControlStation;
         stakeholder projectOwner : ExtendedStakeholder;
         requirement chargerAssignment : ChargerAssignmentTime;
         requirement batteryTracking : BatteryLevelTracking;
@@ -169,7 +147,7 @@ package <DDCS> DeliveryDroneControlStation {
     #extendedRequirement requirement def ChargerAssignmentTime :> SYSMODRequirementsBoilerplates::MaxValue {
         doc
         /* The control station shall assign a charger drone to a drone with low battery within 10 s. */
-        subject controlStation : DD_PRODUCT::ControlStation;
+        subject controlStation : DDCS_HANDOVER::ControlStation;
         stakeholder droneOperator : DD_STAKEHOLDERS::DroneOperator;
         attribute :>> obligation = ObligationKind::mandatory;
         attribute :>> stability = StabilityKind::unstable;
@@ -181,7 +159,7 @@ package <DDCS> DeliveryDroneControlStation {
     #extendedRequirement requirement def BatteryLevelTracking {
         doc
         /* The control station shall track the battery level of every drone in flight. */
-        subject controlStation : DD_PRODUCT::ControlStation;
+        subject controlStation : DDCS_HANDOVER::ControlStation;
         stakeholder droneOperator : DD_STAKEHOLDERS::DroneOperator;
         attribute :>> obligation = ObligationKind::mandatory;
         attribute :>> stability = StabilityKind::stable;
@@ -189,7 +167,7 @@ package <DDCS> DeliveryDroneControlStation {
     }
 
     //------------------------- Control Station Product Architecture
-    #systemContext part def ControlStationProductContext :> ControlStationContext {
+    #systemContext part def ControlStationProductContext :> DDCS_HANDOVER::ControlStationContext {
         doc
         /* The black box context of the product architecture of the control station. */
     }

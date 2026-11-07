@@ -7,9 +7,8 @@ package <DDCS> DeliveryDroneControlStation {
      *
      * The focus is on demonstrating how to use SYSMOD, in particular how a
      * sub-project relates to its parent project: it only gets the handover
-     * context of the parent project (DeliveryDroneControlStationHandover) and
-     * needs no access to the parent architecture; it only shares the stakeholder
-     * definitions. Therefore, the model is
+     * package of the parent project (DeliveryDroneControlStationHandover) and
+     * needs no access to the parent model. Therefore, the model is
      * oversimplified and does not cover the subject in either breadth or depth.
      *
      * based on SYSMOD v5.1.8
@@ -30,6 +29,7 @@ package <DDCS> DeliveryDroneControlStation {
      */
 
     private import SYSMOD::*;
+    private import RequirementDerivation::*;
 
     #SYSMOD::project occurrence def <PRJ> DeliveryDroneControlStationProject {
         doc
@@ -71,9 +71,8 @@ package <DDCS> DeliveryDroneControlStation {
         }
 
         //------------------------- Stakeholders
-        private import DD_STAKEHOLDERS::*;
-        part droneOperator : DroneOperator :> projectStakeholders {
-            doc /* Shared with the parent Delivery Drone project: the operator is
+        part droneOperator : DDCS_HANDOVER::DroneOperator :> projectStakeholders {
+            doc /* Handed over by the parent Delivery Drone project: the operator is
                    the primary user of the control station. */
             attribute :>> name = "Drone Operator";
         }
@@ -100,10 +99,24 @@ package <DDCS> DeliveryDroneControlStation {
 
         //------------------------- Specification
         // The specification contexts are omitted in this oversimplified example. The system
-        // requirements are derived from the parent requirements (requirement flow-down).
-        requirement controlStationRequirementSpecification :>> systemRequirementSpecification : ControlStationRequirements {
+        // requirements are derived from the handover requirements of the parent project.
+        requirement :>> handoverRequirements : DDCS_HANDOVER::ControlStationRequirements {
+            doc /* The requirements handed over by the parent Delivery Drone project. */
+        }
+        requirement controlStationRequirementSpecification :>> systemRequirementSpecification : ControlStationSystemRequirements {
             subject controlStation :>> specificationSystemImpl, controlStation;
             stakeholder :>> projectOwner = tomSchilling;
+        }
+        #derivation connection chargerAssignmentDerivation {
+            doc /* The charger assignment time of the parent splits into the computation time of the
+                   assignment and the age of the battery levels it is based on. */
+            end #original ::> handoverRequirements.chargerAssignment;
+            end #derive ::> controlStationRequirementSpecification.assignmentComputation;
+            end #derive ::> controlStationRequirementSpecification.batteryTelemetry;
+        }
+        #derivation connection batteryTrackingDerivation {
+            end #original ::> handoverRequirements.batteryTracking;
+            end #derive ::> controlStationRequirementSpecification.batteryTelemetry;
         }
         // The parent project declares the requirement flow-down from its requirement AirCharging
         // to these requirements (requirementFlowDowns), where both levels are accessible.
@@ -135,35 +148,32 @@ package <DDCS> DeliveryDroneControlStation {
         connect console to radioLink;
     }
 
-    //------------------------- Control Station Requirements
-    requirement def ControlStationRequirements :> ExtendedRequirement {
+    //------------------------- Control Station System Requirements
+    requirement def ControlStationSystemRequirements :> ExtendedRequirement {
         doc
-        /* Root of the control station system requirements. */
+        /* Root of the control station system requirements, derived from the handover requirements. */
         subject controlStation : DDCS_HANDOVER::ControlStation;
         stakeholder projectOwner : ExtendedStakeholder;
-        requirement chargerAssignment : ChargerAssignmentTime;
-        requirement batteryTracking : BatteryLevelTracking;
+        requirement assignmentComputation : AssignmentComputationTime;
+        requirement batteryTelemetry : BatteryTelemetryInterval;
     }
-    #extendedRequirement requirement def ChargerAssignmentTime :> SYSMODRequirementsBoilerplates::MaxValue {
+    #extendedRequirement requirement def AssignmentComputationTime {
         doc
-        /* The control station shall assign a charger drone to a drone with low battery within 10 s. */
+        /* The control station shall compute the charger assignment for a drone with low battery within 5 s. */
         subject controlStation : DDCS_HANDOVER::ControlStation;
-        stakeholder droneOperator : DD_STAKEHOLDERS::DroneOperator;
+        stakeholder droneOperator : DDCS_HANDOVER::DroneOperator;
         attribute :>> obligation = ObligationKind::mandatory;
         attribute :>> stability = StabilityKind::unstable;
-        attribute :>> motivation = "Derived from AirCharging: a low-battery drone can only be recharged in flight if a charger drone is assigned in time.";
-        attribute :>> currentValue :> ISQ::duration = controlStation.chargerAssignmentTime;
-        attribute :>> maxValue :> ISQ::duration = 10 [SI::s];
-        attribute :>> tolerance :> ISQ::duration = 0 [SI::s];
+        attribute :>> motivation = "Leaves 5 s of the 10 s charger assignment time for transmitting the assignment to the drones.";
     }
-    #extendedRequirement requirement def BatteryLevelTracking {
+    #extendedRequirement requirement def BatteryTelemetryInterval {
         doc
-        /* The control station shall track the battery level of every drone in flight. */
+        /* The control station shall receive the battery level of every drone in flight at least every 2 s. */
         subject controlStation : DDCS_HANDOVER::ControlStation;
-        stakeholder droneOperator : DD_STAKEHOLDERS::DroneOperator;
+        stakeholder droneOperator : DDCS_HANDOVER::DroneOperator;
         attribute :>> obligation = ObligationKind::mandatory;
         attribute :>> stability = StabilityKind::stable;
-        attribute :>> motivation = "Derived from AirCharging: charger drones can only be assigned in time if the battery levels of all drones are known.";
+        attribute :>> motivation = "The battery levels must be tracked and recent enough for a charger assignment within 10 s.";
     }
 
     //------------------------- Control Station Product Architecture

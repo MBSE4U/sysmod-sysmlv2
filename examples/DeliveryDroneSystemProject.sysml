@@ -239,7 +239,7 @@ package <DD> DeliveryDrone {
             }
             part deliveryDroneProduct :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSpecificationContextImpl::deliveryDroneSystemImpl, Project::productContextImpl::productSystemImpl {
                 // Integration of the control station sub-project (integrateSubProjects)
-                part :>> controlStation : DDCS::ControlStationProductSystemImpl;
+                part :>> DD_PRODUCT::DeliveryDroneProductSystemImpl::controlStation, DD_BROWNFIELD::DeliveryDroneSystemImpl::controlStation = controlStationProject.controlStationProductContextImpl.controlStationImpl;
             }
         }
         // The allocations functional2logical, logical2product, functionalImpl2logicalImpl,
@@ -300,7 +300,6 @@ package <DD> DeliveryDrone {
                    subsets the subProjects list inherited from SYSMOD::Project, and its
                    parentElement is the control station building block of the white box
                    product context (sub-project contract). */
-            ref part :>> parentElement = deliveryDroneProductContextImpl.deliveryDroneProduct.controlStation;
         }
         #derivation connection airChargingFlowDown :> requirementFlowDowns {
             doc /* Requirement flow-down to the control station sub-project: the requirement AirCharging

@@ -282,9 +282,9 @@ library package SYSMOD {
         }
 
         //
-        // Sub-Project Contract
+        // Sub-Project Handover Element
         //
-        ref part parentElement [0..1] {
+        ref part handOverElement [0..1] {
             doc
             /* Only for a sub-project: the building block of the white box product context (productContextImpl) of the parent project that
              * this sub-project develops. The parent project sets it in the usage of the sub-project. It anchors the sub-project contract:

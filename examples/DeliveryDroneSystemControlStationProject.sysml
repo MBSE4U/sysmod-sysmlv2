@@ -46,15 +46,6 @@ package <DDCS> DeliveryDroneControlStation {
          *
          */
 
-        //------------------------- Sub-Project Contract
-        ref part :>> parentElement : DDCS_HANDOVER::ControlStation {
-            doc /* The control station building block of the white box product context of the
-                   Delivery Drone project. The parent project binds it in its sub-project usage.
-                   The handover context with its black box definition is the brownfield context,
-                   the parent requirement AirCharging flows down to the system requirements, and
-                   the parent integrates the product system of this sub-project. */
-        }
-
         part tomSchilling :>> projectOwner {
             doc /* Tom Schilling leads the ground-segment team and is accountable
                    for the control station sub-project. */
@@ -111,7 +102,9 @@ package <DDCS> DeliveryDroneControlStation {
         //------------------------- Solution Architecture: Product Architecture
         // The functional and logical architectures are omitted in this oversimplified example.
         part controlStationProductContext :>> productContext : ControlStationProductContext :> controlStationBrownfieldContext;
-        part controlStationProductContextImpl :>> productContextImpl : ControlStationProductContextImpl :> controlStationProductContext, controlStationBrownfieldContextImpl;
+        part controlStationProductContextImpl :>> productContextImpl : ControlStationProductContextImpl :> controlStationProductContext, controlStationBrownfieldContextImpl {
+            #system part :>> controlStationImpl, Project::productContextImpl::productSystemImpl;
+        }
     }
 
     //------------------------- Control Station Brownfield

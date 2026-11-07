@@ -1043,7 +1043,7 @@ package SYSMOD4AI {
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
-        metadata parentElementAI : AI about parentElement {
+        metadata parentElementAI : AI about handOverElement {
             doc
             /* Sets up the element specification of a sub-project from its parent project (sub-project
              * contract): the handover context of the parent as the brownfield context, and the system

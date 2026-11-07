@@ -25,6 +25,6 @@ library package SYSMODBase {
             part :>> tools :> SYSMODEnvironment::tools;
             part :>> roles :> SYSMODEnvironment::roles;
         }    
-        occurrence sysmodProject :>> mbseProject;
+        occurrence sysmodProject :>> rootProduct;
     }
 }

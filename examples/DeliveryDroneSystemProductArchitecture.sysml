@@ -74,7 +74,7 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
                 /* Physical charging contact used while docked. */
             }
         }
-        part :>> controlStation : ControlStation {
+        part :>> controlStation : DDCS_HANDOVER::ControlStation {
             doc
             /* The ground control station operating the fleet. It is developed in the control station
              * sub-project, which refers to it as its parentElement (sub-project contract). */

@@ -229,8 +229,10 @@ library package SYSMOD {
              * the systemObjectives and selects the preferred alternative. The alternatives are the variants of the project context of the
              * decision, which is a variation usage, e.g., variation part :>> productContextImpl { variant part <alternative> : <context
              * definition>; ... }. Each variant is typed by a context definition that specializes the definition of the base context, e.g.,
-             * the white box specification context for alternative product architectures. The selected variant records the decision with
-             * Rationale metadata whose explanation is the trade study. Created by the specifyTradeStudy step. */
+             * the white box specification context for alternative product architectures. The variation records the decision with
+             * Rationale metadata whose explanation is the trade study. The trade study refers to the variants via reference features of the
+             * project, e.g., ref part <alternative> = <variation>::<variant>, because an analysis cannot reference variants directly
+             * (SysML v2 Pilot Implementation 0.63.1). Created by the specifyTradeStudy step. */
         }
 
         //

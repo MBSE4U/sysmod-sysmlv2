@@ -74,7 +74,7 @@
   <g font-size="12" fill="#555">
     <text x="20" y="272">Cells: score of the assessment (0.0 = objective not achieved, 1.0 = fully achieved); below: weighted score = weight × score.</text>
     <text x="20" y="290">Evaluation = sum of the weighted scores (SYSMODTradeStudy::evaluationFunction); weights = priorities of the system objectives (LevelKind).</text>
-    <text x="20" y="308">The alternatives are the variants of the variation deliveryDroneProductContextImpl; the selected one records the decision with</text>
+    <text x="20" y="308">The alternatives are the variants of the variation deliveryDroneProductContextImpl; the variation records the decision with</text>
     <text x="20" y="326">@Rationale (explanation = chargingConceptStudy). Scores: expert judgments of the drone engineering team.</text>
   </g>
 

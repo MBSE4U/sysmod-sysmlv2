@@ -232,28 +232,31 @@ package <DD> DeliveryDrone {
         part deliveryDroneProductContext :>> productContext : DD_PRODUCT::DeliveryDroneProductContext :> deliveryDroneSpecificationContext {
             part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSpecificationContext::deliveryDroneSystem, Project::productContext::productSystem;
         }
-        part deliveryDroneProductContextImpl :>> productContextImpl : DD_PRODUCT::DeliveryDroneProductContextImpl :> deliveryDroneProductContext, deliveryDroneSpecificationContextImpl {
+        variation part deliveryDroneProductContextImpl :>> productContextImpl :> deliveryDroneProductContext, deliveryDroneSpecificationContextImpl {
             @ModelingMetadata::Rationale {
                 text = "Convertible drones: the highest evaluation in the charging concept trade study, without a separate charger fleet to buy, operate, and maintain.";
                 explanation = PRJ::chargingConceptStudy meta SysML::Usage;
             }
-            part deliveryDroneProduct :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSpecificationContextImpl::deliveryDroneSystemImpl, Project::productContextImpl::productSystemImpl {
-                // Integration of the control station sub-project (integrateSubProjects)
-                part :>> DD_PRODUCT::DeliveryDroneProductSystemImpl::controlStation, DD_BROWNFIELD::DeliveryDroneSystemImpl::controlStation = controlStationProject.controlStationProductContextImpl.controlStationImpl;
+            variant part convertibleDeliveryDroneProductContextImpl : DD_PRODUCT::DeliveryDroneProductContextImpl :> architectureAlternatives {
+                doc /* Convertible drones: the highest evaluation in the charging concept trade study, without a separate charger fleet to buy, operate, and maintain. */
+                part deliveryDroneProduct :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSpecificationContextImpl::deliveryDroneSystemImpl, Project::productContextImpl::productSystemImpl {
+                    // Integration of the control station sub-project (integrateSubProjects)
+                    part :>> DD_PRODUCT::DeliveryDroneProductSystemImpl::controlStation, DD_BROWNFIELD::DeliveryDroneSystemImpl::controlStation = controlStationProject.controlStationProductContextImpl.controlStationImpl;
+                }   
+            }
+            variant part dedicatedChargerProductContextImpl : DD_PRODUCT::DedicatedChargerProductContextImpl :> architectureAlternatives {
+                doc /* Dedicated charger drones: the alternative evaluated in the charging concept trade study. */
+                part deliveryDroneProduct :>> deliveryDroneSystem, deliveryDroneSystemImpl, deliveryDroneSpecificationContextImpl::deliveryDroneSystemImpl, Project::productContextImpl::productSystemImpl {
+                    // Integration of the control station sub-project (integrateSubProjects)
+                    part :>> DD_PRODUCT::DeliveryDroneProductSystemImpl::controlStation, DD_BROWNFIELD::DeliveryDroneSystemImpl::controlStation = controlStationProject.controlStationProductContextImpl.controlStationImpl;
+                }   
             }
         }
+
         // The allocations functional2logical, logical2product, functionalImpl2logicalImpl,
         // and logicalImpl2productImpl are inherited from SYSMOD::Project.
 
-        //------------------------- Alternatives and Trade Studies
-        part convertibleDronesAlternative : DD_PRODUCT::DeliveryDroneProductContextImpl :> architectureAlternatives {
-            doc /* Alternative A: every delivery drone can carry the optional air charger and serve as
-                   charger drone. Selected; it is the product architecture of the project. */
-        }
-        part dedicatedChargerDronesAlternative : DD_PRODUCT::DedicatedChargerProductContextImpl :> architectureAlternatives {
-            doc /* Alternative B: a separate fleet of dedicated charger drones with large batteries
-                   recharges the delivery drones in flight. */
-        }
+        //------------------------- Trade Studies
         analysis chargingConceptStudy : SYSMODTradeStudy :> tradeStudies {
             doc /* Which product architecture realizes the air charging of the system idea best?
                    The scores are expert judgments of the drone engineering team: convertible drones
@@ -261,16 +264,16 @@ package <DD> DeliveryDrone {
                    drones are more punctual but cost more. The weights are the priorities of the
                    system objectives. Evaluation: A = 1.0 * 0.9 + 0.75 * 0.8 + 0.75 * 0.8 = 2.1,
                    B = 1.0 * 0.8 + 0.75 * 0.5 + 0.75 * 0.9 = 1.85; A is selected. */
-            subject :>> alternatives = (convertibleDronesAlternative, dedicatedChargerDronesAlternative);
+            subject :>> alternatives = (deliveryDroneProductContextImpl::convertibleDeliveryDroneProductContextImpl, deliveryDroneProductContextImpl::dedicatedChargerProductContextImpl);
             ref concern :>> criteria = (systemObjectives.fastRemoteDelivery, systemObjectives.lowCostPerDelivery, systemObjectives.onTimeDelivery);
             // Alternative A: convertible drones
-            attribute aFast :> assessments { ref part :>> alternative = convertibleDronesAlternative; ref concern :>> criterion = systemObjectives.fastRemoteDelivery; attribute :>> score = 0.9; }
-            attribute aCost :> assessments { ref part :>> alternative = convertibleDronesAlternative; ref concern :>> criterion = systemObjectives.lowCostPerDelivery; attribute :>> score = 0.8; }
-            attribute aOnTime :> assessments { ref part :>> alternative = convertibleDronesAlternative; ref concern :>> criterion = systemObjectives.onTimeDelivery; attribute :>> score = 0.8; }
+            attribute aFast :> assessments { ref part :>> alternative = deliveryDroneProductContextImpl::convertibleDeliveryDroneProductContextImpl; ref concern :>> criterion = systemObjectives.fastRemoteDelivery; attribute :>> score = 0.9; }
+            attribute aCost :> assessments { ref part :>> alternative = deliveryDroneProductContextImpl::convertibleDeliveryDroneProductContextImpl; ref concern :>> criterion = systemObjectives.lowCostPerDelivery; attribute :>> score = 0.8; }
+            attribute aOnTime :> assessments { ref part :>> alternative = deliveryDroneProductContextImpl::convertibleDeliveryDroneProductContextImpl; ref concern :>> criterion = systemObjectives.onTimeDelivery; attribute :>> score = 0.8; }
             // Alternative B: dedicated charger drones
-            attribute bFast :> assessments { ref part :>> alternative = dedicatedChargerDronesAlternative; ref concern :>> criterion = systemObjectives.fastRemoteDelivery; attribute :>> score = 0.8; }
-            attribute bCost :> assessments { ref part :>> alternative = dedicatedChargerDronesAlternative; ref concern :>> criterion = systemObjectives.lowCostPerDelivery; attribute :>> score = 0.5; }
-            attribute bOnTime :> assessments { ref part :>> alternative = dedicatedChargerDronesAlternative; ref concern :>> criterion = systemObjectives.onTimeDelivery; attribute :>> score = 0.9; }
+            attribute bFast :> assessments { ref part :>> alternative = deliveryDroneProductContextImpl::dedicatedChargerProductContextImpl; ref concern :>> criterion = systemObjectives.fastRemoteDelivery; attribute :>> score = 0.8; }
+            attribute bCost :> assessments { ref part :>> alternative = deliveryDroneProductContextImpl::dedicatedChargerProductContextImpl; ref concern :>> criterion = systemObjectives.lowCostPerDelivery; attribute :>> score = 0.5; }
+            attribute bOnTime :> assessments { ref part :>> alternative = deliveryDroneProductContextImpl::dedicatedChargerProductContextImpl; ref concern :>> criterion = systemObjectives.onTimeDelivery; attribute :>> score = 0.9; }
         }
 
 

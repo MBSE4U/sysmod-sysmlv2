@@ -71,37 +71,57 @@ package <DD_SYSTEMIDEA> DeliveryDroneSystemIdea {
     //
     // System Objectives: the measurable goals of the system idea
     //
-    #extendedConcern concern def FastRemoteDelivery {
+    #extendedConcern concern def FastRemoteDelivery :> SystemObjective {
         doc
         /* A delivery to a remote place takes at most half the time of today's
          * ground-based delivery. Addresses the stakeholder need ReliableDelivery
          * and the problem statement. */
         subject systemIdea : DeliveryDroneSystem;
-        attribute maxDeliveryTimeRatio : ScalarValues::Real = 0.5 {
-            doc /* Delivery time with the drone system divided by the delivery time
+        attribute deliveryTimeRatio :> measuresOfEffectiveness : ScalarValues::Real {
+            doc /* MOE: Delivery time with the drone system divided by the delivery time
                    of today's ground-based delivery. */
         }
+        attribute airChargingTime :> measuresOfPerformance, ISQ::duration {
+            doc /* MOP: Time a drone needs to recharge from a charger drone in flight.
+                   It contributes to the delivery time. */
+        }
+        attribute maxDeliveryTimeRatio : ScalarValues::Real = 0.5 {
+            doc /* Target value of the deliveryTimeRatio. */
+        }
+        require constraint { deliveryTimeRatio <= maxDeliveryTimeRatio }
         attribute :>> priority = LevelKind::critical;
     }
-    #extendedConcern concern def LowCostPerDelivery {
+    #extendedConcern concern def LowCostPerDelivery :> SystemObjective {
         doc
         /* The cost per delivery is at most 70 % of the cost of today's
          * ground-based delivery. Addresses the stakeholder need LowDeliveryCost. */
         subject systemIdea : DeliveryDroneSystem;
-        attribute maxCostRatio : ScalarValues::Real = 0.7 {
-            doc /* Cost per delivery with the drone system divided by the cost per
+        attribute costRatio :> measuresOfEffectiveness : ScalarValues::Real {
+            doc /* MOE: Cost per delivery with the drone system divided by the cost per
                    delivery of today's ground-based delivery. */
         }
+        attribute maxCostRatio : ScalarValues::Real = 0.7 {
+            doc /* Target value of the costRatio. */
+        }
+        require constraint { costRatio <= maxCostRatio }
         attribute :>> priority = LevelKind::high;
     }
-    #extendedConcern concern def OnTimeDelivery {
+    #extendedConcern concern def OnTimeDelivery :> SystemObjective {
         doc
         /* At least 98 % of the deliveries arrive within the promised time window.
          * Addresses the stakeholder need ReliableDelivery. */
         subject systemIdea : DeliveryDroneSystem;
-        attribute minOnTimeRate : ScalarValues::Real = 0.98 {
-            doc /* Share of deliveries that arrive within the promised time window. */
+        attribute onTimeRate :> measuresOfEffectiveness : ScalarValues::Real {
+            doc /* MOE: Share of deliveries that arrive within the promised time window. */
         }
+        attribute airChargingSuccessRate :> measuresOfPerformance : ScalarValues::Real {
+            doc /* MOP: Share of planned air charging rendezvous that succeed. A failed
+                   rendezvous delays the delivery. */
+        }
+        attribute minOnTimeRate : ScalarValues::Real = 0.98 {
+            doc /* Target value of the onTimeRate. */
+        }
+        require constraint { onTimeRate >= minOnTimeRate }
         attribute :>> priority = LevelKind::high;
     }
 }

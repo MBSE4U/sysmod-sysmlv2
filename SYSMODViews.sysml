@@ -46,7 +46,7 @@ library package SYSMODViews {
             elements->forAll {
                 in e; e istype SYSMODDefaultProcess or e istype SetupProject or e istype ModelBrownfieldSystem
                     or e istype DescribeProblemStatement or e istype IdentifyStakeholders or e istype IdentifyStakeholderNeeds
-                    or e istype DescribeSystemIdea or e istype SpecifySystem or e istype ModelSolutionArchitecture
+                    or e istype DescribeSystemIdea or e istype DefineSystemObjectives or e istype SpecifySystem or e istype ModelSolutionArchitecture
                     or e istype ModelSubProjects or e istype IntegrateSubProjects
                     or e istype SpecifyVerificationContext or e istype PerformVerification or e istype SpecifyTradeStudy
             }
@@ -308,7 +308,7 @@ library package SYSMODViews {
         doc /* Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them:
                 * Title block: purpose, projectOwner, defaultProcess (setupProject), subProjects (modelSubProjects).
                 * A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds).
-                * A2: systemObjectives (describeSystemIdea).
+                * A2: systemObjectives (defineSystemObjectives).
                 * A3: systemRequirementSpecification, verificationContext.verificationCases (specifySystem).
                 * A4: #refinement dependencies from the functional elements to the system requirements (modelSolutionArchitecture, nested step modelFunctionalArchitecture).
                 * A5: #refinement dependencies from the logical elements to the system requirements (modelSolutionArchitecture, nested step modelLogicalArchitecture).

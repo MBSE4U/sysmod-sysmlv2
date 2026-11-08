@@ -32,7 +32,7 @@ library package SYSMODProcesses {
      * |-------|----------|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|-------|
      * | 1     | describe | Text in natural language without a prescribed structure, e.g., an elevator pitch               | Is a paragraph of prose enough?                                            | DescribeProblemStatement, DescribeSystemIdea |
      * | 2     | identify | Named elements with a short text, optionally traced or classified                              | Is it about what exists, not how it is structured?                         | IdentifyStakeholders, IdentifyStakeholderNeeds, identifyUseCases |
-     * | 3     | define   | Elements with fixed attributes and clear boundaries                                            | Must ambiguity be ruled out, without needing structure yet?                | (none yet) |
+     * | 3     | define   | Elements with fixed attributes and clear boundaries                                            | Must ambiguity be ruled out, without needing structure yet?                | DefineSystemObjectives |
      * | 4     | model    | Structure: contexts, parts, connections, allocations, and refinements                          | Does the result connect to other model elements as structure?              | ModelBrownfieldSystem, modelSpecificationContext, ModelSolutionArchitecture, modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture, ModelSubProjects |
      * | 5     | specify  | Verifiable or executable content: measurable requirements, constraints, and verification cases | Can a tool or test evaluate the result?                                    | SpecifySystem, specifySystemRequirements, specifyVerificationCases, SpecifyVerificationContext, SpecifyTradeStudy |
      *
@@ -89,7 +89,7 @@ library package SYSMODProcesses {
         doc
         /*
             * The default SYSMOD process: setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders,
-            * identifyStakeholderNeeds, describeSystemIdea, specifySystem, modelSolutionArchitecture (with the nested steps
+            * identifyStakeholderNeeds, describeSystemIdea, defineSystemObjectives, specifySystem, modelSolutionArchitecture (with the nested steps
             * modelFunctionalArchitecture, modelLogicalArchitecture, and modelProductArchitecture), modelSubProjects, integrateSubProjects,
             * specifyVerificationContext, and performVerification, in this order. Between modelSubProjects and integrateSubProjects, each
             * sub-project performs its own process. specifyTradeStudy has no succession: it is performed for any architecture decision
@@ -151,7 +151,8 @@ library package SYSMODProcesses {
         first [0..1]describeProblemStatement then [0..1]identifyStakeholders;
         first [0..1]identifyStakeholders then [0..1]identifyStakeholderNeeds;
         first [0..1]identifyStakeholderNeeds then [0..1]describeSystemIdea;
-        first [0..1]describeSystemIdea then [0..1]specifySystem;
+        first [0..1]describeSystemIdea then [0..1]defineSystemObjectives;
+        first [0..1]defineSystemObjectives then [0..1]specifySystem;
         first [0..1]specifySystem then [0..1]modelSolutionArchitecture;
         first [0..1]modelSolutionArchitecture then [0..1]modelSubProjects;
         first [0..1]modelSubProjects then [0..1]integrateSubProjects;
@@ -167,7 +168,7 @@ library package SYSMODProcesses {
         flow from identifyStakeholderNeeds.stakeholderNeeds to project.stakeholderNeeds;
         flow from describeSystemIdea.systemIdeaContext to project.systemIdeaContext;
         flow from describeSystemIdea.systemIdeaContextImpl to project.systemIdeaContextImpl;
-        flow from describeSystemIdea.systemObjectives to project.systemObjectives;
+        flow from defineSystemObjectives.systemObjectives to project.systemObjectives;
         flow from specifySystem.specificationContext to project.specificationContext;
         flow from specifySystem.specificationContextImpl to project.specificationContextImpl;
         flow from specifySystem.systemRequirementSpecification to project.systemRequirementSpecification;
@@ -203,7 +204,10 @@ library package SYSMODProcesses {
         bind project.systemIdeaContextImpl = specifySystem.systemIdeaContextImpl;
         bind project.stakeholderNeeds = specifySystem.stakeholderNeeds;
         bind project.systemObjectives = specifySystem.systemObjectives;
-        bind describeSystemIdea.systemIdeaArchitectureDescription = systemIdeaArchitectureDescription;            
+        bind describeSystemIdea.systemIdeaArchitectureDescription = systemIdeaArchitectureDescription;
+        bind project.problemStatement = defineSystemObjectives.problemStatement;
+        bind project.stakeholderNeeds = defineSystemObjectives.stakeholderNeeds;
+        bind project.systemIdeaContextImpl = defineSystemObjectives.systemIdeaContextImpl;
         bind modelSolutionArchitecture.functionalArchitectureDescription = functionalArchitectureDescription;
         bind modelSolutionArchitecture.logicalArchitectureDescription = logicalArchitectureDescription;
         bind modelSolutionArchitecture.productArchitectureDescription = productArchitectureDescription;
@@ -228,6 +232,7 @@ library package SYSMODProcesses {
         action identifyStakeholders : IdentifyStakeholders :> submethods { @StepStatus; }
         action identifyStakeholderNeeds : IdentifyStakeholderNeeds :> submethods { @StepStatus; }
         action describeSystemIdea : DescribeSystemIdea :> submethods { @StepStatus; }
+        action defineSystemObjectives : DefineSystemObjectives :> submethods { @StepStatus; }
         action specifySystem : SpecifySystem :> submethods { @StepStatus; } 
         action modelSolutionArchitecture : ModelSolutionArchitecture :> submethods { @StepStatus; }
         connection :> responsibleFor connect systemArchitect to modelSubProjects;
@@ -267,7 +272,7 @@ library package SYSMODProcesses {
         out part brownfieldContextImpl : SystemContext :> outputs;
     }
 
-    action def DescribeProblemStatement {
+    action def DescribeProblemStatement :> MBSEMethodology::Method {
         doc
         /* Describes the problem statement: a solution-free elevator pitch of the problem, with the brownfield system as subject and the project owner as stakeholder. Refines the ISO 15288 Business or Mission Analysis process. */
         in part projectOwner : ExtendedStakeholder;
@@ -279,7 +284,7 @@ library package SYSMODProcesses {
         out concern problemStatement : ExtendedConcern;
     }
 
-    action def IdentifyStakeholders {
+    action def IdentifyStakeholders :> MBSEMethodology::Method {
         doc
         /* Identifies the stakeholders of the project based on the problem statement and assesses their risk, effort, and categories. Refines the ISO 15288 Business or Mission Analysis process (identification of the major stakeholders) and the Stakeholder Needs and Requirements Definition process. */
         in concern problemStatement : ExtendedConcern;
@@ -288,7 +293,7 @@ library package SYSMODProcesses {
         }
     }
 
-    action def IdentifyStakeholderNeeds {
+    action def IdentifyStakeholderNeeds :> MBSEMethodology::Method {
         doc
         /* Identifies the needs of the stakeholders at intent level, framed by the problem statement and traced to the stakeholders they come from. Refines the ISO 15288 Stakeholder Needs and Requirements Definition process. */
         in concern problemStatement : ExtendedConcern;
@@ -296,51 +301,65 @@ library package SYSMODProcesses {
         out concern stakeholderNeeds : ExtendedConcern;
     }
 
-    action def DescribeSystemIdea {
+    action def DescribeSystemIdea :> MBSEMethodology::Method {
         doc
-        /* Describes the system idea: a conceptual, elevator-pitch-style outline of the new or changed system that answers the problem statement and the stakeholder needs, as black box (systemIdeaContext) and white box (systemIdeaContextImpl) context, and its measurable goals, the system objectives. Refines the ISO 15288 Business or Mission Analysis process. */
+        /* Describes the system idea: a conceptual, elevator-pitch-style outline of the new or changed system that answers the problem statement and the stakeholder needs, as black box (systemIdeaContext) and white box (systemIdeaContextImpl) context. Refines the ISO 15288 Business or Mission Analysis process. */
         in item systemIdeaArchitectureDescription : ArchitectureDescription;
         in concern problemStatement : ExtendedConcern;
         in concern stakeholderNeeds : ExtendedConcern;
         out part systemIdeaContext : SystemContext;
         out part systemIdeaContextImpl : SystemContext;
-        out concern systemObjectives : ExtendedConcern;
     }
 
-    action def SpecifySystem {
+    action def DefineSystemObjectives :> MBSEMethodology::Method {
+        doc
+        /* Defines the system objectives: the measurable goals of the system idea, agreed with the project owner. Each objective is a SystemObjective with the system idea as subject, its measures of effectiveness (MOE) and measures of performance (MOP), and their target values. The system objectives frame the stakeholder needs and direct the development: they are the basis for the system requirements, for validation, and for the criteria of trade studies. Refines the ISO 15288 Business or Mission Analysis process. */
+        in concern problemStatement : ExtendedConcern;
+        in concern stakeholderNeeds : ExtendedConcern;
+        in part systemIdeaContextImpl : SystemContext;
+        out concern systemObjectives : SystemObjective;
+    }
+
+    action def SpecifySystem :> MBSEMethodology::Method {
         doc
         /* Specifies the system based on the system idea, the system objectives, and the stakeholder needs: the specification contexts, the system use cases, the system requirements, and the verification cases that verify them against the black box specification system. Refines the ISO 15288 System Requirements Definition process and the preparation of the ISO 15288 Verification process. */
         in part systemIdeaContextImpl : SystemContext;
         in concern stakeholderNeeds : ExtendedConcern;
-        in concern systemObjectives : ExtendedConcern;
+        in concern systemObjectives : SystemObjective;
         out part specificationContext : SystemContext;
         out part specificationContextImpl : SystemContext;
         out requirement systemRequirementSpecification : ExtendedRequirement;
         out part verificationContext : SystemContext;
 
-        action modelSpecificationContext {
+        first start then modelSpecificationContext;
+        first [0..1]modelSpecificationContext then [0..1]identifyUseCases;
+        first [0..1]identifyUseCases then [0..1]specifySystemRequirements;
+        first [0..1]specifySystemRequirements then [0..1]specifyVerificationCases;
+        first [0..1]specifyVerificationCases then done;
+
+        action modelSpecificationContext : MBSEMethodology::Method {
             doc
             /* Models the black box and white box specification contexts by refining the system idea contexts: the actors at the system boundary in the black box context, and the subparts or attributes of the system used by use cases and requirements in the white box context. */
             in part systemIdeaContextImpl : SystemContext = SpecifySystem::systemIdeaContextImpl;
             out part specificationContext : SystemContext = SpecifySystem::specificationContext;
             out part specificationContextImpl : SystemContext = SpecifySystem::specificationContextImpl;
         }
-        action identifyUseCases {
+        action identifyUseCases : MBSEMethodology::Method {
             doc
             /* Identifies the system use cases of the specification context that describe how the actors interact with the system. */
             in part specificationContextImpl : SystemContext = SpecifySystem::specificationContextImpl;
             in concern stakeholderNeeds : ExtendedConcern = SpecifySystem::stakeholderNeeds;
             out use case systemUseCases[*] : SystemUseCase = SpecifySystem::specificationContext.useCases;
         }
-        action specifySystemRequirements {
+        action specifySystemRequirements : MBSEMethodology::Method {
             doc
             /* Specifies the verifiable, solution-neutral system requirements that frame the stakeholder needs. */
             in part specificationContextImpl : SystemContext = SpecifySystem::specificationContextImpl;
             in concern stakeholderNeeds : ExtendedConcern = SpecifySystem::stakeholderNeeds;
-            in concern systemObjectives : ExtendedConcern = SpecifySystem::systemObjectives;
+            in concern systemObjectives : SystemObjective = SpecifySystem::systemObjectives;
             out requirement systemRequirementSpecification : ExtendedRequirement = SpecifySystem::systemRequirementSpecification;
         }
-        action specifyVerificationCases {
+        action specifyVerificationCases : MBSEMethodology::Method {
             doc
             /* Specifies the verification cases of the system requirements against the black box specification system, alongside specifySystemRequirements and before any solution architecture exists: a verification case definition per verification case with the objective (verify) and the verdict (e.g., VerificationCases::PassIf), and a verification case usage in the verification context of the project, typed by the definition and subsetting verificationCases. The step returns the updated verification context. The VerificationEngineer is a stakeholder of this step and specifies the verification cases together with the RequirementsEngineer (concern VerificationCoverage), so that both discuss the verification in SysML rather than in a separate test language. The test systems and the system of interest of the verification context follow in SpecifyVerificationContext. */
             in part specificationContext : SystemContext = SpecifySystem::specificationContext;
@@ -349,7 +368,7 @@ library package SYSMODProcesses {
         }
     }
 
-    action def ModelSolutionArchitecture {
+    action def ModelSolutionArchitecture :> MBSEMethodology::Method {
         doc
         /* Models the solution architecture based on the specification contexts and the system requirements, in the nested steps modelFunctionalArchitecture (optional), modelLogicalArchitecture (optional), and modelProductArchitecture (optional), in this order. Each nested step creates the black box and the white box context of its architecture; the logical and product steps also create the allocations from the preceding architecture. Refines the ISO 15288 System Architecture Definition process. */
         in requirement systemRequirementSpecification : ExtendedRequirement;
@@ -370,7 +389,12 @@ library package SYSMODProcesses {
         out abstract allocation logical2product[0..1];
         out abstract allocation logicalImpl2productImpl[0..1];
 
-        action modelFunctionalArchitecture {
+        first start then [0..1]modelFunctionalArchitecture;
+        first [0..1]modelFunctionalArchitecture then [0..1]modelLogicalArchitecture;
+        first [0..1]modelLogicalArchitecture then [0..1]modelProductArchitecture;
+        first [0..1]modelProductArchitecture then done;
+
+        action modelFunctionalArchitecture : MBSEMethodology::Method {
             @StepStatus;
             doc
             /* Models the optional functional architecture based on the black box specification context: the black box functional context and the white box functional context with the functional blocks, and the #refinement dependencies from the functional elements to the system requirements they refine. Refines the ISO 15288 System Architecture Definition process. */
@@ -386,7 +410,7 @@ library package SYSMODProcesses {
         flow from modelFunctionalArchitecture.functionalContextImpl to modelLogicalArchitecture.functionalContextImpl;
         flow from modelFunctionalArchitecture.functionalContextImpl to modelProductArchitecture.functionalContextImpl;
 
-        action modelLogicalArchitecture {
+        action modelLogicalArchitecture : MBSEMethodology::Method {
             @StepStatus;
             doc
             /* Models the optional logical architecture based on the white box specification context and, if present, the white box functional context: the black box logical context and the white box logical context with the technology-independent building blocks, the #refinement dependencies from the logical elements to the system requirements they refine, and, if a functional architecture is present, the allocations functional2logical and functionalImpl2logicalImpl from the functional to the logical architecture. Refines the ISO 15288 System Architecture Definition process. */
@@ -407,7 +431,7 @@ library package SYSMODProcesses {
         flow from modelLogicalArchitecture.logicalContext to modelProductArchitecture.logicalContext;
         flow from modelLogicalArchitecture.logicalContextImpl to modelProductArchitecture.logicalContextImpl;
 
-        action modelProductArchitecture {
+        action modelProductArchitecture : MBSEMethodology::Method {
             @StepStatus;
             doc
             /* Models the optional product architecture based on the white box specification context and, if present, the white box functional and logical contexts: the black box product context and the white box product context with the concrete, physical or deployable building blocks, and, if a logical architecture is present, the allocations logical2product and logicalImpl2productImpl from the logical to the product architecture. Refines the ISO 15288 System Architecture Definition process. */
@@ -445,14 +469,14 @@ library package SYSMODProcesses {
         inout part productContextImpl : SystemContext :> inputs, outputs;
     }
 
-    action def SpecifyVerificationContext {
+    action def SpecifyVerificationContext :> MBSEMethodology::Method {
         doc
         /* Specifies the verification context returned by SpecifySystem: adds the test systems, e.g., test benches or a wind tunnel, as additional actors, and the system of interest, which can be any system, e.g., the product system, a prototype, or a simulation model. Refines the ISO 15288 Verification and Validation processes. */
         in requirement systemRequirementSpecification : ExtendedRequirement;
         inout part verificationContext : SystemContext;
     }
 
-    action def PerformVerification {
+    action def PerformVerification :> MBSEMethodology::Method {
         doc
         /* Performs the verification: executes the verification cases of the verification context on its system of interest and documents the results in verification reports (VerificationReport, content aligned with ISO/IEC/IEEE 15289), which become part of the verification context. Refines the ISO 15288 Verification process. */
         in part verificationContext : SystemContext;
@@ -463,7 +487,7 @@ library package SYSMODProcesses {
         doc
         /* Specifies a SYSMOD trade study for an architecture decision, e.g., between candidate system ideas or candidate product architectures: models the alternatives as variants of the respective context of the project, which becomes a variation usage (e.g., productContextImpl), assesses each alternative against the system objectives (criteria weighted by their priority), selects the alternative with the maximum evaluation, and records the decision on the variation with Rationale metadata whose explanation is the trade study. Mandatory system requirements, if already defined, exclude ineligible alternatives. Optional and without succession: performed whenever a step faces an architecture decision with alternatives. Refines the ISO 15288 Decision Management and System Analysis processes. */
         // The concern, the requirement, and the analysis do not subset inputs or outputs (see ModelSubProjects).
-        in concern systemObjectives : ExtendedConcern;
+        in concern systemObjectives : SystemObjective;
         in requirement systemRequirementSpecification [0..1] : ExtendedRequirement;
         inout part decisionContext : SystemContext :> inputs, outputs {
             doc /* The project context of the architecture decision, e.g., productContextImpl. The step makes it a variation usage whose variants are the alternatives. */
@@ -528,6 +552,7 @@ library package SYSMODProcesses {
     #refinement dependency IdentifyStakeholders to ISO15288Processes::BusinessOrMissionAnalysis;
     #refinement dependency IdentifyStakeholderNeeds to ISO15288Processes::StakeholderNeedsAndRequirementsDefinition;
     #refinement dependency DescribeSystemIdea to ISO15288Processes::BusinessOrMissionAnalysis;
+    #refinement dependency DefineSystemObjectives to ISO15288Processes::BusinessOrMissionAnalysis;
     #refinement dependency SpecifySystem to ISO15288Processes::SystemRequirementsDefinition;
     #refinement dependency SpecifySystem to ISO15288Processes::Verification;
     #refinement dependency ModelSolutionArchitecture to ISO15288Processes::SystemArchitectureDefinition;

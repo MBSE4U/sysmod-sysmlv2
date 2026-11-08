@@ -95,10 +95,12 @@ library package SYSMOD {
         // 
         // The System Idea and the System Objectives
         //
-        concern systemObjectives : ExtendedConcern {
+        concern systemObjectives : SystemObjective {
             doc
             /* The System Objectives are the measurable goals of the system idea. They frame the
-             * stakeholder needs and are the basis for the system requirements and for validation. */
+             * stakeholder needs and are the basis for the system requirements and for validation.
+             * The individual objectives are nested concern usages typed by SystemObjective. Each objective
+             * specifies its measures of effectiveness (MOE) and measures of performance (MOP) with their target values. */
             subject systemIdea :> Project::systemIdeaContext.soi;
             stakeholder projectOwner :> Project::projectOwner;
             frame stakeholderNeeds;
@@ -461,6 +463,25 @@ library package SYSMOD {
     abstract concern extendedConcerns : ExtendedConcern [*] {
         doc
         /* Base usage for all SYSMOD concerns. It is the anchor of the #extendedConcern semantic metadata. */
+    }
+
+    concern def SystemObjective :> ExtendedConcern {
+        doc
+        /* A system objective is a measurable goal of the system idea. It specifies how its achievement is measured
+         * with measures of effectiveness (MOE) and measures of performance (MOP) according to the SysML v2 domain
+         * library ParametersOfInterestMetadata, and states the target values, e.g., as required constraints on the measures.
+         * An MOE measures how well the system achieves the objective in its operational context from the perspective
+         * of the stakeholders, e.g., the delivery time compared to today. An MOP measures a performance of the system
+         * that contributes to an MOE, e.g., the charging time of a drone. MOEs are typically the basis for validation
+         * and trade studies, MOPs for the system requirements and verification.
+         * The measures of an objective subset measuresOfEffectiveness or measuresOfPerformance.
+         */
+        #ParametersOfInterestMetadata::MeasureOfEffectiveness attribute measuresOfEffectiveness[*] nonunique {
+            doc /* The measures of effectiveness (MOE) of the objective. */
+        }
+        #ParametersOfInterestMetadata::MeasureOfPerformance attribute measuresOfPerformance[*] nonunique {
+            doc /* The measures of performance (MOP) of the objective. */
+        }
     }
 
     requirement def ExtendedRequirement :> ExtendedConcern {

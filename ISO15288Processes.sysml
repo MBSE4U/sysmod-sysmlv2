@@ -27,11 +27,11 @@ library package ISO15288Processes {
     //
     // Agreement Processes
     //
-    action def Acquisition {
+    action def Acquisition :> MBSEMethodology::Process {
         doc
         /* The Acquisition process obtains a product or service in accordance with the acquirer's requirements. */
     }
-    action def Supply {
+    action def Supply :> MBSEMethodology::Process {
         doc
         /* The Supply process provides an acquirer with a product or service that meets agreed requirements. */
     }
@@ -39,27 +39,27 @@ library package ISO15288Processes {
     //
     // Organizational Project-Enabling Processes
     //
-    action def LifeCycleModelManagement {
+    action def LifeCycleModelManagement :> MBSEMethodology::Process {
         doc
         /* The Life Cycle Model Management process defines, maintains, and assures availability of policies, life cycle processes, life cycle models, and procedures for use by the organization. */
     }
-    action def InfrastructureManagement {
+    action def InfrastructureManagement :> MBSEMethodology::Process {
         doc
         /* The Infrastructure Management process provides the infrastructure and services to projects to support organization and project objectives throughout the life cycle. */
     }
-    action def PortfolioManagement {
+    action def PortfolioManagement :> MBSEMethodology::Process {
         doc
         /* The Portfolio Management process initiates and sustains necessary, sufficient, and suitable projects in order to meet the strategic objectives of the organization. */
     }
-    action def HumanResourceManagement {
+    action def HumanResourceManagement :> MBSEMethodology::Process {
         doc
         /* The Human Resource Management process provides the organization with necessary human resources and maintains their competencies consistent with business needs. */
     }
-    action def QualityManagement {
+    action def QualityManagement :> MBSEMethodology::Process {
         doc
         /* The Quality Management process assures that products, services, and implementations of the life cycle processes meet the organization's quality objectives and achieve customer satisfaction. */
     }
-    action def KnowledgeManagement {
+    action def KnowledgeManagement :> MBSEMethodology::Process {
         doc
         /* The Knowledge Management process creates the capability and assets that enable the organization to exploit opportunities to re-apply existing knowledge. */
     }
@@ -67,35 +67,35 @@ library package ISO15288Processes {
     //
     // Technical Management Processes
     //
-    action def ProjectPlanning {
+    action def ProjectPlanning :> MBSEMethodology::Process {
         doc
         /* The Project Planning process produces and coordinates effective and workable plans. */
     }
-    action def ProjectAssessmentAndControl {
+    action def ProjectAssessmentAndControl :> MBSEMethodology::Process {
         doc
         /* The Project Assessment and Control process assesses if the plans are aligned and feasible, determines the status of the project, technical, and process performance, and directs execution to help ensure that the performance is according to plans and schedules, within projected budgets, and satisfies technical objectives. */
     }
-    action def DecisionManagement {
+    action def DecisionManagement :> MBSEMethodology::Process {
         doc
         /* The Decision Management process provides a structured, analytical framework for objectively identifying, characterizing, and evaluating a set of alternatives for a decision at any point in the life cycle and selecting the most beneficial course of action. */
     }
-    action def RiskManagement {
+    action def RiskManagement :> MBSEMethodology::Process {
         doc
         /* The Risk Management process continually identifies, analyzes, treats, and monitors risks. */
     }
-    action def ConfigurationManagement {
+    action def ConfigurationManagement :> MBSEMethodology::Process {
         doc
         /* The Configuration Management process manages and controls system elements and configurations over the life cycle. */
     }
-    action def InformationManagement {
+    action def InformationManagement :> MBSEMethodology::Process {
         doc
         /* The Information Management process generates, obtains, confirms, transforms, retains, retrieves, disseminates, and disposes of information to designated stakeholders. */
     }
-    action def Measurement {
+    action def Measurement :> MBSEMethodology::Process {
         doc
         /* The Measurement process collects, analyzes, and reports objective data and information to support effective management and demonstrate the quality of the products, services, and processes. */
     }
-    action def QualityAssurance {
+    action def QualityAssurance :> MBSEMethodology::Process {
         doc
         /* The Quality Assurance process helps ensure the effective application of the organization's Quality Management process to the project. */
     }
@@ -103,59 +103,59 @@ library package ISO15288Processes {
     //
     // Technical Processes
     //
-    action def BusinessOrMissionAnalysis {
+    action def BusinessOrMissionAnalysis :> MBSEMethodology::Process {
         doc
         /* The Business or Mission Analysis process defines the business or mission problem or opportunity, characterizes the solution space, and determines potential solution class(es) that can address a problem or take advantage of an opportunity. */
     }
-    action def StakeholderNeedsAndRequirementsDefinition {
+    action def StakeholderNeedsAndRequirementsDefinition :> MBSEMethodology::Process {
         doc
         /* The Stakeholder Needs and Requirements Definition process defines the stakeholder requirements for a system that can provide the capabilities needed by users and other stakeholders in a defined environment. */
     }
-    action def SystemRequirementsDefinition {
+    action def SystemRequirementsDefinition :> MBSEMethodology::Process {
         doc
         /* The System Requirements Definition process transforms the stakeholder, user-oriented view of desired capabilities into a technical view of a solution that meets the operational needs of the user. */
     }
-    action def SystemArchitectureDefinition {
+    action def SystemArchitectureDefinition :> MBSEMethodology::Process {
         doc
         /* The System Architecture Definition process generates system architecture alternatives, selects one or more alternatives that address stakeholder concerns and system requirements, and expresses this in consistent views and models. */
     }
-    action def DesignDefinition {
+    action def DesignDefinition :> MBSEMethodology::Process {
         doc
         /* The Design Definition process provides sufficient detailed data and information about the system and its elements to enable the implementation consistent with the architectural entities as defined in the models and views of the system architecture. */
     }
-    action def SystemAnalysis {
+    action def SystemAnalysis :> MBSEMethodology::Process {
         doc
         /* The System Analysis process provides a rigorous basis of data and information for technical understanding to aid decision-making across the life cycle. */
     }
-    action def Implementation {
+    action def Implementation :> MBSEMethodology::Process {
         doc
         /* The Implementation process realizes a specified system element. */
     }
-    action def Integration {
+    action def Integration :> MBSEMethodology::Process {
         doc
         /* The Integration process synthesizes a set of system elements into a realized system that satisfies the system requirements, architecture, and design. */
     }
-    action def Verification {
+    action def Verification :> MBSEMethodology::Process {
         doc
         /* The Verification process provides objective evidence that a system or system element fulfills its specified requirements and characteristics. */
     }
-    action def Transition {
+    action def Transition :> MBSEMethodology::Process {
         doc
         /* The Transition process establishes a capability for a system to provide services specified by stakeholder requirements in the operational environment. */
     }
-    action def Validation {
+    action def Validation :> MBSEMethodology::Process {
         doc
         /* The Validation process provides objective evidence that the system, when in use, fulfills its business or mission objectives and stakeholder requirements, achieving its intended use in its intended operational environment. */
     }
-    action def Operation {
+    action def Operation :> MBSEMethodology::Process {
         doc
         /* The Operation process uses the system to deliver its services. */
     }
-    action def Maintenance {
+    action def Maintenance :> MBSEMethodology::Process {
         doc
         /* The Maintenance process sustains the capability of the system to provide a service. */
     }
-    action def Disposal {
+    action def Disposal :> MBSEMethodology::Process {
         doc
         /* The Disposal process ends the existence of a system element or system for a specified intended use, appropriately handling replaced or retired elements. */
     }
@@ -170,62 +170,62 @@ library package ISO15288Processes {
              */
 
         // Agreement processes
-        part def Acquirer :> SYSMOD::ExtendedStakeholder {
+        part def Acquirer :> MBSEMethodology::Role {
             doc /* Organization or person that acquires or procures the system from a supplier (ISO/IEC/IEEE 15288 Acquisition process). */
         }
-        part def Supplier :> SYSMOD::ExtendedStakeholder {
+        part def Supplier :> MBSEMethodology::Role {
             doc /* Organization or person that provides the system to an acquirer (ISO/IEC/IEEE 15288 Supply process). */
         }
 
         // Organizational project-enabling processes
-        part def PortfolioManager :> SYSMOD::ExtendedStakeholder {
+        part def PortfolioManager :> MBSEMethodology::Role {
             doc /* Responsible for initiating, sustaining, and terminating projects in line with the organization's strategy (ISO/IEC/IEEE 15288 Portfolio Management process). */
         }
-        part def QualityManager :> SYSMOD::ExtendedStakeholder {
+        part def QualityManager :> MBSEMethodology::Role {
             doc /* Responsible for ensuring that products, services, and processes meet the organization's quality objectives (ISO/IEC/IEEE 15288 Quality Management process). */
         }
 
         // Technical management processes
-        part def ProjectManager :> SYSMOD::ExtendedStakeholder {
+        part def ProjectManager :> MBSEMethodology::Role {
             doc /* Responsible for planning, assessing, and controlling the project, e.g., schedule, cost, resources, and progress (ISO/IEC/IEEE 15288 Project Planning and Project Assessment and Control processes). */
         }
-        part def RiskManager :> SYSMOD::ExtendedStakeholder {
+        part def RiskManager :> MBSEMethodology::Role {
             doc /* Responsible for identifying, analyzing, treating, and monitoring risks (ISO/IEC/IEEE 15288 Risk Management process). */
         }
-        part def ConfigurationManager :> SYSMOD::ExtendedStakeholder {
+        part def ConfigurationManager :> MBSEMethodology::Role {
             doc /* Responsible for managing and controlling system elements, configurations, and baselines over the life cycle (ISO/IEC/IEEE 15288 Configuration Management process). */
         }
 
         // Technical processes
-        part def ProductManager :> SYSMOD::ExtendedStakeholder {
+        part def ProductManager :> MBSEMethodology::Role {
             doc /* Responsible for the business or mission problem or opportunity, the solution space, and the product's success on the market (ISO/IEC/IEEE 15288 Business or Mission Analysis process).
                  * In a SYSMOD project, the projectOwner typically plays this role, since the projectOwner is the stakeholder of the problemStatement. */
         }
-        part def RequirementsEngineer :> SYSMOD::ExtendedStakeholder {
+        part def RequirementsEngineer :> MBSEMethodology::Role {
             doc /* Responsible for eliciting stakeholder needs and defining stakeholder and system requirements (ISO/IEC/IEEE 15288 Stakeholder Needs and Requirements Definition and System Requirements Definition processes). */
         }
-        part def SystemArchitect :> SYSMOD::ExtendedStakeholder {
+        part def SystemArchitect :> MBSEMethodology::Role {
             doc /* Responsible for the system architecture, i.e., the fundamental concepts and properties of the system and the integration of problem and solution across several levels (ISO/IEC/IEEE 15288 System Architecture Definition process). */
         }
-        part def DesignEngineer :> SYSMOD::ExtendedStakeholder {
+        part def DesignEngineer :> MBSEMethodology::Role {
             doc /* Responsible for the detailed design of system elements so that they can be implemented (ISO/IEC/IEEE 15288 Design Definition and Implementation processes). */
         }
-        part def SystemAnalyst :> SYSMOD::ExtendedStakeholder {
+        part def SystemAnalyst :> MBSEMethodology::Role {
             doc /* Responsible for providing a rigorous basis of data and information for technical decisions, e.g., by simulations and trade studies (ISO/IEC/IEEE 15288 System Analysis process). */
         }
-        part def IntegrationEngineer :> SYSMOD::ExtendedStakeholder {
+        part def IntegrationEngineer :> MBSEMethodology::Role {
             doc /* Responsible for assembling the system elements into a realized system (ISO/IEC/IEEE 15288 Integration process). */
         }
-        part def VerificationEngineer :> SYSMOD::ExtendedStakeholder {
+        part def VerificationEngineer :> MBSEMethodology::Role {
             doc /* Responsible for providing objective evidence that the system fulfills its specified requirements (ISO/IEC/IEEE 15288 Verification process). */
         }
-        part def ValidationEngineer :> SYSMOD::ExtendedStakeholder {
+        part def ValidationEngineer :> MBSEMethodology::Role {
             doc /* Responsible for providing objective evidence that the system fulfills its intended use in its intended operational environment (ISO/IEC/IEEE 15288 Validation process). */
         }
-        part def Operator :> SYSMOD::ExtendedStakeholder {
+        part def Operator :> MBSEMethodology::Role {
             doc /* Uses the system to deliver its services (ISO/IEC/IEEE 15288 Operation process). */
         }
-        part def Maintainer :> SYSMOD::ExtendedStakeholder {
+        part def Maintainer :> MBSEMethodology::Role {
             doc /* Sustains the capability of the system to provide its services (ISO/IEC/IEEE 15288 Maintenance and Disposal processes). */
         }
     }

@@ -187,7 +187,7 @@ package SYSMOD4AI {
             /* Guides the user step by step through the SYSMOD default process
              * (SYSMODProcesses::SYSMODDefaultProcess) and reports where a project stands in it:
              * setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders,
-             * identifyStakeholderNeeds, describeSystemIdea, specifySystem,
+             * identifyStakeholderNeeds, describeSystemIdea, defineSystemObjectives, specifySystem,
              * modelSolutionArchitecture (nested steps modelFunctionalArchitecture,
              * modelLogicalArchitecture, and modelProductArchitecture), modelSubProjects,
              * integrateSubProjects, specifyVerificationContext, and performVerification, plus
@@ -215,7 +215,7 @@ package SYSMOD4AI {
              */
             name = "sysmod-default-process";
             create_prompt =
-                "1. Read the SYSMODDefaultProcess action definition in SYSMOD::SYSMODProcesses and its steps in succession order: setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds, describeSystemIdea, specifySystem, modelSolutionArchitecture (nested steps modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture), modelSubProjects, integrateSubProjects, specifyVerificationContext, performVerification. The step specifyTradeStudy has no succession: offer it whenever a step faces an architecture decision with alternatives.
+                "1. Read the SYSMODDefaultProcess action definition in SYSMOD::SYSMODProcesses and its steps in succession order: setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds, describeSystemIdea, defineSystemObjectives, specifySystem, modelSolutionArchitecture (nested steps modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture), modelSubProjects, integrateSubProjects, specifyVerificationContext, performVerification. The step specifyTradeStudy has no succession: offer it whenever a step faces an architecture decision with alternatives.
                 2. Find the project. If no project exists, start with setupProject.
                 3. Determine the current position in the process: for each step, check whether its outputs (the project features it flows into) already exist in the project and are valid. The first step whose outputs are missing or invalid is the next step.
                 4. Execute the next step by delegating to the AI metadata of the project features it produces, using their create_questions, create_prompt, and validation_prompt:
@@ -224,7 +224,8 @@ package SYSMOD4AI {
                    - describeProblemStatement: problemStatementAI, using the process input problemStatementDescription and the projectOwner.
                    - identifyStakeholders: projectStakeholdersAI; optionally stakeholderPriorityMapAI.
                    - identifyStakeholderNeeds: stakeholderNeedsAI.
-                   - describeSystemIdea: systemIdeaContextAI, using the process input systemIdeaArchitectureDescription, then systemObjectivesAI.
+                   - describeSystemIdea: systemIdeaContextAI, using the process input systemIdeaArchitectureDescription.
+                   - defineSystemObjectives: systemObjectivesAI (the system objectives with their measures of effectiveness and measures of performance).
                    - specifySystem: specificationContextAI (specification architecture and use cases), then systemRequirementSpecificationAI, then verificationCasesAI (nested step specifyVerificationCases: the verification case definitions with objective and verdict against the black box specification system, specified with the verification engineers before any solution architecture exists, and their usages in the project's verificationContext).
                    - modelSolutionArchitecture, with its nested steps in this order:
                      - modelFunctionalArchitecture (optional): functionalContextAI, using the process input functionalArchitectureDescription.
@@ -643,7 +644,7 @@ package SYSMOD4AI {
             name = "sysmod-system-objectives";
             create_prompt =
                 "1. Based on the systemIdeaContext, the problemStatement, and the stakeholderNeeds, derive the measurable goals of the system idea.
-                2. For each objective, create a concern definition specializing ExtendedConcern with the system idea as its first parameter (subject) and state the measure and target value in its doc comment or as attributes. Create a concern usage redefining systemObjectives that binds the subject to the systemIdeaContext soi, binds the projectOwner, and nests one concern usage per objective.
+                2. For each objective, create a concern definition specializing SystemObjective with the system idea as its first parameter (subject). Specify its measures of effectiveness (MOE, how well the system achieves the objective from the stakeholders' perspective) as attributes subsetting measuresOfEffectiveness, and, if known, its measures of performance (MOP, system performances that contribute to an MOE) as attributes subsetting measuresOfPerformance. State the target values as attributes and as required constraints on the measures. Create a concern usage redefining systemObjectives that binds the subject to the systemIdeaContext soi, binds the projectOwner, and nests one concern usage per objective.
                 3. The systemObjectives frame the stakeholderNeeds; each objective addresses at least one stakeholder need. The objectives direct the development: the system requirements reflect them, but no requirement frames them and no system satisfies them directly.
                 4. Keep the objectives solution-neutral below the level of the system idea — no architecture or design decisions.
                 5. Create the SysML v2 textual notation for the systemObjectives.
@@ -659,7 +660,7 @@ package SYSMOD4AI {
                 2. The systemObjectives frame the stakeholderNeeds.
                 3. The subject references the systemIdeaContext soi, and the stakeholder is the projectOwner.
                 4. At least one objective is defined as a concern usage nested inside systemObjectives.
-                5. Each objective is measurable — it names a measure and a target value; flag vague goals without a threshold (e.g., 'faster', 'cheaper').
+                5. Each objective is measurable — it is typed by SystemObjective, has at least one measure of effectiveness (subsetting measuresOfEffectiveness) with a target value; flag vague goals without a threshold (e.g., 'faster', 'cheaper'). Measures of performance subset measuresOfPerformance.
                 6. Each objective is traceable to at least one stakeholder need.
                 7. Each objective is solution-neutral — no architecture or design decisions.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";

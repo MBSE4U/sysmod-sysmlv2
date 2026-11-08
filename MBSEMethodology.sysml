@@ -47,16 +47,24 @@ library package MBSEMethodology {
         ref modelElements[*] : KerML::Element;
     }
     part def Tool {
-        ref action facilitatesMethods[1..*] : Method;
+        doc /* An instrument that, applied to a method, can enhance the efficiency of the task.
+             * Source: J. Estefan, T. Weilkiens: MBSE Methodologies. Handbook of Model-Based Systems Engineering. Springer.
+             */
+
+        ref action facilitatesMethodologyBehaviors[1..*] : MethodologyBehavior;
         ref item ownedProducts[*] : Product;
         ref item additionalProducts[*] : Product;
     }
     part def Role {
         ref item responsibleForProducts[*] : Product;
-        ref action responsibleForMethods[*] : Method;
-        ref action supportsMethods[*] : Method;
+        ref action responsibleForMethodologyBehaviors[*] : MethodologyBehavior;
+        ref action supportsMethodologyBehaviors[*] : MethodologyBehavior;
     }
     part def Methodology {
+        doc /* A collection of related processes, methods and tools applied to a class of problems that all have something in common.
+             * Source: J. Estefan, T. Weilkiens: MBSE Methodologies. Handbook of Model-Based Systems Engineering. Springer.
+             */
+
         part tools[*] : Tool :> processes.allFacilitationTools;
         part roles[*] : Role :> processes.allPrimaryPerformers, processes.allAdditionalPerformers;
         item products[*] : Product :> processes.allOutputs;
@@ -75,12 +83,12 @@ library package MBSEMethodology {
     // ------------------------------------------------------------
     // Behavior
     // ------------------------------------------------------------
-    action def Method {
-        item allInputs  : Product[0..*] = SequenceFunctions::union(inputs, submethods.allInputs);
-        item allOutputs : Product[1..*] = SequenceFunctions::union(outputs, submethods.allOutputs);
-        ref part allPrimaryPerformers[1..*] : Role = SequenceFunctions::union(primaryPerformer, submethods.primaryPerformer);
-        ref part allAdditionalPerformers[*] : Role = SequenceFunctions::union(additionalPerformers, submethods.additionalPerformers);
-        ref part allFacilitationTools[*] : Tool = SequenceFunctions::union(facilitationTools, submethods.facilitationTools);
+    abstract action def MethodologyBehavior {
+        item allInputs  : Product[0..*] = SequenceFunctions::union(inputs, subbehavior.allInputs);
+        item allOutputs : Product[1..*] = SequenceFunctions::union(outputs, subbehavior.allOutputs);
+        ref part allPrimaryPerformers[1..*] : Role = SequenceFunctions::union(primaryPerformer, subbehavior.primaryPerformer);
+        ref part allAdditionalPerformers[*] : Role = SequenceFunctions::union(additionalPerformers, subbehavior.additionalPerformers);
+        ref part allFacilitationTools[*] : Tool = SequenceFunctions::union(facilitationTools, subbehavior.facilitationTools);
         
         item inputs  : Product[0..*];   // "requires"
         item outputs : Product[1..*];   // "produces"
@@ -88,7 +96,13 @@ library package MBSEMethodology {
         ref part additionalPerformers[*] : Role;
         ref part facilitationTools[*] : Tool;
 
-        action submethods : Method[0..*] :>> subactions;
+        action subbehavior[0..*] : MethodologyBehavior :>> subactions;
+    }
+    action def Method :> MethodologyBehavior {
+        doc /* The techniques to perform a task.
+             * Source: J. Estefan, T. Weilkiens: MBSE Methodologies. Handbook of Model-Based Systems Engineering. Springer.
+             */
+        action submethods : Method[0..*] :>> subbehavior;
 
         connection responsibleFor[*] : ResponsibleForConnection 
             connect primaryPerformer to submethods;
@@ -98,27 +112,44 @@ library package MBSEMethodology {
             connect primaryPerformer to submethods.allOutputs;
         connection facilitates[*] : FacilitatesConnection 
             connect facilitationTools to submethods;         
+
     }
-    action def Process :> Method;
+    action def Process :> MethodologyBehavior {
+        doc /* A logical sequence of tasks performed to achieve a particular objective. 
+             * Source: J. Estefan, T. Weilkiens: MBSE Methodologies. Handbook of Model-Based Systems Engineering. Springer.
+             */
+        abstract action processBehavior : MethodologyBehavior[0..*] :>> subbehavior;
+        action subprocesses : Process[0..*] :> processBehavior;
+        action submethods : Method[0..*] :> processBehavior;
+
+        connection responsibleFor[*] : ResponsibleForConnection 
+            connect primaryPerformer to processBehavior;
+        connection supports[*] : SupportsConnection 
+            connect additionalPerformers to processBehavior;
+        connection productOwnership[*] : ProductOwnershipConnection 
+            connect primaryPerformer to processBehavior.allOutputs;
+        connection facilitates[*] : FacilitatesConnection 
+            connect facilitationTools to processBehavior;         
+    }
 
     // ------------------------------------------------------------
     // Connections
     // ------------------------------------------------------------
     connection def ResponsibleForConnection {
-        end part primaryPerformer : Role crosses method.primaryPerformer;
-        end action method : Method crosses primaryPerformer.responsibleForMethods;
+        end part primaryPerformer : Role crosses methododologyBehavior.primaryPerformer;
+        end action methododologyBehavior : MethodologyBehavior crosses primaryPerformer.responsibleForMethodologyBehaviors;
     }
     connection def ProductOwnershipConnection {
         end part owner : Role crosses product.owner;
         end item product : Product crosses owner.responsibleForProducts;
     }
     connection def SupportsConnection {
-        end part additionalPerformer : Role crosses additionalMethod.additionalPerformers;
-        end action additionalMethod : Method crosses additionalPerformer.supportsMethods;
+        end part additionalPerformer : Role crosses additionalMethodologyBehavior.additionalPerformers;
+        end action additionalMethodologyBehavior : MethodologyBehavior crosses additionalPerformer.supportsMethodologyBehaviors;
     }
     connection def FacilitatesConnection {
-        end part facilitationTool : Tool crosses facilitatedMethod.facilitationTools;
-        end action facilitatedMethod : Method crosses facilitationTool.facilitatesMethods;
+        end part facilitationTool : Tool crosses facilitatedMethodologyBehavior.facilitationTools;
+        end action facilitatedMethodologyBehavior : MethodologyBehavior crosses facilitationTool.facilitatesMethodologyBehaviors;
     }
     connection def AuthorativeToolConnection {
         end part authorativeTool : Tool crosses ownedProduct.authorativeTool;

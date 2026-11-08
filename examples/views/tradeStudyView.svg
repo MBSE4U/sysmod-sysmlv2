@@ -26,7 +26,7 @@
 
   <!-- Header -->
   <g font-size="12" font-weight="600" fill="#222">
-    <text x="28" y="118">Alternative (architectureAlternatives)</text>
+    <text x="28" y="118">Alternative (variant)</text>
     <text x="808" y="118">Evaluation</text>
   </g>
   <g text-anchor="middle">
@@ -41,8 +41,8 @@
     <text x="720" y="114" font-size="11" fill="#555">weight 0.75 (high)</text>
   </g>
 
-  <!-- Row: convertibleDronesAlternative (selected) -->
-  <text x="28" y="146" font-size="13" font-weight="600" fill="#111">convertibleDronesAlternative</text>
+  <!-- Row: convertibleDeliveryDroneProductContextImpl (selected) -->
+  <text x="28" y="146" font-size="13" font-weight="600" fill="#111">convertibleDeliveryDroneProductContextImpl</text>
   <text x="28" y="162" font-size="11" fill="#555">: DeliveryDroneProductContextImpl</text>
   <text x="28" y="178" font-size="11" fill="#2f6fb0" font-weight="600">✓ selected — every drone can carry the air charger</text>
   <g text-anchor="middle">
@@ -56,8 +56,8 @@
   <text x="808" y="160" font-size="18" font-weight="600" fill="#2f6fb0">2.10</text>
   <text x="808" y="177" font-size="11" fill="#555">maximum → selected</text>
 
-  <!-- Row: dedicatedChargerDronesAlternative -->
-  <text x="28" y="204" font-size="13" font-weight="600" fill="#111">dedicatedChargerDronesAlternative</text>
+  <!-- Row: dedicatedChargerProductContextImpl -->
+  <text x="28" y="204" font-size="13" font-weight="600" fill="#111">dedicatedChargerProductContextImpl</text>
   <text x="28" y="220" font-size="11" fill="#555">: DedicatedChargerProductContextImpl</text>
   <text x="28" y="236" font-size="11" fill="#555">separate fleet of dedicated charger drones</text>
   <g text-anchor="middle">
@@ -74,7 +74,7 @@
   <g font-size="12" fill="#555">
     <text x="20" y="272">Cells: score of the assessment (0.0 = objective not achieved, 1.0 = fully achieved); below: weighted score = weight × score.</text>
     <text x="20" y="290">Evaluation = sum of the weighted scores (SYSMODTradeStudy::evaluationFunction); weights = priorities of the system objectives (LevelKind).</text>
-    <text x="20" y="308">The context definition of the selected alternative types deliveryDroneProductContextImpl, which records the decision with</text>
+    <text x="20" y="308">The alternatives are the variants of the variation deliveryDroneProductContextImpl; the selected one records the decision with</text>
     <text x="20" y="326">@Rationale (explanation = chargingConceptStudy). Scores: expert judgments of the drone engineering team.</text>
   </g>
 

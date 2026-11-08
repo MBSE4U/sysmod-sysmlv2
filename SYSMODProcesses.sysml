@@ -186,7 +186,6 @@ library package SYSMODProcesses {
         flow from modelSubProjects.requirementFlowDowns to project.requirementFlowDowns;
         flow from integrateSubProjects.productContextImpl to project.productContextImpl;
         flow from specifyVerificationContext.verificationContext to project.verificationContext;
-        flow from specifyTradeStudy.architectureAlternatives to project.architectureAlternatives;
         flow from specifyTradeStudy.tradeStudies to project.tradeStudies;
         flow from performVerification.verificationReports to project.verificationContext.verificationReports;        
 
@@ -462,11 +461,13 @@ library package SYSMODProcesses {
 
     action def SpecifyTradeStudy :> MBSEMethodology::Method {
         doc
-        /* Specifies a SYSMOD trade study for an architecture decision, e.g., between candidate system ideas or candidate product architectures: models the architectureAlternatives, assesses each alternative against the system objectives (criteria weighted by their priority), selects the alternative with the maximum evaluation, makes its context definition the definition of the respective context of the project, and records the decision there with Rationale metadata whose explanation is the trade study. Mandatory system requirements, if already defined, exclude ineligible alternatives. Optional and without succession: performed whenever a step faces an architecture decision with alternatives. Refines the ISO 15288 Decision Management and System Analysis processes. */
+        /* Specifies a SYSMOD trade study for an architecture decision, e.g., between candidate system ideas or candidate product architectures: models the alternatives as variants of the respective context of the project, which becomes a variation usage (e.g., productContextImpl), assesses each alternative against the system objectives (criteria weighted by their priority), selects the alternative with the maximum evaluation, and records the decision on the selected variant with Rationale metadata whose explanation is the trade study. Mandatory system requirements, if already defined, exclude ineligible alternatives. Optional and without succession: performed whenever a step faces an architecture decision with alternatives. Refines the ISO 15288 Decision Management and System Analysis processes. */
         // The concern, the requirement, and the analysis do not subset inputs or outputs (see ModelSubProjects).
         in concern systemObjectives : ExtendedConcern;
         in requirement systemRequirementSpecification [0..1] : ExtendedRequirement;
-        out part architectureAlternatives [1..*] : SystemContext :> outputs;
+        inout part decisionContext : SystemContext :> inputs, outputs {
+            doc /* The project context of the architecture decision, e.g., productContextImpl. The step makes it a variation usage whose variants are the alternatives. */
+        }
         out analysis tradeStudies [1..*] : SYSMODTradeStudy;
     }
 

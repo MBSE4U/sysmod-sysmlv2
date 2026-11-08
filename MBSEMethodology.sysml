@@ -121,7 +121,7 @@ library package MBSEMethodology {
         end action facilitatedMethod : Method crosses facilitationTool.facilitatesMethods;
     }
     connection def AuthorativeToolConnection {
-        end part authorativeTool : Tool crosses ownedProducts.authorativeTool;
-        end action ownedProducts : Product crosses authorativeTool.ownedProducts;
+        end part authorativeTool : Tool crosses ownedProduct.authorativeTool;
+        end item ownedProduct : Product crosses authorativeTool.ownedProducts;
     }
 }

@@ -221,21 +221,16 @@ library package SYSMOD {
         }
 
         //
-        // Alternatives and Trade Studies
+        // Trade Studies
         //
-        part architectureAlternatives : SystemContext [0..*] {
-            doc
-            /* Candidate architectures: alternative system contexts for an architecture decision, which the tradeStudies evaluate against each other.
-             * An alternative is typed by a context definition that specializes the definition of the context it is an alternative for, e.g., the
-             * definition of the white box specification context for an alternative product architecture, or the definition of the white box
-             * brownfield context for an alternative system idea. The definition of the selected alternative becomes the definition of the
-             * respective context of the project, e.g., of the productContextImpl, which records the decision with Rationale metadata whose
-             * explanation is the trade study. Created by the specifyTradeStudy step. */
-        }
         analysis tradeStudies : SYSMODTradeStudy [0..*] {
             doc
-            /* The trade studies of the project. Each trade study evaluates some of the architectureAlternatives against the systemObjectives
-             * and selects the preferred alternative. Created by the specifyTradeStudy step. */
+            /* The trade studies of the project. Each trade study evaluates alternative system contexts for an architecture decision against
+             * the systemObjectives and selects the preferred alternative. The alternatives are the variants of the project context of the
+             * decision, which is a variation usage, e.g., variation part :>> productContextImpl { variant part <alternative> : <context
+             * definition>; ... }. Each variant is typed by a context definition that specializes the definition of the base context, e.g.,
+             * the white box specification context for alternative product architectures. The selected variant records the decision with
+             * Rationale metadata whose explanation is the trade study. Created by the specifyTradeStudy step. */
         }
 
         //
@@ -509,7 +504,7 @@ library package SYSMOD {
     //
     analysis def SYSMODTradeStudy :> TradeStudies::TradeStudy {
         doc
-        /* A SYSMOD trade study evaluates alternative system contexts (architectureAlternatives) for an architecture decision
+        /* A SYSMOD trade study evaluates alternative system contexts (the variants of a variation usage) for an architecture decision
          * and selects the preferred one (ISO/IEC/IEEE 15288 Decision Management and System Analysis processes).
          * The criteria are system objectives of the project. The evaluation of an alternative is the weighted sum of its
          * assessments: for each criterion, the weight (by default the priority of the system objective) times the score, i.e.,

@@ -197,7 +197,7 @@ library package SYSMODViews {
             }
         }
         viewpoint def TradeOffViewpoint {
-            doc /* Shows the alternative system contexts (architectureAlternatives), the systemObjectives as evaluation criteria
+            doc /* Shows the alternative system contexts (the variants of a variation usage), the systemObjectives as evaluation criteria
                  * weighted by their priority, the system requirements that exclude ineligible alternatives, and the tradeStudies
                  * (analysis cases) that compare the alternatives and select one.
                  */
@@ -322,7 +322,7 @@ library package SYSMODViews {
                 * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelSolutionArchitecture, nested step modelProductArchitecture).
                 * B7 to C7: verificationContext (specifyVerificationContext), verificationContext.verificationReports (performVerification).
                 * The steps without a cell of their own: integrateSubProjects updates C6, and specifyTradeStudy creates the
-                * architectureAlternatives and tradeStudies for the cell whose context the selected alternative defines.
+                * tradeStudies and makes the context of their cell a variation whose variants are the alternatives.
                 * Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
                 */
     }
@@ -466,7 +466,7 @@ library package SYSMODViews {
     }
     // Specify Trade Study (no fixed position in the process)
     view def TradeStudyView :> StandardViewDefinitions::GridView {
-        doc /* Product "Trade Studies": a trade study of the Project as a decision matrix with the alternatives (architectureAlternatives)
+        doc /* Product "Trade Studies": a trade study of the Project as a decision matrix with the alternatives (the variants of a variation usage)
                 * as rows, the criteria (systemObjectives) with their weights as columns, the scores of the assessments as cells,
                 * the evaluation of each alternative, and the selected alternative.
                 */
@@ -567,7 +567,7 @@ library package SYSMODViews {
         Project::systemRequirementSpecification, Project::requirementFlowDowns;
     #viewedArtifact dependency VerificationAndValidationView to Project::verificationContext::verificationCases;
     #viewedArtifact dependency VerificationMatrixView to Project::verificationContext::verificationCases;
-    #viewedArtifact dependency TradeStudyView to Project::tradeStudies, Project::architectureAlternatives, Project::systemObjectives;
+    #viewedArtifact dependency TradeStudyView to Project::tradeStudies, Project::systemObjectives;
 }
 
 

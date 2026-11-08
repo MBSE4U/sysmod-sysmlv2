@@ -297,11 +297,11 @@ package <DD> DeliveryDrone {
         //------------------------- Sub-Projects
         occurrence controlStationProject : DDCS::DeliveryDroneControlStationProject :> subProjects {
             doc /* The control station is developed in a SYSMOD sub-project. It
-                   subsets the subProjects list inherited from SYSMOD::Project, and its
-                   parentElement is the control station building block of the white box
-                   product context (sub-project contract). Its handoverRequirements are typed by
-                   the handover requirements of the handover package. */
-            ref part :>> parentElement = deliveryDroneProductContextImpl.deliveryDroneProduct.controlStation;
+                   subsets the subProjects list inherited from SYSMOD::Project. The handover
+                   package DeliveryDroneControlStationHandover carries the sub-project contract:
+                   the control station building block of the white box product context is typed
+                   by the system of interest of the handover context, and the handoverRequirements
+                   of the sub-project are typed by the handover requirements. */
         }
         #derivation connection airChargingFlowDown :> requirementFlowDowns {
             doc /* Requirement flow-down to the control station sub-project: the requirement AirCharging
@@ -348,7 +348,7 @@ package <DD> DeliveryDrone {
         }
         view specificationTreeView : SYSMODViews::SpecificationTreeView {
             doc
-            /* The Specification Tree view shows the project with its control station sub-project, the parent element the sub-project develops, the system requirements of both levels, and the requirement flow-down between them. */
+            /* The Specification Tree view shows the project with its control station sub-project, the building block the sub-project develops, the system requirements of both levels, and the requirement flow-down between them. */
             expose this;
             expose controlStationProject;
         }

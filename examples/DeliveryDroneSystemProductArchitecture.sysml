@@ -77,7 +77,7 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
         part :>> controlStation : DDCS_HANDOVER::ControlStation {
             doc
             /* The ground control station operating the fleet. It is developed in the control station
-             * sub-project, which refers to it as its parentElement (sub-project contract). */
+             * sub-project and typed by the system of interest of its handover context (sub-project contract). */
         }
         part :>> droneDocks {
             doc
@@ -93,11 +93,6 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
             doc
             /* Delegation of the operator interface of the system to the control station. */
         }
-    }
-    part def ControlStation :> DDCS_HANDOVER::ControlStation {
-        doc
-        /* The control station building block. It specializes the system of interest of the handover context of the
-         * control station sub-project (DeliveryDroneControlStationHandover), which fixes its ports and attributes. */
     }
 
     //
@@ -122,7 +117,7 @@ package <DD_PRODUCT> DeliveryDroneSystemProductArchitecture {
             doc
             /* Dedicated charger drones with large batteries that recharge the delivery drones in flight. */
         }
-        part :>> controlStation : ControlStation;
+        part :>> controlStation : DDCS_HANDOVER::ControlStation;
     }
 }
 package <DD_VV> DeliveryDroneVerificationValidation {

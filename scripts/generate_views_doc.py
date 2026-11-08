@@ -774,7 +774,7 @@ def read_artifacts(sysmod_elements):
     for child in project.children:
         words = child.words
         if len(words) > 1 and words[0] in PARAMETER_KEYWORDS:
-            # the feature name is the first word after the keywords, e.g., 'ref part parentElement'
+            # the feature name is the first word after the keywords, e.g., 'requirement handoverRequirements'
             name = next((w for w in words if w not in PARAMETER_KEYWORDS), None)
             if name:
                 features[name] = child

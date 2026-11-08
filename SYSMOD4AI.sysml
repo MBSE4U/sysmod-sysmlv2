@@ -178,7 +178,7 @@ package SYSMOD4AI {
                 11. If both functionalContext and logicalContext are present, the functional2logical allocation is defined; if logicalContext is present, the logical2product allocation is defined. The same holds for the white box contexts and the functionalImpl2logicalImpl and logicalImpl2productImpl allocations.
                 12. Verification cases are specified before the solution architecture: the verification case definitions of the specification have the black box specification system as subject; a present verificationContext is a system context whose system of interest is the system under verification, e.g., the product system, a prototype, or a simulation model, and its verification case usages subset verificationCases and are typed by the verification case definitions of the specification.
                 13. If tradeStudies are present, each is typed by SYSMODTradeStudy and compares architectureAlternatives, and the context definition of its selected alternative types the respective project context, which carries Rationale metadata referring to the trade study.
-                14. If subProjects are present, each binds parentElement to a building block of the productContextImpl, the project's requirementFlowDowns derive the system requirements of each sub-project from the project's requirements, and after integration the productContextImpl redefines each parent element with the white box product system of its sub-project.
+                14. If subProjects are present, each develops a building block of the productContextImpl that is typed by the system of interest of a handover context, the project's requirementFlowDowns derive the handoverRequirements of each sub-project from the project's requirements, and after integration the productContextImpl binds each building block to the white box product system of its sub-project or documents that it stays a black box.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -230,7 +230,7 @@ package SYSMOD4AI {
                      - modelFunctionalArchitecture (optional): functionalContextAI, using the process input functionalArchitectureDescription.
                      - modelLogicalArchitecture (optional): logicalContextAI, using the process input logicalArchitectureDescription.
                      - modelProductArchitecture: productContextAI, using the process input productArchitectureDescription.
-                   - modelSubProjects (optional): subProjectsAI in the parent project, then parentElementAI in each sub-project. Each sub-project then performs its own SYSMOD process.
+                   - modelSubProjects (optional): subProjectsAI in the parent project, then handoverAI in each sub-project. Each sub-project then performs its own SYSMOD process.
                    - integrateSubProjects (optional): the integration part of subProjectsAI, once the product architectures of the sub-projects are available.
                    - specifyTradeStudy (optional, at any architecture decision with alternatives): tradeStudiesAI.
                    - specifyVerificationContext: verificationContextAI; type the project's verificationContext by a system context definition with the system under verification as system of interest (any system, e.g., the white box product system, a prototype, or a simulation model; the context may specialize an architecture context such as productContextImpl), add the test systems needed for the verification as actors (e.g., a test bench or a wind tunnel), and bind the subjects of the verification cases of the verificationContext to the system under verification. Do not create the verification cases anew; if a requirement has no verification case yet, go back to verificationCasesAI.
@@ -254,7 +254,7 @@ package SYSMOD4AI {
                 3. setupProject: the project has a purpose and the projectOwner has a name.
                 4. Only optional steps are skipped (modelBrownfieldSystem for greenfield projects, the nested steps modelFunctionalArchitecture, modelLogicalArchitecture, and modelProductArchitecture, modelSubProjects, integrateSubProjects, specifyTradeStudy); mandatory artifacts (problemStatement, projectStakeholders, stakeholderNeeds, systemIdeaContext, systemObjectives, specificationContext, systemRequirementSpecification) are not skipped.
                 5. specifySystem: every requirement of the systemRequirementSpecification is verified by at least one verification case definition with the black box specification system as subject, and each of them has a verification case usage in the verificationContext subsetting verificationCases; specifyVerificationContext: the verificationContext has the system under verification as system of interest, contains the test systems, and the subjects of its verification cases are bound to the system under verification. Flag verification case definitions created in specifyVerificationContext that do not exist in the specification. performVerification: each verification report subsets verificationReports of the verificationContext and states the verdicts of the verification cases it covers.
-                6. modelSubProjects and integrateSubProjects: every sub-project binds its parentElement and receives requirementFlowDowns from the project; specifyVerificationContext uses the integrated product system or documents which parent elements are still black boxes.
+                6. modelSubProjects and integrateSubProjects: every sub-project has a handover package and receives requirementFlowDowns from the project; specifyVerificationContext uses the integrated product system or documents which building blocks are still black boxes.
                 7. specifyTradeStudy: every trade study passes the validation_prompt of tradeStudiesAI, and every architecture decision with documented alternatives has a trade study or a Rationale.
                 8. If the project redefines defaultProcess, the redefinition is typed by a specialization of SYSMODDefaultProcess and documents its deviations from the default process.
                 9. Name the next step to perform and the AI metadata to use for it.
@@ -989,7 +989,7 @@ package SYSMOD4AI {
         metadata subProjectsAI : AI about subProjects {
             doc
             /* Decomposes a project into sub-projects for building blocks that are developed separately,
-             * sets up the sub-project contract (parentElement, handover context, requirement
+             * sets up the sub-project contract (handover package with handover context, stakeholders, and requirements; requirement
              * flow-down), and integrates the designs of the sub-projects into the parent architecture.
              *
              * When to use:
@@ -1005,7 +1005,7 @@ package SYSMOD4AI {
              * - The project is small enough to stay a single, non-decomposed project — do not create
              *   sub-projects speculatively.
              * - The user works inside an existing sub-project and wants to derive its element
-             *   specification from the parent — use parentElementAI in the sub-project.
+             *   specification from the parent — use handoverAI in the sub-project.
              * - The user wants to define an artifact within the current project's own scope — use that
              *   artifact's own AI metadata instead of creating a sub-project.
              */
@@ -1013,13 +1013,13 @@ package SYSMOD4AI {
             create_prompt =
                 "1. Identify the building blocks of the white box product context (productContextImpl) that are developed separately. Each must be typed by a black box part definition whose ports describe its interfaces.
                 2. For each of them, create an occurrence definition specializing Project (or a #project occurrence def) for the sub-project, with its own projectOwner and problemStatement.
-                3. Add each sub-project as an occurrence usage subsetting subProjects within the parent project, and bind its parentElement to the building block, e.g. ref part :>> parentElement = <productContextImpl usage>.<soiImpl usage>.<building block>.
+                3. Add each sub-project as an occurrence usage subsetting subProjects within the parent project.
                 4. For each building block, create a handover package with a handover context: a #systemContext part definition specializing SystemContext whose system of interest redefines soi and is typed by a black box part definition of the building block; an actor (subsetting actors, typed by a part definition with only the ports that face the building block, ports subsetting actorPorts, tagged #user, #externalSystem, or #environmentalEffect) for each neighbor of the building block in the white box and for each parent actor whose interface the parent delegates to it; and an actor/system interface (subsetting asis) for each connection and delegation. Hand over only what the sub-project needs, not the internal structure of the neighbors. The handover package must not import the parent architecture, so that a sub-project without access to the parent model, e.g., a supplier, can use it. The handover package also contains the parent stakeholders that the sub-project needs (stakeholder definitions that the parent's stakeholder definitions specialize) and the handover requirements: a requirement definition with the system of interest definition of the handover context as subject, containing the requirements that the parent imposes on the building block.
-                5. Let the white box product context specialize the elements of the handover context: the definition of the building block specializes the definition of the system of interest, and the neighbors are additionally typed by the actor definitions, with their ports redefining the handed-over ports.
-                6. In each sub-project, apply parentElementAI to take over the handover context as its brownfield context and to derive its system requirements.
-                7. Declare the requirement flow-down in the parent project: one #derivation connection subsetting requirementFlowDowns per parent requirement that constrains the parent element, with end #original ::> <parent requirement> and one end #derive ::> <sub-project usage>.handoverRequirements.<handover requirement> per handover requirement (private import RequirementDerivation::*). If the parent model does not contain the definition of the sub-project, e.g., for a supplier, type the sub-project usage by Project and redefine handoverRequirements in it with the handover requirement definition. The parent project declares the flow-down because only there the requirements of both levels are accessible.
+                5. Let the white box product context specialize the elements of the handover context: the building block is typed by the system of interest definition, and the neighbors are additionally typed by the actor definitions, with their ports redefining the handed-over ports.
+                6. In each sub-project, apply handoverAI to take over the handover context as its brownfield context and to derive its system requirements.
+                7. Declare the requirement flow-down in the parent project: one #derivation connection subsetting requirementFlowDowns per parent requirement that constrains the building block, with end #original ::> <parent requirement> and one end #derive ::> <sub-project usage>.handoverRequirements.<handover requirement> per handover requirement (private import RequirementDerivation::*). If the parent model does not contain the definition of the sub-project, e.g., for a supplier, type the sub-project usage by Project and redefine handoverRequirements in it with the handover requirement definition. The parent project declares the flow-down because only there the requirements of both levels are accessible.
                 8. Hand over shared stakeholders via the handover package (step 4); the sub-project does not reference the parent project's elements.
-                9. Integration (integrateSubProjects): when the product architecture of a sub-project is available, redefine the building block in the parent's productContextImpl usage with the white box product system definition of the sub-project, e.g. part :>> <building block> : <sub-project package>::<white box product system definition>.
+                9. Integration (integrateSubProjects): when the product architecture of a sub-project is available, bind the building block in the parent's productContextImpl usage to the white box product system of the sub-project, e.g. part :>> <building block> = <sub-project usage>.<productContextImpl usage>.<system>. If the sub-project delivers only a black box, e.g., a supplier, keep the type of the handover context and document the delivery with the verification results.
                 10. Create the SysML v2 textual notation for the sub-project definitions, their usages, the handover packages, the requirementFlowDowns, and the integration redefinitions.
                 11. If the user asks to insert sub-projects into the SysML model, find the parent project and add the sub-project occurrence usages.";
             create_questions = (
@@ -1032,18 +1032,18 @@ package SYSMOD4AI {
                 "Validate the subProjects against the SYSMOD sub-project concept and report findings grouped as errors, warnings, and suggestions.
                 Check:
                 1. Each sub-project occurrence usage subsets the inherited subProjects and is typed by an occurrence definition specializing Project or AIProject.
-                2. Each sub-project usage binds parentElement to a building block of the parent's productContextImpl, and the definition of the building block specializes the system of interest definition of a handover context.
-                3. Each sub-project has a projectOwner, a problemStatement that is consistent with and narrower in scope than the parent project's problemStatement, and a brownfieldContext typed by its handover context (see the validation_prompt of parentElementAI).
+                2. Each sub-project develops a building block of the parent's productContextImpl, and the building block is typed by the system of interest definition of the sub-project's handover context.
+                3. Each sub-project has a projectOwner, a problemStatement that is consistent with and narrower in scope than the parent project's problemStatement, and a brownfieldContext typed by its handover context (see the validation_prompt of handoverAI).
                 4. Each handover context covers every neighbor of the building block in the parent white box and every parent actor delegated to it, with an actor/system interface per connection and delegation; the parent white box specializes its elements; and its handover package does not import the parent architecture.
-                5. The parent project has requirementFlowDowns whose #original ends are its own requirements and whose #derive ends are handoverRequirements of the sub-projects, reached via the sub-project usages; every parent requirement that constrains a parent element is the original of at least one flow-down, or a doc comment explains why it does not flow down.
+                5. The parent project has requirementFlowDowns whose #original ends are its own requirements and whose #derive ends are handoverRequirements of the sub-projects, reached via the sub-project usages; every parent requirement that constrains the building block of a sub-project is the original of at least one flow-down, or a doc comment explains why it does not flow down.
                 6. Stakeholders shared with a sub-project are defined in its handover package and specialized by the parent's stakeholder definitions, rather than referenced from the sub-project or duplicated as independent definitions.
                 7. There are no overlapping scopes between sibling sub-projects — each sub-project develops a distinct building block.
-                8. After integration, the parent's productContextImpl redefines each parent element with a white box product system definition of the sub-project that specializes the black box definition of the parent element.
+                8. After integration, the parent's productContextImpl binds each building block to the white box product system of its sub-project, whose definition specializes the system of interest definition of the handover context, or the building block stays a black box with documented verification results.
                 9. Each sub-project has a meaningful name and doc comment describing its scope and relationship to the parent project.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
-        metadata parentElementAI : AI about handOverElement {
+        metadata handoverAI : AI about handoverRequirements {
             doc
             /* Sets up the element specification of a sub-project from its parent project (sub-project
              * contract): the handover context of the parent as the brownfield context, and the system
@@ -1064,14 +1064,14 @@ package SYSMOD4AI {
              */
             name = "sysmod-sub-project-contract";
             create_prompt =
-                "1. Find the handover package that the parent project provides for this sub-project. In the sub-project, redefine parentElement with the system of interest definition of the handover context as type (ref part :>> parentElement : <handover package>::<black box definition>); the parent project binds the value in its sub-project usage.
+                "1. Find the handover package that the parent project provides for this sub-project. The sub-project uses only this package from the parent project.
                 2. Use the handover context as the black box brownfield context of the sub-project (part <name> :>> brownfieldContext : <handover package>::<handover context>). Do not use any other element of the parent architecture: the sub-project, e.g., a supplier, may have no access to it.
                 3. If the sub-project needs an actor or interface that the handover context lacks, report it as a request to the parent project instead of adding it in the sub-project.
-                4. Put the internal structure of an existing implementation of the element, if any, into the white box brownfield context; its definition specializes the black box definition of the parent element.
+                4. Put the internal structure of an existing implementation of the element, if any, into the white box brownfield context; its definition specializes the system of interest definition of the handover context.
                 5. Redefine handoverRequirements with the handover requirement definition of the handover package (requirement :>> handoverRequirements : <handover package>::<handover requirement definition>), and use the handover stakeholders as the stakeholders of the sub-project.
                 6. Derive the system requirements of the sub-project from the handover requirements in its systemRequirementSpecification, with the system of interest definition of the handover context as subject and a motivation that explains the derivation. Declare the derivation in the sub-project: one #derivation connection per handover requirement, with end #original ::> handoverRequirements.<handover requirement> and one end #derive ::> <requirement specification usage>.<requirement> per derived requirement (private import RequirementDerivation::*).
                 7. If a requirement that the sub-project needs is missing from the handover requirements, report it as a request to the parent project instead of adding it as a handover requirement.
-                8. Create the SysML v2 textual notation for the parentElement and handoverRequirements redefinitions, the brownfield contexts, the derived requirements, and their #derivation connections.";
+                8. Create the SysML v2 textual notation for the handoverRequirements redefinition, the brownfield contexts, the derived requirements, and their #derivation connections.";
             create_questions = (
                 "Which project is the parent, and which building block does this sub-project develop?",
                 "Does an implementation of the building block already exist (brownfield)?",
@@ -1080,10 +1080,10 @@ package SYSMOD4AI {
             validation_prompt =
                 "Validate the sub-project contract and report findings grouped as errors, warnings, and suggestions.
                 Check:
-                1. parentElement is typed in the sub-project and bound in the parent's sub-project usage to a building block of the parent's productContextImpl.
-                2. The brownfieldContext is typed by the handover context of the parent project or a specialization of it, and parentElement is typed by the system of interest definition of the handover context.
+                1. The sub-project imports no package of the parent project other than its handover package.
+                2. The brownfieldContext is typed by the handover context of the parent project or a specialization of it.
                 3. The sub-project uses no element of the parent architecture other than the handover package (shared definitions such as stakeholders or domain items are allowed).
-                4. If the sub-project has access to the parent model: each actor of the handover context corresponds to a neighbor of the parent element in the parent white box or to a parent actor delegated to it, each actor/system interface to a connection or delegation, and the parent white box specializes them.
+                4. If the sub-project has access to the parent model: each actor of the handover context corresponds to a neighbor of the building block in the parent white box or to a parent actor delegated to it, each actor/system interface to a connection or delegation, and the parent white box specializes them.
                 5. handoverRequirements is typed by the handover requirement definition of the handover package, and each handover requirement is the #original of a #derivation connection in the sub-project, or a doc comment explains why it is not refined.
                 6. Every system requirement of the sub-project is either the #derive end of such a #derivation connection or frames a stakeholder need of the sub-project.
                 7. The derived requirements are consistent with the handover requirements, i.e., they do not relax them, and their subject is the system of interest definition of the handover context.

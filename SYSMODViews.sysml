@@ -182,9 +182,9 @@ library package SYSMODViews {
             }
         }
         viewpoint def SpecificationTreeViewpoint {
-            doc /* Shows the specification tree: the Project with its subProjects, the parentElement that each subProject develops,
+            doc /* Shows the specification tree: the Project with its subProjects, the building block that each subProject develops,
                  * the systemRequirementSpecification of each level, and the requirementFlowDowns from the parent requirements to the
-                 * system requirements of the subProjects. For a supplied subProject, it is the technical part of the agreement
+                 * handoverRequirements of the subProjects. For a supplied subProject, it is the technical part of the agreement
                  * between the parent project and the supplier.
                  */
             subject theView;
@@ -437,8 +437,8 @@ library package SYSMODViews {
     // Sub-Projects (modelSubProjects, integrateSubProjects)
     view def SpecificationTreeView :> StandardViewDefinitions::GeneralView {
         doc /* Product "Sub-Projects": the specification tree of the exposed Project, i.e., the Project and its subProjects (recursively),
-                * the parentElement that each subProject develops, the systemRequirementSpecification of each level,
-                * and the requirementFlowDowns (#derivation) from the parent requirements to the system requirements of the subProjects.
+                * the building block that each subProject develops, the systemRequirementSpecification of each level,
+                * the handoverRequirements of each subProject, and the requirementFlowDowns (#derivation) from the parent requirements to them.
                 */
         satisfy requirement stvp : SpecificationTreeViewpoint;
         filter @ProjectMetadata or @SysML::RequirementUsage or @ExtendedRequirementMetadata or @RequirementDerivation::DerivationMetadata;
@@ -563,7 +563,7 @@ library package SYSMODViews {
     #viewedArtifact dependency ProductArchitectureView to Project::productContext, Project::productContextImpl;
     #viewedArtifact dependency ArchitectureAllocationView to Project::functional2logical, Project::logical2product,
         Project::functionalImpl2logicalImpl, Project::logicalImpl2productImpl;
-    #viewedArtifact dependency SpecificationTreeView to Project::subProjects, Project::subProjects::handOverElement, Project::subProjects::handoverRequirements,
+    #viewedArtifact dependency SpecificationTreeView to Project::subProjects, Project::subProjects::handoverRequirements,
         Project::systemRequirementSpecification, Project::requirementFlowDowns;
     #viewedArtifact dependency VerificationAndValidationView to Project::verificationContext::verificationCases;
     #viewedArtifact dependency VerificationMatrixView to Project::verificationContext::verificationCases;

@@ -33,8 +33,8 @@ package <DDCS_HANDOVER> DeliveryDroneControlStationHandover {
 
     #systemContext part def ControlStationContext {
         doc
-        /* The handover context of the control station: the parent element as the system of interest and the
-         * external entities of the parent element that are handed over as actors, with their interfaces.
+        /* The handover context of the control station: the control station building block of the parent project
+         * as the system of interest and its external entities that are handed over as actors, with their interfaces.
          * The parent project derives it from its white box product context: the neighbors of the control
          * station are the actors, and its connections and the delegations of parent system ports to it are the
          * actor/system interfaces. Only what the sub-project needs is handed over, e.g., the drones as seen

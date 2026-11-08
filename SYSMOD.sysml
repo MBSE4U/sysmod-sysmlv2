@@ -276,9 +276,24 @@ library package SYSMOD {
         // Sub Projects
         //
         occurrence subProjects : Project [*] {
-            doc /* List of all subProjects, for example, a standalone project for a subsystem or component of the system.
-                 * A sub-project that develops a building block of the white box product context refers to it as its parentElement
-                 * (sub-project contract). Created by the modelSubProjects step. */
+            doc
+            /* List of all subProjects, for example, a standalone project for a subsystem or component of the system. A sub-project
+             * that develops a building block of the white box product context (productContextImpl) is linked to this project by the
+             * sub-project contract, which a separate handover package carries. Created by the modelSubProjects step.
+             * 1. Boundary: the handover package contains a handover context: a system context whose system of interest is the black box
+             *    of the building block and whose actors are the external entities of the building block that are handed over (its
+             *    neighbors in the white box and the actors whose interfaces this project delegates to it), with the actor/system
+             *    interfaces. The white box of this project types the building block by the system of interest definition of the handover
+             *    context and specializes its other elements. The sub-project uses the handover context as its black box brownfield
+             *    context. The handover package is the only package that both projects share, so the sub-project, e.g., a supplier, needs
+             *    no access to this project. These decisions of this project's architecture are fixed at the start of the sub-project.
+             * 2. Flow-down: the handover package also contains the stakeholders that are handed over and the handover requirements. This
+             *    project derives the handover requirements from its requirements that constrain the building block, with its
+             *    requirementFlowDowns; the sub-project derives its system requirements from its handoverRequirements.
+             * 3. Integration: this project binds the building block in its white box product context to the white box product system
+             *    of the sub-project, e.g., part :>> <building block> = <sub-project usage>.<productContextImpl usage>.<system>. If the
+             *    sub-project delivers only a black box, e.g., a supplier that does not hand over its white box, the building block keeps
+             *    the type of the handover context and the delivery is documented by the verification results. */
         }
 
         requirement handoverRequirements : ExtendedRequirement [0..1] {
@@ -291,7 +306,7 @@ library package SYSMOD {
         abstract connection requirementFlowDowns : DerivationConnections::Derivation [0..*] :> DerivationConnections::derivations {
             doc
             /* The requirement flow-down to the subProjects: #derivation connections from the requirements of this project that
-             * constrain the parentElement of a sub-project (#original) to the handoverRequirements of that sub-project (#derive),
+             * constrain the building block that a sub-project develops (#original) to the handoverRequirements of that sub-project (#derive),
              * e.g., end #derive ::> <sub-project usage>.handoverRequirements.<requirement>. They are declared in this project, where
              * the requirements of both levels are accessible; the sub-project does not need access to this project. Together with the
              * subProjects, they form the specification tree. Created by the modelSubProjects step. */

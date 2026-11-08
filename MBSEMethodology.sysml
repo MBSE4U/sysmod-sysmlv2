@@ -41,12 +41,15 @@ library package MBSEMethodology {
     // ------------------------------------------------------------
     item def Product {
         ref part owner : Role;
+        ref part authorativeTool : Tool;
+        ref part additionalTools[*] : Tool;
         view productViews[*];
         ref modelElements[*] : KerML::Element;
     }
     part def Tool {
         ref action facilitatesMethods[1..*] : Method;
-        item payloads[*];
+        ref item ownedProducts[*] : Product;
+        ref item additionalProducts[*] : Product;
     }
     part def Role {
         ref item responsibleForProducts[*] : Product;
@@ -116,5 +119,9 @@ library package MBSEMethodology {
     connection def FacilitatesConnection {
         end part facilitationTool : Tool crosses facilitatedMethod.facilitationTools;
         end action facilitatedMethod : Method crosses facilitationTool.facilitatesMethods;
+    }
+    connection def AuthorativeToolConnection {
+        end part authorativeTool : Tool crosses ownedProducts.authorativeTool;
+        end action ownedProducts : Product crosses authorativeTool.ownedProducts;
     }
 }

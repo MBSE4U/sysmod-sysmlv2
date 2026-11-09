@@ -232,7 +232,7 @@ package <DD> DeliveryDrone {
         part deliveryDroneProductContext :>> productContext : DD_PRODUCT::DeliveryDroneProductContext :> deliveryDroneSpecificationContext {
             part deliveryDroneSystem :>> deliveryDroneSystem, deliveryDroneSpecificationContext::deliveryDroneSystem, Project::productContext::productSystem;
         }
-        variation part deliveryDroneProductContextImpl :>> productContextImpl :> deliveryDroneProductContext, deliveryDroneSpecificationContextImpl {
+        variation part deliveryDroneProductContextImpl :>> productContextImpl :> deliveryDroneProductContext, deliveryDroneSpecificationContextImpl = deliveryDroneProductContextImpl::convertibleDeliveryDroneProductContextImpl {
             @ModelingMetadata::Rationale {
                 text = "Convertible drones: the highest evaluation in the charging concept trade study, without a separate charger fleet to buy, operate, and maintain.";
                 explanation = PRJ::chargingConceptStudy meta SysML::Usage;

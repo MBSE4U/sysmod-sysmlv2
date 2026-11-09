@@ -485,12 +485,18 @@ library package SYSMODProcesses {
 
     action def SpecifyTradeStudy :> MBSEMethodology::Method {
         doc
-        /* Specifies a SYSMOD trade study for an architecture decision, e.g., between candidate system ideas or candidate product architectures: models the alternatives as variants of the respective context of the project, which becomes a variation usage (e.g., productContextImpl), assesses each alternative against the system objectives (criteria weighted by their priority), selects the alternative with the maximum evaluation, and records the decision on the variation with Rationale metadata whose explanation is the trade study. Mandatory system requirements, if already defined, exclude ineligible alternatives. Optional and without succession: performed whenever a step faces an architecture decision with alternatives. Refines the ISO 15288 Decision Management and System Analysis processes. */
+        /* Specifies a SYSMOD trade study for an architecture decision, e.g., between candidate system ideas or candidate product architectures: models the alternatives as variants of the respective context of the project, which becomes a variation usage (e.g., productContextImpl), assesses each alternative against the system objectives (criteria weighted by their priority), selects the alternative with the maximum evaluation, binds the variation to the selected variant, and records the decision on the variation with Rationale metadata whose explanation is the trade study. It takes the open context as decisionContext and returns the decided variation as decidedContext. Mandatory system requirements, if already defined, exclude ineligible alternatives. Optional and without succession: performed whenever a step faces an architecture decision with alternatives. Refines the ISO 15288 Decision Management and System Analysis processes. */
         // The concern, the requirement, and the analysis do not subset inputs or outputs (see ModelSubProjects).
         in concern systemObjectives : SystemObjective;
         in requirement systemRequirementSpecification [0..1] : ExtendedRequirement;
-        inout part decisionContext : SystemContext :> inputs, outputs {
-            doc /* The project context of the architecture decision, e.g., productContextImpl. The step makes it a variation usage whose variants are the alternatives. */
+        in part decisionContext : SystemContext :> inputs {
+            doc /* The project context of the open architecture decision as it is before the trade study, e.g., productContextImpl.
+                   It provides the base context, e.g., the white box specification context, that the alternatives specialize. */
+        }
+        out part decidedContext : SystemContext :> outputs {
+            doc /* The same project context after the decision: a variation usage whose variants are the alternatives, bound to the
+                   selected variant (e.g., variation part :>> productContextImpl ... = <variation>::<selected variant>), with
+                   Rationale metadata whose explanation is the trade study. It replaces the decisionContext in the project. */
         }
         out analysis tradeStudies [1..*] : SYSMODTradeStudy;
     }

@@ -3,6 +3,8 @@ library package SYSMODRequirementsBoilerplates {
     /* 
      * Library of generic, parametric requirement patterns. 
      *
+     * Version v5.1.8
+     *
      * Each one captures a common quantitative requirement shape as a require constraint over placeholder attributes; 
      * specialize a boilerplate and redefine its attributes to bind it to a concrete quantity and threshold.
      *
@@ -10,8 +12,6 @@ library package SYSMODRequirementsBoilerplates {
      * A specialization narrows all value attributes of a boilerplate to the same type, e.g.,
      * 'attribute :>> maxValue :> ISQ::mass = 5 [SI::kg];', and sets the tolerance with the same unit, since the default
      * tolerance 0.0 is a plain number.
-     *
-     * Version v5.1.8
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.

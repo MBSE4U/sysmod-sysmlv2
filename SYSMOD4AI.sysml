@@ -3,6 +3,8 @@ package SYSMOD4AI {
     /*
      * SYSMOD4AI: AI-assisted extension for SYSMOD v5
      *
+     * Version v5.1.8
+     *
      * Adds machine-readable AI instructions on top of the core SYSMOD library, so an AI assistant can
      * create, validate, and explain SYSMOD artifacts directly from this model — with no dependency on
      * any particular AI tool's skill, plugin, or extension mechanism. It is kept as a separate package
@@ -21,8 +23,6 @@ package SYSMOD4AI {
      *   given AI metadata usage's prompts to the identically-named/-roled feature on that real
      *   project (e.g. AIProject::problemStatementAI's prompts apply to any project's own
      *   problemStatement), matched by feature identity rather than by inheritance from AIProject.
-     *
-     * Version v5.1.8
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.

@@ -1,12 +1,14 @@
 library package ISO15288Processes {
         doc
     /* 
+     * ISO/IEC/IEEE 15288 System Life Cycle Processes
+     *
+     * Version v5.1.8
+     *
      * Package containing the 30 system life cycle processes of ISO/IEC/IEEE 15288, grouped into agreement, 
      * organizational project-enabling, technical management, and technical processes.
      *
      * Subpackages contain Stakeholders and their Concerns.
-     *
-     * Version v5.1.8
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.

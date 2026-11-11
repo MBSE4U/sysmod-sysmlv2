@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>MBSE Methodology Editor</title>
+    <meta name="description" content="Web-based editor for MBSE environments (MBSEMethodology) and their EEE checks: environment, Tools Roles Methods Matrix, Process Step Definition Diagram and Company Tool Policy Matrix in SysML v2 textual notation, checked by the sysmlv2 WebAssembly engine in your browser.">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232457c5'/%3E%3Cpath d='M3 4h3M3 8h3M3 12h3M7 4h3M7 8h3M7 12h3M11 4h2.5M11 8h2.5M11 12h2.5' stroke='%23fff' stroke-width='1.6' fill='none'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="css/editor.css">
+    <link rel="stylesheet" href="css/views.css">
+    <link rel="stylesheet" href="css/eee.css">
+    <script type="module" src="src/main.js"></script>
+</head>
+<body>
+    <header class="toolbar">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">MBSE</span>MBSE Methodology Editor</div>
+        <nav class="menus" aria-label="Menu">
+            <details class="menu">
+                <summary>File</summary>
+                <div class="menu-items" role="menu">
+                    <button type="button" role="menuitem" data-action="new-environment">New MBSE environment with EEE check…</button>
+                    <button type="button" role="menuitem" data-action="new-package">New empty file…</button>
+                    <hr>
+                    <button type="button" role="menuitem" data-action="open">Open…<kbd>Ctrl+O</kbd></button>
+                    <hr>
+                    <button type="button" role="menuitem" data-action="save">Save<kbd>Ctrl+S</kbd></button>
+                    <button type="button" role="menuitem" data-action="save-as">Save as…<kbd>Ctrl+Shift+S</kbd></button>
+                    <button type="button" role="menuitem" data-action="save-all">Save all</button>
+                    <hr>
+                    <button type="button" role="menuitem" data-action="close">Close</button>
+                </div>
+            </details>
+            <details class="menu">
+                <summary>Insert</summary>
+                <div class="menu-items" role="menu" id="insert-menu"></div>
+            </details>
+            <details class="menu">
+                <summary>Examples</summary>
+                <div class="menu-items" role="menu" id="examples-menu"></div>
+            </details>
+            <details class="menu">
+                <summary>Help</summary>
+                <div class="menu-items" role="menu">
+                    <button type="button" role="menuitem" data-action="about">About the MBSE Methodology editor</button>
+                    <a role="menuitem" href="https://eee-check.de/" target="_blank" rel="noopener">EEE Check website ↗</a>
+                </div>
+            </details>
+        </nav>
+        <button type="button" class="check-button" data-action="check" title="Check the model now">Check</button>
+        <button type="button" id="engine-status" class="engine-status" data-action="engine">SysML engine</button>
+    </header>
+
+    <div class="workbench">
+        <aside class="sidebar" aria-label="Model">
+            <section class="panel">
+                <h2>Documents</h2>
+                <ul id="documents" class="documents"></ul>
+            </section>
+            <section class="panel grow">
+                <h2>Model</h2>
+                <div id="eee-model"></div>
+            </section>
+        </aside>
+
+        <main class="editor-area">
+            <div class="view-bar">
+                <div class="view-tabs" role="tablist" aria-label="Editor">
+                    <button type="button" role="tab" data-view-tab="environment" aria-controls="view-environment" title="MBSE environment: tools, roles, methodology, products">Environment</button>
+                    <button type="button" role="tab" data-view-tab="matrix" aria-controls="view-matrix" title="EEE Steps #1 and #2: Tools Roles Methods Matrix">Matrix</button>
+                    <button type="button" role="tab" data-view-tab="steps" aria-controls="view-steps" title="EEE Steps #3 and #4: Process Step Definition Diagram and measures">Step definition</button>
+                    <button type="button" role="tab" data-view-tab="policy" aria-controls="view-policy" title="Company Tool Policy Matrix">Tool policy</button>
+                    <button type="button" role="tab" data-view-tab="form" aria-controls="view-form">Form</button>
+                    <button type="button" role="tab" data-view-tab="text" aria-controls="view-text">Text</button>
+                </div>
+                <span class="view-spacer"></span>
+                <button type="button" id="undo" class="history-button" data-action="undo" disabled>↶ Undo</button>
+                <button type="button" id="redo" class="history-button" data-action="redo" disabled>↷ Redo</button>
+            </div>
+            <section id="view-environment" class="view" role="tabpanel" aria-label="MBSE environment"><div id="environment"></div></section>
+            <section id="view-matrix" class="view" role="tabpanel" aria-label="Tools Roles Methods Matrix" hidden><div id="matrix"></div></section>
+            <section id="view-steps" class="view" role="tabpanel" aria-label="Process Step Definition Diagram" hidden><div id="steps"></div></section>
+            <section id="view-policy" class="view" role="tabpanel" aria-label="Company Tool Policy Matrix" hidden><div id="policy"></div></section>
+            <section id="view-form" class="view" role="tabpanel" aria-label="Form editor" hidden><div id="form"></div></section>
+            <section id="view-text" class="view text-view" role="tabpanel" aria-label="Text editor" hidden>
+                <div id="tabs" class="tabs" role="tablist" aria-label="Open documents"></div>
+                <div id="code"></div>
+            </section>
+        </main>
+
+        <section class="problems-panel" aria-labelledby="problems-title">
+            <h2 id="problems-title">Problems <span id="problem-count" class="count-ok"></span></h2>
+            <div id="problems"></div>
+        </section>
+    </div>
+
+    <footer class="statusbar">
+        <span id="message" role="status" aria-live="polite"></span>
+        <span id="check-status"></span>
+        <span id="cursor"></span>
+    </footer>
+</body>
+</html>

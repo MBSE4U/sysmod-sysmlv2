@@ -4,7 +4,9 @@
     "SYSMOD4AI": "SYSMOD4AI.sysml",
     "SYSMODRequirementsBoilerplates": "SYSMODRequirementsBoilerPlates.sysml",
     "SYSMODViews": "SYSMODViews.sysml",
-    "ISO15288Processes": "SYSMOD15288.sysml"
+    "ISO15288Processes": "SYSMOD15288.sysml",
+    "MBSEMethodology": "MBSEMethodology.sysml",
+    "EEE": "EEE.sysml"
   },
   "created": "2026-06-15T08:50:55Z",
   "metamodel": "https://www.omg.org/spec/SysML/20250201",
@@ -26,6 +28,14 @@
       "algorithm": "NONE"
     },
     "SYSMOD15288.sysml": {
+      "value": "",
+      "algorithm": "NONE"
+    },
+    "MBSEMethodology.sysml": {
+      "value": "",
+      "algorithm": "NONE"
+    },
+    "EEE.sysml": {
       "value": "",
       "algorithm": "NONE"
     }

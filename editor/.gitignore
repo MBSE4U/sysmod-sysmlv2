@@ -1,0 +1,4 @@
+# Local copy of the SysML engine (tools/fetch-engine.mjs)
+vendor/
+# Standalone build (tools/build-standalone.mjs)
+dist/

@@ -28,6 +28,7 @@ The library provides ready-to-use SysML v2 definitions for the core SYSMOD conce
 - **ISO/IEC/IEEE 15288 Processes, Stakeholders & Concerns** — `ISO15288Processes` package (top-level library package, own file `SYSMOD15288.sysml`) with the 30 system life cycle processes as action definitions, the subpackage `Stakeholders` with the stakeholder roles derived from the processes (e.g., `ProductManager`, `SystemArchitect`), and the subpackage `Concerns` with their concerns. `SYSMOD` refines the processes with its steps, and `SYSMODViews` frames the concerns with its viewpoints
 - **Views** — `SYSMODViews` package (top-level, own file), the SYSMOD architecture description framework according to ISO/IEC/IEEE 42010: viewpoints framing the concerns of the stakeholder roles from `ISO15288Processes`, and view definitions for the SYSMOD steps, including AI renderings (e.g., `ProjectAIView`, `AIUseCase4ManagersView`) the SYSMOD Map (`SYSMODMapView`), which shows all Project features on one sheet with grid references, the decision matrix of a trade study (`TradeStudyView`), and the specification tree of a project and its sub-projects (`SpecificationTreeView`). The library defines the views; a project instantiates them as view usages, e.g., `projectCoverView` and `problemStatementView` in the Delivery Drone example. The `#viewedArtifact` dependencies name the Project artifacts each view shows; from them and the inputs and outputs of the SYSMOD steps, the documentation derives which views build on which other views (correspondences in the sense of ISO/IEC/IEEE 42010). See the generated documentation [SYSMODViews.md](SYSMODViews.md)
 - **SYSMOD-specific keywords** — Shorthand keywords (`#project`, `#systemContext`, `#extendedStakeholder`, `#extendedConcern`, `#extendedRequirement`, `#systemUseCase`, `#secondaryUseCase`, `#systemProcess`, `#continuousUseCase`, plus the actor tags `#system`, `#user`, `#externalSystem`, `#environmentalEffect`) for cleaner model notation
+- **EEE Check** — `EEE` package (top-level library package, own file `EEE.sysml`), an extension of `MBSEMethodology` for the EEE Check (Engineering Efficiency Empowerment by oose and Willert, [eee-check.de](https://eee-check.de/)). The anchor point is the MBSE environment (`MBSEMethodology::MBSEEnvironment`): an `EeeCheck` analyzes an environment, whose roles and tools are the rows and columns of the EEE Tools Roles Methods Matrix; a `ProcessStep` (a `MethodologyBehavior`) is performed by a role (`primaryPerformer`) with a tool (`facilitationTools`), applies a `Method`, uses and produces products (`inputs`, `outputs`), and carries the swimlanes of the EEE Process Step Definition Diagram (goal, viewpoints, automation steps, artifact conversions); `StepTransition` connections are evaluated as efficient or bottleneck and prioritized, `Measure`s optimize the steps, and a `ToolPolicy` rates the tool/method combinations of an environment as recommended, allowed or forbidden. Keywords `#eeeCheck`, `#processStep`, `#stepTransition`, `#measure`, `#toolPolicy`, `#toolPolicyRule`
 - **AI metadata** — `SYSMOD4AI` package (top-level, own file, imports `SYSMOD`) providing `AIProject`, a template of AI metadata usages — one per main artifact plus a stakeholder priority map — each carrying `create_prompt`, `create_questions`, `validation_prompt`, and ready-to-run `perform_prompt`, `story_prompt`, and `slide_prompt` prompts, chained across all artifacts
 
 ## Getting Started
@@ -70,6 +71,9 @@ SYSMOD4AI.sysml                                     # AI-assisted extension (AI 
 SYSMODRequirementsBoilerPlates.sysml                # Reusable quantitative requirement patterns (MaxValue, MinValue, ...)
 SYSMOD15288.sysml                                   # ISO/IEC/IEEE 15288 processes with their stakeholders and concerns
 SYSMODViews.sysml                                   # Viewpoints and views (ISO/IEC/IEEE 42010)
+MBSEMethodology.sysml                               # MBSE methodology concepts: MBSE environment, tools, roles, methodology, processes, methods, products
+EEE.sysml                                           # EEE Check, an extension of MBSEMethodology anchored at the MBSE environment
+editor/                                             # MBSE Methodology editor (static web app, see editor/README.md)
 SYSMODViews.md                                      # Generated, read-only documentation of SYSMODViews.sysml
 scripts/generate_views_doc.py                       # Generates SYSMODViews.md (run after changing the library)
 examples/                                           # Delivery Drone example model
@@ -84,9 +88,21 @@ examples/                                           # Delivery Drone example mod
   DeliveryDroneSystemControlStationProject.sysml    # Control station sub-project
   DeliveryDroneSystemControlStationHandover.sysml   # Handover context of the control station sub-project
   DeliveryDroneSystemDomainLibrary.sysml            # Shared domain items (orders, parcels, energy, ...)
+  EEECheckControlUnit.sysml                         # EEE check of a team MBSE environment that specializes a company environment, with tool policy
   views/                                            # Example renderings of the SYSMOD views (SVG)
   microstories/                                     # The SysML v2 snippets of the SYSMOD MicroStories (one file per story)
 ```
+
+## MBSE Methodology Editor
+
+[editor/](editor) contains a web-based editor for MBSE environments and their EEE checks. It reads and writes `.sysml` files and checks them, together with the libraries of this repository, with the sysmlv2 WebAssembly engine of Open-MBEE in the browser. Besides the text editor, it offers:
+- the **MBSE environment**: roles, tools, methodology (processes and methods) and products, including those of the environments it specializes, and the EEE checks and tool policies anchored at it
+- the **EEE Tools Roles Methods Matrix** as a graphical editor: process steps in cells, transitions, their evaluation and priority
+- the **EEE Process Step Definition Diagram** with its six swimlanes and the measures
+- the **EEE Company Tool Policy Matrix**
+- forms with the progress of the four EEE steps, the prioritized bottlenecks and the findings
+
+Double-click `editor/dist/mbse-methodology-editor.html` to use it without a web server. See [editor/README.md](editor/README.md).
 
 ## Views Documentation
 

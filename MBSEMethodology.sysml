@@ -3,7 +3,7 @@ library package MBSEMethodology {
     /* 
      * Definition of MBSE Methodology Concepts
      *
-     * Version v5.1.8
+     * Version v5.1.9 (proposal: capabilities)
      *
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -46,16 +46,27 @@ library package MBSEMethodology {
         view productViews[*];
         ref modelElements[*] : KerML::Element;
     }
+    occurrence def Capability {
+        doc /* The ability to achieve a desired effect under specified conditions, independent of how it is achieved.
+             * A capability is provided by methodology behaviors (processes, methods), tools and roles, and it is
+             * required by methodology behaviors. Capabilities are refined by specialization.
+             */
+        ref occurrence requiredCapabilities[*] : Capability {
+            doc /* The capabilities this capability depends on. */
+        }
+    }
     part def Tool {
         doc /* An instrument that, applied to a method, can enhance the efficiency of the task.
              * Source: J. Estefan, T. Weilkiens: MBSE Methodologies. Handbook of Model-Based Systems Engineering. Springer.
              */
 
+        ref occurrence providedCapabilities[*] : Capability;
         ref action facilitatesMethodologyBehaviors[1..*] : MethodologyBehavior;
         ref item ownedProducts[*] : Product;
         ref item additionalProducts[*] : Product;
     }
     part def Role {
+        ref occurrence providedCapabilities[*] : Capability;
         ref item responsibleForProducts[*] : Product;
         ref action responsibleForMethodologyBehaviors[*] : MethodologyBehavior;
         ref action supportsMethodologyBehaviors[*] : MethodologyBehavior;
@@ -69,6 +80,9 @@ library package MBSEMethodology {
         part roles[*] : Role :> processes.allPrimaryPerformers, processes.allAdditionalPerformers;
         item products[*] : Product :> processes.allOutputs;
         action processes[*] : Process;
+        ref occurrence capabilities[*] : Capability {
+            doc /* The capabilities the methodology shall provide: its objectives. */
+        }
 
         connection responsibleFor[*] : ResponsibleForConnection 
             connect roles to processes;
@@ -92,6 +106,10 @@ library package MBSEMethodology {
         
         item inputs  : Product[0..*];   // "requires"
         item outputs : Product[1..*];   // "produces"
+        ref occurrence providedCapabilities[*] : Capability;   // "provides": performing the behavior contributes to the capability
+        ref occurrence requiredCapabilities[*] : Capability;   // "requires": the behavior can only be performed with the capability
+        ref occurrence allProvidedCapabilities[*] : Capability = SequenceFunctions::union(providedCapabilities, subbehavior.allProvidedCapabilities);
+        ref occurrence allRequiredCapabilities[*] : Capability = SequenceFunctions::union(requiredCapabilities, subbehavior.allRequiredCapabilities);
         ref part primaryPerformer : Role;
         ref part additionalPerformers[*] : Role;
         ref part facilitationTools[*] : Tool;

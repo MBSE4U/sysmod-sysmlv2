@@ -376,7 +376,7 @@ package SYSMOD4AI {
                 2. Analyze the provided scenario. If it is forward engineering, identify the problem statement from the given scenario. If it is reverse engineering, identify the problem statement by identifying the problem that is solved by the given system.
                 3. Create a concise elevator-pitch-style problem statement text (typically 150-250 words).
                 4. Follow this format: 'How can we...'
-                5. Ensure the problem statement text is based on the brownfieldContext. If the brownfieldContext is not available, create one that is implied by the problem statement text using the AI metadata about the brownfieldContext.
+                5. Ensure the problem statement text is based on the brownfieldContext. If the brownfieldContext is not available, create one that is implied by the problem statement text using the AI metadata about the brownfieldContext, except the user explicitly said that it is a greenfield project which has no brownfield.
                 6. Ensure that the problem statement does not jump to the solution and describe it in advance.
                 7. Ensure that the stakeholder projectOwner is set by subsetting the corresponding part usage in the project, if given. If it is not available, use the create_prompt of the AI metadata about the projectOwner to create one.
                 8. If it is reverse engineering, create a satisfy relationship between the given system and the problem statement.

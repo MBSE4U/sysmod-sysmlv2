@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <title>MBSE Methodology Editor</title>
-    <meta name="description" content="Web-based editor for MBSE environments (MBSEMethodology) and their EEE checks: environment, Tools Roles Methods Matrix, Process Step Definition Diagram and Company Tool Policy Matrix in SysML v2 textual notation, checked by the sysmlv2 WebAssembly engine in your browser.">
+    <meta name="description" content="Web-based editor for MBSE environments (MBSEMethodology) and their Digital Thread Flow Analyses (DTFA): environment, Tools Roles Methods Matrix, step definitions and tool policy in SysML v2 textual notation, checked by the sysmlv2 WebAssembly engine in your browser.">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232457c5'/%3E%3Cpath d='M3 4h3M3 8h3M3 12h3M7 4h3M7 8h3M7 12h3M11 4h2.5M11 8h2.5M11 12h2.5' stroke='%23fff' stroke-width='1.6' fill='none'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="css/editor.css">
     <link rel="stylesheet" href="css/views.css">
-    <link rel="stylesheet" href="css/eee.css">
-    <script type="module" src="src/main.js"></script>
+    <link rel="stylesheet" href="css/dtfa.css">
+    <!-- Opened as a file (no web server): use the standalone build, which runs without a server. -->
+    <script id="file-redirect">if (location.protocol === "file:") location.replace("dist/mbse-methodology-editor.html");</script>
+    <script type="module">if (location.protocol !== "file:") import("./src/main.js");</script>
 </head>
 <body>
     <header class="toolbar">
@@ -19,16 +21,17 @@
             <details class="menu">
                 <summary>File</summary>
                 <div class="menu-items" role="menu">
-                    <button type="button" role="menuitem" data-action="new-environment">New MBSE environment with EEE check…</button>
+                    <button type="button" role="menuitem" data-action="new-environment">New MBSE environment with flow analysis…</button>
                     <button type="button" role="menuitem" data-action="new-package">New empty file…</button>
                     <hr>
-                    <button type="button" role="menuitem" data-action="open">Open…<kbd>Ctrl+O</kbd></button>
+                    <button type="button" role="menuitem" data-action="open">Open files…<kbd>Ctrl+O</kbd></button>
+                    <button type="button" role="menuitem" data-action="open-folder" title="Open all .sysml files of a folder (not of its subfolders)">Open folder…<kbd>Ctrl+Shift+O</kbd></button>
                     <hr>
                     <button type="button" role="menuitem" data-action="save">Save<kbd>Ctrl+S</kbd></button>
                     <button type="button" role="menuitem" data-action="save-as">Save as…<kbd>Ctrl+Shift+S</kbd></button>
                     <button type="button" role="menuitem" data-action="save-all">Save all</button>
                     <hr>
-                    <button type="button" role="menuitem" data-action="close">Close</button>
+                    <button type="button" role="menuitem" data-action="close" title="Close all opened documents and the folder; the read-only libraries remain">Close</button>
                 </div>
             </details>
             <details class="menu">
@@ -43,7 +46,7 @@
                 <summary>Help</summary>
                 <div class="menu-items" role="menu">
                     <button type="button" role="menuitem" data-action="about">About the MBSE Methodology editor</button>
-                    <a role="menuitem" href="https://eee-check.de/" target="_blank" rel="noopener">EEE Check website ↗</a>
+                    <a role="menuitem" href="https://eee-check.de/" target="_blank" rel="noopener">EEE Check, the origin of the DTFA ↗</a>
                 </div>
             </details>
         </nav>
@@ -54,12 +57,18 @@
     <div class="workbench">
         <aside class="sidebar" aria-label="Model">
             <section class="panel">
-                <h2>Documents</h2>
+                <h2 id="documents-title">Documents</h2>
                 <ul id="documents" class="documents"></ul>
+            </section>
+            <section class="panel libraries-panel">
+                <details open>
+                    <summary><h2>Libraries <span class="doc-readonly">read-only</span></h2></summary>
+                    <ul id="libraries" class="documents libraries"></ul>
+                </details>
             </section>
             <section class="panel grow">
                 <h2>Model</h2>
-                <div id="eee-model"></div>
+                <div id="model-outline"></div>
             </section>
         </aside>
 
@@ -67,9 +76,10 @@
             <div class="view-bar">
                 <div class="view-tabs" role="tablist" aria-label="Editor">
                     <button type="button" role="tab" data-view-tab="environment" aria-controls="view-environment" title="MBSE environment: tools, roles, methodology, products">Environment</button>
-                    <button type="button" role="tab" data-view-tab="matrix" aria-controls="view-matrix" title="EEE Steps #1 and #2: Tools Roles Methods Matrix">Matrix</button>
-                    <button type="button" role="tab" data-view-tab="steps" aria-controls="view-steps" title="EEE Steps #3 and #4: Process Step Definition Diagram and measures">Step definition</button>
-                    <button type="button" role="tab" data-view-tab="policy" aria-controls="view-policy" title="Company Tool Policy Matrix">Tool policy</button>
+                    <button type="button" role="tab" data-view-tab="matrix" aria-controls="view-matrix" title="DTFA Steps #1 and #2: Tools Roles Methods Matrix and rating of the tool transitions">Matrix</button>
+                    <button type="button" role="tab" data-view-tab="steps" aria-controls="view-steps" title="DTFA Steps #3 and #4: step definitions and measures">Step definition</button>
+                    <button type="button" role="tab" data-view-tab="policy" aria-controls="view-policy" title="Tool policy of an MBSE environment">Tool policy</button>
+                    <button type="button" role="tab" data-view-tab="process" aria-controls="view-process" title="The flow of a process: its steps in the lanes of their performers">Process</button>
                     <button type="button" role="tab" data-view-tab="form" aria-controls="view-form">Form</button>
                     <button type="button" role="tab" data-view-tab="text" aria-controls="view-text">Text</button>
                 </div>
@@ -80,7 +90,8 @@
             <section id="view-environment" class="view" role="tabpanel" aria-label="MBSE environment"><div id="environment"></div></section>
             <section id="view-matrix" class="view" role="tabpanel" aria-label="Tools Roles Methods Matrix" hidden><div id="matrix"></div></section>
             <section id="view-steps" class="view" role="tabpanel" aria-label="Process Step Definition Diagram" hidden><div id="steps"></div></section>
-            <section id="view-policy" class="view" role="tabpanel" aria-label="Company Tool Policy Matrix" hidden><div id="policy"></div></section>
+            <section id="view-policy" class="view" role="tabpanel" aria-label="Tool policy" hidden><div id="policy"></div></section>
+            <section id="view-process" class="view" role="tabpanel" aria-label="Process diagram" hidden><div id="process"></div></section>
             <section id="view-form" class="view" role="tabpanel" aria-label="Form editor" hidden><div id="form"></div></section>
             <section id="view-text" class="view text-view" role="tabpanel" aria-label="Text editor" hidden>
                 <div id="tabs" class="tabs" role="tablist" aria-label="Open documents"></div>

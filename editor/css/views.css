@@ -289,3 +289,14 @@
     .fv-source { margin-left: 0; }
     .dg-legend { display: none; }
 }
+
+.fv-inherited-doc { margin: 0 0 8px; padding: 8px 12px; border-left: 3px solid var(--border, #ccc); color: var(--muted); font-style: italic; }
+.fv-inherited-doc footer { font-style: normal; margin-top: 4px; font-size: 0.9em; }
+.fv-type { border-bottom: 1px dotted currentColor; cursor: help; }
+
+.fv-collection td { vertical-align: top; }
+.fv-collection tr.fv-inherited td { background: var(--surface-2, rgba(0,0,0,0.03)); }
+.fv-collection .fv-desc { min-width: 220px; max-width: 420px; color: var(--muted); }
+.fv-clamp { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.fv-inherited-text { font-style: italic; }
+.fv-collection-add { margin: 0 0 12px; }

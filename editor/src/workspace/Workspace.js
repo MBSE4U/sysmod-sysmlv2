@@ -1,6 +1,6 @@
 // The open documents of the editor.
 //
-// A document holds the text of one .sysml file. Libraries (EEE.sysml) are read-only documents that are
+// A document holds the text of one .sysml file. Libraries (e.g. DTFA.sysml) are read-only documents that are
 // parsed with the model but cannot be edited or saved. The workspace dispatches "change" events
 // with detail { reason, name }.
 

@@ -1,19 +1,20 @@
-// Graphical editor: the EEE Tools Roles Methods Matrix of an EEE check (EEE Steps #1 and #2).
+// Graphical editor: the Tools Roles Methods Matrix of a Digital Thread Flow Analysis (DTFA Steps #1 and #2).
 //
-// - roles are the rows, tools the columns; the process steps are boxes in the cells, labeled with their method
-// - transitions are arrows between the process steps: a change of the column is a method/tool break,
-//   a change of the row a human interface
-// - the evaluation colors the arrows: bottleneck (red, with its priority), efficient (green), not rated (gray, dashed)
-// - a step whose tool/method combination the tool policy forbids has a red corner mark
+// - roles are the rows, tools the columns; the process steps (the methods of the methodology that a role performs
+//   with a tool) are boxes in the cells, with the products they produce
+// - hand-overs are arrows between the process steps: a product that one step produces and the next one needs;
+//   a change of the column is a tool break, a change of the row a human interface
+// - the rating of the tool transition colors the arrows: bottleneck (red, with its priority), efficient (green),
+//   not rated (gray, dashed)
+// - a step whose tool the tool policy forbids for its method has a red corner mark
 //
 // Editing: double-click an empty cell to add a process step there; drag a step to another cell to change its
-// role and tool; select a step and press "Connect" (or C), then click the next step to add a transition;
-// double-click or F2 renames, Del deletes. Pan with the mouse, zoom with the wheel.
+// role and tool; select a step and press "Connect" (or C), then click the next step to hand over a product;
+// select a hand-over to rate its tool transition. F2 renames, Del deletes. Pan with the mouse, zoom with the wheel.
 //
 // Events: "select" { id }, "command" { command, id, args }
 
-import { ProcessStep, StepTransition, EVALUATIONS } from "../eee/model.js";
-import { policyStatus } from "../eee/EeeAnalyzer.js";
+import { Method, Handover, ToolTransition, RATINGS } from "../dtfa/model.js";
 
 const SVG = "http://www.w3.org/2000/svg";
 const HEAD_H = 44, BOX_H = 44, BOX_GAP = 14, CELL_PAD = 16, MIN_COL = 150, MIN_ROW = 76, MAX_BOX = 210;
@@ -48,7 +49,7 @@ export class MatrixView extends EventTarget {
         this.root.classList.add("diagram-view", "matrix-view");
         this.root.innerHTML = `
             <div class="dg-toolbar" role="toolbar" aria-label="Matrix">
-                <label class="dg-field mx-check-field" hidden>EEE check <select class="mx-check"></select></label>
+                <label class="dg-field mx-check-field" hidden>Flow analysis <select class="mx-check"></select></label>
                 <span class="dg-status" aria-live="polite"></span>
                 <span class="dg-spacer"></span>
                 <span class="dg-actions mx-actions"></span>
@@ -73,7 +74,7 @@ export class MatrixView extends EventTarget {
                     <span><i class="mx-swatch unrated"></i>not rated</span>
                     <span><i class="mx-corner"></i>forbidden by tool policy</span>
                     <span><i class="mx-measure-dot"></i>measures</span>
-                    <span class="mx-legend-note">column change = method/tool break · row change = human interface</span>
+                    <span class="mx-legend-note">column change = tool break · row change = human interface</span>
                 </div>
             </div>`;
         this.svg = this.root.querySelector(".dg-svg");
@@ -92,15 +93,15 @@ export class MatrixView extends EventTarget {
     show(state) {
         this.state = state;
         const { model } = state;
-        const checks = model ? model.checks : [];
-        const selectedCheck = model && state.selectedId ? model.checkOf(state.selectedId) : null;
+        const checks = model ? model.analyses : [];
+        const selectedCheck = model && state.selectedId ? model.analysisOf(state.selectedId) : null;
         if (selectedCheck && selectedCheck.id !== this.checkId) { this.checkId = selectedCheck.id; this.needsFit = true; }
         if (!checks.some(c => c.id === this.checkId)) {
             this.checkId = checks.length ? checks[0].id : null;
             this.needsFit = true;
         }
         const check = checks.find(c => c.id === this.checkId) || null;
-        if (this.connectFrom && (!model || !(model.get(this.connectFrom) instanceof ProcessStep))) this.connectFrom = null;
+        if (this.connectFrom && (!model || !(model.get(this.connectFrom) instanceof Method))) this.connectFrom = null;
         this.renderToolbar(checks, check);
 
         const empty = this.root.querySelector(".dg-empty");
@@ -108,7 +109,7 @@ export class MatrixView extends EventTarget {
             this.viewport.innerHTML = "";
             empty.hidden = false;
             empty.innerHTML = model
-                ? `<p>No EEE check yet.</p><p>Create one with <strong>File ▸ New EEE check</strong>, open a file, or try <strong>Examples</strong>.</p>`
+                ? `<p>No flow analysis yet.</p><p>Add one to an MBSE environment (Environment view, <strong>+ Flow analysis</strong>), create one with <strong>File ▸ New MBSE environment</strong>, or try <strong>Examples</strong>.</p>`
                 : `<p>${escapeHtml(state.message || "Waiting for the model check…")}</p>`;
             return;
         }
@@ -137,8 +138,8 @@ export class MatrixView extends EventTarget {
         const status = this.root.querySelector(".dg-status");
         const analysis = check && this.state.analyses ? this.state.analyses.get(check.id) : null;
         if (check && analysis) {
-            const bottlenecks = analysis.bottlenecks.length, unrated = check.transitions.filter(t => t.evaluation === "unrated").length;
-            status.textContent = `${check.steps.length} steps · ${check.transitions.length} transitions · ${bottlenecks} bottleneck${bottlenecks === 1 ? "" : "s"}${unrated ? ` · ${unrated} not rated` : ""}`;
+            const bottlenecks = check.handovers.filter(h => h.isBottleneck).length, unrated = check.handovers.filter(h => h.rating === "unrated").length;
+            status.textContent = `${check.steps.length} steps · ${check.handovers.length} hand-overs · ${bottlenecks} at bottlenecks${unrated ? ` · ${unrated} not rated` : ""}`;
             status.className = "dg-status";
         } else {
             status.textContent = "";
@@ -148,17 +149,22 @@ export class MatrixView extends EventTarget {
         const hint = this.root.querySelector(".mx-hint");
         if (!check || !this.state.editable) { actions.innerHTML = ""; hint.hidden = true; return; }
         const selected = this.state.model.get(this.state.selectedId);
-        const inCheck = selected && this.state.model.checkOf(selected.id) === check;
-        let html = `<button type="button" data-command="addStep" title="Add a process step">+ Step</button>`;
-        if (selected instanceof ProcessStep && inCheck) {
-            html += `<button type="button" data-connect class="${this.connectFrom ? "active" : ""}" title="Add a transition from ${escapeHtml(selected.name)}: then click the next process step (C)">→ Connect</button>`;
+        const inCheck = selected && (check.stepOf(selected.id) || this.state.model.analysisOf(selected.id) === check);
+        let html = `<button type="button" data-command="addStep" title="Add a process step: a method that a role performs with a tool">+ Step</button>`;
+        if (selected instanceof Method && check.stepOf(selected.id)) {
+            html += `<button type="button" data-connect class="${this.connectFrom ? "active" : ""}" title="Hand over a product from ${escapeHtml(selected.name)}: then click the next process step (C)">→ Connect</button>`;
         }
-        if (selected instanceof StepTransition && inCheck) {
-            html += `<span class="mx-eval" role="group" aria-label="Evaluation of ${escapeHtml(selected.name)}">${Object.entries(EVALUATIONS).map(([value, e]) =>
-                `<button type="button" data-evaluation="${value}" class="eval-${value}${selected.evaluation === value ? " active" : ""}" aria-pressed="${selected.evaluation === value}">${e.label}</button>`).join("")}</span>`;
+        // The rating of a hand-over is the rating of the tool transition between the tools of its steps.
+        if ((selected instanceof Handover || selected instanceof ToolTransition) && inCheck) {
+            const rated = selected instanceof Handover ? selected.transition : selected;
+            const label = rated ? `${this.state.model.nameOf(rated.sourceId)} → ${this.state.model.nameOf(rated.targetId)}` : "";
+            html += `<span class="mx-eval" role="group" aria-label="Rating of the tool transition ${escapeHtml(label)}" title="${rated ? `Rates the tool transition ${escapeHtml(rated.name)} (${escapeHtml(label)})` : "Creates the tool transition between the tools of the two steps"}">${Object.entries(RATINGS).map(([value, e]) =>
+                `<button type="button" data-evaluation="${value}" class="eval-${value}${selected.rating === value ? " active" : ""}" aria-pressed="${selected.rating === value}">${e.label}</button>`).join("")}</span>`;
             if (selected.isBottleneck) {
                 html += `<label class="dg-field">Priority <input type="number" min="1" step="1" class="mx-priority" value="${selected.priority ?? ""}" aria-label="Priority of the bottleneck"></label>`;
             }
+            html += `<label class="dg-field mx-explanation-field">Explanation <input type="text" class="mx-explanation" value="${escapeHtml(selected.explanation)}"
+                placeholder="Why ${selected.rating === "unrated" ? "this rating" : `${RATINGS[selected.rating].label.toLowerCase()}`}?" aria-label="Explanation of the rating" spellcheck="true"></label>`;
         }
         actions.innerHTML = html;
         hint.hidden = !this.connectFrom;
@@ -186,7 +192,7 @@ export class MatrixView extends EventTarget {
             cells.get(key).push(step);
         }
         const boxWidth = step => Math.min(MAX_BOX, Math.max(110,
-            textWidth(step.name, FONT) + 28, textWidth(model.nameOf(step.methodId, ""), SMALL) + 28));
+            textWidth(step.name, FONT) + 28, textWidth(this.productsLabel(step), SMALL) + 28));
 
         const headWidth = Math.max(130, ...rows.map(r => textWidth(r.name, HEAD) + 30));
         let x = headWidth;
@@ -258,8 +264,9 @@ export class MatrixView extends EventTarget {
         parts.push(`<line class="mx-line strong" x1="${headWidth}" y1="0" x2="${headWidth}" y2="${height}"/>`);
         parts.push(`<line class="mx-line strong" x1="0" y1="${HEAD_H}" x2="${width}" y2="${HEAD_H}"/>`);
 
-        // Transitions below the boxes, the selected one on top.
-        const transitions = [...check.transitions].sort((a, b) => (a.id === selectedId) - (b.id === selectedId) || (a.isBottleneck - b.isBottleneck));
+        // Hand-overs below the boxes, the selected one (or those of the selected tool transition) on top.
+        const isSelected = h => h.id === selectedId || (h.transition && h.transition.id === selectedId);
+        const transitions = [...check.handovers].sort((a, b) => isSelected(a) - isSelected(b) || (a.isBottleneck - b.isBottleneck));
         const pairCount = new Map();
         for (const t of transitions) {
             const from = boxes.get(t.sourceId), to = boxes.get(t.targetId);
@@ -267,29 +274,31 @@ export class MatrixView extends EventTarget {
             const key = [t.sourceId, t.targetId].sort().join("|");
             const index = pairCount.get(key) || 0;
             pairCount.set(key, index + 1);
-            parts.push(this.transitionSvg(t, from, to, index, analysis, t.id === selectedId));
+            parts.push(this.transitionSvg(t, from, to, index, analysis, isSelected(t)));
         }
 
         // Process steps.
         for (const step of check.steps) {
             const box = boxes.get(step.id);
             if (!box) continue;
-            const policy = policyStatus(model, step.toolId, step.methodId);
-            const method = model.nameOf(step.methodId, "");
+            const policy = model.policyStatus(check.environmentId, step.toolId, step.id);
+            const method = this.productsLabel(step);
             const classes = ["dg-node", "mx-step"];
             if (step.id === selectedId) classes.push("selected");
             if (step.id === this.connectFrom) classes.push("connect-from");
-            if (analysis && analysis.bottlenecks.some(t => t.sourceId === step.id || t.targetId === step.id)) classes.push("at-bottleneck");
-            const tip = [`Process step ${step.name}`, `Role: ${model.nameOf(step.roleId)}`, `Tool: ${model.nameOf(step.toolId)}`, `Method: ${model.nameOf(step.methodId)}`];
+            if (check.handovers.some(h => h.isBottleneck && (h.sourceId === step.id || h.targetId === step.id))) classes.push("at-bottleneck");
+            const measures = [...new Set(model.handoversOf(check, step.id).filter(h => h.transition).flatMap(h => model.measuresFor(h.transition)))];
+            const tip = [`Process step (method) ${step.name}`, `Role: ${model.nameOf(step.roleId)}`, `Tool: ${model.nameOf(step.toolId)}`,
+                `Needs: ${step.sourceArtifactIds.map(id => model.nameOf(id)).join(", ") || "–"}`, `Produces: ${step.targetArtifactIds.map(id => model.nameOf(id)).join(", ") || "–"}`];
             if (step.goal) tip.push(`Goal: ${step.goal}`);
             if (policy) tip.push(`Tool policy: ${policy.status}`);
-            if (step.measures.length) tip.push(`Measures: ${step.measures.map(m => m.name).join(", ")}`);
+            if (measures.length) tip.push(`Measures: ${measures.map(m => m.name).join(", ")}`);
             parts.push(`<g class="${classes.join(" ")}" data-id="${escapeHtml(step.id)}" data-step tabindex="0" transform="translate(${box.x},${box.y})">
                 <rect width="${box.w}" height="${box.h}" rx="7"/>
                 <text class="dg-name" x="${box.w / 2}" y="${method ? 18 : 27}" text-anchor="middle">${escapeHtml(fit(step.name, box.w - 16, FONT))}</text>
                 ${method ? `<text class="mx-method" x="${box.w / 2}" y="34" text-anchor="middle">${escapeHtml(fit(method, box.w - 16, SMALL))}</text>` : ""}
                 ${policy && policy.status === "forbidden" ? `<path class="mx-forbidden" d="M${box.w - 14},0 h7 a7,7 0 0 1 7,7 v7 z"/>` : ""}
-                ${step.measures.length ? `<circle class="mx-measure-badge" cx="0" cy="${box.h}" r="7"/><text class="mx-measure-text" x="0" y="${box.h + 3}" text-anchor="middle">${step.measures.length}</text>` : ""}
+                ${measures.length ? `<circle class="mx-measure-badge" cx="0" cy="${box.h}" r="7"/><text class="mx-measure-text" x="0" y="${box.h + 3}" text-anchor="middle">${measures.length}</text>` : ""}
                 <title>${escapeHtml(tip.join("\n"))}</title></g>`);
         }
         this.viewport.innerHTML = parts.join("");
@@ -320,13 +329,15 @@ export class MatrixView extends EventTarget {
             d = `M${p1.x},${p1.y} C${p1.x},${p1.y + s * c} ${p2.x},${p2.y - s * c} ${p2.x},${p2.y}`;
             mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
         }
-        const marker = selected ? "selected" : t.evaluation;
-        const tip = [`Transition ${t.name}: ${this.state.model.nameOf(t.sourceId)} → ${this.state.model.nameOf(t.targetId)}`,
-            EVALUATIONS[t.evaluation].label + (t.priority ? `, priority ${t.priority}` : ""), kind ? kind.label : ""].filter(Boolean);
+        const marker = selected ? "selected" : t.rating;
+        const model = this.state.model;
+        const tip = [`Hand-over ${t.name}: ${t.productIds.map(id => model.nameOf(id)).join(", ")}`,
+            t.transition ? `Tool transition ${t.transition.name}: ${model.nameOf(t.transition.sourceId)} → ${model.nameOf(t.transition.targetId)}` : "No tool transition yet: rate it to create one",
+            RATINGS[t.rating].label + (t.priority ? `, priority ${t.priority}` : ""), t.explanation, ...t.conversions.map(c => `Conversion: ${c}`), kind ? kind.label : ""].filter(Boolean);
         const badge = t.isBottleneck
             ? `<circle class="mx-badge bottleneck" cx="${mid.x}" cy="${mid.y}" r="10"/><text class="mx-badge-text" x="${mid.x}" y="${mid.y + 4}" text-anchor="middle">${t.priority ?? "!"}</text>`
-            : t.evaluation === "unrated" ? `<circle class="mx-badge unrated" cx="${mid.x}" cy="${mid.y}" r="7"/><text class="mx-badge-text small" x="${mid.x}" y="${mid.y + 3.5}" text-anchor="middle">?</text>` : "";
-        return `<g class="mx-transition ${t.evaluation}${selected ? " selected" : ""}" data-id="${escapeHtml(t.id)}" tabindex="0">
+            : t.rating === "unrated" ? `<circle class="mx-badge unrated" cx="${mid.x}" cy="${mid.y}" r="7"/><text class="mx-badge-text small" x="${mid.x}" y="${mid.y + 3.5}" text-anchor="middle">?</text>` : "";
+        return `<g class="mx-transition ${t.rating}${selected ? " selected" : ""}" data-id="${escapeHtml(t.id)}" tabindex="0">
             <path class="dg-hit" d="${d}"/>
             <path class="mx-edge" d="${d}" marker-end="url(#mx-arrow-${marker})"/>
             ${badge}<title>${escapeHtml(tip.join("\n"))}</title></g>`;
@@ -352,9 +363,10 @@ export class MatrixView extends EventTarget {
             if (command) { this.command(command.dataset.command, this.checkId); return; }
             if (e.target.closest("[data-connect]")) { this.toggleConnect(); return; }
             const evaluation = e.target.closest("[data-evaluation]");
-            if (evaluation) this.command("setEvaluation", this.state.selectedId, { evaluation: evaluation.dataset.evaluation });
+            if (evaluation) this.command("setRating", this.state.selectedId, { rating: evaluation.dataset.evaluation });
         });
         actions.addEventListener("change", e => {
+            if (e.target.matches(".mx-explanation")) { this.command("setExplanation", this.state.selectedId, { text: e.target.value }); return; }
             if (!e.target.matches(".mx-priority")) return;
             const value = e.target.value.trim();
             this.command("setPriority", this.state.selectedId, { priority: value ? Number(value) : null });
@@ -371,7 +383,7 @@ export class MatrixView extends EventTarget {
             if (this.connectFrom && target.hasAttribute("data-step")) {
                 const from = this.connectFrom;
                 this.connectFrom = null;
-                this.command("addTransition", this.checkId, { sourceId: from, targetId: id });
+                this.command("addHandover", this.checkId, { sourceId: from, targetId: id });
                 return;
             }
             this.dispatchEvent(new CustomEvent("select", { detail: { id } }));
@@ -398,7 +410,7 @@ export class MatrixView extends EventTarget {
             else if ((e.key === "c" || e.key === "C") && node.hasAttribute("data-step")) {
                 this.dispatchEvent(new CustomEvent("select", { detail: { id: node.dataset.id } }));
                 this.connectFrom = node.dataset.id;
-                this.renderToolbar(this.state.model.checks, this.state.model.get(this.checkId));
+                this.renderToolbar(this.state.model.analyses, this.state.model.get(this.checkId));
             }
         });
 
@@ -438,7 +450,7 @@ export class MatrixView extends EventTarget {
                     const box = this.layout.boxes.get(drag.stepId);
                     if (cell && (cell.row.id !== box.row.id || cell.col.id !== box.col.id)) {
                         this.command("moveStep", drag.stepId, {
-                            roleId: cell.row.id === NO_ROLE ? null : cell.row.id, toolId: cell.col.id === NO_TOOL ? null : cell.col.id,
+                            roleId: cell.row.id === NO_ROLE ? null : cell.row.id, toolId: cell.col.id === NO_TOOL ? null : cell.col.id, analysisId: this.checkId,
                         });
                     } else if (this.state) {
                         this.show(this.state);
@@ -463,13 +475,19 @@ export class MatrixView extends EventTarget {
 
     toggleConnect() {
         const selected = this.state.model.get(this.state.selectedId);
-        this.connectFrom = this.connectFrom ? null : selected instanceof ProcessStep ? selected.id : null;
+        this.connectFrom = this.connectFrom ? null : selected instanceof Method ? selected.id : null;
         this.show(this.state);
     }
 
     cancelConnect() {
         this.connectFrom = null;
         this.show(this.state);
+    }
+
+    /** The second line of a step box: the products the step produces. */
+    productsLabel(step) {
+        const names = step.targetArtifactIds.map(id => this.state.model.nameOf(id));
+        return names.length ? `→ ${names.join(", ")}` : "";
     }
 
     /** The matrix cell under a screen position, or null. */

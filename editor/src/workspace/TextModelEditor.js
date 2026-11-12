@@ -1,13 +1,14 @@
 // Model editor for SysML v2 textual notation.
 //
-// A model editor executes the EEE editing commands of the views (matrix, step definition, policy, form):
+// A model editor executes the editing commands of the views (matrix, step definition, policy, form):
 //   addElement(ownerId, lines)                    insert a declaration into the body of an element
 //   setValue(ownerId, feature, valueText | null)  set, change or remove ":>> feature = value;"
 //   setValues(ownerId, [[feature, valueText]])    several values in one edit
 //   setDoc(id, text)                              set or change the doc comment of an element
+//   setSubsets(id, valueText | null)              set, change or remove ":> feature" in the declaration
 //   renameElement(id, newName, scopeId)
 //   deleteElement(id)
-// and builds the declarations of the EEE elements (roleLines, processStepLines, transitionLines, ...).
+// and builds the declarations of the DTFA elements (methodLines, toolTransitionLines, measureLines, ...).
 //
 // This editor answers each command with a list of text edits [{ document, start, end, text }] that the
 // workspace applies. A model editor for the SysML v2 API answers the same commands with a commit of
@@ -70,23 +71,47 @@ function docComment(text, indent) {
     return `doc\n${indent}/* ${lines.join(`\n${indent} * `)}\n${indent} */`;
 }
 
-// ---------- declarations of EEE elements ----------
+// ---------- declarations of DTFA elements ----------
 
-/** @param {{name: string, role?: string, tool?: string, method?: string}} options references by name */
-export function processStepLines({ name, role = "", tool = "", method = "" }) {
+/** A flow analysis of an MBSE environment: "analysis name : DTFA::DigitalThreadFlowAnalysis :> analyses;". */
+export function analysisLines(name) {
     checkName(name);
-    const values = [["role", role], ["tool", tool], ["method", method]].filter(([, v]) => v)
-        .map(([feature, v]) => `${INDENT}:>> ${feature} = ${referenceValue(v)};`);
-    return values.length ? [`#processStep action ${name} {`, ...values, "}"] : [`#processStep action ${name};`];
+    return [`analysis ${name} : DTFA::DigitalThreadFlowAnalysis :> analyses;`];
 }
 
-export function transitionLines({ name, source, target, evaluation = "unrated", priority = null }) {
+/** Value statements ":>> feature = value;" of the non-empty pairs [[feature, valueText]]. */
+export function valueLines(pairs) {
+    return pairs.filter(([, v]) => v !== null && v !== undefined && v !== "").map(([feature, v]) => `:>> ${feature} = ${v};`);
+}
+
+/**
+ * A method of the methodology, optionally performed by a role with a tool: a process step.
+ * @param {{name: string, pairs?: [string, string][]}} options pairs: values, e.g. [["primaryPerformer", "systemArchitect"]]
+ */
+export function methodLines({ name, pairs = [] }) {
     checkName(name);
-    const lines = [`#stepTransition connection ${name} connect ${referenceValue(source)} to ${referenceValue(target)} {`,
-        `${INDENT}:>> evaluation = TransitionEvaluation::${evaluation};`];
-    if (priority) lines.push(`${INDENT}:>> priority = ${Number(priority)};`);
-    lines.push("}");
-    return lines;
+    const values = valueLines(pairs);
+    return values.length ? [`action ${name} : MBSEMethodology::Method {`, ...values.map(l => INDENT + l), "}"] : [`action ${name} : MBSEMethodology::Method;`];
+}
+
+/** Redefinitions of nested behaviors: "action :>> a { action :>> b { <inner> } }", or the inner lines if names is empty. */
+export function redefinitionLines(names, inner, keyword = "action") {
+    if (!names.length) return inner;
+    const [first, ...rest] = names;
+    return [`${keyword} :>> ${quoteName(first)} {`, ...redefinitionLines(rest, inner).map(l => INDENT + l), "}"];
+}
+
+/** The step definition metadata of a method: "@stepDefinition : DTFA::StepDefinition { :>> goal = ...; }". */
+export function stepDefinitionLines(pairs) {
+    return ["@stepDefinition : DTFA::StepDefinition {", ...valueLines(pairs).map(l => INDENT + l), "}"];
+}
+
+export function toolTransitionLines({ name, source, target, products = null, rating = "unrated", priority = null, explanation = "" }) {
+    checkName(name);
+    return [`connection ${name} : DTFA::ToolTransition connect ${referenceValue(source)} to ${referenceValue(target)} {`,
+        ...valueLines([["products", products], ["rating", `DTFA::TransitionRating::${rating}`], ["priority", priority ? String(Number(priority)) : null],
+            ["explanation", explanation ? stringLiteral(explanation) : null]]).map(l => INDENT + l),
+        "}"];
 }
 
 export function measureLines({ name, description = "", transitions = [] }) {
@@ -95,15 +120,14 @@ export function measureLines({ name, description = "", transitions = [] }) {
     if (description) body.push(INDENT + docComment(description, INDENT));
     const addressed = listValue(transitions.map(referenceValue));
     if (addressed) body.push(`${INDENT}:>> addressedTransitions = ${addressed};`);
-    return body.length ? [`#measure occurrence ${name} {`, ...body.join("\n").split("\n"), "}"] : [`#measure occurrence ${name};`];
+    return body.length ? [`occurrence ${name} : DTFA::Measure {`, ...body.join("\n").split("\n"), "}"] : [`occurrence ${name} : DTFA::Measure;`];
 }
 
+/** A tool policy rule: a facilitates connection of a tool and a method (a feature chain) with a status. */
 export function policyRuleLines({ name, tool, method, status }) {
     checkName(name);
-    return [`#toolPolicyRule occurrence ${name} {`,
-        `${INDENT}:>> tool = ${referenceValue(tool)};`,
-        `${INDENT}:>> method = ${referenceValue(method)};`,
-        `${INDENT}:>> status = PolicyStatus::${status};`,
+    return [`connection ${name} : DTFA::ToolPolicyRule connect ${referenceValue(tool)} to ${referenceValue(method)} {`,
+        `${INDENT}:>> status = DTFA::PolicyStatus::${status};`,
         "}"];
 }
 
@@ -188,6 +212,23 @@ export class TextModelEditor {
         let endOriginal = original.length, endText = text.length;
         while (endOriginal > start && endText > start && original[endOriginal - 1] === text[endText - 1]) { endOriginal--; endText--; }
         return [{ document, start, end: endOriginal, text: text.slice(start, endText) }];
+    }
+
+    /**
+     * Sets the feature that an element subsets in its declaration (":> valueText"), e.g. the method of the methodology
+     * that a process step specializes. A null value removes the subsetting.
+     */
+    setSubsets(id, valueText) {
+        const { document, node } = this.requireNode(id);
+        if (node.nameEnd === null) throw new ModelEditError(`The declaration of ${id} has no name.`);
+        const text = this.documentText(document);
+        const headerEnd = node.bodyOpen !== null ? node.bodyOpen : node.end - 1;
+        const header = text.slice(node.nameEnd, headerEnd);
+        const clause = /(:>(?!>)|\bsubsets\b)\s*([^{;=]+?)\s*$/.exec(header);
+        const before = (clause ? header.slice(0, clause.index) : header).replace(/\s+$/, "");
+        const newHeader = before + (valueText ? ` :> ${referenceValue(valueText)}` : "") + (node.bodyOpen !== null ? " " : "");
+        if (newHeader === header) return [];
+        return [{ document, start: node.nameEnd, end: headerEnd, text: newHeader }];
     }
 
     /** Offset of the "=" of a value assignment in a declaration header (after the name), or -1. */

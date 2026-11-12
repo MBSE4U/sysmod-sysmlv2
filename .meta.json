@@ -6,7 +6,7 @@
     "SYSMODViews": "SYSMODViews.sysml",
     "ISO15288Processes": "SYSMOD15288.sysml",
     "MBSEMethodology": "MBSEMethodology.sysml",
-    "EEE": "EEE.sysml"
+    "DTFA": "DTFA.sysml"
   },
   "created": "2026-06-15T08:50:55Z",
   "metamodel": "https://www.omg.org/spec/SysML/20250201",
@@ -35,7 +35,7 @@
       "value": "",
       "algorithm": "NONE"
     },
-    "EEE.sysml": {
+    "DTFA.sysml": {
       "value": "",
       "algorithm": "NONE"
     }

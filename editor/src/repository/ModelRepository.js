@@ -4,8 +4,9 @@
 //
 //   id             short identifier, e.g. "local" or "sysml-api"
 //   label          name shown in the user interface
-//   capabilities   { open, save, saveAs, browse }
+//   capabilities   { open, openFolder, save, saveAs, browse }
 //   open()         -> SourceDocument props[]   (the user picks what to open)
+//   openFolder()   -> { folder, files: SourceDocument props[] }   (all model files of a folder)
 //   save(document) -> { name?, handle? }        (writes the document where it came from)
 //   saveAs(document) -> { name, handle }        (the user picks the target)
 //

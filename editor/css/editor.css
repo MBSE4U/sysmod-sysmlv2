@@ -511,3 +511,15 @@ kbd { font: 12px var(--mono); color: var(--muted); }
     .brand { display: none; }
     .fm-actions { display: flex; }
 }
+
+.doc-folder { text-transform: none; font-weight: 600; color: var(--text); }
+.doc-reload { margin-left: 6px; padding: 0 6px; font-size: 11px; text-transform: none; }
+
+.doc-empty { padding: 4px 8px; color: var(--muted); font-size: 12.5px; }
+.libraries-panel summary { list-style: none; cursor: pointer; }
+.libraries-panel summary::-webkit-details-marker { display: none; }
+.libraries-panel summary h2::before { content: "▾ "; }
+.libraries-panel details:not([open]) summary h2::before { content: "▸ "; }
+.doc-readonly { margin-left: 4px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+.documents.libraries { max-height: 22vh; }
+.documents.libraries button { color: var(--muted); }

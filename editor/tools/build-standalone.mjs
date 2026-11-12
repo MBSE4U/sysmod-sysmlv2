@@ -10,7 +10,7 @@
 //     (browsers do not start module workers from file:// URLs)
 //   - the SysML engine (sysmlv2 of the Open-MBEE sysml-toolkit) with the prepared SysML v2 standard library,
 //     about 12 MB compressed, verified against the hashes in src/config.js; the worker verifies it again
-//   - the libraries (MBSEMethodology, EEE, SYSMOD) and the examples
+//   - the libraries (MBSEMethodology, DTFA, SYSMOD) and the examples
 //   - the licenses of the editor, the engine and the standard library
 //
 // The engine files are taken from the local copy (tools/fetch-engine.mjs) or downloaded from the GitHub release.
@@ -191,7 +191,7 @@ async function build() {
 
     const appCode = await bundle(resolve(root, "src/standalone-main.js"), STANDALONE_ENTRY);
     const workerCode = await bundle(resolve(root, "src/engine/engine.worker.js"));
-    const css = (await Promise.all(["css/editor.css", "css/views.css", "css/eee.css"].map(f => readFile(resolve(root, f), "utf8")))).join("\n");
+    const css = (await Promise.all(["css/editor.css", "css/views.css", "css/dtfa.css"].map(f => readFile(resolve(root, f), "utf8")))).join("\n");
     if (/<\/style/i.test(css)) throw new Error("the stylesheets contain \"</style\"");
 
     const engineTitle = `SysML engine ${name} ${version} (@sysml/wasm, https://github.com/Open-MBEE/sysml-toolkit), embedded below as "engine-file-*"`;
@@ -208,8 +208,9 @@ async function build() {
         html = html.replace(pattern, () => replacement);
     };
     replace(/<!doctype html>/i, `<!doctype html>\n<!--\nMBSE Methodology Editor, standalone build: open this file in a browser, no web server needed.\nBuilt by tools/build-standalone.mjs on ${new Date().toISOString().slice(0, 10)}.\n\n${licenseText}-->`);
-    replace(/[ \t]*<link rel="stylesheet" href="css\/editor.css">\s*<link rel="stylesheet" href="css\/views.css">\s*<link rel="stylesheet" href="css\/eee.css">/, `    <style>\n${css}\n    </style>`);
-    replace(/<script type="module" src="src\/main.js"><\/script>/, "");
+    replace(/[ \t]*<link rel="stylesheet" href="css\/editor.css">\s*<link rel="stylesheet" href="css\/views.css">\s*<link rel="stylesheet" href="css\/dtfa.css">/, `    <style>\n${css}\n    </style>`);
+    replace(/<script type="module">if \(location.protocol !== "file:"\) import\("\.\/src\/main.js"\);<\/script>/, "");
+    replace(/[ \t]*<!-- Opened as a file[^\n]*\n[ \t]*<script id="file-redirect">[\s\S]*?<\/script>\n?/, "");
     replace(/<\/body>/, [
         `<script type="application/json" id="methodology-embedded">${scriptJson(embedded)}</script>`,
         `<script type="text/plain" id="engine-worker">${inlineScript(workerCode, "the worker bundle")}</script>`,

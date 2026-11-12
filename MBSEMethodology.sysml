@@ -31,6 +31,9 @@ library package MBSEMethodology {
             part :>> roles :> MBSEEnvironment::roles;
         }    
         occurrence rootProduct : Product;
+        analysis analyses[*] {
+            doc /* Analyses of the MBSE environment, e.g., a Digital Thread Flow Analysis (library package DTFA). */
+        }
 
         connection toolConnections [*] connect tools to methodology;
         connection roleConnection [*] connect roles to methodology;

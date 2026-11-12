@@ -4,43 +4,45 @@
 //   repository     ModelRepository      (LocalFileRepository now, SysmlApiRepository later)
 //   provider       model provider       (TextModelProvider now, SysmlApiModelProvider later)
 //   model editor   createModelEditor()  (TextModelEditor now, SysmlApiModelEditor later)
-// The editors (matrix, step definition, tool policy, form, text) show the same EEE model and share one
+// The editors (environment, matrix, step definition, tool policy, form, text) show the same model and share one
 // selection. The graphical and form editors change the model through commands; each command is one undoable step.
 
 import { Workspace, SourceDocument } from "../workspace/Workspace.js";
 import { TextModelProvider } from "../workspace/TextModelProvider.js";
 import {
-    TextModelEditor, ModelEditError, environmentElementLines, quoteName, processStepLines, transitionLines, measureLines, policyRuleLines,
-    stringLiteral, listValue, referenceValue,
+    TextModelEditor, ModelEditError, environmentElementLines, quoteName, analysisLines, methodLines, redefinitionLines, valueLines,
+    stepDefinitionLines, toolTransitionLines, measureLines, policyRuleLines, stringLiteral, listValue,
 } from "../workspace/TextModelEditor.js";
 import { SysmlEngine } from "../engine/SysmlEngine.js";
 import { LocalFileRepository } from "../repository/LocalFileRepository.js";
 import { CancelledError } from "../repository/ModelRepository.js";
 import {
-    MBSEEnvironment, EeeCheck, Role, Tool, Method, Artifact, ProcessStep, StepTransition, Measure, ToolPolicy, ToolPolicyRule,
-    STEP_DEFINITION_LANES, EVALUATIONS, POLICY_STATUS,
-} from "../eee/model.js";
-import { analyzeAll } from "../eee/EeeAnalyzer.js";
-import { SNIPPETS, emptyPackage, environmentDocument } from "../eee/templates.js";
+    MBSEEnvironment, FlowAnalysis, Role, Tool, Method, Process, Artifact, Handover, ToolTransition, Measure, ToolPolicyRule,
+    STEP_DEFINITION_LANES, RATINGS, POLICY_STATUS, laneValue,
+} from "../dtfa/model.js";
+import { analyzeAll } from "../dtfa/DtfaAnalyzer.js";
+import { behaviorEdits } from "../dtfa/edits.js";
+import { SNIPPETS, emptyPackage, environmentDocument } from "../dtfa/templates.js";
 import { offsetOf, splitQualifiedName } from "../text/sysml-text.js";
 import { CodeEditor } from "../ui/CodeEditor.js";
-import { EeeModelView } from "../ui/EeeModelView.js";
+import { ModelOutlineView } from "../ui/ModelOutlineView.js";
 import { ProblemsView } from "../ui/ProblemsView.js";
 import { EnvironmentView } from "../ui/EnvironmentView.js";
 import { MatrixView } from "../ui/MatrixView.js";
 import { StepDefinitionView } from "../ui/StepDefinitionView.js";
 import { PolicyView } from "../ui/PolicyView.js";
 import { FormView } from "../ui/FormView.js";
+import { ProcessView } from "../ui/ProcessView.js";
 import { formDialog, confirmDialog, infoDialog } from "../ui/FormDialog.js";
 
 const $ = selector => document.querySelector(selector);
-const VIEWS = ["environment", "matrix", "steps", "policy", "form", "text"];
+const VIEWS = ["environment", "matrix", "steps", "policy", "process", "form", "text"];
 const VIEW_KEY = "mbse-methodology-editor-view";
 
-/** Feature names of the EEE library; an element with such a name would be confused with them in the text. */
-const RESERVED_NAMES = new Set(["role", "tool", "method", "goal", "sourceArtifacts", "viewpoints", "automationSteps",
-    "targetArtifacts", "artifactConversions", "evaluation", "priority", "source", "target", "status", "addressedTransitions",
-    "isToolBreak", "isHumanInterface"]);
+/** Feature names of the MBSEMethodology and DTFA libraries; an element with such a name would be confused with them in the text. */
+const RESERVED_NAMES = new Set(["goal", "viewpoints", "automationSteps", "rating", "priority", "explanation", "conversions", "products",
+    "source", "target", "status", "addressedTransitions", "environment", "primaryPerformer", "additionalPerformers", "facilitationTools",
+    "inputs", "outputs", "tools", "roles", "methodology", "analyses", "processes", "submethods", "subprocesses"]);
 
 function escapeHtml(s) {
     return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -84,8 +86,14 @@ export class App {
         this.provider = new TextModelProvider(this.engine, { libraryNames: config.libraries.map(l => l.name) });
         this.activeName = null;
         this.analysis = null;       // { result, revision }
-        this.analyses = new Map();  // check or policy id -> EEE analysis
+        this.analyses = new Map();  // flow analysis or environment id -> result of the DTFA analyzer
         this.selectedId = null;
+        /** The collection editor shown in the form view, { kind, environmentId }, or null. */
+        this.collection = null;
+        /** The document whose editor the form view shows (its environments, processes, methods, roles, ...), or null. */
+        this.documentView = null;
+        /** The opened folder { name, handle }, or null. */
+        this.folder = null;
         this.view = "environment";
         this.history = { undo: [], redo: [] };
         this.checkSequence = 0;
@@ -97,23 +105,23 @@ export class App {
 
     async start() {
         this.editor = new CodeEditor($("#code"));
-        this.modelView = new EeeModelView($("#eee-model"));
+        this.modelView = new ModelOutlineView($("#model-outline"));
         this.problemsView = new ProblemsView($("#problems"), $("#problem-count"));
         this.environmentView = new EnvironmentView($("#environment"));
         this.matrixView = new MatrixView($("#matrix"));
         this.stepView = new StepDefinitionView($("#steps"));
         this.policyView = new PolicyView($("#policy"));
         this.formView = new FormView($("#form"));
+        this.processView = new ProcessView($("#process"));
         this.wireUi();
 
         this.workspace.addEventListener("change", e => this.onWorkspaceChange(e.detail));
         const restored = this.restoreDrafts();
         await this.loadLibraries();
-        if (!this.workspace.modelDocuments.length) {
-            this.addDocument(new SourceDocument({ name: "Engineering.sysml", content: environmentDocument("Engineering"), origin: "new" }));
-        }
-        if (!this.activeName || !this.workspace.get(this.activeName)) this.activate(this.workspace.modelDocuments[0].name);
-        else this.activate(this.activeName);
+        // Without documents of the user, the text view shows the first library until a file, a folder or an example is opened.
+        const first = this.workspace.modelDocuments[0] || this.workspace.documents[0];
+        if (this.activeName && this.workspace.get(this.activeName)) this.activate(this.activeName);
+        else if (first) this.activate(first.name);
         if (restored) this.status(`Restored ${restored} document${restored === 1 ? "" : "s"} from your last session.`);
         if (this.repository.embedded) {
             this.status("The editor runs inside another page (e.g. an IDE preview): files open with a file dialog and save as downloads. "
@@ -200,7 +208,7 @@ export class App {
         const started = performance.now();
         let result;
         try {
-            result = await this.provider.load(this.workspace.documents);
+            result = await this.provider.load(this.workspace.documents, { browseLibraries: this.browsedLibraries() });
         } catch (e) {
             if (sequence === this.checkSequence) {
                 $("#check-status").textContent = "Check failed";
@@ -213,6 +221,7 @@ export class App {
         this.analyses = analyzeAll(result.model);
         $("#check-status").textContent = `Checked in ${Math.round(performance.now() - started)} ms`;
         if (this.selectedId && !result.model.get(this.selectedId)) this.selectedId = null;
+        if (this.collection && !result.model.get(this.collection.environmentId)) this.collection = null;
         this.renderModelViews();
         this.problemsView.show(result.diagnostics, this.workspace.libraryNames);
         this.showDiagnosticsOfActive();
@@ -251,26 +260,55 @@ export class App {
 
     viewState(message) {
         const model = this.analysis ? this.analysis.result.model : null;
-        return { model, analyses: this.analyses, selectedId: this.selectedId, editable: true, message };
+        return { model, analyses: this.analyses, selectedId: this.selectedId, collection: this.collection, document: this.documentView,
+            activeDocument: this.activeName, editable: true, message };
     }
 
     renderModelViews(message) {
         const state = this.viewState(message);
-        this.modelView.show(state.model, { editable: true, message, selectedId: this.selectedId, analyses: this.analyses });
+        this.modelView.show(state.model, { editable: true, message, selectedId: this.selectedId, analyses: this.analyses, activeDocument: this.activeName });
         // Hidden views render when they are shown.
         if (this.view === "environment") this.environmentView.show(state);
         if (this.view === "matrix") this.matrixView.show(state);
         if (this.view === "steps") this.stepView.show(state);
         if (this.view === "policy") this.policyView.show(state);
         if (this.view === "form") this.formView.show(state);
+        if (this.view === "process") this.processView.show(state);
+    }
+
+    /**
+     * Opens the editor of an element, e.g. after a click on a link: the form of a role, tool, method, process or product
+     * (the role editor etc.), the environment view of an MBSE environment. Other elements are selected in the current view.
+     */
+    openElement(id) {
+        const model = this.analysis && this.analysis.result.model;
+        const element = model && model.get(id);
+        this.select(id, { reveal: false });
+        if (element instanceof MBSEEnvironment) this.setView("environment");
+        // A process with steps opens its flow diagram; its form is one click away.
+        else if (element instanceof Process && model.subBehaviors(element).length) this.setView("process");
+        else if (element instanceof Role || element instanceof Tool || element instanceof Method || element instanceof Process || element instanceof Artifact) this.setView("form");
+    }
+
+    /**
+     * Opens the editor of a collection of an MBSE environment ("roles", "tools", "methods" or "products"): the existing
+     * elements, including the inherited ones, and the command to create new ones. The environment stays selected.
+     */
+    openCollection(kind, environmentId) {
+        this.selectedId = environmentId;
+        this.documentView = null;
+        this.collection = { kind, environmentId };
+        this.setView("form");
     }
 
     /** Selects an element in all views; in the text view, shows its declaration. */
     select(id, { reveal = this.view === "text" } = {}) {
         this.selectedId = id;
+        this.collection = null;
+        this.documentView = null;
         const model = this.analysis && this.analysis.result.model;
         const element = model && model.get(id);
-        if (element instanceof EeeCheck) this.matrixView.selectCheck(id);
+        if (element instanceof FlowAnalysis) this.matrixView.selectCheck(id);
         this.renderModelViews();
         if (reveal) this.reveal(id);
     }
@@ -303,10 +341,19 @@ export class App {
         return document;
     }
 
+    /** The libraries whose elements the model lists: the library document that is open in the editor. */
+    browsedLibraries() {
+        const active = this.active;
+        return active && active.library ? [active.name] : [];
+    }
+
     activate(name) {
         const document = this.workspace.get(name);
         if (!document) return;
+        const browsedBefore = this.browsedLibraries().join();
         this.activeName = name;
+        // A library document lists its elements (e.g. the processes of ISO15288Processes): check again.
+        if (this.browsedLibraries().join() !== browsedBefore && this.engineReady) this.check();
         this.editor.setValue(document.content, { readOnly: document.readOnly });
         this.showDiagnosticsOfActive();
         this.renderTabs();
@@ -344,16 +391,26 @@ export class App {
     }
 
     renderDocumentList() {
-        $("#documents").innerHTML = this.workspace.documents.map(d => `
+        const folder = this.folder;
+        $("#documents-title").innerHTML = folder
+            ? `Folder <span class="doc-folder" title="All .sysml files of the folder ${escapeHtml(folder.name)} (not of its subfolders)">${escapeHtml(folder.name)}</span>
+                ${folder.handle ? '<button type="button" class="doc-reload" data-action="reload-folder" title="Read the files of the folder again">Reload</button>' : ""}`
+            : "Documents";
+        const item = d => `
             <li><button type="button" data-open-document="${escapeHtml(d.name)}" class="${d.name === this.activeName ? "active" : ""}">
                 <span class="doc-name">${escapeHtml(d.name)}</span>
-                <span class="doc-state">${d.library ? "library" : d.dirty ? "unsaved" : d.handle ? "saved" : d.origin === "file" ? "opened" : "not saved yet"}</span>
-            </button></li>`).join("");
+                <span class="doc-state">${d.library ? "" : d.dirty ? "unsaved" : d.handle ? "saved" : d.origin === "file" || d.origin === "folder" ? "opened" : "not saved yet"}</span>
+            </button></li>`;
+        // The user's documents, and separately the integrated read-only libraries.
+        const own = this.workspace.modelDocuments;
+        $("#documents").innerHTML = own.length ? own.map(item).join("")
+            : '<li class="doc-empty">No documents. Open files or a folder (File), or an example.</li>';
+        $("#libraries").innerHTML = this.workspace.documents.filter(d => d.library).map(item).join("");
     }
 
     async newDocument(kind) {
         const values = await formDialog({
-            title: kind === "environment" ? "New MBSE environment with EEE check" : "New SysML v2 file",
+            title: kind === "environment" ? "New MBSE environment with a flow analysis" : "New SysML v2 file",
             submitLabel: "Create",
             fields: [{ name: "packageName", label: "Package name", value: kind === "environment" ? "MyEngineering" : "MyPackage", required: true }],
             validate: v => (/^[A-Za-z_][A-Za-z0-9_]*$/.test(v.packageName) ? null : "Use letters, digits and _ only, no leading digit."),
@@ -380,6 +437,65 @@ export class App {
             if (existing && existing.dirty && !(await confirmDialog(`${props.name} is open with unsaved changes. Replace it with the file?`, { confirmLabel: "Replace" }))) continue;
             this.addDocument(new SourceDocument(props));
         }
+        if (opened.length) {
+            await this.check();
+            this.openDocument(opened[0].name);
+        }
+    }
+
+    /**
+     * Opens a folder: all its .sysml files (not those of its subfolders) replace the open documents and are checked together
+     * with the libraries. The libraries (MBSEMethodology, DTFA, SYSMOD, ...) always come from the editor and stay
+     * read-only; copies of them in the folder are not opened.
+     */
+    async openFolder({ reload = false } = {}) {
+        const unsaved = this.workspace.dirtyDocuments;
+        if (unsaved.length && !(await confirmDialog(`${unsaved.length} document${unsaved.length === 1 ? " has" : "s have"} unsaved changes (${unsaved.map(d => d.name).join(", ")}). ${reload ? "Read the folder again" : "Open the folder"} anyway?`,
+            { confirmLabel: reload ? "Reload without saving" : "Open without saving" }))) return;
+        let opened;
+        try {
+            opened = reload ? await this.repository.reloadFolder() : await this.repository.openFolder();
+        } catch (e) {
+            if (!(e instanceof CancelledError)) this.status(`Opening the folder failed: ${e.message}`, "error");
+            return;
+        }
+        const libraryNames = new Set(this.workspace.libraryNames);
+        const files = opened.files.filter(f => !libraryNames.has(f.name.split("/").pop()));
+        const skipped = opened.files.length - files.length;
+        for (const document of this.workspace.modelDocuments) this.workspace.remove(document.name);
+        this.history = { undo: [], redo: [] };
+        this.updateHistoryButtons();
+        this.folder = opened.folder;
+        files.forEach(props => this.workspace.add(new SourceDocument(props)));
+        const firstDocument = this.workspace.modelDocuments[0] || this.workspace.documents[0];
+        if (firstDocument) this.activate(firstDocument.name);
+        this.renderDocumentList();
+        this.status(`${reload ? "Reloaded" : "Opened"} the folder ${opened.folder.name}: ${files.length} file${files.length === 1 ? "" : "s"}`
+            + (skipped ? `; ${skipped} copie${skipped === 1 ? "" : "s"} of the libraries not opened (the editor uses its read-only libraries)` : "")
+            + (opened.folder.handle ? "." : ". This browser cannot write to the folder: Save downloads the files."));
+        const result = await this.check();
+        const first = result && (result.model.analyses[0] || result.model.environments.find(e => !e.library));
+        if (first) this.select(first.id, { reveal: false });
+    }
+
+    /**
+     * Opens a document: its editor in the form view lists its methodology elements (environments, flow analyses,
+     * processes, methods, roles, tools, products) and opens their editors; in the text view, its text.
+     */
+    /**
+     * Opens a document: its document form, or in the Process view its processes, or in the Text view its text.
+     * With { form: true } always the document form, scrolled to { section }, e.g. "Products".
+     */
+    openDocument(name, { section = null, form = false } = {}) {
+        if (!this.workspace.get(name)) return;
+        this.activate(name);
+        if (this.view === "text" && !form) return;
+        this.selectedId = null;
+        this.collection = null;
+        this.documentView = name;
+        // The Process view shows the processes of the document; the other views switch to its document form.
+        this.setView(this.view === "process" && !form ? "process" : "form");
+        if (section) requestAnimationFrame(() => this.formView.scrollToSection(section));
     }
 
     async openExample(example) {
@@ -394,9 +510,9 @@ export class App {
             documents.forEach(d => this.workspace.add(d));
             this.activate(documents[0].name);
             this.status(`Opened the example "${example.label}". Save it to keep your changes.`);
-            // Show the first EEE check of the example.
+            // Show the first flow analysis of the example.
             const result = await this.check();
-            const first = result && result.model.checks.find(c => documents.some(d => d.name === c.document));
+            const first = result && result.model.analyses.find(c => documents.some(d => d.name === c.document));
             if (first) this.select(first.id, { reveal: false });
         } catch (e) {
             this.status(`The example could not be loaded: ${e.message}. Serve the editor from the repository to use the examples.`, "error");
@@ -435,6 +551,30 @@ export class App {
         this.saveDrafts();
     }
 
+    /**
+     * Closes all opened documents and the opened folder: only the integrated read-only libraries remain.
+     * Asks before unsaved changes are lost.
+     */
+    async closeAll() {
+        const unsaved = this.workspace.dirtyDocuments;
+        if (unsaved.length && !(await confirmDialog(`${unsaved.length} document${unsaved.length === 1 ? " has" : "s have"} unsaved changes (${unsaved.map(d => d.name).join(", ")}). Close anyway?`,
+            { confirmLabel: "Close without saving" }))) return;
+        for (const document of this.workspace.modelDocuments) this.workspace.remove(document.name);
+        this.folder = null;
+        this.repository.folder = null;
+        this.history = { undo: [], redo: [] };
+        this.updateHistoryButtons();
+        this.selectedId = null;
+        this.collection = null;
+        this.documentView = null;
+        const first = this.workspace.documents[0];
+        if (first) this.activate(first.name);
+        this.renderDocumentList();
+        this.saveDrafts();
+        this.status("Closed all documents. The libraries remain, read-only.");
+        await this.check();
+    }
+
     // ---------- drafts (per browser convenience; files remain the source of truth) ----------
 
     scheduleDraftSave() {
@@ -453,21 +593,25 @@ export class App {
         try {
             const stored = JSON.parse(localStorage.getItem(this.config.draftStorageKey) || "null");
             if (!stored || !Array.isArray(stored.drafts)) return 0;
+            let restored = 0;
             for (const draft of stored.drafts) {
                 if (typeof draft.name !== "string" || typeof draft.content !== "string") continue;
+                // The former default document, if it is unchanged.
+                if (draft.name === "Engineering.sysml" && draft.content === environmentDocument("Engineering")) continue;
                 const document = new SourceDocument({ name: draft.name, content: draft.content, origin: "draft" });
                 // Restored documents have lost their file handle; keep their unsaved state visible.
                 document.savedContent = typeof draft.savedContent === "string" ? draft.savedContent : "";
                 this.workspace.add(document);
+                restored++;
             }
             this.activeName = stored.active || null;
-            return stored.drafts.length;
+            return restored;
         } catch (_) {
             return 0;
         }
     }
 
-    // ---------- EEE editing commands (shared by the matrix, step definition, policy, form and outline views) ----------
+    // ---------- editing commands (shared by the environment, matrix, step definition, policy, form and outline views) ----------
 
     /**
      * Runs an editing command on an element. The handler answers text edits (or null if cancelled);
@@ -542,8 +686,16 @@ export class App {
 
     validateNewName(name, ownerElementId, result) {
         if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) return "Use letters, digits and _ only, no leading digit.";
-        if (RESERVED_NAMES.has(name)) return `${name} is a feature name of the EEE library. Choose another name.`;
+        if (RESERVED_NAMES.has(name)) return `${name} is a feature name of the MBSEMethodology or DTFA library. Choose another name.`;
         if (result.model.get(`${ownerElementId}::${name}`) || (result.locate && result.locate(`${ownerElementId}::${name}`))) return `${name} already exists here.`;
+        // In an MBSE environment, a name must also be free in the environments it specializes and in those that specialize it.
+        const { model } = result;
+        if (model.get(ownerElementId) instanceof MBSEEnvironment) {
+            const related = model.environments.filter(e => e.id !== ownerElementId
+                && (model.environmentScope(ownerElementId).includes(e.id) || model.environmentScope(e.id).includes(ownerElementId)));
+            const clash = related.find(e => model.get(`${e.id}::${name}`) || (result.locate && result.locate(`${e.id}::${name}`)));
+            if (clash) return `${name} already exists in ${clash.name}, which ${model.environmentScope(ownerElementId).includes(clash.id) ? "it specializes" : "specializes it"}.`;
+        }
         return null;
     }
 
@@ -555,70 +707,137 @@ export class App {
         }
     }
 
+    /**
+     * The name with which a statement refers to an element of an MBSE environment: its simple name. Statements are
+     * written inside the environment (its methodology, its analyses, its rules), where the roles, tools, products and
+     * behaviors of the environment and of the environments it specializes are visible by name.
+     */
+    nameRef(id, model) {
+        const element = model.get(id);
+        return element ? quoteName(element.name) : id;
+    }
+
     /** The name with which a statement inside contextId refers to targetId: its simple name if visible, else qualified. */
     referenceName(targetId, contextId) {
-        // An element of the MBSE environment of an EEE check or tool policy: a feature chain through the usage of the
-        // environment, e.g. env.systemArchitect or env.companyMethodology.sysmodArchitecture.
-        const model = this.analysis && this.analysis.result.model;
-        const target = model && model.get(targetId);
-        const container = model && (model.checkOf(contextId) || model.policyOf(contextId));
-        if (target && target.environmentId && container && container.environmentUsage
-            && model.environmentScope(container.environmentId).includes(target.environmentId)) {
-            return [container.environmentUsage, ...splitQualifiedName(targetId.slice(target.environmentId.length + 2)).map(quoteName)].join(".");
-        }
         const scope = ownerId(targetId);
         if (!scope || contextId === scope || contextId.startsWith(scope + "::")) return targetId.slice(scope.length ? scope.length + 2 : 0);
         return targetId;
     }
 
-    /** The MBSE environment that an element belongs to or is anchored at, or null. */
+    /** The feature chain from an environment to a behavior of its methodology, e.g. "companyMethodology.sysmodArchitecture". */
+    behaviorChain(environment, behaviorId, model) {
+        const tree = model.methodologyTree(environment.id);
+        const byId = new Map(tree.map(n => [n.element.id, n]));
+        let node = byId.get(behaviorId);
+        if (!node) throw new ModelEditError(`${model.nameOf(behaviorId)} is not a behavior of the methodology of ${environment.name}.`);
+        const names = [];
+        for (; node; node = node.parentId ? byId.get(node.parentId) : null) names.unshift(quoteName(node.element.name));
+        return [quoteName(environment.methodologyName || "methodology"), ...names].join(".");
+    }
+
+    /** The MBSE environment that an element belongs to: an environment, its analysis' environment, or its own. */
     environmentOf(element, model) {
         if (element instanceof MBSEEnvironment) return element;
-        if (element && element.environmentId && model.get(element.environmentId) instanceof MBSEEnvironment && !(element instanceof EeeCheck || element instanceof ToolPolicy)) {
-            return model.get(element.environmentId);
+        const analysis = element && model.analysisOf(element.id);
+        if (analysis && model.get(analysis.environmentId)) return model.get(analysis.environmentId);
+        if (element && (element instanceof Method || element instanceof Process)) {
+            const user = model.analyses.find(a => a.stepOf(element.id));
+            if (user && model.get(user.environmentId)) return model.get(user.environmentId);
         }
-        const container = element && (model.checkOf(element.id) || model.policyOf(element.id));
-        if (container && model.get(container.environmentId)) return model.get(container.environmentId);
+        if (element && element.environmentId && model.get(element.environmentId) instanceof MBSEEnvironment) return model.get(element.environmentId);
         return null;
     }
 
     /** Asks for the environment of a new element: the given one or one of the environments it specializes. */
-    async chooseEnvironment(element, model, what) {
+    async chooseEnvironment(element, model) {
         const environment = this.environmentOf(element, model) || model.environments[0];
         if (!environment) throw new ModelEditError("Create an MBSE environment first (File ▸ New MBSE environment).");
         return model.environmentScope(environment.id).map(id => model.get(id));
     }
 
-    /** The EEE check of an element, or an error. */
-    requireCheck(element, model) {
-        const check = model.checkOf(element.id);
-        if (!check) throw new ModelEditError("Select an EEE check or an element of one.");
-        return check;
+    /** The flow analysis of an element, or the first analysis of its environment, or an error. */
+    requireAnalysis(element, model, analysisId = null) {
+        const analysis = model.get(analysisId) || model.analysisOf(element.id)
+            || (element instanceof MBSEEnvironment ? element.analyses[0] : null)
+            || model.analyses.find(a => a.stepOf(element.id));
+        if (!(analysis instanceof FlowAnalysis)) throw new ModelEditError("Select a flow analysis or an element of one. Add one with “+ Flow analysis” in the Environment view.");
+        if (!model.get(analysis.environmentId)) throw new ModelEditError(`${analysis.name} is not owned by an MBSE environment.`);
+        return analysis;
     }
 
-    /** Edits that remove the references to deleted elements from the value statements of other elements. */
-    removeReferences(model, editor, deletedIds) {
+    /** Edits that change behaviors as an environment performs them (see behaviorEdits in dtfa/edits.js). */
+    behaviorEdits(result, environment, changes) {
+        return behaviorEdits(result.model, this.createModelEditor(result), environment, changes);
+    }
+
+    /** The tool transition that rates a hand-over: { id, edits } with edits that create it if the analysis has none. */
+    ensureTransition(result, handover, values = []) {
+        const { model } = result;
+        const analysis = model.get(handover.analysisId);
+        if (handover.transition) return { id: handover.transition.id, edits: [], created: false };
+        const source = analysis.stepOf(handover.sourceId), target = analysis.stepOf(handover.targetId);
+        if (!source || !source.toolId || !target || !target.toolId) throw new ModelEditError("Both process steps of the hand-over need a tool to rate the transition between the tools.");
+        const name = this.freeName(nameFrom(`${model.nameOf(source.toolId)} to ${model.nameOf(target.toolId).charAt(0).toUpperCase()}${model.nameOf(target.toolId).slice(1)}`, "toolTransition"), analysis.id, result);
+        const lines = toolTransitionLines({ name, source: this.nameRef(source.toolId, model), target: this.nameRef(target.toolId, model),
+            products: listValue(handover.productIds.map(id => this.nameRef(id, model))) });
+        // The values that the command sets, in place of the defaults.
+        const body = lines.slice(1, -1).filter(l => !values.some(([f]) => l.trim().startsWith(`:>> ${f} =`)));
+        const all = [lines[0], ...body, ...valueLines(values).map(l => "    " + l), "}"];
+        return { id: `${analysis.id}::${name}`, edits: this.createModelEditor(result).addElement(analysis.id, all), created: true };
+    }
+
+    /** The tool transition of a rating command: the element itself, or the transition of a hand-over. */
+    ratingTarget(element) {
+        if (element instanceof ToolTransition) return element;
+        if (element instanceof Handover) return element.transition;
+        return null;
+    }
+
+    /** Sets values of the tool transition of a hand-over (created if needed) or of a tool transition. */
+    setTransitionValues(element, result, pairs, label) {
+        if (!(element instanceof Handover || element instanceof ToolTransition)) return null;
+        const transition = this.ratingTarget(element);
+        if (transition) return { edits: this.createModelEditor(result).setValues(transition.id, pairs), label };
+        const created = this.ensureTransition(result, element, pairs);
+        return { edits: created.edits, label, select: element.id };
+    }
+
+    /** Edits that remove the references to deleted elements from the values of other elements. */
+    removeReferences(model, result, deletedIds) {
         const deleted = new Set(deletedIds);
+        const editor = this.createModelEditor(result);
         const edits = [];
-        const allSteps = model.checks.flatMap(c => c.steps);
-        for (const step of allSteps) {
-            if (deleted.has(step.id)) continue;
-            for (const [feature, key] of [["role", "roleId"], ["tool", "toolId"], ["method", "methodId"]]) {
-                if (deleted.has(step[key])) edits.push(...editor.setValue(step.id, feature, null));
+        // The values of behaviors as written in the text (primaryPerformer, facilitationTools, inputs, outputs).
+        for (const b of [...model.methods, ...model.processes]) {
+            if (deleted.has(b.id) || !result.locate(b.id)) continue;
+            const pairs = [];
+            for (const slot of b.slots.filter(s => s.slotId.startsWith(b.id + "::") && s.valueIds.some(id => deleted.has(id)))) {
+                const feature = slot.slotId.slice(b.id.length + 2);
+                const rest = slot.valueIds.filter(id => !deleted.has(id));
+                pairs.push([feature, listValue(rest.map(id => this.nameRef(id, model)))]);
             }
-            for (const [feature, key] of [["sourceArtifacts", "sourceArtifactIds"], ["targetArtifacts", "targetArtifactIds"]]) {
-                if (step[key].some(id => deleted.has(id))) {
-                    const rest = step[key].filter(id => !deleted.has(id));
-                    edits.push(...editor.setValue(step.id, feature, listValue(rest.map(id => this.referenceName(id, step.id)))));
+            for (const [feature, list] of [["inputs", b.inputIds], ["outputs", b.outputIds]]) {
+                if (result.locate(`${b.id}::${feature}`) && list.some(id => deleted.has(id))) {
+                    pairs.push([feature, listValue(list.filter(id => !deleted.has(id)).map(id => this.nameRef(id, model)))]);
                 }
             }
-            for (const measure of step.measures) {
-                if (deleted.has(measure.id) || !measure.addressedTransitionIds.some(id => deleted.has(id))) continue;
-                const rest = measure.addressedTransitionIds.filter(id => !deleted.has(id));
-                edits.push(...editor.setValue(measure.id, "addressedTransitions", listValue(rest.map(id => this.referenceName(id, measure.id)))));
+            if (pairs.length) edits.push(...editor.setValues(b.id, pairs));
+        }
+        for (const analysis of model.analyses) {
+            for (const t of analysis.transitions) {
+                if (deleted.has(t.id)) continue;
+                if (deleted.has(t.sourceId) || deleted.has(t.targetId)) { deleted.add(t.id); edits.push(...editor.deleteElement(t.id)); continue; }
+                if (t.productIds.some(id => deleted.has(id))) {
+                    edits.push(...editor.setValue(t.id, "products", listValue(t.productIds.filter(id => !deleted.has(id)).map(id => this.nameRef(id, model)))));
+                }
+            }
+            for (const m of analysis.measures) {
+                if (deleted.has(m.id) || !m.addressedTransitionIds.some(id => deleted.has(id))) continue;
+                const rest = m.addressedTransitionIds.filter(id => !deleted.has(id));
+                edits.push(...editor.setValue(m.id, "addressedTransitions", listValue(rest.map(id => this.nameRef(id, model)))));
             }
         }
-        for (const rule of model.policies.flatMap(p => p.rules)) {
+        for (const rule of model.rules) {
             if (!deleted.has(rule.id) && (deleted.has(rule.toolId) || deleted.has(rule.methodId))) edits.push(...editor.deleteElement(rule.id));
         }
         return edits;
@@ -628,7 +847,7 @@ export class App {
         /** Adds a role, tool, method or product to an MBSE environment (or one of the environments it specializes). */
         const environmentAdd = (kind, title, base) => async function (element, result) {
             const { model } = result;
-            const environments = await this.chooseEnvironment(element, model, kind);
+            const environments = await this.chooseEnvironment(element, model);
             const values = await formDialog({
                 title, fields: [
                     { name: "environment", label: "MBSE environment", type: "select", value: environments[0].id,
@@ -638,7 +857,7 @@ export class App {
                 ],
                 validate: v => {
                     const environment = model.get(v.environment);
-                    const owner = kind === "method" && environment.methodologyId ? environment.methodologyId : environment.id;
+                    const owner = kind === "method" && environment.methodologyId && environment.methodologyId.startsWith(environment.id + "::") ? environment.methodologyId : environment.id;
                     return this.validateNewName(v.name, owner, result);
                 },
             });
@@ -646,284 +865,357 @@ export class App {
             const environment = model.get(values.environment);
             const editor = this.createModelEditor(result);
             const lines = environmentElementLines(kind, values.name, values.doc);
-            if (kind === "method" && !environment.methodologyId) {
-                return { edits: editor.addElement(environment.id, ["part :>> methodology {", ...lines.map(l => "    " + l), "}"]),
-                    label: `add method ${values.name}`, select: `${environment.id}::methodology::${values.name}` };
+            if (kind === "method" && !(environment.methodologyId && environment.methodologyId.startsWith(environment.id + "::"))) {
+                const wrap = environment.methodologyName || "methodology";
+                return { edits: editor.addElement(environment.id, redefinitionLines([wrap], lines, "part")),
+                    label: `add method ${values.name}`, select: `${environment.id}::${wrap}::${values.name}` };
             }
             const owner = kind === "method" ? environment.methodologyId : environment.id;
             return { edits: editor.addElement(owner, lines), label: `add ${kind} ${values.name}`, select: `${owner}::${values.name}` };
         };
 
-        /** Adds an EEE check or a tool policy anchored at an MBSE environment, or a specialized environment. */
-        const anchoredAdd = (kind, title, suffix) => async function (element, result) {
-            const { model } = result;
-            const environment = this.environmentOf(element, model) || model.environments[0];
-            if (!environment) throw new ModelEditError("Create an MBSE environment first (File ▸ New MBSE environment).");
-            const packageId = ownerId(environment.id);
-            if (!packageId) throw new ModelEditError(`${environment.name} is not inside a package.`);
-            const values = await formDialog({
-                title: `${title} ${environment.name}`,
-                fields: [{ name: "name", label: "Name", value: this.freeName(nameFrom(`${environment.name} ${suffix}`, "New" + suffix), packageId, result).replace(/^./, c => c.toUpperCase()), required: true }],
-                validate: v => this.validateNewName(v.name, packageId, result),
-            });
-            if (!values) return null;
-            const environmentRef = this.referenceName(environment.id, packageId + "::" + values.name);
-            const lines = kind === "environment"
-                ? [`occurrence def ${values.name} :> ${environmentRef} {`, "}"]
-                : [`#${kind} occurrence def ${values.name} {`, `    occurrence env : ${environmentRef} :>> environment;`, "}"];
-            return { edits: this.createModelEditor(result).addElement(packageId, lines), label: `add ${values.name}`, select: `${packageId}::${values.name}` };
-        };
-
         return {
             addRole: environmentAdd("role", "Add a role (a row of the matrix)", "newRole"),
-            addArtifact: environmentAdd("product", "Add a product (an artifact of the process steps)", "newProduct"),
+            addArtifact: environmentAdd("product", "Add a product (data of the digital thread)", "newProduct"),
             addTool: environmentAdd("tool", "Add a tool (a column of the matrix)", "newTool"),
             addMethod: environmentAdd("method", "Add a method to the methodology", "newMethod"),
-            addCheck: anchoredAdd("eeeCheck", "Add an EEE check of", "Check"),
-            addPolicy: anchoredAdd("toolPolicy", "Add a tool policy for", "ToolPolicy"),
-            addEnvironment: anchoredAdd("environment", "Add an MBSE environment that specializes", "Environment"),
 
-            async addStep(element, result, { roleId, toolId } = {}) {
+            async addEnvironment(element, result) {
                 const { model } = result;
-                const check = this.requireCheck(element, model);
+                const environment = this.environmentOf(element, model) || model.environments[0];
+                if (!environment) throw new ModelEditError("Create an MBSE environment first (File ▸ New MBSE environment).");
+                const packageId = ownerId(environment.id);
+                if (!packageId) throw new ModelEditError(`${environment.name} is not inside a package.`);
+                const values = await formDialog({
+                    title: `Add an MBSE environment that specializes ${environment.name}`,
+                    fields: [{ name: "name", label: "Name", value: this.freeName(`${environment.name.replace(/^'(.*)'$/, "$1").replace(/[^A-Za-z0-9_]/g, "")}Specialization`, packageId, result), required: true }],
+                    validate: v => this.validateNewName(v.name, packageId, result),
+                });
+                if (!values) return null;
+                const lines = [`occurrence def ${values.name} :> ${this.referenceName(environment.id, packageId + "::" + values.name)} {`, "}"];
+                return { edits: this.createModelEditor(result).addElement(packageId, lines), label: `add ${values.name}`, select: `${packageId}::${values.name}` };
+            },
+
+            async addAnalysis(element, result) {
+                const { model } = result;
+                const environment = this.environmentOf(element, model) || model.environments[0];
+                if (!environment) throw new ModelEditError("Create an MBSE environment first (File ▸ New MBSE environment).");
+                const values = await formDialog({
+                    title: `Add a Digital Thread Flow Analysis of ${environment.name}`,
+                    fields: [{ name: "name", label: "Name", value: this.freeName("flowAnalysis", environment.id, result), required: true }],
+                    validate: v => this.validateNewName(v.name, environment.id, result),
+                });
+                if (!values) return null;
+                return { edits: this.createModelEditor(result).addElement(environment.id, analysisLines(values.name)),
+                    label: `add flow analysis ${values.name}`, select: `${environment.id}::${values.name}` };
+            },
+
+            /** Adds a process step: an existing method of the methodology, or a new one, performed by a role with a tool. */
+            async addStep(element, result, { roleId, toolId, analysisId } = {}) {
+                const { model } = result;
+                const analysis = this.requireAnalysis(element, model, analysisId);
+                const environment = model.get(analysis.environmentId);
                 const option = e => ({ value: e.id, label: e.name });
+                const methods = model.methodologyTree(environment.id).map(n => n.element).filter(e => e instanceof Method);
+                const free = methods.filter(m => !analysis.stepOf(m.id));
                 const values = await formDialog({
-                    title: `Add a process step to ${check.name}`,
+                    title: `Add a process step to ${analysis.name}`,
                     fields: [
-                        { name: "name", label: "Name", value: this.freeName("newStep", check.id, result), required: true },
-                        { name: "role", label: "Role (row)", type: "select", value: roleId || "", options: [{ value: "", label: "–" }, ...model.roles.map(option)] },
-                        { name: "tool", label: "Tool (column)", type: "select", value: toolId || "", options: [{ value: "", label: "–" }, ...model.tools.map(option)] },
-                        { name: "method", label: "Method", type: "select", value: "", options: [{ value: "", label: "–" }, ...model.methods.map(option)] },
+                        { name: "method", label: "Method of the methodology", type: "select", value: element instanceof Method && !analysis.stepOf(element.id) ? element.id : "",
+                            options: [{ value: "", label: "– a new method –" }, ...free.map(option)],
+                            hint: "A process step is a method that a role performs with a tool." },
+                        { name: "name", label: "Name of the new method", value: this.freeName("newMethod", environment.methodologyId || environment.id, result) },
+                        { name: "role", label: "Role (primary performer, row)", type: "select", value: roleId || "", options: [{ value: "", label: "–" }, ...model.inScope(model.roles, environment.id).map(option)] },
+                        { name: "tool", label: "Tool (facilitation tool, column)", type: "select", value: toolId || "", options: [{ value: "", label: "–" }, ...model.inScope(model.tools, environment.id).map(option)] },
                     ],
-                    validate: v => this.validateNewName(v.name, check.id, result),
+                    validate: v => (v.method ? null : this.validateNewName(v.name, environment.methodologyId && environment.methodologyId.startsWith(environment.id + "::") ? environment.methodologyId : `${environment.id}::${environment.methodologyName || "methodology"}`, result)),
                 });
                 if (!values) return null;
-                const id = `${check.id}::${values.name}`;
-                const ref = target => (target ? this.referenceName(target, id) : "");
-                return {
-                    edits: this.createModelEditor(result).addElement(check.id, processStepLines({ name: values.name, role: ref(values.role), tool: ref(values.tool), method: ref(values.method) })),
-                    label: `add process step ${values.name}`, select: id,
-                };
-            },
-
-            async addTransition(element, result, { sourceId, targetId } = {}) {
-                const { model } = result;
-                const check = this.requireCheck(element, model);
-                if (!sourceId && element instanceof ProcessStep) sourceId = element.id;
-                const options = check.steps.map(s => ({ value: s.id, label: s.name }));
-                if (options.length < 1) throw new ModelEditError(`${check.name} has no process steps to connect.`);
-                const suggest = (s, t) => (s && t ? nameFrom(`${model.nameOf(s)} to ${model.nameOf(t).charAt(0).toUpperCase()}${model.nameOf(t).slice(1)}`, "newTransition") : "newTransition");
-                let values;
-                if (sourceId && targetId) {
-                    values = await formDialog({
-                        title: `Add the transition ${model.nameOf(sourceId)} → ${model.nameOf(targetId)}`,
-                        fields: [
-                            { name: "name", label: "Name", value: this.freeName(suggest(sourceId, targetId), check.id, result), required: true },
-                            { name: "evaluation", label: "Evaluation", type: "select", value: "unrated", options: Object.entries(EVALUATIONS).map(([value, e]) => ({ value, label: e.label })) },
-                        ],
-                        validate: v => this.validateNewName(v.name, check.id, result),
-                    });
-                    if (values) Object.assign(values, { source: sourceId, target: targetId });
-                } else {
-                    values = await formDialog({
-                        title: `Add a transition to ${check.name}`,
-                        fields: [
-                            { name: "source", label: "From process step (hands over)", type: "select", value: sourceId || options[0].value, options },
-                            { name: "target", label: "To process step (takes over)", type: "select", value: (options.find(o => o.value !== sourceId) || options[0]).value, options },
-                            { name: "name", label: "Name", value: "", hint: "Leave empty for a name from the two steps." },
-                            { name: "evaluation", label: "Evaluation", type: "select", value: "unrated", options: Object.entries(EVALUATIONS).map(([value, e]) => ({ value, label: e.label })) },
-                        ],
-                        validate: v => (v.source === v.target ? "Choose two different process steps."
-                            : this.validateNewName(v.name || this.freeName(suggest(v.source, v.target), check.id, result), check.id, result)),
-                    });
-                    if (values && !values.name) values.name = this.freeName(suggest(values.source, values.target), check.id, result);
+                const pairs = [["primaryPerformer", values.role ? this.nameRef(values.role, model) : null], ["facilitationTools", values.tool ? this.nameRef(values.tool, model) : null]];
+                if (values.method) {
+                    const { edits, ids } = this.behaviorEdits(result, environment, [{ id: values.method, pairs: pairs.filter(([, v]) => v) }]);
+                    return { edits, label: `perform ${model.nameOf(values.method)}`, select: ids.get(values.method) };
                 }
-                if (!values) return null;
-                if (values.source === values.target) throw new ModelEditError("A transition connects two different process steps.");
-                const id = `${check.id}::${values.name}`;
-                return {
-                    edits: this.createModelEditor(result).addElement(check.id, transitionLines({
-                        name: values.name, source: this.referenceName(values.source, id), target: this.referenceName(values.target, id), evaluation: values.evaluation,
-                    })),
-                    label: `add transition ${values.name}`, select: id,
-                };
-            },
-
-            async addMeasure(step, result) {
-                if (!(step instanceof ProcessStep)) throw new ModelEditError("Select a process step to add a measure to it.");
-                const { model } = result;
-                const transitions = model.transitionsOf(step);
-                const values = await formDialog({
-                    title: `Add a measure that optimizes ${step.name}`,
-                    fields: [
-                        { name: "name", label: "Name", value: this.freeName("newMeasure", step.id, result), required: true },
-                        { name: "description", label: "What changes, and why it removes the bottleneck", type: "textarea", value: "" },
-                        { name: "transitions", label: "Addressed transitions", type: "checkboxes", value: transitions.filter(t => t.isBottleneck).map(t => t.id),
-                            options: transitions.map(t => ({ value: t.id, label: `${t.name} (${EVALUATIONS[t.evaluation].label})` })) },
-                    ],
-                    validate: v => this.validateNewName(v.name, step.id, result),
-                });
-                if (!values) return null;
-                const id = `${step.id}::${values.name}`;
-                return {
-                    edits: this.createModelEditor(result).addElement(step.id, measureLines({
-                        name: values.name, description: values.description, transitions: values.transitions.map(t => this.referenceName(t, id)),
-                    })),
-                    label: `add measure ${values.name}`, select: id,
-                };
-            },
-
-            async addRule(policy, result, { toolId = "", methodId = "", status = "recommended" } = {}) {
-                const { model } = result;
-                if (!(policy instanceof ToolPolicy)) policy = model.policyOf(policy.id);
-                if (!policy) throw new ModelEditError("Select a tool policy.");
-                if (!model.tools.length || !model.methods.length) throw new ModelEditError("Add tools and methods first.");
-                const values = await formDialog({
-                    title: `Add a rule to ${policy.name}`,
-                    fields: [
-                        { name: "method", label: "Method", type: "select", value: methodId || model.methods[0].id, options: model.methods.map(m => ({ value: m.id, label: m.name })) },
-                        { name: "tool", label: "Tool", type: "select", value: toolId || model.tools[0].id, options: model.tools.map(t => ({ value: t.id, label: t.name })) },
-                        { name: "status", label: "Status", type: "select", value: status, options: Object.entries(POLICY_STATUS).map(([value, s]) => ({ value, label: s.label })) },
-                        { name: "name", label: "Name", value: "", hint: "Leave empty for a name from the tool and the method." },
-                    ],
-                    validate: v => (v.name ? this.validateNewName(v.name, policy.id, result) : null),
-                });
-                if (!values) return null;
-                const name = values.name || this.freeName(nameFrom(`${model.nameOf(values.tool)} for ${model.nameOf(values.method)}`, "newRule"), policy.id, result);
-                const id = `${policy.id}::${name}`;
-                return {
-                    edits: this.createModelEditor(result).addElement(policy.id, policyRuleLines({
-                        name, tool: this.referenceName(values.tool, id), method: this.referenceName(values.method, id), status: values.status,
-                    })),
-                    label: `add rule ${name}`, select: id,
-                };
-            },
-
-            async setPolicyCell(policy, result, { toolId, methodId, status }) {
-                if (!(policy instanceof ToolPolicy)) return null;
-                const { model } = result;
+                const lines = methodLines({ name: values.name, pairs });
                 const editor = this.createModelEditor(result);
-                const rule = policy.rules.find(r => r.toolId === toolId && r.methodId === methodId);
-                const combination = `${model.nameOf(methodId)} with ${model.nameOf(toolId)}`;
-                if (!status) {
-                    if (!rule) return null;
-                    return { edits: editor.deleteElement(rule.id), label: `remove the rule for ${combination}`, select: policy.id };
+                if (environment.methodologyId && environment.methodologyId.startsWith(environment.id + "::")) {
+                    return { edits: editor.addElement(environment.methodologyId, lines), label: `add process step ${values.name}`, select: `${environment.methodologyId}::${values.name}` };
                 }
-                if (rule) return { edits: editor.setValue(rule.id, "status", `PolicyStatus::${status}`), label: `${combination}: ${status}` };
-                const name = this.freeName(nameFrom(`${model.nameOf(toolId)} for ${model.nameOf(methodId)}`, "newRule"), policy.id, result);
-                const id = `${policy.id}::${name}`;
-                return {
-                    edits: editor.addElement(policy.id, policyRuleLines({ name, tool: this.referenceName(toolId, id), method: this.referenceName(methodId, id), status })),
-                    label: `${combination}: ${status}`,
-                };
+                const wrap = environment.methodologyName || "methodology";
+                return { edits: editor.addElement(environment.id, redefinitionLines([wrap], lines, "part")), label: `add process step ${values.name}`, select: `${environment.id}::${wrap}::${values.name}` };
             },
 
-            async setReference(element, result, { feature, targetId }) {
-                if (!(element instanceof ProcessStep || element instanceof ToolPolicyRule) || !["role", "tool", "method"].includes(feature)) return null;
-                if (element instanceof ToolPolicyRule && feature === "role") return null;
-                const value = targetId ? referenceValue(this.referenceName(targetId, element.id)) : null;
-                return { edits: this.createModelEditor(result).setValue(element.id, feature, value), label: `set the ${feature} of ${element.name}` };
-            },
-
-            async moveStep(step, result, { roleId, toolId }) {
-                if (!(step instanceof ProcessStep)) return null;
-                const ref = id => (id ? referenceValue(this.referenceName(id, step.id)) : null);
-                const pairs = [];
-                if ((step.roleId || null) !== (roleId || null)) pairs.push(["role", ref(roleId)]);
-                if ((step.toolId || null) !== (toolId || null)) pairs.push(["tool", ref(toolId)]);
-                if (!pairs.length) return null;
+            /** Sets the role or the tool of a process step (the primary performer or facilitation tool of its method). */
+            async placeStep(method, result, { analysisId, feature, targetId }) {
                 const { model } = result;
+                if (!(method instanceof Method) || !["primaryPerformer", "facilitationTools"].includes(feature)) return null;
+                const analysis = this.requireAnalysis(method, model, analysisId);
+                const environment = model.get(analysis.environmentId);
+                const { edits, ids } = this.behaviorEdits(result, environment, [{ id: method.id, pairs: [[feature, targetId ? this.nameRef(targetId, model) : null]] }]);
+                return { edits, label: `set the ${feature === "primaryPerformer" ? "role" : "tool"} of ${method.name}`, select: ids.get(method.id) };
+            },
+
+            async moveStep(method, result, { roleId, toolId, analysisId }) {
+                const { model } = result;
+                if (!(method instanceof Method)) return null;
+                const analysis = this.requireAnalysis(method, model, analysisId);
+                const step = analysis.stepOf(method.id);
+                const pairs = [];
+                if (step && (step.roleId || null) !== (roleId || null)) pairs.push(["primaryPerformer", roleId ? this.nameRef(roleId, model) : null]);
+                if (step && (step.toolId || null) !== (toolId || null)) pairs.push(["facilitationTools", toolId ? this.nameRef(toolId, model) : null]);
+                if (!pairs.length) return null;
+                const { edits, ids } = this.behaviorEdits(result, model.get(analysis.environmentId), [{ id: method.id, pairs }]);
+                return { edits, label: `move ${method.name} to ${model.nameOf(roleId, "no role")} × ${model.nameOf(toolId, "no tool")}`, select: ids.get(method.id) };
+            },
+
+            /** Hands over a product from one process step to another: an output of the first, an input of the second. */
+            async addHandover(element, result, { sourceId, targetId, analysisId } = {}) {
+                const { model } = result;
+                const analysis = this.requireAnalysis(element, model, analysisId);
+                const environment = model.get(analysis.environmentId);
+                if (!sourceId && element instanceof Method) sourceId = element.id;
+                const steps = analysis.steps.map(s => ({ value: s.id, label: s.name }));
+                if (steps.length < 2) throw new ModelEditError(`${analysis.name} needs two process steps for a hand-over.`);
+                const products = model.inScope(model.artifacts, environment.id);
+                const source = analysis.stepOf(sourceId);
+                const values = await formDialog({
+                    title: sourceId && targetId ? `Hand over from ${model.nameOf(sourceId)} to ${model.nameOf(targetId)}` : `Add a hand-over to ${analysis.name}`,
+                    fields: [
+                        ...(sourceId && targetId ? [] : [
+                            { name: "source", label: "From process step (produces)", type: "select", value: sourceId || steps[0].value, options: steps },
+                            { name: "target", label: "To process step (needs)", type: "select", value: targetId || (steps.find(o => o.value !== sourceId) || steps[0]).value, options: steps },
+                        ]),
+                        { name: "product", label: "Product", type: "select", value: source && source.targetArtifactIds[0] || "",
+                            options: [{ value: "", label: "– a new product –" }, ...products.map(p => ({ value: p.id, label: p.name }))],
+                            hint: "The product becomes an output of the first and an input of the second method." },
+                        { name: "newProduct", label: "Name of the new product", value: this.freeName("newProduct", environment.id, result) },
+                    ],
+                    validate: v => ((v.source || sourceId) === (v.target || targetId) ? "Choose two different process steps."
+                        : v.product ? null : this.validateNewName(v.newProduct, environment.id, result)),
+                });
+                if (!values) return null;
+                const from = analysis.stepOf(values.source || sourceId), to = analysis.stepOf(values.target || targetId);
+                const edits = [];
+                let productRef;
+                if (values.product) productRef = this.nameRef(values.product, model);
+                else {
+                    edits.push(...this.createModelEditor(result).addElement(environment.id, environmentElementLines("product", values.newProduct)));
+                    productRef = values.newProduct;
+                }
+                const productId = values.product || null;
+                const refs = list => list.map(id => this.nameRef(id, model));
+                const changes = [];
+                if (!productId || !from.targetArtifactIds.includes(productId)) changes.push({ id: from.id, pairs: [["outputs", listValue([...refs(from.targetArtifactIds), productRef])]] });
+                if (!productId || !to.sourceArtifactIds.includes(productId)) changes.push({ id: to.id, pairs: [["inputs", listValue([...refs(to.sourceArtifactIds), productRef])]] });
+                if (!changes.length) throw new ModelEditError(`${to.name} already needs ${model.nameOf(productId)} from ${from.name}.`);
+                edits.push(...this.behaviorEdits(result, environment, changes).edits);
+                return { edits, label: `hand over ${model.nameOf(productId, productRef)} from ${from.name} to ${to.name}` };
+            },
+
+            /** Adds a tool transition between two tools of the environment. */
+            async addTransition(element, result, { analysisId } = {}) {
+                const { model } = result;
+                const analysis = this.requireAnalysis(element, model, analysisId);
+                const tools = model.inScope(model.tools, analysis.environmentId).map(t => ({ value: t.id, label: t.name }));
+                if (!tools.length) throw new ModelEditError("The environment has no tools.");
+                const values = await formDialog({
+                    title: `Add a tool transition to ${analysis.name}`,
+                    fields: [
+                        { name: "source", label: "From tool", type: "select", value: tools[0].value, options: tools },
+                        { name: "target", label: "To tool", type: "select", value: (tools[1] || tools[0]).value, options: tools },
+                        { name: "rating", label: "Rating", type: "select", value: "unrated", options: Object.entries(RATINGS).map(([value, e]) => ({ value, label: e.label })) },
+                        { name: "name", label: "Name", value: "", hint: "Leave empty for a name from the two tools." },
+                    ],
+                    validate: v => (v.name ? this.validateNewName(v.name, analysis.id, result) : null),
+                });
+                if (!values) return null;
+                const name = values.name || this.freeName(nameFrom(`${model.nameOf(values.source)} to ${model.nameOf(values.target).charAt(0).toUpperCase()}${model.nameOf(values.target).slice(1)}`, "toolTransition"), analysis.id, result);
                 return {
-                    edits: this.createModelEditor(result).setValues(step.id, pairs),
-                    label: `move ${step.name} to ${model.nameOf(roleId, "no role")} × ${model.nameOf(toolId, "no tool")}`,
+                    edits: this.createModelEditor(result).addElement(analysis.id, toolTransitionLines({ name, source: this.nameRef(values.source, model), target: this.nameRef(values.target, model), rating: values.rating })),
+                    label: `add tool transition ${name}`, select: `${analysis.id}::${name}`,
                 };
             },
 
-            async setEvaluation(transition, result, { evaluation }) {
-                if (!(transition instanceof StepTransition) || !EVALUATIONS[evaluation] || transition.evaluation === evaluation) return null;
-                return { edits: this.createModelEditor(result).setValue(transition.id, "evaluation", `TransitionEvaluation::${evaluation}`), label: `evaluate ${transition.name} as ${evaluation}` };
+            async addMeasure(element, result) {
+                const { model } = result;
+                const analysis = this.requireAnalysis(element, model);
+                const preselected = element instanceof ToolTransition ? [element.id] : element instanceof Handover && element.transition ? [element.transition.id]
+                    : analysis.transitions.filter(t => t.isBottleneck && !model.measuresFor(t).length).map(t => t.id);
+                const values = await formDialog({
+                    title: `Add a measure to ${analysis.name}`,
+                    fields: [
+                        { name: "name", label: "Name", value: this.freeName("newMeasure", analysis.id, result), required: true },
+                        { name: "description", label: "What changes, and why it removes the bottleneck", type: "textarea", value: "" },
+                        { name: "transitions", label: "Addressed tool transitions", type: "checkboxes", value: preselected,
+                            options: analysis.transitions.map(t => ({ value: t.id, label: `${t.name} (${model.nameOf(t.sourceId)} → ${model.nameOf(t.targetId)}, ${RATINGS[t.rating].label})` })) },
+                    ],
+                    validate: v => this.validateNewName(v.name, analysis.id, result),
+                });
+                if (!values) return null;
+                return {
+                    edits: this.createModelEditor(result).addElement(analysis.id, measureLines({
+                        name: values.name, description: values.description, transitions: values.transitions.map(t => this.nameRef(t, model)),
+                    })),
+                    label: `add measure ${values.name}`, select: `${analysis.id}::${values.name}`,
+                };
             },
 
-            async setPriority(transition, result, { priority }) {
-                if (!(transition instanceof StepTransition)) return null;
+            async setRating(element, result, { rating }) {
+                if (!RATINGS[rating] || element.rating === rating && this.ratingTarget(element)) return null;
+                return this.setTransitionValues(element, result, [["rating", `DTFA::TransitionRating::${rating}`]], `rate ${element.name} as ${rating}`);
+            },
+
+            async setPriority(element, result, { priority }) {
                 const value = priority && Number.isInteger(priority) && priority > 0 ? String(priority) : null;
                 if (priority !== null && !value) throw new ModelEditError("The priority is a whole number from 1 (highest).");
-                if (String(transition.priority ?? "") === String(value ?? "")) return null;
-                return { edits: this.createModelEditor(result).setValue(transition.id, "priority", value), label: `set the priority of ${transition.name}` };
+                if (String(element.priority ?? "") === String(value ?? "")) return null;
+                return this.setTransitionValues(element, result, [["priority", value]], `set the priority of ${element.name}`);
             },
 
-            async setStatus(rule, result, { status }) {
-                if (!(rule instanceof ToolPolicyRule) || !POLICY_STATUS[status] || rule.status === status) return null;
-                return { edits: this.createModelEditor(result).setValue(rule.id, "status", `PolicyStatus::${status}`), label: `set ${rule.name} to ${status}` };
+            async setExplanation(element, result, { text }) {
+                const value = (text || "").trim();
+                if (value === element.explanation) return null;
+                return this.setTransitionValues(element, result, [["explanation", value ? stringLiteral(value) : null]], `set the explanation of ${element.name}`);
+            },
+
+            async editConversions(transition, result) {
+                if (!(transition instanceof ToolTransition)) return null;
+                const values = await formDialog({
+                    title: `Conversions of ${transition.name}`, submitLabel: "Save",
+                    fields: [{ name: "text", label: "Conversions, one per line", type: "textarea", rows: 5, value: transition.conversions.join("\n"),
+                        hint: "The conversions of the data between the tools, e.g. an export, an import or a manual copy." }],
+                });
+                if (!values) return null;
+                const list = values.text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+                return { edits: this.createModelEditor(result).setValue(transition.id, "conversions", listValue(list.map(stringLiteral))), label: `change the conversions of ${transition.name}` };
             },
 
             async setAddressed(measure, result, { transitionIds }) {
                 if (!(measure instanceof Measure)) return null;
-                const value = listValue(transitionIds.map(id => this.referenceName(id, measure.id)));
+                const value = listValue(transitionIds.map(id => this.nameRef(id, result.model)));
                 return { edits: this.createModelEditor(result).setValue(measure.id, "addressedTransitions", value), label: `set the transitions of ${measure.name}` };
             },
 
-            /** Sets a swimlane of the process step definition to a value (string, strings or artifact ids). */
-            async setLane(step, result, { feature, value }) {
+            async addRule(element, result, { toolId = "", methodId = "", status = "recommended" } = {}) {
+                const { model } = result;
+                const environment = this.environmentOf(element, model);
+                if (!environment) throw new ModelEditError("Select an MBSE environment.");
+                const { tools, methods } = model.policyAxes(environment.id);
+                if (!tools.length || !methods.length) throw new ModelEditError("Add tools and methods first.");
+                const values = await formDialog({
+                    title: `Add a tool policy rule to ${environment.name}`,
+                    fields: [
+                        { name: "method", label: "Method", type: "select", value: methodId || methods[0].id, options: methods.map(m => ({ value: m.id, label: m.name })) },
+                        { name: "tool", label: "Tool", type: "select", value: toolId || tools[0].id, options: tools.map(t => ({ value: t.id, label: t.name })) },
+                        { name: "status", label: "Status", type: "select", value: status, options: Object.entries(POLICY_STATUS).map(([value, s]) => ({ value, label: s.label })) },
+                        { name: "name", label: "Name", value: "", hint: "Leave empty for a name from the tool and the method." },
+                    ],
+                    validate: v => (v.name ? this.validateNewName(v.name, environment.id, result) : null),
+                });
+                if (!values) return null;
+                return this.commands.setPolicyCell.call(this, environment, result, { toolId: values.tool, methodId: values.method, status: values.status, name: values.name });
+            },
+
+            async setPolicyCell(environment, result, { toolId, methodId, status, name = "" }) {
+                const { model } = result;
+                if (!(environment instanceof MBSEEnvironment)) environment = this.environmentOf(environment, model);
+                if (!environment) return null;
+                const editor = this.createModelEditor(result);
+                const method = model.get(methodId), tool = model.get(toolId);
+                const matches = (id, element) => id === element.id || element.redefinedIds.includes(id);
+                const rule = environment.rules.find(r => matches(r.toolId, tool) && matches(r.methodId, method));
+                const combination = `${model.nameOf(toolId)} for ${model.nameOf(methodId)}`;
+                if (!status) {
+                    if (!rule) {
+                        const inherited = model.policyStatus(environment.id, toolId, methodId);
+                        if (inherited) throw new ModelEditError(`The rule ${inherited.rule.name} of ${model.nameOf(inherited.rule.environmentId)} rates ${combination}. Change it in ${model.nameOf(inherited.rule.environmentId)}.`);
+                        return null;
+                    }
+                    return { edits: editor.deleteElement(rule.id), label: `remove the rule for ${combination}`, select: environment.id };
+                }
+                if (rule) return { edits: editor.setValue(rule.id, "status", `DTFA::PolicyStatus::${status}`), label: `${combination}: ${status}` };
+                const ruleName = name || this.freeName(nameFrom(`${model.nameOf(toolId)} for ${model.nameOf(methodId).charAt(0).toUpperCase()}${model.nameOf(methodId).slice(1)}`, "newRule"), environment.id, result);
+                return {
+                    edits: editor.addElement(environment.id, policyRuleLines({ name: ruleName, tool: this.nameRef(toolId, model), method: this.behaviorChain(environment, methodId, model), status })),
+                    label: `${combination}: ${status}`,
+                };
+            },
+
+            async setStatus(rule, result, { status }) {
+                if (!(rule instanceof ToolPolicyRule) || !POLICY_STATUS[status] || rule.status === status) return null;
+                return { edits: this.createModelEditor(result).setValue(rule.id, "status", `DTFA::PolicyStatus::${status}`), label: `set ${rule.name} to ${status}` };
+            },
+
+            /** Sets a swimlane of the step definition of a method to a value (string, strings or product ids). */
+            async setLane(method, result, { feature, value }) {
+                const { model } = result;
                 const lane = STEP_DEFINITION_LANES.find(l => l.feature === feature);
-                if (!(step instanceof ProcessStep) || !lane) return null;
+                if (!(method instanceof Method || method instanceof Process) || !lane) return null;
+                const environment = this.environmentOf(method, model);
+                if (!environment) throw new ModelEditError(`${method.name} belongs to no MBSE environment.`);
                 let text;
                 if (lane.kind === "text") text = value ? stringLiteral(value) : null;
                 else if (lane.kind === "texts") text = listValue(value.filter(Boolean).map(stringLiteral));
-                else text = listValue(value.map(id => this.referenceName(id, step.id)));
-                return { edits: this.createModelEditor(result).setValue(step.id, feature, text), label: `change ${lane.label.toLowerCase()} of ${step.name}` };
+                else text = listValue(value.map(id => this.nameRef(id, model)));
+                const change = lane.store === "metadata" ? { id: method.id, definition: [[feature, text]] } : { id: method.id, pairs: [[feature, text]] };
+                const { edits, ids } = this.behaviorEdits(result, environment, [change]);
+                return { edits, label: `change ${lane.label.toLowerCase()} of ${method.name}`, select: ids.get(method.id) };
             },
 
             /** Asks for the new content of a swimlane. */
-            async editLane(step, result, { feature }) {
+            async editLane(method, result, { feature }) {
                 const lane = STEP_DEFINITION_LANES.find(l => l.feature === feature);
-                if (!(step instanceof ProcessStep) || !lane) return null;
+                if (!(method instanceof Method || method instanceof Process) || !lane) return null;
                 const { model } = result;
+                const current = laneValue(method, feature);
                 if (lane.kind === "text") {
                     const values = await formDialog({
-                        title: `${lane.label} of ${step.name}`, submitLabel: "Save",
-                        fields: [{ name: "text", label: lane.label, type: "textarea", rows: 3, value: step.lane(feature), hint: lane.hint }],
+                        title: `${lane.label} of ${method.name}`, submitLabel: "Save",
+                        fields: [{ name: "text", label: lane.label, type: "textarea", rows: 3, value: current, hint: lane.hint }],
                     });
-                    return values ? this.commands.setLane.call(this, step, result, { feature, value: values.text }) : null;
+                    return values ? this.commands.setLane.call(this, method, result, { feature, value: values.text }) : null;
                 }
                 if (lane.kind === "texts") {
                     const values = await formDialog({
-                        title: `${lane.label} of ${step.name}`, submitLabel: "Save",
-                        fields: [{ name: "text", label: `${lane.label}, one per line`, type: "textarea", rows: 5, value: step.lane(feature).join("\n"), hint: lane.hint }],
+                        title: `${lane.label} of ${method.name}`, submitLabel: "Save",
+                        fields: [{ name: "text", label: `${lane.label}, one per line`, type: "textarea", rows: 5, value: current.join("\n"), hint: lane.hint }],
                     });
-                    return values ? this.commands.setLane.call(this, step, result, { feature, value: values.text.split(/\r?\n/).map(s => s.trim()).filter(Boolean) }) : null;
+                    return values ? this.commands.setLane.call(this, method, result, { feature, value: values.text.split(/\r?\n/).map(s => s.trim()).filter(Boolean) }) : null;
                 }
-                const check = model.checkOf(step.id);
-                const environment = check && model.get(check.environmentId);
-                // The products of the environment of the check, and those the step already uses.
-                const artifacts = model.artifacts.filter(a => (environment && model.environmentScope(environment.id).includes(a.environmentId))
-                    || step.lane(feature).includes(a.id) || !environment);
+                const environment = this.environmentOf(method, model);
+                if (!environment) throw new ModelEditError(`${method.name} belongs to no MBSE environment.`);
+                const artifacts = model.inScope(model.artifacts, environment.id).filter(a => true).concat(current.map(id => model.get(id)).filter(a => a && !model.inScope(model.artifacts, environment.id).includes(a)));
                 const values = await formDialog({
-                    title: `${lane.label} of ${step.name}`, submitLabel: "Save",
+                    title: `${lane.label} of ${method.name}`, submitLabel: "Save",
                     fields: [
-                        { name: "artifacts", label: lane.label, type: "checkboxes", value: step.lane(feature), options: artifacts.map(a => ({ value: a.id, label: a.name })), hint: lane.hint },
-                        { name: "newArtifact", label: "New product (optional)", value: "", hint: environment ? `Adds a product to the MBSE environment ${environment.name} and to this swimlane.` : "Needs an EEE check with an MBSE environment." },
+                        { name: "artifacts", label: lane.label, type: "checkboxes", value: current, options: artifacts.map(a => ({ value: a.id, label: a.name })), hint: lane.hint },
+                        { name: "newArtifact", label: "New product (optional)", value: "", hint: `Adds a product to the MBSE environment ${environment.name} and to this swimlane.` },
                     ],
-                    validate: v => (v.newArtifact && environment ? this.validateNewName(v.newArtifact, environment.id, result) : null),
+                    validate: v => (v.newArtifact ? this.validateNewName(v.newArtifact, environment.id, result) : null),
                 });
                 if (!values) return null;
-                const editor = this.createModelEditor(result);
-                const references = values.artifacts.map(id => this.referenceName(id, step.id));
                 const edits = [];
-                if (values.newArtifact && environment) {
-                    edits.push(...editor.addElement(environment.id, environmentElementLines("product", values.newArtifact)));
-                    references.push(`${check.environmentUsage}.${values.newArtifact}`);
+                const references = values.artifacts.map(id => this.nameRef(id, model));
+                if (values.newArtifact) {
+                    edits.push(...this.createModelEditor(result).addElement(environment.id, environmentElementLines("product", values.newArtifact)));
+                    references.push(values.newArtifact);
                 }
-                edits.push(...editor.setValue(step.id, feature, listValue(references)));
-                return { edits, label: `change ${lane.label.toLowerCase()} of ${step.name}` };
+                const { edits: behaviorEdits, ids } = this.behaviorEdits(result, environment, [{ id: method.id, pairs: [[feature, listValue(references)]] }]);
+                edits.push(...behaviorEdits);
+                return { edits, label: `change ${lane.label.toLowerCase()} of ${method.name}`, select: ids.get(method.id) };
             },
 
             async setDoc(element, result, { text }) {
                 if (text === element.doc) return null;
+                if (element instanceof Handover) throw new ModelEditError("A hand-over is derived from the inputs and outputs of the methods; describe its tool transition.");
                 return { edits: this.createModelEditor(result).setDoc(element.id, text), label: `describe ${element.name}` };
             },
 
             async rename(element, result, { newName } = {}) {
+                if (element instanceof Handover) throw new ModelEditError("A hand-over is derived and has no name of its own.");
+                if (element.redefinedIds.length && (element instanceof Method || element instanceof Process)) {
+                    throw new ModelEditError(`${element.name} redefines the behavior ${element.redefinedIds[0]}: rename that one.`);
+                }
                 if (!newName) {
                     const values = await formDialog({
                         title: `Rename ${element.name}`, submitLabel: "Rename",
@@ -946,21 +1238,28 @@ export class App {
             async delete(element, result) {
                 const { model } = result;
                 const editor = this.createModelEditor(result);
-                if (element instanceof EeeCheck || element instanceof ToolPolicy || element instanceof MBSEEnvironment || element.external) throw new ModelEditError(`Delete the ${element.kindLabel.toLowerCase()} ${element.name} in the text.`);
+                if (element instanceof Handover) {
+                    // A hand-over is derived: the product is no longer an input of the target step.
+                    const analysis = model.get(element.analysisId);
+                    const target = analysis.stepOf(element.targetId);
+                    if (!(await confirmDialog(`Remove ${element.productIds.map(id => model.nameOf(id)).join(", ")} from the inputs of ${target.name}?`, { confirmLabel: "Remove" }))) return null;
+                    const rest = target.sourceArtifactIds.filter(id => !element.productIds.includes(id));
+                    const { edits } = this.behaviorEdits(result, model.get(analysis.environmentId), [{ id: target.id, pairs: [["inputs", listValue(rest.map(id => this.nameRef(id, model)))]] }]);
+                    return { edits, label: `remove the hand-over ${element.name}`, select: analysis.id };
+                }
+                if (element instanceof FlowAnalysis || element instanceof MBSEEnvironment || element.external || element.library) throw new ModelEditError(`Delete the ${element.kindLabel.toLowerCase()} ${element.name} in the text.`);
+                if (!result.locate(element.id)) throw new ModelEditError(`${element.name} is declared in ${model.nameOf(element.environmentId, "another environment")}; delete it there.`);
                 const doomed = [element.id];
                 let question = `Delete ${element.kindLabel.toLowerCase()} ${element.name}?`;
-                if (element instanceof ProcessStep) {
-                    const transitions = model.transitionsOf(element);
-                    doomed.push(...transitions.map(t => t.id), ...element.measures.map(m => m.id));
-                    if (transitions.length) question += ` Its ${transitions.length} transition${transitions.length === 1 ? " is" : "s are"} deleted too.`;
+                if ((element instanceof Method || element instanceof Process) && element.redefinedIds.length) {
+                    question = `Remove ${element.name} as ${model.nameOf(element.environmentId)} performs it (its role, tool, products and step definition)? The method of the methodology remains.`;
                 } else if (element instanceof Role || element instanceof Tool || element instanceof Method || element instanceof Artifact) {
-                    const users = model.checks.flatMap(c => c.steps).filter(s => [s.roleId, s.toolId, s.methodId, ...s.sourceArtifactIds, ...s.targetArtifactIds].includes(element.id));
-                    if (users.length) question += ` It is removed from ${users.length} process step${users.length === 1 ? "" : "s"}.`;
-                    const rules = model.policies.flatMap(p => p.rules).filter(r => r.toolId === element.id || r.methodId === element.id);
+                    const rules = model.rules.filter(r => r.toolId === element.id || r.methodId === element.id);
                     if (rules.length) question += ` ${rules.length} tool policy rule${rules.length === 1 ? " is" : "s are"} deleted.`;
+                    question += " References to it are removed.";
                 }
                 if (!(element instanceof Measure || element instanceof ToolPolicyRule) && !(await confirmDialog(question, { confirmLabel: "Delete" }))) return null;
-                const edits = [...doomed.filter(id => result.locate(id)).flatMap(id => editor.deleteElement(id)), ...this.removeReferences(model, editor, doomed)];
+                const edits = [...editor.deleteElement(element.id), ...this.removeReferences(model, result, doomed)];
                 return { edits, label: `delete ${element.name}`, select: element.ownerId };
             },
         };
@@ -1016,13 +1315,19 @@ export class App {
             if (this.active && !this.active.readOnly) this.workspace.setContent(this.activeName, this.editor.value);
         });
         this.editor.addEventListener("cursor", () => this.updateCursor());
-        this.modelView.addEventListener("select", e => this.select(e.detail.id));
+        // In the text view, the outline shows the declaration; otherwise it opens the editor of the element.
+        this.modelView.addEventListener("select", e => (e.detail.collection ? this.openCollection(e.detail.collection, e.detail.id)
+            : this.view === "text" ? this.select(e.detail.id) : this.openElement(e.detail.id)));
+        this.modelView.addEventListener("document", e => this.openDocument(e.detail.name, { section: e.detail.section, form: true }));
+        this.processView.addEventListener("document", e => this.openDocument(e.detail.name, { section: e.detail.section, form: true }));
         this.modelView.addEventListener("command", e => this.runCommand(e.detail.command, e.detail.id));
         this.problemsView.addEventListener("select", e => this.revealDiagnostic(e.detail.diagnostic));
-        for (const view of [this.environmentView, this.matrixView, this.stepView, this.policyView, this.formView]) {
-            view.addEventListener("select", e => this.select(e.detail.id, { reveal: false }));
+        for (const view of [this.environmentView, this.matrixView, this.stepView, this.policyView, this.formView, this.processView]) {
+            view.addEventListener("select", e => (e.detail.collection ? this.openCollection(e.detail.collection, e.detail.id)
+                : e.detail.open ? this.openElement(e.detail.id) : this.select(e.detail.id, { reveal: false })));
             view.addEventListener("command", e => this.runCommand(e.detail.command, e.detail.id, e.detail.args));
         }
+        this.processView.addEventListener("view", e => this.setView(e.detail.view));
         for (const view of [this.formView, this.environmentView]) {
             view.addEventListener("reveal", e => this.reveal(e.detail.id));
             view.addEventListener("view", e => this.setView(e.detail.view));
@@ -1032,21 +1337,24 @@ export class App {
             "new-environment": () => this.newDocument("environment"),
             "new-package": () => this.newDocument("package"),
             "open": () => this.open(),
+            "open-folder": () => this.openFolder(),
+            "reload-folder": () => this.openFolder({ reload: true }),
             "save": () => this.save(),
             "save-as": () => this.save(this.active, { as: true }),
             "save-all": async () => { for (const d of this.workspace.dirtyDocuments) await this.save(d); },
-            "close": () => this.close(),
+            "close": () => this.closeAll(),
             "check": () => this.check(),
             "undo": () => this.undo(),
             "redo": () => this.undo(true),
             "engine": () => this.showEngineDetails(),
             "about": () => infoDialog("MBSE Methodology Editor", [
-                "An editor for MBSE environments (MBSEMethodology: tools, roles, methodology, processes, methods and products) and their EEE checks (Engineering Efficiency Empowerment by oose and Willert, https://eee-check.de/).",
-                "Environment view: the tools, roles, methodology and products of an MBSE environment, including those of the environments it specializes, and the EEE checks and tool policies anchored at it.",
-                "EEE Step #1 Analysis: the Tools Roles Methods Matrix of the environment (Matrix view). EEE Step #2 Evaluation: rate each transition as efficient or bottleneck and prioritize the bottlenecks (Matrix and Form). "
-                + "EEE Step #3 Bottleneck analysis: the Process Step Definition Diagram (Step definition view). EEE Step #4 Optimization: measures of the process steps. "
-                + "The Company Tool Policy Matrix rates tool/method combinations of an environment (Tool policy view).",
-                "The model is SysML v2 textual notation with the MBSEMethodology, EEE and SYSMOD libraries; the SysML engine runs in your browser and nothing is uploaded.",
+                "An editor for MBSE environments (MBSEMethodology: tools, roles, methodology, processes, methods and products) and their Digital Thread Flow Analyses (DTFA), which bring back the flow in the digital thread.",
+                "Environment view: the tools, roles, methodology and products of an MBSE environment, including those of the environments it specializes, its flow analyses and its tool policy.",
+                "DTFA Step #1 Flow mapping: the Tools Roles Methods Matrix; the methods that a role performs with a tool are the process steps, the products they hand over are the arrows (Matrix view). "
+                + "DTFA Step #2 Rating: rate the transitions between the tools as efficient or bottleneck and prioritize the bottlenecks (Matrix and Form). "
+                + "DTFA Step #3 Bottleneck analysis: the step definitions (Step definition view). DTFA Step #4 Measures. "
+                + "The tool policy rates tool/method combinations of an environment (Tool policy view).",
+                "The model is SysML v2 textual notation with the MBSEMethodology, DTFA and SYSMOD libraries; the SysML engine runs in your browser and nothing is uploaded.",
             ]),
         };
         document.addEventListener("click", e => {
@@ -1059,7 +1367,7 @@ export class App {
             const view = e.target.closest("[data-view-tab]");
             if (view) { this.setView(view.dataset.viewTab); return; }
             const openDocument = e.target.closest("[data-open-document]");
-            if (openDocument) { this.activate(openDocument.dataset.openDocument); this.setView("text"); return; }
+            if (openDocument) { this.openDocument(openDocument.dataset.openDocument); return; }
             const activate = e.target.closest("[data-activate]");
             if (activate) { this.activate(activate.dataset.activate); return; }
             const close = e.target.closest("[data-close]");
@@ -1090,7 +1398,7 @@ export class App {
             const key = e.key.toLowerCase();
             const typing = e.target.closest("textarea, input, select");
             if (key === "s") { e.preventDefault(); this.save(this.active, { as: e.shiftKey }); }
-            else if (key === "o") { e.preventDefault(); this.open(); }
+            else if (key === "o") { e.preventDefault(); if (e.shiftKey) this.openFolder(); else this.open(); }
             else if (!typing && key === "z") { e.preventDefault(); this.undo(e.shiftKey); }
             else if (!typing && key === "y") { e.preventDefault(); this.undo(true); }
         });

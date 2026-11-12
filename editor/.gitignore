@@ -1,4 +1,3 @@
 # Local copy of the SysML engine (tools/fetch-engine.mjs)
 vendor/
-# Standalone build (tools/build-standalone.mjs)
-dist/
+# The standalone build dist/mbse-methodology-editor.html is versioned: it runs without a web server.

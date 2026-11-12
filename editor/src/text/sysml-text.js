@@ -79,6 +79,10 @@ function declaredName(header) {
     for (let k = 0; k < header.length; k++) {
         const t = header[k];
         if (t.type === "punct") {
+            // A named metadata usage: "@name : Type { ... }".
+            if (t.value === "@" && header[k + 1] && header[k + 1].type === "ident" && header[k + 2] && header[k + 2].value === ":") {
+                return { token: header[k + 1], value: header[k + 1].value };
+            }
             if (t.value === "#" || t.value === "@") { k = skipQualifiedName(header, k + 1); declared = true; continue; }
             if (t.value === "<") { while (k < header.length && header[k].value !== ">") k++; continue; }
             if (t.value === ":>>" || t.value === ":>" || t.value === "::>") {

@@ -1,13 +1,15 @@
-// Editor of the EEE Company Tool Policy Matrix: methods (rows) × tools (columns).
+// Editor of the tool policy of an MBSE environment: methods (rows) × tools (columns).
 //
-// A cell is the status of the tool/method combination: recommended, allowed or forbidden, or empty if the policy
-// has no rule for it. Clicking a cell cycles its status (empty → recommended → allowed → forbidden → empty).
-// A dot in a cell marks combinations that process steps of the EEE checks use: a used, forbidden combination is a
-// finding of the EEE check.
+// The tool policy of an environment is the set of its tool policy rules (DTFA::ToolPolicyRule: a facilitates connection
+// of a tool and a method with a status) and of the rules of the environments it specializes; the rule of the most
+// specific environment wins. A cell is the status of the tool/method combination: recommended, allowed or forbidden,
+// or empty. Clicking a cell cycles its status (empty → recommended → allowed → forbidden → empty) with a rule of the
+// selected environment. A dot in a cell marks combinations that process steps of the flow analyses use: a used,
+// forbidden combination is a finding of the analysis.
 //
 // Events: "select" { id }, "command" { command, id, args }
 
-import { POLICY_STATUS } from "../eee/model.js";
+import { MBSEEnvironment, POLICY_STATUS } from "../dtfa/model.js";
 
 function escapeHtml(s) {
     return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -21,12 +23,10 @@ export class PolicyView extends EventTarget {
         this.root = container;
         this.root.classList.add("pv-view");
         this.state = null;
-        this.policyId = null;
-        this.showAll = true;
+        this.environmentId = null;
         this.root.addEventListener("click", e => this.onClick(e));
         this.root.addEventListener("change", e => {
-            if (e.target.matches(".pv-policy")) { this.policyId = e.target.value; this.show(this.state); }
-            if (e.target.matches(".pv-all")) { this.showAll = e.target.checked; this.show(this.state); }
+            if (e.target.matches(".pv-policy")) { this.environmentId = e.target.value; this.show(this.state); }
         });
     }
 
@@ -38,59 +38,63 @@ export class PolicyView extends EventTarget {
             this.root.innerHTML = `<div class="fv-empty">${escapeHtml(state.message || "Waiting for the model check…")}</div>`;
             return;
         }
-        const selectedPolicy = model.policyOf(state.selectedId);
-        if (selectedPolicy) this.policyId = selectedPolicy.id;
-        if (!model.policies.some(p => p.id === this.policyId)) this.policyId = model.policies.length ? model.policies[0].id : null;
-        const policy = model.get(this.policyId);
-        if (!policy) {
-            this.root.innerHTML = `<div class="fv-empty"><p>No tool policy yet.</p>
-                <p>Insert one with <strong>Insert ▸ Tool policy</strong>; its rules rate tool/method combinations as recommended, allowed or forbidden.</p></div>`;
+        // The environment of the selection: an environment, an element of one, or the environment of a rule or an analysis.
+        const selected = model.get(state.selectedId);
+        const selectedEnvironment = selected && (selected instanceof MBSEEnvironment ? selected
+            : model.get(selected.environmentId) || (model.analysisOf(selected.id) && model.get(model.analysisOf(selected.id).environmentId)));
+        if (selectedEnvironment && model.environments.includes(selectedEnvironment)) this.environmentId = selectedEnvironment.id;
+        if (!model.environments.some(e => e.id === this.environmentId)) {
+            const withRules = model.environments.find(e => e.rules.length);
+            this.environmentId = (withRules || model.environments[0] || {}).id || null;
+        }
+        const environment = model.get(this.environmentId);
+        if (!environment) {
+            this.root.innerHTML = `<div class="fv-empty"><p>No MBSE environment yet.</p>
+                <p>Create one with <strong>File ▸ New MBSE environment</strong>; its tool policy rates tool/method combinations as recommended, allowed or forbidden.</p></div>`;
             return;
         }
-        const axes = model.policyAxes(policy);
-        // "All": the tools and methods of the package of the policy, and those that its rules use.
-        const rootPackage = policy.id.split("::")[0];
-        const inPackage = e => e.id.split("::")[0] === rootPackage;
-        const tools = this.showAll ? model.tools.filter(t => inPackage(t) || axes.tools.includes(t)) : axes.tools;
-        const methods = this.showAll ? model.methods.filter(m => inPackage(m) || axes.methods.includes(m)) : axes.methods;
-        const rule = (toolId, methodId) => policy.rules.find(r => r.toolId === toolId && r.methodId === methodId) || null;
+        const { tools, methods } = model.policyAxes(environment.id);
+        // Usage: the process steps of the flow analyses of this environment and of the environments that specialize it.
         const usage = new Map();
-        for (const check of model.checks) {
-            for (const step of check.steps) {
-                if (!step.toolId || !step.methodId) continue;
-                const key = `${step.toolId}|${step.methodId}`;
-                if (!usage.has(key)) usage.set(key, []);
-                usage.get(key).push(step);
+        for (const analysis of model.analyses) {
+            if (!analysis.environmentId || !model.environmentScope(analysis.environmentId).includes(environment.id)) continue;
+            for (const step of analysis.steps) {
+                if (!step.toolId) continue;
+                for (const methodId of [step.id, ...step.method.redefinedIds]) {
+                    const key = `${step.toolId}|${methodId}`;
+                    if (!usage.has(key)) usage.set(key, []);
+                    usage.get(key).push(step);
+                }
             }
         }
-        const analysis = state.analyses ? state.analyses.get(policy.id) : null;
+        const analysis = state.analyses ? state.analyses.get(environment.id) : null;
         const findings = analysis ? analysis.findings : [];
 
         const header = tools.map(t => `<th scope="col"><button type="button" class="fv-link" data-select="${escapeHtml(t.id)}">${escapeHtml(t.name)}</button></th>`).join("");
         const body = methods.map(m => `<tr><th scope="row"><button type="button" class="fv-link" data-select="${escapeHtml(m.id)}">${escapeHtml(m.name)}</button></th>${tools.map(t => {
-            const r = rule(t.id, m.id);
-            const status = r ? r.status : "";
+            const found = model.policyStatus(environment.id, t.id, m.id);
+            const status = found ? found.status : "";
+            const inherited = found && found.rule.environmentId !== environment.id;
             const used = usage.get(`${t.id}|${m.id}`) || [];
-            const label = `${m.name} with ${t.name}: ${status ? POLICY_STATUS[status].label : "no rule"}${used.length ? `; used by ${used.map(s => s.name).join(", ")}` : ""}`;
-            return `<td class="pv-cell ${status ? `status-${status}` : "empty"}${used.length ? " used" : ""}${r && r.id === state.selectedId ? " selected" : ""}">
-                <button type="button" data-cell data-tool="${escapeHtml(t.id)}" data-method="${escapeHtml(m.id)}" ${editable ? "" : "disabled"}
-                    title="${escapeHtml(label + (editable ? ". Click to change the status." : ""))}" aria-label="${escapeHtml(label)}">
+            const label = `${m.name} with ${t.name}: ${status ? POLICY_STATUS[status].label : "no rule"}${inherited ? ` (rule ${found.rule.name} of ${model.nameOf(found.rule.environmentId)})` : found ? ` (rule ${found.rule.name})` : ""}${used.length ? `; used by ${[...new Set(used.map(s => s.name))].join(", ")}` : ""}`;
+            return `<td class="pv-cell ${status ? `status-${status}` : "empty"}${used.length ? " used" : ""}${inherited ? " inherited" : ""}${found && found.rule.id === state.selectedId ? " selected" : ""}">
+                <button type="button" data-cell data-tool="${escapeHtml(t.id)}" data-method="${escapeHtml(m.id)}" data-status="${status}" ${editable ? "" : "disabled"}
+                    title="${escapeHtml(label + (editable ? `. Click to change the status in ${environment.name}.` : ""))}" aria-label="${escapeHtml(label)}">
                     ${status ? POLICY_STATUS[status].label : ""}${used.length ? `<span class="pv-used" aria-hidden="true">●${used.length > 1 ? used.length : ""}</span>` : ""}
                 </button></td>`;
         }).join("")}</tr>`).join("");
 
-        const options = model.policies.map(p => `<option value="${escapeHtml(p.id)}"${p.id === this.policyId ? " selected" : ""}>${escapeHtml(p.name)}</option>`).join("");
+        const options = model.environments.map(e => `<option value="${escapeHtml(e.id)}"${e.id === this.environmentId ? " selected" : ""}>${escapeHtml(e.name)}${e.rules.length ? ` (${e.rules.length} rules)` : ""}</option>`).join("");
         this.root.innerHTML = `<div class="dg-toolbar">
-                <label class="dg-field">Tool policy <select class="pv-policy">${options}</select></label>
-                <button type="button" class="fv-link" data-select="${escapeHtml(policy.id)}">Open in form</button>
+                <label class="dg-field">MBSE environment <select class="pv-policy">${options}</select></label>
+                <button type="button" class="fv-link" data-select="${escapeHtml(environment.id)}">Open environment</button>
                 <span class="dg-spacer"></span>
-                <label class="dg-check" title="All tools and methods of the package of the policy, not only those of its rules"><input type="checkbox" class="pv-all" ${this.showAll ? "checked" : ""}> All tools and methods</label>
-                ${editable ? `<button type="button" data-command="addTool" data-id="${escapeHtml(policy.id)}">+ Tool</button>
-                    <button type="button" data-command="addMethod" data-id="${escapeHtml(policy.id)}">+ Method</button>` : ""}
+                ${editable ? `<button type="button" data-command="addTool" data-id="${escapeHtml(environment.id)}">+ Tool</button>
+                    <button type="button" data-command="addMethod" data-id="${escapeHtml(environment.id)}">+ Method</button>` : ""}
             </div>
             <div class="pv-scroll">
-                <h2 class="pv-title">EEE Company Tool Policy Matrix <span class="fv-muted">${escapeHtml(policy.name)}</span></h2>
-                ${policy.doc ? `<p class="fv-line">${escapeHtml(policy.doc)}</p>` : ""}
+                <h2 class="pv-title">Tool policy <span class="fv-muted">${escapeHtml(environment.name)}</span></h2>
+                <p class="fv-line fv-muted">Rules are tool policy rules (rated facilitates connections) of ${escapeHtml(environment.name)}${environment.generalIds.length ? " and of the environments it specializes; inherited rules are shaded, and a rule of this environment overrides them" : ""}.</p>
                 ${tools.length && methods.length ? `<div class="fv-matrix-wrap"><table class="fv-matrix pv-matrix">
                     <caption>Methods (rows) × tools (columns)</caption>
                     <thead><tr><th scope="col">Method \\ Tool</th>${header}</tr></thead><tbody>${body}</tbody></table></div>`
@@ -98,7 +102,7 @@ export class PolicyView extends EventTarget {
                 <p class="fv-note pv-legend"><span class="pv-chip status-recommended">Recommended</span> proven combination ·
                     <span class="pv-chip status-allowed">Allowed</span> alternative ·
                     <span class="pv-chip status-forbidden">Forbidden</span> not practicable ·
-                    <span class="pv-used">●</span> used by process steps of the EEE checks</p>
+                    <span class="pv-used">●</span> used by process steps of the flow analyses</p>
                 ${findings.length ? `<ul class="fv-findings">${findings.map(f => `<li class="${f.severity}"><button type="button" class="fv-link" data-select="${escapeHtml(f.id)}">${escapeHtml(f.message)}</button></li>`).join("")}</ul>` : ""}
             </div>`;
     }
@@ -106,10 +110,8 @@ export class PolicyView extends EventTarget {
     onClick(e) {
         const cell = e.target.closest("[data-cell]");
         if (cell && this.state.editable) {
-            const policy = this.state.model.get(this.policyId);
-            const rule = policy.rules.find(r => r.toolId === cell.dataset.tool && r.methodId === cell.dataset.method);
-            const next = CYCLE[(CYCLE.indexOf(rule ? rule.status : "") + 1) % CYCLE.length];
-            this.dispatchEvent(new CustomEvent("command", { detail: { command: "setPolicyCell", id: policy.id, args: { toolId: cell.dataset.tool, methodId: cell.dataset.method, status: next } } }));
+            const next = CYCLE[(CYCLE.indexOf(cell.dataset.status || "") + 1) % CYCLE.length];
+            this.dispatchEvent(new CustomEvent("command", { detail: { command: "setPolicyCell", id: this.environmentId, args: { toolId: cell.dataset.tool, methodId: cell.dataset.method, status: next } } }));
             return;
         }
         const command = e.target.closest("[data-command]");
@@ -118,6 +120,7 @@ export class PolicyView extends EventTarget {
             return;
         }
         const select = e.target.closest("[data-select]");
-        if (select) this.dispatchEvent(new CustomEvent("select", { detail: { id: select.dataset.select } }));
+        // A link opens the editor of the element, e.g. the role editor (see App.openElement).
+        if (select) this.dispatchEvent(new CustomEvent("select", { detail: { id: select.dataset.select, open: select.classList.contains("fv-link") } }));
     }
 }

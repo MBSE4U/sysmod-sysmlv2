@@ -1,11 +1,11 @@
 // Model provider for SysML v2 textual notation.
 //
 // A model provider turns a model source into what the views show:
-//   load() -> { model: EeeModel, diagnostics: Diagnostic[], locate(id): SourceLocation | null }
-// This provider parses the open .sysml documents (and the EEE library) with the SysML engine.
+//   load() -> { model: DtfaModel, diagnostics: Diagnostic[], locate(id): SourceLocation | null }
+// This provider parses the open .sysml documents (and the libraries) with the SysML engine.
 // A provider for the SysML v2 API answers the same shape from the elements of a project commit.
 
-import { buildEeeModel, LANGUAGE_TYPES } from "../eee/EeeModelBuilder.js";
+import { buildDtfaModel, ANALYSIS_OPTIONS } from "../dtfa/DtfaModelBuilder.js";
 import { buildOutline, locate } from "../text/sysml-text.js";
 
 /**
@@ -14,7 +14,7 @@ import { buildOutline, locate } from "../text/sysml-text.js";
  * @param {object} analysis result of engine.analyze()
  * @param {{name: string, content: string}[]} documents
  */
-export function buildFromAnalysis(analysis, documents) {
+export function buildFromAnalysis(analysis, documents, { libraryNames = [] } = {}) {
     const outlines = new Map(documents.map(d => [d.name, buildOutline(d.content)]));
 
     // Each document root lists the top-level packages declared by the document.
@@ -33,7 +33,7 @@ export function buildFromAnalysis(analysis, documents) {
         return node ? { document, node } : null;
     };
 
-    const model = buildEeeModel(analysis.symbols, { documentOf, truncated: analysis.truncated });
+    const model = buildDtfaModel(analysis.symbols, { documentOf, truncated: analysis.truncated, generals: analysis.generals || {}, libraryNames });
 
     return {
         model,
@@ -58,10 +58,13 @@ export class TextModelProvider {
         this.libraryNames = libraryNames;
     }
 
-    /** @param {{name: string, content: string}[]} documents all documents, libraries included */
-    async load(documents) {
+    /**
+     * @param {{name: string, content: string}[]} documents all documents, libraries included
+     * @param {{browseLibraries?: string[]}} options browseLibraries: libraries whose elements the model lists, too
+     */
+    async load(documents, { browseLibraries = [] } = {}) {
         const plain = documents.map(d => ({ name: d.name, content: d.content }));
-        const analysis = await this.engine.analyze(plain, { libraryNames: this.libraryNames, languageTypes: LANGUAGE_TYPES });
-        return buildFromAnalysis(analysis, plain);
+        const analysis = await this.engine.analyze(plain, { libraryNames: this.libraryNames, browseLibraries, ...ANALYSIS_OPTIONS });
+        return buildFromAnalysis(analysis, plain, { libraryNames: this.libraryNames });
     }
 }

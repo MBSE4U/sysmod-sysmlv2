@@ -93,9 +93,9 @@ async function init({ sources, files }) {
     return { version: engine.version, source: loaded.source };
 }
 
-async function analyze({ documents, libraryNames, languageTypes }) {
+async function analyze({ documents, libraryNames, browseLibraries, languageTypes, inheritingTypes, languagePackages }) {
     try {
-        return core.analyze(engine, documents, { libraryNames, languageTypes });
+        return core.analyze(engine, documents, { libraryNames, browseLibraries, languageTypes, inheritingTypes, languagePackages });
     } catch (e) {
         if (!core.isTrap(e)) throw e;
         // A defect in the engine leaves its instance unusable: start a new one for the next check.

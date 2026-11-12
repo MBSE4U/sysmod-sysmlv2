@@ -4,7 +4,7 @@
 // rules. The editor needs two things from it:
 //   - diagnostics with their document and position
 //   - the symbols of the user's documents, by qualified name (see analyze()), from which
-//     EeeModelBuilder builds the EEE domain model
+//     DtfaModelBuilder builds the domain model
 //
 // This module has no DOM or worker dependencies, so the worker and the Node smoke test share it.
 
@@ -128,13 +128,25 @@ function referenced(session, element, property) {
         .filter(Boolean);
 }
 
+/**
+ * The specializations of an element: { kind, targetId, chain? }. For a feature chain, e.g. ":> env.methodology.m",
+ * targetId is the last feature of the chain (its declaration) and chain lists the qualified names of all its features.
+ */
 function specializationsOf(session, element) {
     return referenced(session, element, "ownedSpecialization").map(relationship => {
         const [general] = referenced(session, relationship, "general");
-        return {
+        const result = {
             kind: RELATIONSHIP_KINDS[session.metaclass(relationship)] || "specializes",
             targetId: general ? session.qualifiedName(general) || "" : "",
         };
+        if (general && !result.targetId) {
+            const chain = referenced(session, general, "chainingFeature").map(f => session.qualifiedName(f) || "");
+            if (chain.length) {
+                result.chain = chain;
+                result.targetId = chain[chain.length - 1];
+            }
+        }
+        return result;
     });
 }
 
@@ -199,38 +211,112 @@ function referencedFeatureOf(session, element) {
     return feature ? session.qualifiedName(feature) || "" : "";
 }
 
+/** Elements of a derived property, e.g. derivedElements(e, "type"); [] if the engine cannot derive it. */
+function derivedOf(session, element, property) {
+    try {
+        const result = session.derivedElements(element, property);
+        return Array.isArray(result) ? result : [];
+    } catch (_) {
+        return [];
+    }
+}
+
 /**
  * Collects the named elements below the given roots, depth first. Symbol:
- *   { id, name, kind, childIds, specializations: [{kind, targetId}], multiplicity, types,
- *     value, valueText, referencedId, docs }
- * kind      the metaclass in lower camel case (e.g. "partUsage", "connectionUsage")
- * types     the given language types (e.g. "EEE::Role") that the element conforms to, also through a
- *           user-defined keyword (semantic metadata)
- * value     the evaluated feature value, if the element has one: a literal, { ref: qualifiedName }, or an array
- * valueText the source text of the feature value, if the element has one
+ *   { id, name, kind, childIds, specializations: [{kind, targetId, chain?}], multiplicity, types,
+ *     value, valueText, referencedId, docs, generalIds, inheritedIds }
+ * kind          the metaclass in lower camel case (e.g. "partUsage", "connectionUsage")
+ * types         the given language types (e.g. "MBSEMethodology::Role") that the element conforms to, also through a
+ *               user-defined keyword (semantic metadata)
+ * value         the evaluated feature value, if the element has one: a literal, { ref: qualifiedName }, or an array
+ * valueText     the source text of the feature value, if the element has one
  * referencedId  the qualified name of the feature that the element references (connector ends)
- * docs      the doc comments of the element
+ * docs          the doc comments of the element
+ * generalIds    all its general types outside the standard library, transitively: its types (typing), the features it
+ *               subsets or redefines, and their generals, e.g. ISO15288Processes::Stakeholders::SystemArchitect and
+ *               MBSEMethodology::Role for "part systemArchitect : SystemArchitect"
+ * inheritedIds  for elements of the given inheriting types (environments, methodologies, processes, methods): the
+ *               features they inherit through their specializations, outside the standard library; these features are
+ *               collected as symbols, too
+ * The result also has generals: { id -> { name, kind, docs } } for the general types.
  */
-function collectSymbols(session, roots, { limit = 20000, languageTypes = [] } = {}) {
+function collectSymbols(session, roots, { limit = 20000, languageTypes = [], inheritingTypes = [], languagePackages = [] } = {}) {
     const symbols = {};
+    const generals = {};
     let truncated = false;
     let count = 0;
     const types = languageTypes.map(name => ({ name, element: session.resolve(name) })).filter(t => t.element);
+    const inheriting = new Set(inheritingTypes);
+    const inLanguage = id => languagePackages.some(p => id === p || id.startsWith(p + "::"));
+
+    // General types, transitively, outside the standard library (cached per element).
+    const generalCache = new Map();
+    const generalsOf = element => {
+        let id = idOf(element);
+        if (!id) try { id = "#" + session.elementId(element); } catch (_) { return []; }
+        if (generalCache.has(id)) return generalCache.get(id);
+        const result = [];
+        generalCache.set(id, result); // guards cycles
+        const direct = [
+            ...derivedOf(session, element, "type"),
+            ...referenced(session, element, "ownedSpecialization").flatMap(r => referenced(session, r, "general")),
+        ];
+        for (const general of direct) {
+            if (!general || session.isLibraryElement(general)) continue;
+            const generalId = session.qualifiedName(general);
+            if (!generalId || generalId === id) continue;
+            if (!result.includes(generalId)) result.push(generalId);
+            if (!generals[generalId]) {
+                const metaclass = session.metaclass(general);
+                let docs = [];
+                try { docs = [...(session.docs(general) || [])]; } catch (_) { /* none */ }
+                generals[generalId] = { name: session.name(general) || lastSegment(generalId), kind: metaclass.charAt(0).toLowerCase() + metaclass.slice(1), docs };
+            }
+            for (const g of generalsOf(general)) if (!result.includes(g)) result.push(g);
+        }
+        return result;
+    };
+
+    // Anonymous connections (e.g. "connection :> responsibleFor connect systemArchitect to step") and successions
+    // ("first a then b") and their ends have no qualified name; they get the id "<owner id>::<connectionUsage element-id>"
+    // so that their ends are known, too.
+    const ANONYMOUS_KINDS = new Set(["ConnectionUsage", "SuccessionAsUsage", "Succession"]);
+    const anonymousIds = new Map();
+    const idOf = element => {
+        const qualifiedName = session.qualifiedName(element);
+        if (qualifiedName) return qualifiedName;
+        let elementId = "";
+        try { elementId = session.elementId(element) || ""; } catch (_) { return null; }
+        if (!elementId) return null;
+        if (anonymousIds.has(elementId)) return anonymousIds.get(elementId);
+        anonymousIds.set(elementId, null); // guards cycles
+        const metaclass = session.metaclass(element);
+        let owner = null;
+        try { owner = session.owner(element); } catch (_) { /* none */ }
+        const ownerId = owner ? idOf(owner) : null;
+        const ownerIsAnonymous = ownerId && ownerId.endsWith(">");
+        const id = ownerId && (ANONYMOUS_KINDS.has(metaclass) || (ownerIsAnonymous && metaclass !== "Multiplicity"))
+            ? `${ownerId}::<${metaclass.charAt(0).toLowerCase() + metaclass.slice(1)} ${elementId}>` : null;
+        anonymousIds.set(elementId, id);
+        return id;
+    };
 
     const visit = element => {
-        const id = session.qualifiedName(element);
+        const id = idOf(element);
         if (!id || symbols[id]) return id;
         if (count >= limit) { truncated = true; return null; }
         count++;
         const metaclass = session.metaclass(element);
         const symbol = {
             id,
-            name: session.name(element) || lastSegment(id),
+            name: session.name(element) || (id.endsWith(">") ? "" : lastSegment(id)),
             kind: metaclass.charAt(0).toLowerCase() + metaclass.slice(1),
             childIds: [],
             specializations: specializationsOf(session, element),
             multiplicity: multiplicityOf(session, element),
-            types: types.filter(t => session.conformsWithImplied(element, t.element)).map(t => t.name),
+            // Anonymous elements (connections and their ends) are not elements of the domain model and do not inherit.
+            types: id.endsWith(">") ? [] : types.filter(t => session.conformsWithImplied(element, t.element)).map(t => t.name),
+            generalIds: generalsOf(element),
         };
         const value = valueOf(session, element);
         if (value) {
@@ -249,10 +335,21 @@ function collectSymbols(session, roots, { limit = 20000, languageTypes = [] } = 
             const childId = visit(member);
             if (childId && !symbol.childIds.includes(childId)) symbol.childIds.push(childId);
         }
+        // Inherited features, e.g. the steps of a library process that a usage of it does not redefine.
+        if (symbol.types.some(t => inheriting.has(t))) {
+            symbol.inheritedIds = [];
+            for (const feature of derivedOf(session, element, "inheritedFeature")) {
+                if (session.isLibraryElement(feature)) continue;
+                const featureId = idOf(feature);
+                if (!featureId || inLanguage(featureId)) continue;
+                const visited = visit(feature);
+                if (visited && !symbol.inheritedIds.includes(visited)) symbol.inheritedIds.push(visited);
+            }
+        }
         return id;
     };
     for (const root of roots) visit(root);
-    return { symbols, truncated };
+    return { symbols, generals, truncated };
 }
 
 // ---------- analysis ----------
@@ -263,12 +360,14 @@ function collectSymbols(session, roots, { limit = 20000, languageTypes = [] } = 
  * so the views keep working while the user types; the parse errors are reported.
  * @param {{sysml: object, library: object}} engine from createEngine()
  * @param {{name: string, content: string}[]} documents
- * @param {{libraryNames?: string[], languageTypes?: string[]}} options languageTypes: the definitions whose
- *        conformance is reported per symbol (symbol.types), e.g. ["EEE::Role", "EEE::Tool"]
+ * @param {{libraryNames?: string[], languageTypes?: string[], inheritingTypes?: string[], languagePackages?: string[]}} options
+ *        languageTypes: the definitions whose conformance is reported per symbol (symbol.types);
+ *        inheritingTypes: the language types whose elements report their inherited features (symbol.inheritedIds);
+ *        languagePackages: packages whose features are not reported as inherited, e.g. the metamodel MBSEMethodology
  * @returns {{diagnostics: object[], documentRoots: {document: string, packageIds: string[]}[],
  *            symbols: Object<string, object>, truncated: boolean}}
  */
-export function analyze(engine, documents, { libraryNames = [], languageTypes = [] } = {}) {
+export function analyze(engine, documents, { libraryNames = [], browseLibraries = [], languageTypes = [], inheritingTypes = [], languagePackages = [] } = {}) {
     const { sysml, library } = engine;
     const texts = new Map(documents.map(d => [d.name, d.content]));
     const diagnostic = positions(texts);
@@ -294,9 +393,11 @@ export function analyze(engine, documents, { libraryNames = [], languageTypes = 
         diagnostics,
         documentRoots: [...documentRoots].map(([document, packageIds]) => ({ document, packageIds })),
         symbols,
+        generals,
         truncated,
     });
     let symbols = {};
+    let generals = {};
     let truncated = false;
 
     let session;
@@ -320,9 +421,10 @@ export function analyze(engine, documents, { libraryNames = [], languageTypes = 
             const document = site ? unitNames.get(site.unit) : undefined;
             if (!id || !document) continue;
             if (documentRoots.has(document) && !documentRoots.get(document).includes(id)) documentRoots.get(document).push(id);
-            if (!libraryNames.includes(document)) userRoots.push(root);
+            // The elements of the user's documents, and of the libraries the user browses (e.g. the open library document).
+            if (!libraryNames.includes(document) || browseLibraries.includes(document)) userRoots.push(root);
         }
-        ({ symbols, truncated } = collectSymbols(session, userRoots, { languageTypes }));
+        ({ symbols, generals, truncated } = collectSymbols(session, userRoots, { languageTypes, inheritingTypes, languagePackages }));
     } finally {
         session.free();
     }

@@ -588,7 +588,7 @@ library package SYSMOD {
     //
     // Verification
     //
-    item def VerificationReport {
+    item def VerificationReport :> ISO15288Processes::Products::VerificationReport {
         doc
         /* Verification Report — supports the Verification process of ISO/IEC/IEEE 15288; content aligned with ISO/IEC/IEEE 15289.
          * It documents the results of performing the verification cases of the verification context on its system of interest:

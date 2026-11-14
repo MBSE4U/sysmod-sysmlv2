@@ -436,6 +436,7 @@
 .ed-swatch.performs { border-top-color: var(--tag-role); }
 .ed-swatch.facilitates { border-top-color: var(--tag-tool); }
 .ed-swatch.product { border-top-color: var(--tag-artifact); }
+.ed-node.role-head rect { stroke: var(--tag-role); }
 .ed-swatch.declared { border-top-style: solid; }
 .ed-swatch.performed { border-top-style: dotted; }
 .ed-swatch.inherited { height: 10px; border: 1.5px dashed var(--muted); border-radius: 3px; }
@@ -466,6 +467,7 @@
 .pd-free-label { font: 11px var(--sans); fill: var(--muted); }
 .pd-name { font: 600 13px var(--sans) !important; }
 .pd-meta { font: 11px var(--sans) !important; fill: var(--muted) !important; }
+.pd-product { font: 11px var(--sans) !important; fill: var(--tag-artifact) !important; }
 .pd-path { font-size: 13px; }
 .pd-overview { flex: 1; overflow: auto; padding: 12px 16px 24px; }
 .pd-group h3 { font: 600 12px var(--sans); color: var(--muted); margin: 14px 0 8px; text-transform: none; }
@@ -481,3 +483,24 @@
 
 /* ---------- document editor ---------- */
 .fv-jump { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 14px; position: sticky; top: 0; z-index: 2; padding: 6px 0; background: var(--bg); }
+
+/* ---------- Roles, Tools, Methodology, Products: list and graph (ElementsView, ElementGraph) ---------- */
+.el-host { flex: 1; min-height: 0; }
+.el-view { display: flex; height: 100%; min-height: 0; background: var(--bg); }
+.el-list { width: 270px; flex: none; display: flex; flex-direction: column; border-right: 1px solid var(--line); background: var(--surface); min-height: 0; }
+.el-list-head { padding: 12px 12px 4px; display: flex; flex-direction: column; gap: 2px; }
+.el-list-head h2 { margin: 0; font-size: 15px; text-transform: none; letter-spacing: 0; color: var(--text); }
+.el-list-actions { display: flex; gap: 10px; align-items: center; padding: 4px 12px 8px; border-bottom: 1px solid var(--line); }
+.el-items { list-style: none; margin: 0; padding: 4px 0; overflow: auto; flex: 1; min-height: 0; }
+.el-items li { padding-right: 6px; }
+.el-item { display: flex; align-items: center; width: 100%; text-align: left; border: 0; background: none; padding: 4px 6px; border-radius: 5px; color: var(--text); font: 13px var(--sans); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.el-item:hover { background: var(--surface-2); }
+.el-items li.selected > .el-item { background: color-mix(in srgb, var(--accent) 14%, transparent); font-weight: 600; }
+.el-items li.inherited > .el-item { color: var(--muted); }
+.el-none { padding: 8px 12px; }
+.el-graph { flex: 1; min-width: 0; min-height: 0; }
+.eg-name { font-size: 14px; }
+.eg-center rect { stroke-width: 2.5; }
+.ed-edge.contains { stroke: var(--tag-policy); stroke-dasharray: 1 3; stroke-linecap: round; }
+.ed-edge.general { stroke: var(--muted); }
+.view-tab-transient { font-style: italic; }

@@ -16,7 +16,7 @@
 
 import { Process, Method, MBSEEnvironment } from "../dtfa/model.js";
 
-const BOX_W = 200, BOX_H = 46, ROW_GAP = 30, LANE_PAD = 20, HEAD_H = 40, END_R = 11;
+const BOX_W = 200, BOX_H_PLAIN = 46, ROW_GAP = 30, LANE_PAD = 20, HEAD_H = 40, END_R = 11;
 
 function escapeHtml(s) {
     return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -45,6 +45,7 @@ export class ProcessView extends EventTarget {
         this.transform = { x: 20, y: 20, k: 1 };
         this.fitPending = true;
         this.root.addEventListener("change", e => {
+            if (e.target.matches(".pd-products")) { this.showProducts = e.target.checked; this.fitPending = true; this.show(this.state); return; }
             if (!e.target.matches(".pd-select") || !e.target.value) return;
             const value = e.target.value;
             if (value.startsWith("overview:")) { this.renderOverview(value.slice("overview:".length), this.state.model.get(this.state.selectedId)); return; }
@@ -223,6 +224,10 @@ export class ProcessView extends EventTarget {
         const { model } = this.state;
         const { steps, successions } = model.flowOf(process);
         const environmentId = this.environmentOf(process);
+        // The products of a step: the types of its input and output parameters (e.g. SystemSpecification).
+        const productNames = (s, list) => (s[list] || []).map(f => f.typeIds.length ? ((model.generals[f.typeIds[0]] && model.generals[f.typeIds[0]].name) || model.nameOf(f.typeIds[0], f.typeIds[0].split("::").pop())) : f.name);
+        const withProducts = this.showProducts !== false && steps.some(s => productNames(s, "outputFeatures").length);
+        const BOX_H = withProducts ? 62 : BOX_H_PLAIN;
         this.processLane = "";
         const processLane = this.laneOf(process, environmentId);
         this.processLane = processLane.key ? processLane.label : "";
@@ -329,12 +334,17 @@ export class ProcessView extends EventTarget {
                 : s.slots.filter(x => x.kind === "tool").map(x => model.nameOf(x.valueIds[0], (x.typeIds[0] || x.slotId).split("::").pop()));
             const types = s.typeIds.slice(0, 1).map(t => (model.generals[t] && model.generals[t].name) || model.nameOf(t, t.split("::").pop()));
             const second = tools.length ? `with ${tools.join(", ")}` : types.length ? `: ${types[0]}` : "";
+            const inputs = productNames(s, "inputFeatures"), outputs = productNames(s, "outputFeatures");
             const tip = [`${s.kindLabel} ${s.name}${types.length ? ` : ${types[0]}` : ""}`, s.doc || (s.inheritedDoc ? s.inheritedDoc.text : ""),
+                inputs.length ? `Inputs: ${inputs.join(", ")}` : "", outputs.length ? `Outputs: ${outputs.join(", ")}` : "",
                 nested ? `${nested} steps: double-click to show them` : "", inherited ? "inherited" : ""].filter(Boolean).join("\n");
+            const productLine = withProducts && outputs.length ? `→ ${outputs.join(", ")}` : "";
+            const nameY = p.y + (withProducts ? (second ? 18 : (productLine ? 24 : 35)) : (second ? 19 : 27));
             parts.push(`<g class="ed-node method${s instanceof Process ? " process" : ""}${inherited ? " inherited" : ""}${selected && selected.id === s.id ? " selected" : ""}" data-open="${escapeHtml(s.id)}" data-nested="${nested}" tabindex="0">
                 <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="8"/>
-                <text x="${p.x + 10}" y="${p.y + (second ? 19 : 27)}" class="pd-name">${escapeHtml(fit((nested ? "▸ " : "") + s.name, p.w - 20, "600 13px system-ui, sans-serif"))}</text>
-                ${second ? `<text x="${p.x + 10}" y="${p.y + 36}" class="pd-meta">${escapeHtml(fit(second, p.w - 20, "11px system-ui, sans-serif"))}</text>` : ""}
+                <text x="${p.x + 10}" y="${nameY}" class="pd-name">${escapeHtml(fit((nested ? "▸ " : "") + s.name, p.w - 20, "600 13px system-ui, sans-serif"))}</text>
+                ${second ? `<text x="${p.x + 10}" y="${withProducts ? p.y + 34 : p.y + 36}" class="pd-meta">${escapeHtml(fit(second, p.w - 20, "11px system-ui, sans-serif"))}</text>` : ""}
+                ${productLine ? `<text x="${p.x + 10}" y="${p.y + (second ? 51 : 44)}" class="pd-product">${escapeHtml(fit(productLine, p.w - 20, "11px system-ui, sans-serif"))}</text>` : ""}
                 <title>${escapeHtml(tip)}</title></g>`);
         }
 
@@ -347,6 +357,7 @@ export class ProcessView extends EventTarget {
                 <label class="dg-field">Process <select class="pd-select">${options}</select></label>
                 ${path.length ? `<span class="pd-path">${path.map(e => `<button type="button" class="fv-link" data-up="${escapeHtml(e.id)}">${escapeHtml(e.name)}</button>`).join(" › ")} › <strong>${escapeHtml(process.name)}</strong></span>` : ""}
                 <button type="button" class="fv-link" data-form="${escapeHtml(process.id)}">Open form</button>
+                ${steps.some(s => (s.outputFeatures || []).length) ? `<label class="dg-check"><input type="checkbox" class="pd-products"${this.showProducts !== false ? " checked" : ""}> Products</label>` : ""}
                 <span class="dg-status">${steps.length} steps · ${successions.length} successions${environmentId ? ` · in ${escapeHtml(model.nameOf(environmentId))}` : ""}</span>
                 <span class="dg-spacer"></span>
                 <span class="dg-zoom">
@@ -364,6 +375,7 @@ export class ProcessView extends EventTarget {
                     <span>lanes: responsible performers</span>
                     <span>wheel: scroll · Ctrl+wheel: zoom</span>
                     <span>→ succession</span>
+                    ${withProducts ? "<span>→ X: output products</span>" : ""}
                     <span>▸ has steps (double-click)</span>
                     <span><i class="ed-swatch inherited"></i>inherited</span>
                 </div>

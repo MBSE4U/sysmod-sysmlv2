@@ -201,6 +201,8 @@ export class FormView extends EventTarget {
                     <button type="button" data-rename disabled>Rename</button></div>`
                 : `<h2 class="fv-title">${escapeHtml(element.name)}</h2>`}
             <span class="fv-source">${escapeHtml(element.document || "")}
+                ${element instanceof Role || element instanceof Tool || element instanceof Method || element instanceof Process || element instanceof Artifact
+                    ? `<button type="button" class="fv-link" data-select="${escapeHtml(element.id)}" title="The diagram of the element with its connected artifacts">Show diagram</button>` : ""}
                 <button type="button" class="fv-link" data-reveal="${escapeHtml(element.id)}">Show in text</button></span>
         </header>`;
     }
@@ -496,7 +498,7 @@ export class FormView extends EventTarget {
                     <dt>Roles</dt><dd>${model.inScope(model.roles, element.id).length}</dd>
                     <dt>Tools</dt><dd>${model.inScope(model.tools, element.id).length}</dd>
                     <dt>Methods</dt><dd>${model.inScope(model.methods, element.id).length}</dd>
-                    <dt>Products</dt><dd>${model.inScope(model.artifacts, element.id).length}</dd></dl>
+                    <dt>Products</dt><dd>${model.productsOf(element.id).length}</dd></dl>
                 <section class="fv-section"><h3>Flow analyses</h3>${this.chips(element.analyses.map(a => a.id), "None.")}
                     ${this.state.editable ? `<div class="fv-buttons"><button type="button" data-command="addAnalysis" data-id="${escapeHtml(element.id)}">+ Flow analysis</button></div>` : ""}</section>
                 <section class="fv-section"><h3>Tool policy</h3><p class="fv-line">${element.rules.length} rules of this environment${rules.length > element.rules.length ? `, ${rules.length - element.rules.length} inherited` : ""}.
@@ -591,7 +593,7 @@ export class FormView extends EventTarget {
         const kinds = { primary: "Responsible", additional: "Supporting", tool: "Tools" };
         const slots = Object.entries(kinds).map(([kind, label]) => [label, behavior.slots.filter(s => s.kind === kind)]).filter(([, list]) => list.length);
         // A parameter with a link to its product, e.g. "systemRequirements : SystemRequirements".
-        const param = p => `<li>${escapeHtml(p.name)}${p.typeIds.length ? ` <span class="fv-muted">:</span> ${p.typeIds.slice(0, 1).map(t => this.generalLink(t)).join(", ")}` : ""}</li>`;
+        const param = p => `<li${p.doc ? ` title="${escapeHtml(p.doc)}"` : ""}>${escapeHtml(p.name)}${p.typeIds.length ? ` <span class="fv-muted">:</span> ${p.typeIds.slice(0, 1).map(t => this.generalLink(t)).join(", ")}` : ""}${p.inherited ? ' <span class="fv-muted">(inherited)</span>' : ""}</li>`;
         const parts = [];
         if (steps.length) parts.push(`<dt>Steps</dt><dd>${this.chips(steps.map(s => s.id), "")}</dd>`);
         for (const [label, list] of slots) parts.push(`<dt>${label}</dt><dd>${list.map(s => escapeHtml(this.slotLabel(s))).join(", ")}</dd>`);
@@ -646,7 +648,7 @@ export class FormView extends EventTarget {
                 <td>${performers(e, ["primary"])}</td><td>${performers(e, ["additional"])}</td><td>${performers(e, ["tool"])}</td>
                 <td>${used(e, "id")}</td><td class="fv-desc">${description(e)}</td></tr>`);
         } else {
-            const list = model.inScope(model[spec.list], environment.id);
+            const list = kind === "products" ? model.productsOf(environment.id) : model.inScope(model[spec.list], environment.id);
             count = list.length;
             const extra = kind === "roles"
                 ? e => { const tree = model.methodologyTree(environment.id);
@@ -654,10 +656,17 @@ export class FormView extends EventTarget {
                 : kind === "tools"
                     ? e => model.methodologyTree(environment.id).filter(n => model.performersOf(n.element, environment.id, ["tool"]).includes(e)).length || ""
                     : null;
-            head = ["Name", "Specializes", ...(extra ? [kind === "roles" ? "Methods" : "Facilitates"] : []), spec.usedLabel, "Description"];
+            // A product: how many steps (parameters and process steps of the analyses) produce and need it.
+            const tree = model.methodologyTree(environment.id).map(n => n.element);
+            const productUse = e => {
+                const out = tree.filter(b => model.parameterProductIds(b, "outputFeatures").includes(e.id)).length + Number(used(e, "targetArtifactIds") || 0);
+                const inp = tree.filter(b => model.parameterProductIds(b, "inputFeatures").includes(e.id)).length + Number(used(e, "sourceArtifactIds") || 0);
+                return [out && `produced by ${out}`, inp && `needed by ${inp}`].filter(Boolean).join(", ");
+            };
+            head = ["Name", "Specializes", ...(extra ? [kind === "roles" ? "Methods" : "Facilitates"] : []), kind === "products" ? "Methods" : spec.usedLabel, "Description"];
             rows = list.map(e => `<tr${e.environmentId !== environment.id ? ' class="fv-inherited"' : ""}>
                 <td>${this.link(e.id)}${origin(e)}</td><td>${types(e)}</td>${extra ? `<td>${extra(e)}</td>` : ""}
-                <td>${kind === "products" ? [used(e, "sourceArtifactIds") && `needed ${used(e, "sourceArtifactIds")}×`, used(e, "targetArtifactIds") && `produced ${used(e, "targetArtifactIds")}×`].filter(Boolean).join(", ") : used(e, spec.stepKey)}</td>
+                <td>${kind === "products" ? productUse(e) : used(e, spec.stepKey)}</td>
                 <td class="fv-desc">${description(e)}</td></tr>`);
         }
         const others = Object.entries(COLLECTIONS).filter(([k]) => k !== kind)
@@ -665,6 +674,10 @@ export class FormView extends EventTarget {
         return `<nav class="fv-crumbs" aria-label="Location"><button type="button" class="fv-link" data-select="${escapeHtml(environment.id)}">${escapeHtml(environment.name)}</button>
                 <span class="fv-sep">›</span><span aria-current="page">${spec.title}</span></nav>
             <header class="fv-header"><span class="fv-kind">${spec.title}</span><h2 class="fv-title">${spec.title} of ${escapeHtml(environment.name)}</h2>
+                <span class="ev-modes" role="group" aria-label="Show the ${escapeHtml(spec.title.toLowerCase())} as">
+                    <button type="button" data-collection="${kind}" data-id="${escapeHtml(environment.id)}" aria-pressed="false" title="List and diagram of the ${escapeHtml(spec.title.toLowerCase())}">Diagram</button>
+                    <button type="button" class="active" aria-pressed="true">Table</button>
+                </span>
                 <span class="fv-source">${others}</span></header>
             <p class="fv-line fv-muted">${spec.hint} Including the ${spec.title.toLowerCase()} inherited from the environments that ${escapeHtml(environment.name)} specializes and from libraries (shaded).</p>
             ${this.state.editable ? `<div class="fv-buttons fv-collection-add"><button type="button" data-command="${spec.command}" data-id="${escapeHtml(environment.id)}">${spec.add}</button></div>` : ""}

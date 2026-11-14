@@ -278,12 +278,37 @@ export function buildDtfaModel(symbols, { documentOf = () => "", truncated = fal
         if (!(element instanceof Method || element instanceof Process)) continue;
         element.inputFeatures = [];
         element.outputFeatures = [];
-        for (const child of (get(element.id).childIds || []).map(get).filter(Boolean)) {
+        // Owned parameters first, then the inherited ones that are not redefined, e.g. the parameters of the definition of
+        // a step usage (action setupProject : SetupProject).
+        const symbol = get(element.id);
+        const seen = new Set();
+        for (const child of [...(symbol.childIds || []), ...(symbol.inheritedIds || [])].map(get).filter(Boolean)) {
+            if (!child.name || seen.has(child.name)) continue;
             for (const [base, list] of Object.entries(IO)) {
                 if ((child.generalIds || []).includes(base)) {
-                    element[list].push({ id: child.id, name: child.name, typeIds: typesOf(child).filter(t => !(child.specializations || []).some(sp => sp.kind !== "typing" && sp.targetId === t)) });
+                    seen.add(child.name);
+                    element[list].push({ id: child.id, name: child.name, doc: (child.docs || []).join("\n\n"), inherited: !child.id.startsWith(element.id + "::"),
+                        typeIds: typesOf(child).filter(t => !(child.specializations || []).some(sp => sp.kind !== "typing" && sp.targetId === t)) });
                 }
             }
+        }
+    }
+
+    // The products of parameters that are declared in a library document the engine did not browse (e.g. the products of
+    // SYSMODProcesses in a project document): products from their general type info, so that the views can show them.
+    for (const element of [...model.elements.values()]) {
+        if (!(element instanceof Method || element instanceof Process)) continue;
+        for (const feature of [...element.inputFeatures, ...element.outputFeatures]) {
+            const [typeId, ...generalIds] = feature.typeIds;
+            if (!typeId || model.get(typeId) || inLanguage(typeId)) continue;
+            const info = generals[typeId] || {};
+            if (info.kind && !/Definition$/.test(info.kind)) continue;
+            const document = documentOf(typeId);
+            const product = model.register(new Artifact({ id: typeId, name: info.name || lastSegment(typeId), document, doc: (info.docs || []).join("\n\n") }));
+            product.library = libraryNames.includes(document);
+            product.isDefinition = true;
+            product.typeIds = generalIds;
+            model.artifacts.push(product);
         }
     }
 

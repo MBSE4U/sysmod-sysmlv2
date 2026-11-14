@@ -33,10 +33,15 @@ import { StepDefinitionView } from "../ui/StepDefinitionView.js";
 import { PolicyView } from "../ui/PolicyView.js";
 import { FormView } from "../ui/FormView.js";
 import { ProcessView } from "../ui/ProcessView.js";
+import { ElementsView } from "../ui/ElementsView.js";
 import { formDialog, confirmDialog, infoDialog } from "../ui/FormDialog.js";
 
 const $ = selector => document.querySelector(selector);
-const VIEWS = ["environment", "matrix", "steps", "policy", "process", "form", "text"];
+const VIEWS = ["environment", "roles", "tools", "methodology", "products", "process", "text", "form", "matrix", "steps", "policy"];
+/** Views without a tab of their own: their tab shows only while they are open (the form, the DTFA views). */
+const TRANSIENT_VIEWS = ["form", "matrix", "steps", "policy"];
+/** The tab of the elements of a collection, and of an element. */
+const COLLECTION_TABS = { roles: "roles", tools: "tools", methods: "methodology", products: "products" };
 const VIEW_KEY = "mbse-methodology-editor-view";
 
 /** Feature names of the MBSEMethodology and DTFA libraries; an element with such a name would be confused with them in the text. */
@@ -113,6 +118,7 @@ export class App {
         this.policyView = new PolicyView($("#policy"));
         this.formView = new FormView($("#form"));
         this.processView = new ProcessView($("#process"));
+        this.elementViews = Object.fromEntries(["roles", "tools", "methodology", "products"].map(kind => [kind, new ElementsView($(`#${kind}`), kind)]));
         this.wireUi();
 
         this.workspace.addEventListener("change", e => this.onWorkspaceChange(e.detail));
@@ -243,12 +249,15 @@ export class App {
     // ---------- views and selection ----------
 
     setView(view) {
+        // The element the previous view shows, e.g. the process of the graph, for the text view to jump to.
+        const context = view === "text" && this.view !== "text" ? this.contextId(this.view) : null;
         this.view = view;
         for (const v of VIEWS) {
             $(`#view-${v}`).hidden = v !== view;
             const tab = document.querySelector(`[data-view-tab="${v}"]`);
             tab.setAttribute("aria-selected", String(v === view));
             tab.classList.toggle("active", v === view);
+            if (TRANSIENT_VIEWS.includes(v)) tab.hidden = v !== view;
         }
         try { localStorage.setItem(VIEW_KEY, view); } catch (_) { /* storage unavailable */ }
         if (view === "text" && this.active) {
@@ -256,12 +265,56 @@ export class App {
             this.editor.render();
         }
         this.renderModelViews();
+        if (context) {
+            const result = this.analysis && this.analysis.result;
+            if (result && result.locate(context)) this.reveal(context);
+        }
+    }
+
+    /**
+     * The element a view shows: the element of the graph (Roles, Tools, Methodology, Products), the selected step or the
+     * process of the Processes view, the selected element or the environment of the Environment view, the element of the
+     * form, or the selection.
+     */
+    contextId(view) {
+        const model = this.analysis && this.analysis.result.model;
+        if (!model) return null;
+        const selected = model.get(this.selectedId) ? this.selectedId : null;
+        if (this.elementViews && this.elementViews[view]) return this.elementViews[view].currentId || selected;
+        if (view === "process") {
+            const process = model.get(this.processView.processId);
+            if (!process || this.processView.overview) return selected;
+            const steps = model.flowOf(process).steps;
+            return selected && steps.some(s => s.id === selected) ? selected : process.id;
+        }
+        if (view === "environment") return this.environmentView.environmentId || selected;
+        if (view === "form" && this.collection) return this.collection.environmentId;
+        return selected;
     }
 
     viewState(message) {
         const model = this.analysis ? this.analysis.result.model : null;
         return { model, analyses: this.analyses, selectedId: this.selectedId, collection: this.collection, document: this.documentView,
-            activeDocument: this.activeName, editable: true, message };
+            activeDocument: this.activeName, environmentId: model ? this.currentEnvironmentId(model) : null, editable: true, message };
+    }
+
+    /**
+     * The MBSE environment the views show: a selected environment; otherwise the one of the active document (a file
+     * typically declares one); none for a document with methodology elements but no environment (e.g. the library
+     * ISO15288Processes: the views show its elements); otherwise the last or the first environment of the model.
+     */
+    currentEnvironmentId(model) {
+        const selected = model.get(this.selectedId);
+        if (selected instanceof MBSEEnvironment) { this.environmentId = selected.id; return selected.id; }
+        const own = model.environments.filter(e => e.document === this.activeName);
+        if (own.length) {
+            if (!own.some(e => e.id === this.environmentId)) this.environmentId = own[0].id;
+            return this.environmentId;
+        }
+        const methodologyElement = e => e.document === this.activeName && (e instanceof Role || e instanceof Tool || e instanceof Method || e instanceof Process || e instanceof Artifact);
+        if ([...model.elements.values()].some(methodologyElement)) return null;
+        if (!(model.get(this.environmentId) instanceof MBSEEnvironment)) this.environmentId = model.environments[0] ? model.environments[0].id : null;
+        return this.environmentId;
     }
 
     renderModelViews(message) {
@@ -274,6 +327,7 @@ export class App {
         if (this.view === "policy") this.policyView.show(state);
         if (this.view === "form") this.formView.show(state);
         if (this.view === "process") this.processView.show(state);
+        if (this.elementViews[this.view]) this.elementViews[this.view].show(state);
     }
 
     /**
@@ -284,10 +338,18 @@ export class App {
         const model = this.analysis && this.analysis.result.model;
         const element = model && model.get(id);
         this.select(id, { reveal: false });
+        // The graph of the element with its connected artifacts, in the tab of its kind; its form is one click away.
         if (element instanceof MBSEEnvironment) this.setView("environment");
-        // A process with steps opens its flow diagram; its form is one click away.
-        else if (element instanceof Process && model.subBehaviors(element).length) this.setView("process");
-        else if (element instanceof Role || element instanceof Tool || element instanceof Method || element instanceof Process || element instanceof Artifact) this.setView("form");
+        else if (element instanceof Role) this.setView("roles");
+        else if (element instanceof Tool) this.setView("tools");
+        else if (element instanceof Method || element instanceof Process) this.setView("methodology");
+        else if (element instanceof Artifact) this.setView("products");
+    }
+
+    /** Opens the form of an element. */
+    openForm(id) {
+        this.select(id, { reveal: false });
+        this.setView("form");
     }
 
     /**
@@ -295,6 +357,19 @@ export class App {
      * elements, including the inherited ones, and the command to create new ones. The environment stays selected.
      */
     openCollection(kind, environmentId) {
+        // The tab of the collection, e.g. Roles, with the elements of the environment.
+        if (COLLECTION_TABS[kind]) {
+            if (environmentId) this.environmentId = environmentId;
+            this.collection = null;
+            this.documentView = null;
+            this.setView(COLLECTION_TABS[kind]);
+            return;
+        }
+        this.openTable(kind, environmentId);
+    }
+
+    /** The table of a collection of an environment in the form view: all elements, with the command to create new ones. */
+    openTable(kind, environmentId) {
         this.selectedId = environmentId;
         this.documentView = null;
         this.collection = { kind, environmentId };
@@ -492,10 +567,24 @@ export class App {
         if (this.view === "text" && !form) return;
         this.selectedId = null;
         this.collection = null;
-        this.documentView = name;
-        // The Process view shows the processes of the document; the other views switch to its document form.
-        this.setView(this.view === "process" && !form ? "process" : "form");
-        if (section) requestAnimationFrame(() => this.formView.scrollToSection(section));
+        if (form) {
+            this.documentView = name;
+            this.setView("form");
+            if (section) requestAnimationFrame(() => this.formView.scrollToSection(section));
+            return;
+        }
+        this.documentView = null;
+        // A document with an MBSE environment opens the environment; otherwise the Processes view stays, or the tab of its
+        // methodology elements opens (e.g. the processes of ISO15288Processes).
+        const model = this.analysis && this.analysis.result.model;
+        const own = kind => model ? [...model.elements.values()].filter(e => e.document === name && kind(e)).length : 0;
+        if (!model || model.environments.some(e => e.document === name)) this.setView("environment");
+        else if (this.view === "process" || this.view === "methodology") this.setView(this.view);
+        else if (own(e => e instanceof Method || e instanceof Process)) this.setView("methodology");
+        else if (own(e => e instanceof Artifact)) this.setView("products");
+        else if (own(e => e instanceof Role)) this.setView("roles");
+        else if (own(e => e instanceof Tool)) this.setView("tools");
+        else this.setView("environment");
     }
 
     async openExample(example) {
@@ -976,7 +1065,7 @@ export class App {
                 if (!sourceId && element instanceof Method) sourceId = element.id;
                 const steps = analysis.steps.map(s => ({ value: s.id, label: s.name }));
                 if (steps.length < 2) throw new ModelEditError(`${analysis.name} needs two process steps for a hand-over.`);
-                const products = model.inScope(model.artifacts, environment.id);
+                const products = model.productsOf(environment.id);
                 const source = analysis.stepOf(sourceId);
                 const values = await formDialog({
                     title: sourceId && targetId ? `Hand over from ${model.nameOf(sourceId)} to ${model.nameOf(targetId)}` : `Add a hand-over to ${analysis.name}`,
@@ -1328,6 +1417,14 @@ export class App {
             view.addEventListener("command", e => this.runCommand(e.detail.command, e.detail.id, e.detail.args));
         }
         this.processView.addEventListener("view", e => this.setView(e.detail.view));
+        for (const view of Object.values(this.elementViews)) {
+            view.addEventListener("select", e => this.select(e.detail.id, { reveal: false }));
+            view.addEventListener("open", e => this.openElement(e.detail.id));
+            view.addEventListener("form", e => this.openForm(e.detail.id));
+            view.addEventListener("command", e => this.runCommand(e.detail.command, e.detail.id));
+            view.addEventListener("collection", e => this.openTable(e.detail.kind, e.detail.id));
+            view.addEventListener("view", e => { if (e.detail.id) this.select(e.detail.id, { reveal: false }); this.setView(e.detail.view); });
+        }
         for (const view of [this.formView, this.environmentView]) {
             view.addEventListener("reveal", e => this.reveal(e.detail.id));
             view.addEventListener("view", e => this.setView(e.detail.view));

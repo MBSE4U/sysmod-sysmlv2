@@ -75,19 +75,28 @@
         <main class="editor-area">
             <div class="view-bar">
                 <div class="view-tabs" role="tablist" aria-label="Editor">
-                    <button type="button" role="tab" data-view-tab="environment" aria-controls="view-environment" title="MBSE environment: tools, roles, methodology, products">Environment</button>
-                    <button type="button" role="tab" data-view-tab="matrix" aria-controls="view-matrix" title="DTFA Steps #1 and #2: Tools Roles Methods Matrix and rating of the tool transitions">Matrix</button>
-                    <button type="button" role="tab" data-view-tab="steps" aria-controls="view-steps" title="DTFA Steps #3 and #4: step definitions and measures">Step definition</button>
-                    <button type="button" role="tab" data-view-tab="policy" aria-controls="view-policy" title="Tool policy of an MBSE environment">Tool policy</button>
-                    <button type="button" role="tab" data-view-tab="process" aria-controls="view-process" title="The flow of a process: its steps in the lanes of their performers">Process</button>
-                    <button type="button" role="tab" data-view-tab="form" aria-controls="view-form">Form</button>
+                    <button type="button" role="tab" data-view-tab="environment" aria-controls="view-environment" title="MBSE environment: roles, tools, methodology, products">Environment</button>
+                    <button type="button" role="tab" data-view-tab="roles" aria-controls="view-roles" title="The roles and what they perform, use, produce and need">Roles</button>
+                    <button type="button" role="tab" data-view-tab="tools" aria-controls="view-tools" title="The tools and what they facilitate">Tools</button>
+                    <button type="button" role="tab" data-view-tab="methodology" aria-controls="view-methodology" title="The processes and methods with their performers, tools, inputs and outputs">Methodology</button>
+                    <button type="button" role="tab" data-view-tab="products" aria-controls="view-products" title="The products: who produces and needs them">Products</button>
+                    <button type="button" role="tab" data-view-tab="process" aria-controls="view-process" title="The flow of a process: its steps in the lanes of their performers">Processes</button>
                     <button type="button" role="tab" data-view-tab="text" aria-controls="view-text">Text</button>
+                    <!-- Views without a tab of their own: their tab shows while they are open. -->
+                    <button type="button" role="tab" class="view-tab-transient" data-view-tab="form" aria-controls="view-form" hidden>Form</button>
+                    <button type="button" role="tab" class="view-tab-transient" data-view-tab="matrix" aria-controls="view-matrix" title="DTFA Steps #1 and #2: Tools Roles Methods Matrix and rating of the tool transitions" hidden>Matrix</button>
+                    <button type="button" role="tab" class="view-tab-transient" data-view-tab="steps" aria-controls="view-steps" title="DTFA Steps #3 and #4: step definitions and measures" hidden>Step definition</button>
+                    <button type="button" role="tab" class="view-tab-transient" data-view-tab="policy" aria-controls="view-policy" title="Tool policy of an MBSE environment" hidden>Tool policy</button>
                 </div>
                 <span class="view-spacer"></span>
                 <button type="button" id="undo" class="history-button" data-action="undo" disabled>↶ Undo</button>
                 <button type="button" id="redo" class="history-button" data-action="redo" disabled>↷ Redo</button>
             </div>
             <section id="view-environment" class="view" role="tabpanel" aria-label="MBSE environment"><div id="environment"></div></section>
+            <section id="view-roles" class="view" role="tabpanel" aria-label="Roles" hidden><div id="roles" class="el-host"></div></section>
+            <section id="view-tools" class="view" role="tabpanel" aria-label="Tools" hidden><div id="tools" class="el-host"></div></section>
+            <section id="view-methodology" class="view" role="tabpanel" aria-label="Methodology" hidden><div id="methodology" class="el-host"></div></section>
+            <section id="view-products" class="view" role="tabpanel" aria-label="Products" hidden><div id="products" class="el-host"></div></section>
             <section id="view-matrix" class="view" role="tabpanel" aria-label="Tools Roles Methods Matrix" hidden><div id="matrix"></div></section>
             <section id="view-steps" class="view" role="tabpanel" aria-label="Process Step Definition Diagram" hidden><div id="steps"></div></section>
             <section id="view-policy" class="view" role="tabpanel" aria-label="Tool policy" hidden><div id="policy"></div></section>

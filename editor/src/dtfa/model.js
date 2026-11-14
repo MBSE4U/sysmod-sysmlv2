@@ -399,11 +399,28 @@ export class DtfaModel {
      * @param {string[]} kinds "primary", "additional" or "tool"
      */
     performersOf(behavior, environmentId, kinds = ["primary", "additional"]) {
-        const candidates = this.inScope(kinds.includes("tool") ? this.tools : this.roles, environmentId);
+        const result = [];
+        const add = id => { if (!result.includes(id)) result.push(id); };
+        for (const kind of kinds) this.declaredPerformersOf(behavior, environmentId, kind).forEach(add);
+        return result.map(id => this.get(id));
+    }
+
+    /** The parent of a behavior in the methodology tree of an environment, or null. */
+    parentInTree(behaviorId, environmentId) {
+        this.parentCache = this.parentCache || new Map();
+        if (!this.parentCache.has(environmentId)) {
+            this.parentCache.set(environmentId, new Map(this.methodologyTree(environmentId).map(n => [n.element.id, n.parentId])));
+        }
+        return this.parentCache.get(environmentId).get(behaviorId) || null;
+    }
+
+    /** The roles (tools) that the methodology declares for the behavior itself (see performersOf), as ids. */
+    declaredPerformersOf(behavior, environmentId, kind) {
+        const candidates = this.inScope(kind === "tool" ? this.tools : this.roles, environmentId);
         const result = [];
         const add = id => { if (!result.includes(id)) result.push(id); };
         for (const slot of behavior.slots || []) {
-            if (!kinds.includes(slot.kind)) continue;
+            if (slot.kind !== kind) continue;
             // A value may refer to a redefined element, e.g. a tool of the company environment.
             slot.valueIds.forEach(id => { const c = candidates.find(x => x.id === id || x.redefinedIds.includes(id)); if (c) add(c.id); });
             if (!slot.valueIds.length) {
@@ -412,7 +429,25 @@ export class DtfaModel {
             }
         }
         // In the order of the slots: the first one is the role (tool) of the process step.
-        return result.map(id => this.get(id));
+        return result;
+    }
+
+    /** The products of the parameters of a behavior: the types of its features that subset inputs or outputs. */
+    parameterProductIds(behavior, list) {
+        return [...new Set((behavior[list] || []).map(f => f.typeIds[0]).filter(id => this.get(id) instanceof Artifact))];
+    }
+
+    /**
+     * The products of an environment: those it declares or inherits (inScope), and the products that the processes and
+     * methods of its methodology need and produce (the types of their parameters), e.g. the products of the SYSMOD steps.
+     * MBSEMethodology: the products of a methodology subset processes.allOutputs.
+     */
+    productsOf(environmentId) {
+        const ids = this.inScope(this.artifacts, environmentId).map(a => a.id);
+        for (const { element } of this.methodologyTree(environmentId)) {
+            for (const list of ["outputFeatures", "inputFeatures"]) this.parameterProductIds(element, list).forEach(id => { if (!ids.includes(id)) ids.push(id); });
+        }
+        return ids.map(id => this.get(id));
     }
 
     /** The rows and columns of the Tools Roles Methods Matrix of an analysis: the roles and tools of its environment. */

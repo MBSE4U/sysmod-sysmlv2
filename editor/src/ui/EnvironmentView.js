@@ -37,7 +37,9 @@ export class EnvironmentView extends EventTarget {
     }
 
     /** The environment to show: the selected one, the one of the selected element, or the last one. */
-    current(model, selectedId) {
+    current(model, selectedId, environmentId = null) {
+        // The environment of the active document (see App.currentEnvironmentId).
+        if (model.get(environmentId) instanceof MBSEEnvironment) return model.get(environmentId);
         const selected = model.get(selectedId);
         if (selected instanceof MBSEEnvironment) return selected;
         if (selected && selected.environmentId && model.get(selected.environmentId) instanceof MBSEEnvironment) return model.get(selected.environmentId);
@@ -54,7 +56,7 @@ export class EnvironmentView extends EventTarget {
             this.root.innerHTML = `<div class="fv-empty">${escapeHtml(state.message || "Waiting for the model check…")}</div>`;
             return;
         }
-        const environment = this.current(model, state.selectedId);
+        const environment = this.current(model, state.selectedId, state.environmentId);
         if (!environment) {
             this.root.innerHTML = `<div class="fv-empty"><p>No MBSE environment yet.</p>
                 <p>Create one with <strong>File ▸ New MBSE environment</strong>, open a file, or try <strong>Examples</strong>.</p></div>`;
@@ -84,6 +86,13 @@ export class EnvironmentView extends EventTarget {
             const n = steps.filter(s => s[key] === element.id || (Array.isArray(s[key]) && s[key].includes(element.id))).length;
             return n ? `${n} process step${n === 1 ? "" : "s"}` : "";
         };
+        // How the methodology uses a product: the steps (methods with parameters) that produce and need it.
+        const tree = model.methodologyTree(environment.id).map(n => n.element);
+        const productUse = a => {
+            const out = tree.filter(b => model.parameterProductIds(b, "outputFeatures").includes(a.id)).length + steps.filter(s => s.targetArtifactIds.includes(a.id)).length;
+            const inp = tree.filter(b => model.parameterProductIds(b, "inputFeatures").includes(a.id)).length + steps.filter(s => s.sourceArtifactIds.includes(a.id)).length;
+            return [out && `produced by ${out}`, inp && `needed by ${inp}`].filter(Boolean).join(", ");
+        };
         const card = (title, hint, items, command, label) => `<section class="ev-card${title === "Methodology" ? " ev-methodology" : ""}">
             <h3><button type="button" class="ev-card-open" data-collection="${COLLECTION_OF[command]}" data-id="${id}" title="Open the ${escapeHtml(title.toLowerCase())} editor">${escapeHtml(title)}</button> <span class="fv-count">${items.length}</span></h3>
             <p class="fv-muted ev-hint">${escapeHtml(hint)}</p>
@@ -94,15 +103,19 @@ export class EnvironmentView extends EventTarget {
         // Methodology: processes and methods as a tree, owned and inherited, with the roles that perform them as the
         // methodology declares them (also through the types of the roles, e.g. SystemArchitect).
         const methodology = model.methodologyTree(environment.id).map(({ element: b, depth }) => {
-            const performers = model.performersOf(b, environment.id).map(r => r.name);
-            const tools = model.performersOf(b, environment.id, ["tool"]).map(t => t.name);
+            const names = kinds => model.performersOf(b, environment.id, kinds).map(r => r.name);
+            const performers = names(["primary", "additional"]);
+            const tools = names(["tool"]);
             const detail = [performers.length ? `by ${performers.join(", ")}` : "", tools.length ? `with ${tools.join(", ")}` : ""].filter(Boolean).join(" · ");
             return item(b, detail, `<span class="ev-kind ${b instanceof Process ? "process" : "method"}">${b instanceof Process ? "process" : "method"}</span>`, depth);
         });
 
-        const options = model.environments.map(e => `<option value="${escapeHtml(e.id)}"${e === environment ? " selected" : ""}>${escapeHtml(e.name)}</option>`).join("");
+        // A document typically declares one environment: its name; a select only if it declares several.
+        const siblings = model.environments.filter(e => e.document === environment.document);
+        const options = siblings.map(e => `<option value="${escapeHtml(e.id)}"${e === environment ? " selected" : ""}>${escapeHtml(e.name)}</option>`).join("");
         this.root.innerHTML = `<div class="dg-toolbar">
-                <label class="dg-field">MBSE environment <select class="ev-select">${options}</select></label>
+                ${siblings.length > 1 ? `<label class="dg-field">MBSE environment <select class="ev-select">${options}</select></label>`
+                    : `<span class="dg-field">MBSE environment <strong>${escapeHtml(environment.name)}</strong></span>`}
                 ${generals ? `<span class="fv-muted">specializes ${generals}</span>` : ""}
                 <span class="ev-modes" role="group" aria-label="Show the environment as">
                     <button type="button" data-mode="cards" aria-pressed="${this.mode === "cards"}" class="${this.mode === "cards" ? "active" : ""}">Cards</button>
@@ -119,7 +132,7 @@ export class EnvironmentView extends EventTarget {
                     ${card("Roles", "MBSEEnvironment::roles · the rows of the matrix", model.inScope(model.roles, environment.id).map(r => item(r, usedBy("roleId", r))), "addRole", "+ Role")}
                     ${card("Tools", "MBSEEnvironment::tools · the columns of the matrix", model.inScope(model.tools, environment.id).map(t => item(t, usedBy("toolId", t))), "addTool", "+ Tool")}
                     ${card("Methodology", environment.methodologyId ? `Processes and methods of ${model.nameOf(environment.methodologyId, environment.methodologyId.split("::").pop())}` : "Processes and methods", methodology, "addMethod", "+ Method")}
-                    ${card("Products", "MBSEMethodology::Product · the data of the digital thread", model.inScope(model.artifacts, environment.id).map(a => item(a, [steps.some(s => s.sourceArtifactIds.includes(a.id)) && "needed", steps.some(s => s.targetArtifactIds.includes(a.id)) && "produced"].filter(Boolean).join(" and "))), "addArtifact", "+ Product")}
+                    ${card("Products", "MBSEMethodology::Product · the data of the digital thread", model.productsOf(environment.id).map(a => item(a, productUse(a))), "addArtifact", "+ Product")}
                 </div>
                 <section class="fv-section ev-anchored"><h3>Digital Thread Flow Analyses <span class="fv-muted">MBSEEnvironment::analyses</span></h3>
                     ${checks.length ? `<ul class="fv-list">${checks.map(c => this.checkRow(c)).join("")}</ul>` : '<p class="fv-muted">No flow analysis of this environment yet.</p>'}
@@ -142,7 +155,8 @@ export class EnvironmentView extends EventTarget {
         host.className = "ed-host diagram-view";
         scroll.replaceWith(host);
         this.diagram.render(host, this.state, environment,
-            (id, collection) => this.dispatchEvent(new CustomEvent("select", { detail: { id, open: true, collection } })));
+            (id, collection) => this.dispatchEvent(new CustomEvent("select", { detail: { id, open: true, collection } })),
+            id => this.dispatchEvent(new CustomEvent("select", { detail: { id } })));
     }
 
     checkRow(check) {

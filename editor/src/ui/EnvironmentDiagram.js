@@ -9,6 +9,8 @@
 //   general types of the roles, e.g. SystemArchitect)
 // - edges between methods and products: the inputs and outputs of the methods, the flow of the digital thread
 //
+// - a click on an element shows its graph with its connected artifacts in the tab of its kind (ElementGraph)
+//
 // Events (dispatched by the owning EnvironmentView): "open" { id } for a click on an element.
 
 import { Process } from "../dtfa/model.js";
@@ -39,13 +41,15 @@ export class EnvironmentDiagram {
     }
 
     /** Renders the diagram into the host element. @param onOpen function(id, collection) for a click on an element, or on a group header (environment id and "roles", "tools", "methods" or "products") */
-    render(host, state, environment, onOpen) {
+    render(host, state, environment, onOpen, onSelect = () => {}) {
         if (this.environmentId !== environment.id) { this.environmentId = environment.id; this.fitPending = true; }
+        this.onSelect = onSelect;
         const { model, selectedId } = state;
         const scope = model.environmentScope(environment.id);
         const roles = model.inScope(model.roles, environment.id);
         const tools = model.inScope(model.tools, environment.id);
-        const products = model.inScope(model.artifacts, environment.id);
+        // Declared or inherited products, and the products of the parameters of the methodology (e.g. of the SYSMOD steps).
+        const products = model.productsOf(environment.id);
         // The methodology tree, owned and inherited processes and methods (e.g. the steps of a library process).
         const tree = model.methodologyTree(environment.id);
         const behaviors = tree.map(t => t.element);
@@ -94,6 +98,9 @@ export class EnvironmentDiagram {
         for (const b of behaviors) {
             for (const a of b.inputIds) edge(a, b.id, "input", "declared");
             for (const a of b.outputIds) edge(b.id, a, "output", "declared");
+            // The parameters of the behavior that subset inputs and outputs, typed by products.
+            for (const a of model.parameterProductIds(b, "inputFeatures")) edge(a, b.id, "input", "parameter");
+            for (const a of model.parameterProductIds(b, "outputFeatures")) edge(b.id, a, "output", "parameter");
         }
 
         const parts = [];
@@ -214,7 +221,7 @@ export class EnvironmentDiagram {
             const option = e.target.closest("[data-show]");
             if (!option) return;
             this.show[option.dataset.show] = option.checked;
-            this.render(host, state, environment, onOpen);
+            this.render(host, state, environment, onOpen, this.onSelect);
         });
         let drag = null, dragged = false;
         svg.addEventListener("pointerdown", e => {
@@ -249,13 +256,18 @@ export class EnvironmentDiagram {
             const head = e.target.closest("[data-open-collection]");
             if (head) { onOpen(environment.id, head.dataset.openCollection); return; }
             const node = e.target.closest("[data-open]");
-            if (node) onOpen(node.dataset.open);
+            if (node) this.activate(node.dataset.open, host, state, environment, onOpen);
         });
         svg.addEventListener("keydown", e => {
             const head = e.target.closest("[data-open-collection]");
             if (head && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onOpen(environment.id, head.dataset.openCollection); return; }
             const node = e.target.closest("[data-open]");
-            if (node && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onOpen(node.dataset.open); }
+            if (node && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); this.activate(node.dataset.open, host, state, environment, onOpen); }
         });
+    }
+
+    /** A click on an element opens its graph with its connected artifacts (App.openElement). */
+    activate(id, host, state, environment, onOpen) {
+        onOpen(id);
     }
 }

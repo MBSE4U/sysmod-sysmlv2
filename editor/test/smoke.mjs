@@ -372,9 +372,23 @@ check("SYSMOD Delivery Drone example: its MBSE environment and the SYSMOD steps 
     assert.ok(tree.some(n => n.inherited), "the methodology tree contains inherited behaviors");
     const performed = tree.filter(n => drone.model.performersOf(n.element, environment.id).some(r => r.id === architect.id));
     assert.deepEqual(performed.map(n => n.element.name).filter(n => n !== "SYSMODDefaultProcess"),
-        ["modelBrownfieldSystem", "modelSubProjects", "integrateSubProjects", "specifyTradeStudy"],
-        "systemArchitect is responsible for the steps that SYSMOD assigns to SystemArchitect (anonymous responsibleFor connections)");
+        ["modelBrownfieldSystem", "describeSystemIdea", "specifySystem", "modelSolutionArchitecture", "modelSubProjects", "integrateSubProjects",
+            "specifyVerificationContext", "specifyTradeStudy", "defineSystemObjectives"],
+        "systemArchitect performs the steps that SYSMOD assigns to SystemArchitect (anonymous responsibleFor and supports connections)");
+    assert.deepEqual(tree.filter(n => drone.model.performersOf(n.element, environment.id, ["primary"]).some(r => r.id === architect.id)).map(n => n.element.name),
+        ["modelBrownfieldSystem", "modelSolutionArchitecture", "modelSubProjects", "integrateSubProjects", "specifyTradeStudy"],
+        "systemArchitect is responsible for the architecture steps");
     assert.ok(tree.some(n => n.inherited && n.element.name === "defineSystemObjectives"), "inherited step of the library process");
+    // Only the declared performers: no performers of the enclosing process.
+    const step = name => tree.find(n => n.element.name === name).element;
+    const performerNames = (b, kinds) => drone.model.performersOf(b, environment.id, kinds).map(r => r.name);
+    // describeProblemStatement: the productManager (responsibleFor) is no role of the drone environment, the requirementsEngineer supports it;
+    // the projectManager of the enclosing process is not a performer of the step.
+    assert.deepEqual(performerNames(step("describeProblemStatement"), ["primary", "additional"]), ["requirementsEngineer"], "describeProblemStatement: only its declared performers");
+    assert.deepEqual(performerNames(step("setupProject"), ["primary", "additional"]), ["projectManager"], "setupProject: projectManager (responsibleFor)");
+    // The products of the environment include the products of the parameters of the SYSMOD steps.
+    const products = drone.model.productsOf(environment.id).map(p => p.name);
+    for (const p of ["ProjectCover", "SystemSpecification", "ProductArchitecture", "VerificationReport"]) assert.ok(products.includes(p), `product ${p}: ${products}`);
     // The roles that SYSMOD declares make the steps; the drone environment has no flow analysis yet.
     assert.equal(drone.model.analyses.length, 0);
 });

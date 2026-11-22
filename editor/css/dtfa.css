@@ -504,3 +504,6 @@
 .ed-edge.contains { stroke: var(--tag-policy); stroke-dasharray: 1 3; stroke-linecap: round; }
 .ed-edge.general { stroke: var(--muted); }
 .view-tab-transient { font-style: italic; }
+
+.ed-edge.owns { stroke: var(--tag-role); stroke-dasharray: 2 3; stroke-linecap: round; }
+.ed-swatch.owns { border-top: 2px dotted var(--tag-role); }

@@ -75,6 +75,6 @@ package MicroStory_SupplierHandover {
             }
         }
 
-        view specificationTreeView : SYSMODViews::SpecificationTreeView { expose this; }
+        view specificationTreeView : SYSMODViews::ViewDefinitions::SpecificationTreeView { expose this; }
     }
 }

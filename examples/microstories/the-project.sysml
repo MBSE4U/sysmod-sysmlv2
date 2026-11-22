@@ -15,7 +15,7 @@ package MicroStory_TheProject {
         }
 
         // Two views for the project cover: one standard and one AI-enhanced.
-        view projectCoverView   : SYSMODViews::ProjectView   { expose this; }
-        view projectCoverAIView : SYSMODViews::ProjectAIView { expose this; }
+        view projectCoverView   : SYSMODViews::ViewDefinitions::ProjectView   { expose this; }
+        view projectCoverAIView : SYSMODViews::ViewDefinitions::ProjectAIView { expose this; }
     }
 }

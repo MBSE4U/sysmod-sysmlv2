@@ -44,11 +44,11 @@ library package SYSMODViews {
             doc /* All given elements are the SYSMOD process or its steps. */
             in elements : Base::Anything;
             elements->forAll {
-                in e; e istype SYSMODDefaultProcess or e istype SetupProject or e istype ModelBrownfieldSystem
-                    or e istype DescribeProblemStatement or e istype IdentifyStakeholders or e istype IdentifyStakeholderNeeds
-                    or e istype DescribeSystemIdea or e istype DefineSystemObjectives or e istype SpecifySystem or e istype ModelSolutionArchitecture
-                    or e istype ModelSubProjects or e istype IntegrateSubProjects
-                    or e istype SpecifyVerificationContext or e istype PerformVerification or e istype SpecifyTradeStudy
+                in e; e istype SYSMODDefaultProcess or e istype Methods::SetupProject or e istype Methods::ModelBrownfieldSystem
+                    or e istype Methods::DescribeProblemStatement or e istype Methods::IdentifyStakeholders or e istype Methods::IdentifyStakeholderNeeds
+                    or e istype Methods::DescribeSystemIdea or e istype Methods::DefineSystemObjectives or e istype Methods::SpecifySystem or e istype Methods::ModelSolutionArchitecture
+                    or e istype Methods::ModelSubProject 
+                    or e istype Methods::PerformVerification or e istype Methods::SpecifyTradeStudy
             }
         }
 
@@ -272,240 +272,248 @@ library package SYSMODViews {
         }
     }
 
-    private import Viewpoints::*;
+    package ViewDefinitions {
+        doc /* The view definitions of SYSMOD. Most of them show a product of the SYSMOD Project, e.g., ProblemStatementView
+             * for the product "Problem Statement", and satisfy the viewpoint whose concerns they address. A view definition
+             * filters the elements of the SYSMOD concepts and renders them with a standard SysML rendering; its AI variants
+             * (e.g., ProjectAIView) specialize it and replace the rendering by an AI rendering. The viewedArtifact dependencies
+             * below state the Project features that a conforming view exposes.
+             */
+        private import Viewpoints::*;
 
-    // Step 01
-    view def ProjectView :> StandardViewDefinitions::GeneralView {
-        doc /* Product "The Project": the SYSMOD Project with its purpose, projectOwner, and subProjects. */
-        satisfy requirement pvp : ProjectViewpoint;
-        filter @ProjectMetadata;
-        render Views::asTreeDiagram;
-    }
-    view def ProjectAIView :> ProjectView {
-        doc /* Product "The Project" as an AI-generated management summary: a short markdown text with the project name,
-                * project owner, documentation, and purpose. It specializes ProjectView and replaces the tree diagram
-                * by the AI rendering asProjectFacts.
-                */
-        render asProjectFacts;
-    }
-    rendering asProjectFacts : AIRendering :> Views::renderings {
-        doc /* AI rendering that turns the exposed Project into markdown text. The create_prompt defines the structure:
-                * headline with the project name, the project owner, the documentation, and the purpose.
-                */
-        :>> create_prompt = "Create pure text in markdown with a headline #Project <project name> and below 'Project owner: <project owner name>', and below ##Documentation, new line: <project doc>, and finally ##Purpose, new line <project purpose>.";
-    }
-    view def SYSMODMapView :> ProjectView {
-        doc /* Product "The Project" as SYSMOD Map: the features of the exposed Project on one sheet with grid references,
-                * row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield,
-                * 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation.
-                * It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell
-                * is the StepStatus of the step of the Project's defaultProcess that creates the cell's features; if several steps
-                * create them, e.g., specifyVerificationContext and performVerification in B7 to C7, the cell shows the status of each step. For a step with nested steps, e.g., modelSolutionArchitecture, the cells show the StepStatus of the nested step that creates their features, e.g., modelFunctionalArchitecture in column 4.
-                */
-        render asSYSMODMap;
-    }
-    rendering asSYSMODMap :> Views::renderings {
-        doc /* Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them:
-                * Title block: purpose, projectOwner, defaultProcess (setupProject), subProjects (modelSubProjects).
-                * A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds).
-                * A2: systemObjectives (defineSystemObjectives).
-                * A3: systemRequirementSpecification, verificationContext.verificationCases (specifySystem).
-                * A4: #refinement dependencies from the functional elements to the system requirements (modelSolutionArchitecture, nested step modelFunctionalArchitecture).
-                * A5: #refinement dependencies from the logical elements to the system requirements (modelSolutionArchitecture, nested step modelLogicalArchitecture).
-                * A6: productSystemImpl satisfies systemRequirementSpecification (modelSolutionArchitecture, nested step modelProductArchitecture).
-                * A7: verificationContext.verificationCases, i.e., the verification cases of A3 bound to the system under verification (specifyVerificationContext).
-                * B1: brownfieldContext; C1: brownfieldContextImpl (modelBrownfieldSystem).
-                * B2: systemIdeaContext; C2: systemIdeaContextImpl (describeSystemIdea).
-                * B3: specificationContext with the system use cases; C3: specificationContextImpl (specifySystem).
-                * B4: functionalContext; C4: functionalContextImpl (modelSolutionArchitecture, nested step modelFunctionalArchitecture).
-                * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (modelSolutionArchitecture, nested step modelLogicalArchitecture).
-                * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelSolutionArchitecture, nested step modelProductArchitecture).
-                * B7 to C7: verificationContext (specifyVerificationContext), verificationContext.verificationReports (performVerification).
-                * The steps without a cell of their own: integrateSubProjects updates C6, and specifyTradeStudy creates the
-                * tradeStudies and makes the context of their cell a variation whose variants are the alternatives.
-                * Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
-                */
-    }
-
-    // Step 02
-    view def ProblemStatementView :> StandardViewDefinitions::GeneralView {
-        doc /* Product "Problem Statement": the problemStatement of the Project with its projectOwner as stakeholder
-                * and the brownfield system as subject.
-                */
-        satisfy requirement psvp : ProblemSolutionViewpoint;
-        filter @SysML::ConcernUsage and (as SysML::ConcernUsage).name == "problemStatement";
-        render Views::asTreeDiagram;
-    }
-    view def ProblemStatementAIView :> ProblemStatementView {
-        doc /* Product "Problem Statement" as an AI-generated summary: a short markdown text with the problem statement, project owner, and brownfield system. */
-        render asMarkdown {
-            :>> title = "Problem Statement";
+        view def ProjectView :> StandardViewDefinitions::GeneralView {
+            doc /* Product "The Project": the SYSMOD Project with its purpose, projectOwner, and subProjects. */
+            satisfy requirement pvp : ProjectViewpoint;
+            filter @ProjectMetadata;
+            render Views::asTreeDiagram;
         }
-    }
-
-    // Step 03
-    view def StakeholdersView :> StandardViewDefinitions::GridView {
-        doc /* Product "Stakeholders": the projectStakeholders with their risk, effort, attention, and categories. */
-        satisfy requirement rvp : RequirementsViewpoint;
-        filter @StakeholderMetadata;
-        render Views::asElementTable;
-    }
-    // Step 04
-    view def StakeholderNeedsView :> StandardViewDefinitions::GeneralView {
-        doc /* Product "Stakeholder Needs": the stakeholderNeeds of the Project, framed by the problemStatement
-                * and traced to the projectStakeholders they come from.
-                */
-        satisfy requirement rvp : RequirementsViewpoint;
-        filter @SysML::ConcernUsage or @ExtendedConcernMetadata or @StakeholderMetadata;
-        render Views::asTreeDiagram;
-    }
-    // Step 05
-    view def BrownfieldArchitectureView :> SystemContextView {
-        doc /* Product "The Brownfield Architecture": the brownfieldContext and brownfieldContextImpl of the Project,
-                * i.e., the existing system of interest with its actors, ports, and actorSystemInterfaces.
-                */
-        satisfy requirement ivp : InterfaceViewpoint;
-    }
-    // Step 06
-    view def SystemIdeaView :> SystemContextView {
-        doc /* Product "The System Idea": the systemIdeaContext and systemIdeaContextImpl of the Project
-                * that answer the problemStatement.
-                */
-        satisfy requirement psvp : ProblemSolutionViewpoint;
-    }
-    view def SystemObjectivesView :> StandardViewDefinitions::GeneralView {
-        doc /* Product "The System Idea": the systemObjectives of the Project, i.e., the measurable goals of the system idea
-                * that direct the development, with the projectOwner as stakeholder, the system idea as subject,
-                * and the stakeholderNeeds they frame.
-                */
-        satisfy requirement psvp : ProblemSolutionViewpoint;
-        filter @SysML::ConcernUsage;
-        render Views::asTreeDiagram;
-    }
-    // Step 07
-    view def SpecificationSystemView :> SystemContextView {
-        doc /* Product "The Specification System": the specificationContext of the Project that defines
-                * the system boundary with the actors, the system ports, and the actorSystemInterfaces.
-                */
-        satisfy requirement ivp : InterfaceViewpoint;
-    }
-    // Step 08
-    view def UseCasesView :> StandardViewDefinitions::GeneralView {
-        doc /* Product "Use Cases": the system use cases of the specificationContext with their actors and subject. */
-        satisfy requirement ucvp : UseCaseViewpoint;
-        filter @SystemUseCaseMetadata or @SecondaryUsageCaseMetadata or @SystemProcessMetadata or @ContinuousUseCaseMetadata
-            or @SysML::UseCaseUsage or @system or @user or @externalSystem or @environmentalEffect;
-        render Views::asTreeDiagram;
-    }
-    view def UseCaseFlowView :> StandardViewDefinitions::ActionFlowView {
-        doc /* Product "Use Cases": the flow of a single system use case, step by step. */
-        satisfy requirement ucvp : UseCaseViewpoint;
-    }
-    // Step 09
-    view def SystemRequirementsView :> StandardViewDefinitions::GridView {
-        doc /* Product "System Requirements": the systemRequirementSpecification of the Project
-                * with the system requirements that frame the stakeholderNeeds.
-                */
-        satisfy requirement rvp : RequirementsViewpoint;
-        filter @ExtendedRequirementMetadata or @SysML::RequirementUsage;
-        render Views::asElementTable;
-    }
-    // Step 10
-    abstract view def SolutionArchitectureView :> StandardViewDefinitions::InterconnectionView {
-        doc /* Product "Functional, Logical, Product Architecture": base view for the solution architectures. */
-        satisfy requirement avp : ArchitectureViewpoint;
-        filter @SystemContextMetadata or @system or @SysML::PartUsage or @SysML::PortUsage
-            or @SysML::InterfaceUsage or @SysML::ConnectionUsage;
-        filter not (@KerML::Element::isLibraryElement);
-        render Views::asInterconnectionDiagram;
-    }
-    view def FunctionalArchitectureView :> SolutionArchitectureView {
-        doc /* The functionalContext and functionalContextImpl of the Project with the functional blocks of the functional system. */
-    }
-    view def LogicalArchitectureView :> SolutionArchitectureView {
-        doc /* The logicalContext and logicalContextImpl of the Project with the technology-independent building blocks of the logical system. */
-    }
-    view def ProductArchitectureView :> SolutionArchitectureView {
-        doc /* The productContext and productContextImpl of the Project with the concrete building blocks of the product system. */
-    }
-    view def ArchitectureAllocationView :> StandardViewDefinitions::GridView {
-        doc /* The allocations functional2logical, logical2product, functionalImpl2logicalImpl, and logicalImpl2productImpl between the solution architectures. */
-        satisfy requirement avp : ArchitectureViewpoint;
-        filter @SysML::AllocationUsage or @SystemContextMetadata;
-        render Views::asElementTable;
-    }
-    // Sub-Projects (modelSubProjects, integrateSubProjects)
-    view def SpecificationTreeView :> StandardViewDefinitions::GeneralView {
-        doc /* Product "Sub-Projects": the specification tree of the exposed Project, i.e., the Project and its subProjects (recursively),
-                * the building block that each subProject develops, the systemRequirementSpecification of each level,
-                * the handoverRequirements of each subProject, and the requirementFlowDowns (#derivation) from the parent requirements to them.
-                */
-        satisfy requirement stvp : SpecificationTreeViewpoint;
-        filter @ProjectMetadata or @SysML::RequirementUsage or @ExtendedRequirementMetadata or @RequirementDerivation::DerivationMetadata;
-        render Views::asTreeDiagram;
-    }
-    // Step 11
-    view def VerificationAndValidationView :> StandardViewDefinitions::GeneralView {
-        doc /* Product "Verification and Validation": the verificationCases of the verificationContext of the Project with the system under verification
-                * and the system requirements, stakeholder needs, and problem statement they verify and validate.
-                */
-        satisfy requirement vvp : VerificationViewpoint;
-        satisfy requirement valvp : ValidationViewpoint;
-        filter @SysML::VerificationCaseUsage or @SysML::VerificationCaseDefinition
-            or @SysML::RequirementUsage or @ExtendedRequirementMetadata;
-        render Views::asTreeDiagram;
-    }
-    view def VerificationMatrixView :> StandardViewDefinitions::GridView {
-        doc /* Product "Verification and Validation": matrix of the system requirements and the verification cases that verify them.
-                * It shows the verificationCases of the verificationContext, so that the verification coverage can be reviewed while the
-                * system is specified, and again once they are bound to the system under verification.
-                */
-        satisfy requirement vvp : VerificationViewpoint;
-        filter @SysML::VerificationCaseUsage or @SysML::RequirementUsage or @ExtendedRequirementMetadata;
-        render Views::asElementTable;
-    }
-    // Specify Trade Study (no fixed position in the process)
-    view def TradeStudyView :> StandardViewDefinitions::GridView {
-        doc /* Product "Trade Studies": a trade study of the Project as a decision matrix with the alternatives (the variants of a variation usage)
-                * as rows, the criteria (systemObjectives) with their weights as columns, the scores of the assessments as cells,
-                * the evaluation of each alternative, and the selected alternative.
-                */
-        satisfy requirement tovp : TradeOffViewpoint;
-        filter @SysML::AnalysisCaseUsage or @SysML::ReferenceUsage or @SysML::ConcernUsage or @SysML::AttributeUsage;
-        render Views::asElementTable;
-    }
-
-    view def AIUseCaseView {
-        doc /* Classical use case view. Shows the use case definitions exposed by the view,
-             * together with their subjects and actors, as an AI-generated diagram.
-             */
-        filter @SysML::UseCaseDefinition;
-        render asAIGenerated {
-            doc /* Renders the view with AI, using a traditional use case notation. */
-            :>> create_prompt = "Create a classical use case view showing the use cases exposed and filtered of the view in a traditional use case representation with stick figures for the actors, ellipse for the use case, and a boundary box around the use case for the subject.";
+        view def ProjectAIView :> ProjectView {
+            doc /* Product "The Project" as an AI-generated management summary: a short markdown text with the project name,
+                    * project owner, documentation, and purpose. It specializes ProjectView and replaces the tree diagram
+                    * by the AI rendering asProjectFacts.
+                    */
+            render asProjectFacts;
         }
-    }
-    view def AIUseCase4ManagersView {
-        doc /* Management summary view. Shows the use case definitions exposed by the view
-             * as a single AI-generated slide for managers who do not read SysML.
-             */
-        filter @SysML::UseCaseDefinition;
-        render as4Managers;
-    }
-    view def SystemContextView :> StandardViewDefinitions::InterconnectionView {
-        doc /* Base view for the system contexts. Shows the parts, ports, interfaces, connections, and use cases
-             * of the exposed system context as an interconnection diagram, without library elements.
-             */
-        filter @SysML::PartUsage or @SysML::PortUsage or @SysML::InterfaceUsage or @SysML::ConnectionUsage or @SysML::UseCaseUsage;
-        filter not (@KerML::Element::isLibraryElement);
-        render Views::asInterconnectionDiagram;
+        rendering asProjectFacts : AIRendering :> Views::renderings {
+            doc /* AI rendering that turns the exposed Project into markdown text. The create_prompt defines the structure:
+                    * headline with the project name, the project owner, the documentation, and the purpose.
+                    */
+            :>> create_prompt = "Create pure text in markdown with a headline #Project <project name> and below 'Project owner: <project owner name>', and below ##Documentation, new line: <project doc>, and finally ##Purpose, new line <project purpose>.";
+        }
+        view def SYSMODMapView :> ProjectView {
+            doc /* Product "The Project" as SYSMOD Map: the features of the exposed Project on one sheet with grid references,
+                    * row A the concerns, row B the black box contexts, row C the white box contexts, and the columns 1 brownfield,
+                    * 2 system idea, 3 specification, 4 functional, 5 logical, 6 product, and 7 verification and validation.
+                    * It specializes ProjectView and replaces the tree diagram by the rendering asSYSMODMap. The status of a cell
+                    * is the StepStatus of the step of the Project's defaultProcess that creates the cell's features; if several steps
+                    * create them, e.g., specifyVerificationContext and performVerification in B7 to C7, the cell shows the status of each step. For a step with nested steps, e.g., modelSolutionArchitecture, the cells show the StepStatus of the nested step that creates their features, e.g., modelFunctionalArchitecture in column 4.
+                    */
+            render asSYSMODMap;
+        }
+        rendering asSYSMODMap :> Views::renderings {
+            doc /* Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them:
+                    * Title block: purpose, projectOwner, defaultProcess (setupProject), subProjects (modelSubProjects).
+                    * A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds).
+                    * A2: systemObjectives (defineSystemObjectives).
+                    * A3: systemRequirementSpecification, verificationContext.verificationCases (specifySystem).
+                    * A4: #refinement dependencies from the functional elements to the system requirements (modelSolutionArchitecture, nested step modelFunctionalArchitecture).
+                    * A5: #refinement dependencies from the logical elements to the system requirements (modelSolutionArchitecture, nested step modelLogicalArchitecture).
+                    * A6: productSystemImpl satisfies systemRequirementSpecification (modelSolutionArchitecture, nested step modelProductArchitecture).
+                    * A7: verificationContext.verificationCases, i.e., the verification cases of A3 bound to the system under verification (specifyVerificationContext).
+                    * B1: brownfieldContext; C1: brownfieldContextImpl (modelBrownfieldSystem).
+                    * B2: systemIdeaContext; C2: systemIdeaContextImpl (describeSystemIdea).
+                    * B3: specificationContext with the system use cases; C3: specificationContextImpl (specifySystem).
+                    * B4: functionalContext; C4: functionalContextImpl (modelSolutionArchitecture, nested step modelFunctionalArchitecture).
+                    * B5: logicalContext, functional2logical; C5: logicalContextImpl, functionalImpl2logicalImpl (modelSolutionArchitecture, nested step modelLogicalArchitecture).
+                    * B6: productContext, logical2product; C6: productContextImpl, logicalImpl2productImpl (modelSolutionArchitecture, nested step modelProductArchitecture).
+                    * B7 to C7: verificationContext (specifyVerificationContext), verificationContext.verificationReports (performVerification).
+                    * The steps without a cell of their own: integrateSubProjects updates C6, and specifyTradeStudy creates the
+                    * tradeStudies and makes the context of their cell a variation whose variants are the alternatives.
+                    * Optional features the Project does not define, e.g., the functional context, are shown as empty cells.
+                    */
+        }
+
+        view def SingleStakeholderView :> StandardViewDefinitions::GeneralView {
+            doc /* Shows the exposed stakeholder */
+            filter @SysML::PartUsage and (istype SYSMOD::ExtendedStakeholder);
+            render asText;
+        }
+        view def StakeholderView :> StandardViewDefinitions::GeneralView {
+            doc /* Shows the exposed stakeholders */
+            filter @SysML::PartUsage and (istype SYSMOD::ExtendedStakeholder);
+            render Views::asElementTable;
+        }
+
+        view def SystemContextView :> StandardViewDefinitions::InterconnectionView {
+            doc /* Base view for the system contexts. Shows the parts, ports, interfaces, connections, and use cases
+                * of the exposed system context as an interconnection diagram, without library elements.
+                */
+            filter @SysML::PartUsage or @SysML::PortUsage or @SysML::InterfaceUsage or @SysML::ConnectionUsage or @SysML::UseCaseUsage;
+            filter not (@KerML::Element::isLibraryElement);
+            render Views::asInterconnectionDiagram;
+        }
+
+
+        view def ProblemStatementView :> StandardViewDefinitions::GeneralView {
+            doc /* Product "Problem Statement": the problemStatement of the Project with its projectOwner as stakeholder
+                    * and the brownfield system as subject.
+                    */
+            satisfy requirement psvp : ProblemSolutionViewpoint;
+            filter @SysML::ConcernUsage and (as SysML::ConcernUsage).name == "problemStatement";
+            render Views::asTreeDiagram;
+        }
+        view def ProblemStatementAIView :> ProblemStatementView {
+            doc /* Product "Problem Statement" as an AI-generated summary: a short markdown text with the problem statement, project owner, and brownfield system. */
+            render asMarkdown {
+                :>> title = "Problem Statement";
+            }
+        }
+
+        view def StakeholdersView :> StandardViewDefinitions::GridView {
+            doc /* Product "Stakeholders": the projectStakeholders with their risk, effort, attention, and categories. */
+            satisfy requirement rvp : RequirementsViewpoint;
+            filter @StakeholderMetadata;
+            render Views::asElementTable;
+        }
+        view def StakeholderNeedsView :> StandardViewDefinitions::GeneralView {
+            doc /* Product "Stakeholder Needs": the stakeholderNeeds of the Project, framed by the problemStatement
+                    * and traced to the projectStakeholders they come from.
+                    */
+            satisfy requirement rvp : RequirementsViewpoint;
+            filter @SysML::ConcernUsage or @ExtendedConcernMetadata or @StakeholderMetadata;
+            render Views::asTreeDiagram;
+        }
+        view def SystemIdeaView :> SystemContextView {
+            doc /* Product "The System Idea": the systemIdeaContext and systemIdeaContextImpl of the Project
+                    * that answer the problemStatement.
+                    */
+            satisfy requirement psvp : ProblemSolutionViewpoint;
+        }
+        view def SystemObjectivesView :> StandardViewDefinitions::GeneralView {
+            doc /* Product "The System Idea": the systemObjectives of the Project, i.e., the measurable goals of the system idea
+                    * that direct the development, with the projectOwner as stakeholder, the system idea as subject,
+                    * and the stakeholderNeeds they frame.
+                    */
+            satisfy requirement psvp : ProblemSolutionViewpoint;
+            filter @SysML::ConcernUsage;
+            render Views::asTreeDiagram;
+        }
+        view def SpecificationSystemView :> SystemContextView {
+            doc /* Product "The Specification System": the specificationContext of the Project that defines
+                    * the system boundary with the actors, the system ports, and the actorSystemInterfaces.
+                    */
+            satisfy requirement ivp : InterfaceViewpoint;
+        }
+        view def UseCasesView :> StandardViewDefinitions::GeneralView {
+            doc /* Product "Use Cases": the system use cases of the specificationContext with their actors and subject. */
+            satisfy requirement ucvp : UseCaseViewpoint;
+            filter @SystemUseCaseMetadata or @SecondaryUsageCaseMetadata or @SystemProcessMetadata or @ContinuousUseCaseMetadata
+                or @SysML::UseCaseUsage or @system or @user or @externalSystem or @environmentalEffect;
+            render Views::asTreeDiagram;
+        }
+        view def UseCaseFlowView :> StandardViewDefinitions::ActionFlowView {
+            doc /* Product "Use Cases": the flow of a single system use case, step by step. */
+            satisfy requirement ucvp : UseCaseViewpoint;
+        }
+        view def SystemRequirementsView :> StandardViewDefinitions::GridView {
+            doc /* Product "System Requirements": the systemRequirementSpecification of the Project
+                    * with the system requirements that frame the stakeholderNeeds.
+                    */
+            satisfy requirement rvp : RequirementsViewpoint;
+            filter @ExtendedRequirementMetadata or @SysML::RequirementUsage;
+            render Views::asElementTable;
+        }
+        abstract view def SolutionArchitectureView :> StandardViewDefinitions::InterconnectionView {
+            doc /* Product "Functional, Logical, Product Architecture": base view for the solution architectures. */
+            satisfy requirement avp : ArchitectureViewpoint;
+            filter @SystemContextMetadata or @system or @SysML::PartUsage or @SysML::PortUsage
+                or @SysML::InterfaceUsage or @SysML::ConnectionUsage;
+            filter not (@KerML::Element::isLibraryElement);
+            render Views::asInterconnectionDiagram;
+        }
+        view def FunctionalArchitectureView :> SolutionArchitectureView {
+            doc /* The functionalContext and functionalContextImpl of the Project with the functional blocks of the functional system. */
+        }
+        view def LogicalArchitectureView :> SolutionArchitectureView {
+            doc /* The logicalContext and logicalContextImpl of the Project with the technology-independent building blocks of the logical system. */
+        }
+        view def ProductArchitectureView :> SolutionArchitectureView {
+            doc /* The productContext and productContextImpl of the Project with the concrete building blocks of the product system. */
+        }
+        view def ArchitectureAllocationView :> StandardViewDefinitions::GridView {
+            doc /* The allocations functional2logical, logical2product, functionalImpl2logicalImpl, and logicalImpl2productImpl between the solution architectures. */
+            satisfy requirement avp : ArchitectureViewpoint;
+            filter @SysML::AllocationUsage or @SystemContextMetadata;
+            render Views::asElementTable;
+        }
+        // Sub-Projects (modelSubProjects, integrateSubProjects)
+        view def SpecificationTreeView :> StandardViewDefinitions::GeneralView {
+            doc /* Product "Sub-Projects": the specification tree of the exposed Project, i.e., the Project and its subProjects (recursively),
+                    * the building block that each subProject develops, the systemRequirementSpecification of each level,
+                    * the handoverRequirements of each subProject, and the requirementFlowDowns (#derivation) from the parent requirements to them.
+                    */
+            satisfy requirement stvp : SpecificationTreeViewpoint;
+            filter @ProjectMetadata or @SysML::RequirementUsage or @ExtendedRequirementMetadata or @RequirementDerivation::DerivationMetadata;
+            render Views::asTreeDiagram;
+        }
+        view def VerificationAndValidationView :> StandardViewDefinitions::GeneralView {
+            doc /* Product "Verification and Validation": the verificationCases of the verificationContext of the Project with the system under verification
+                    * and the system requirements, stakeholder needs, and problem statement they verify and validate.
+                    */
+            satisfy requirement vvp : VerificationViewpoint;
+            satisfy requirement valvp : ValidationViewpoint;
+            filter @SysML::VerificationCaseUsage or @SysML::VerificationCaseDefinition
+                or @SysML::RequirementUsage or @ExtendedRequirementMetadata;
+            render Views::asTreeDiagram;
+        }
+        view def VerificationMatrixView :> StandardViewDefinitions::GridView {
+            doc /* Product "Verification and Validation": matrix of the system requirements and the verification cases that verify them.
+                    * It shows the verificationCases of the verificationContext, so that the verification coverage can be reviewed while the
+                    * system is specified, and again once they are bound to the system under verification.
+                    */
+            satisfy requirement vvp : VerificationViewpoint;
+            filter @SysML::VerificationCaseUsage or @SysML::RequirementUsage or @ExtendedRequirementMetadata;
+            render Views::asElementTable;
+        }
+        // Specify Trade Study (no fixed position in the process)
+        view def TradeStudyView :> StandardViewDefinitions::GridView {
+            doc /* Product "Trade Studies": a trade study of the Project as a decision matrix with the alternatives (the variants of a variation usage)
+                    * as rows, the criteria (systemObjectives) with their weights as columns, the scores of the assessments as cells,
+                    * the evaluation of each alternative, and the selected alternative.
+                    */
+            satisfy requirement tovp : TradeOffViewpoint;
+            filter @SysML::AnalysisCaseUsage or @SysML::ReferenceUsage or @SysML::ConcernUsage or @SysML::AttributeUsage;
+            render Views::asElementTable;
+        }
+
+        view def AIUseCaseView {
+            doc /* Classical use case view. Shows the use case definitions exposed by the view,
+                * together with their subjects and actors, as an AI-generated diagram.
+                */
+            filter @SysML::UseCaseDefinition;
+            render asAIGenerated {
+                doc /* Renders the view with AI, using a traditional use case notation. */
+                :>> create_prompt = "Create a classical use case view showing the use cases exposed and filtered of the view in a traditional use case representation with stick figures for the actors, ellipse for the use case, and a boundary box around the use case for the subject.";
+            }
+        }
+        view def AIUseCase4ManagersView {
+            doc /* Management summary view. Shows the use case definitions exposed by the view
+                * as a single AI-generated slide for managers who do not read SysML.
+                */
+            filter @SysML::UseCaseDefinition;
+            render as4Managers;
+        }
     }
 
     //
     // Common Renderings
     //
-    rendering def JustTextRendering :> Views::TextualRendering;
-    rendering asText[1] : JustTextRendering :> Views::renderings;
+    rendering def JustTextRendering :> Views::TextualRendering {
+        doc /* Textual rendering that shows only the plain text of the exposed elements, e.g., the value of an attribute or a documentation, without notation. */
+    }
+    rendering asText[1] : JustTextRendering :> Views::renderings {
+        doc /* Default plain-text rendering, e.g., for the purpose of a project or a stakeholder. */
+    }
 
     rendering def AIRendering :> Views::Rendering {
         doc /* Rendering that is produced by an AI assistant instead of a fixed notation. */
@@ -521,10 +529,12 @@ library package SYSMODViews {
         :>> create_prompt = "Create a single slide that presents the exposed and filtered information from the view, summarizing it concisely for managers: What does this mean, and how can we use it to make decisions? Assume that the managers cannot read SysML.";
     }
     rendering asMarkdown : AIRendering :> Views::renderings {
-        doc /* AI rendering that turns the exposed Problem Statement into markdown text. The create_prompt defines the structure:
-                * headline with the problem statement, the project owner, and the brownfield system.
+        doc /* AI rendering that turns the exposed elements into markdown text with a headline. The create_prompt defines the structure:
+                * the title as headline and the exposed element as text below, e.g., the problem statement in ProblemStatementAIView.
                 */
-        attribute title : ScalarValues::String;
+        attribute title : ScalarValues::String {
+            doc /* The headline of the markdown text, set by the view, e.g., "Problem Statement". */
+        }
         :>> create_prompt = "Create pure text in markdown with a headline <title>, and below the exposed element as text.";
     }
 
@@ -547,27 +557,26 @@ library package SYSMODViews {
         :>> annotatedElement : SysML::Dependency;
     }
 
-    #viewedArtifact dependency ProjectView to Project;
-    #viewedArtifact dependency ProblemStatementView to Project::problemStatement;
-    #viewedArtifact dependency StakeholdersView to Project::projectStakeholders;
-    #viewedArtifact dependency StakeholderNeedsView to Project::stakeholderNeeds;
-    #viewedArtifact dependency BrownfieldArchitectureView to Project::brownfieldContext, Project::brownfieldContextImpl;
-    #viewedArtifact dependency SystemIdeaView to Project::systemIdeaContext, Project::systemIdeaContextImpl;
-    #viewedArtifact dependency SystemObjectivesView to Project::systemObjectives;
-    #viewedArtifact dependency SpecificationSystemView to Project::specificationContext, Project::specificationContextImpl;
-    #viewedArtifact dependency UseCasesView to Project::specificationContext::useCases;
-    #viewedArtifact dependency UseCaseFlowView to Project::specificationContext::useCases;
-    #viewedArtifact dependency SystemRequirementsView to Project::systemRequirementSpecification;
-    #viewedArtifact dependency FunctionalArchitectureView to Project::functionalContext, Project::functionalContextImpl;
-    #viewedArtifact dependency LogicalArchitectureView to Project::logicalContext, Project::logicalContextImpl;
-    #viewedArtifact dependency ProductArchitectureView to Project::productContext, Project::productContextImpl;
-    #viewedArtifact dependency ArchitectureAllocationView to Project::functional2logical, Project::logical2product,
+    #viewedArtifact dependency ViewDefinitions::ProjectView to Project;
+    #viewedArtifact dependency ViewDefinitions::ProblemStatementView to Project::problemStatement;
+    #viewedArtifact dependency ViewDefinitions::StakeholdersView to Project::projectStakeholders;
+    #viewedArtifact dependency ViewDefinitions::StakeholderNeedsView to Project::stakeholderNeeds;
+    #viewedArtifact dependency ViewDefinitions::SystemIdeaView to Project::systemIdeaContext, Project::systemIdeaContextImpl;
+    #viewedArtifact dependency ViewDefinitions::SystemObjectivesView to Project::systemObjectives;
+    #viewedArtifact dependency ViewDefinitions::SpecificationSystemView to Project::specificationContext, Project::specificationContextImpl;
+    #viewedArtifact dependency ViewDefinitions::UseCasesView to Project::specificationContext::useCases;
+    #viewedArtifact dependency ViewDefinitions::UseCaseFlowView to Project::specificationContext::useCases;
+    #viewedArtifact dependency ViewDefinitions::SystemRequirementsView to Project::systemRequirementSpecification;
+    #viewedArtifact dependency ViewDefinitions::FunctionalArchitectureView to Project::functionalContext, Project::functionalContextImpl;
+    #viewedArtifact dependency ViewDefinitions::LogicalArchitectureView to Project::logicalContext, Project::logicalContextImpl;
+    #viewedArtifact dependency ViewDefinitions::ProductArchitectureView to Project::productContext, Project::productContextImpl;
+    #viewedArtifact dependency ViewDefinitions::ArchitectureAllocationView to Project::functional2logical, Project::logical2product,
         Project::functionalImpl2logicalImpl, Project::logicalImpl2productImpl;
-    #viewedArtifact dependency SpecificationTreeView to Project::subProjects, Project::subProjects::handoverRequirements,
+    #viewedArtifact dependency ViewDefinitions::SpecificationTreeView to Project::subProjects, Project::subProjects::handoverRequirements,
         Project::systemRequirementSpecification, Project::requirementFlowDowns;
-    #viewedArtifact dependency VerificationAndValidationView to Project::verificationContext::verificationCases;
-    #viewedArtifact dependency VerificationMatrixView to Project::verificationContext::verificationCases;
-    #viewedArtifact dependency TradeStudyView to Project::tradeStudies, Project::systemObjectives;
+    #viewedArtifact dependency ViewDefinitions::VerificationAndValidationView to Project::verificationContext::verificationCases;
+    #viewedArtifact dependency ViewDefinitions::VerificationMatrixView to Project::verificationContext::verificationCases;
+    #viewedArtifact dependency ViewDefinitions::TradeStudyView to Project::tradeStudies, Project::systemObjectives;
 }
 
 

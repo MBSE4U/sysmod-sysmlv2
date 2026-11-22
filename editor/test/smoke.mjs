@@ -386,6 +386,14 @@ check("SYSMOD Delivery Drone example: its MBSE environment and the SYSMOD steps 
     // the projectManager of the enclosing process is not a performer of the step.
     assert.deepEqual(performerNames(step("describeProblemStatement"), ["primary", "additional"]), ["requirementsEngineer"], "describeProblemStatement: only its declared performers");
     assert.deepEqual(performerNames(step("setupProject"), ["primary", "additional"]), ["projectManager"], "setupProject: projectManager (responsibleFor)");
+    // The roles of the SYSMOD steps and the owners of their products (SYSMODDefaultProcess).
+    assert.deepEqual(performerNames(step("specifySystem"), ["primary"]), ["requirementsEngineer"], "specifySystem: requirementsEngineer");
+    // The drone environment has no test engineer: its verification engineer is not a TestEngineer (TestEngineer specializes VerificationEngineer, not vice versa).
+    assert.deepEqual(performerNames(step("performVerification"), ["primary"]), [], "performVerification: no test engineer in the drone environment");
+    assert.deepEqual(performerNames(step("performVerification"), ["additional"]), ["verificationEngineer"], "performVerification: supported by the verification engineer");
+    assert.deepEqual(performerNames(step("specifyVerificationCases"), ["additional"]), ["requirementsEngineer"], "supports connect primaryPerformer: the primary performer of specifySystem");
+    const owners = drone.model.productOwnersOf(step("specifySystem"), environment.id).map(o => `${o.product.name}=${o.roles.map(r => r.name)}`);
+    assert.deepEqual(owners, ["SystemSpecification=requirementsEngineer", "VerificationSpecification=verificationEngineer"], "product ownership");
     // The products of the environment include the products of the parameters of the SYSMOD steps.
     const products = drone.model.productsOf(environment.id).map(p => p.name);
     for (const p of ["ProjectCover", "SystemSpecification", "ProductArchitecture", "VerificationReport"]) assert.ok(products.includes(p), `product ${p}: ${products}`);

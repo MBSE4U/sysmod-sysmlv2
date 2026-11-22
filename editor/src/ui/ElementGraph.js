@@ -3,10 +3,10 @@
 // Not SysML notation, but a methodology diagram meant to be read without SysML knowledge. The element is the
 // highlighted center node, with its general types below it (e.g. "specializes SystemArchitect"); its connected
 // artifacts stand in labeled sections:
-// - role:    tools | responsible for, supports | produces, needs
+// - role:    tools | responsible for, supports | owns (ProductOwnershipConnection), produces, needs
 // - tool:    roles | facilitates | produces, needs
-// - process or method: responsible, supports, tools | part of, steps | inputs, outputs
-// - product: responsible roles | produced by, needed by | specialized by
+// - process or method: responsible, supports, product owners, tools | part of, steps | inputs, outputs
+// - product: owners (or the roles responsible for its producers) | produced by, needed by | specialized by
 // Edges: performs and facilitates as the methodology declares them (DtfaModel.performersOf), needs and produces
 // (arrows), contains (process and its steps).
 //
@@ -52,7 +52,9 @@ export function connections(model, environmentId) {
         const owner = model.get(b.ownerId);
         return isBehavior(owner) ? owner : null;
     };
-    return { behaviors, performers, outputsOf, inputsOf, parentOf };
+    // The owners of the products of a behavior (ProductOwnershipConnection): [{ product, roles }].
+    const ownersOf = b => environmentId ? model.productOwnersOf(b, environmentId) : [];
+    return { behaviors, performers, outputsOf, inputsOf, parentOf, ownersOf };
 }
 
 /**
@@ -78,18 +80,21 @@ export function graphOf(model, element, environmentId) {
         const supports = c.behaviors.filter(b => !responsible.includes(b) && c.performers(b, ["additional"]).includes(element));
         const behaviors = [...responsible, ...supports];
         const tools = [...new Set(behaviors.flatMap(b => c.performers(b, ["tool"])))];
-        // MBSEMethodology (ProductOwnershipConnection): the primary performer owns the outputs of its behaviors.
-        const { produced } = products(responsible);
-        const needed = [...new Set(behaviors.flatMap(c.inputsOf))].filter(p => !produced.includes(p));
+        // The products the role owns (ProductOwnershipConnection), further products of the behaviors it is responsible
+        // for, and the products its behaviors need.
+        const owns = [...new Set(c.behaviors.flatMap(b => c.ownersOf(b).filter(o => o.roles.includes(element)).map(o => o.product)))];
+        const produced = [...new Set(responsible.flatMap(c.outputsOf))].filter(p => !owns.includes(p));
+        const needed = [...new Set(behaviors.flatMap(c.inputsOf))].filter(p => !owns.includes(p) && !produced.includes(p));
         behaviors.forEach(b => { performsEdges(element, b); productEdges(b); c.performers(b, ["tool"]).forEach(t => edges.push({ from: t.id, to: b.id, kind: "facilitates" })); });
+        owns.forEach(p => edges.push({ from: element.id, to: p.id, kind: "owns" }));
         return {
             columns: [
                 { kind: "role", center: true, sections: [{ label: "Tools", items: tools, kind: "tool" }] },
                 { kind: "method", sections: [{ label: "Responsible for", items: responsible }, { label: "Supports", items: supports }] },
-                { kind: "product", sections: [{ label: "Produces", items: produced }, { label: "Needs", items: needed }] },
+                { kind: "product", sections: [{ label: "Owns", items: owns }, { label: "Produces", items: produced }, { label: "Needs", items: needed }] },
             ],
             edges,
-            summary: `responsible for ${responsible.length} · supports ${supports.length} · produces ${produced.length} · needs ${needed.length}`,
+            summary: `responsible for ${responsible.length} · supports ${supports.length} · owns ${owns.length} · produces ${produced.length} · needs ${needed.length}`,
         };
     }
     if (kind === "tool") {
@@ -122,11 +127,14 @@ export function graphOf(model, element, environmentId) {
         [...responsible, ...supports].forEach(r => performsEdges(r, element));
         tools.forEach(t => edges.push({ from: t.id, to: element.id, kind: "facilitates" }));
         productEdges(element);
+        const ownerships = c.ownersOf(element);
+        const owners = [...new Set(ownerships.flatMap(o => o.roles))].filter(r => !responsible.includes(r) && !supports.includes(r));
+        ownerships.forEach(o => o.roles.forEach(r => edges.push({ from: r.id, to: o.product.id, kind: "owns" })));
         if (parent) edges.push({ from: parent.id, to: element.id, kind: "contains" });
         steps.forEach(s => edges.push({ from: element.id, to: s.id, kind: "contains" }));
         return {
             columns: [
-                { kind: "role", sections: [{ label: "Responsible", items: responsible }, { label: "Supports", items: supports }, { label: "Tools", items: tools, kind: "tool" }] },
+                { kind: "role", sections: [{ label: "Responsible", items: responsible }, { label: "Supports", items: supports }, { label: "Product owners", items: owners }, { label: "Tools", items: tools, kind: "tool" }] },
                 { kind: "method", center: true, sections: [{ label: "Part of", items: parent ? [parent] : [] }, { label: "Steps", items: steps }] },
                 { kind: "product", sections: [{ label: "Inputs", items: inputs }, { label: "Outputs", items: outputs }] },
             ],
@@ -137,14 +145,17 @@ export function graphOf(model, element, environmentId) {
     if (kind === "product") {
         const producedBy = c.behaviors.filter(b => c.outputsOf(b).includes(element));
         const neededBy = c.behaviors.filter(b => !producedBy.includes(b) && c.inputsOf(b).includes(element));
-        const owners = [...new Set(producedBy.flatMap(b => c.performers(b, ["primary"])))];
+        // The owners of the product (ProductOwnershipConnection), otherwise the roles responsible for its producers.
+        const declaredOwners = [...new Set(c.behaviors.flatMap(b => c.ownersOf(b).filter(o => o.product === element).flatMap(o => o.roles)))];
+        const owners = declaredOwners.length ? declaredOwners : [...new Set(producedBy.flatMap(b => c.performers(b, ["primary"])))];
+        declaredOwners.forEach(r => edges.push({ from: r.id, to: element.id, kind: "owns" }));
         const specializedBy = model.artifacts.filter(a => a !== element && (a.typeIds || []).includes(element.id));
         producedBy.forEach(b => { edges.push({ from: b.id, to: element.id, kind: "output" }); c.performers(b, ["primary"]).forEach(r => performsEdges(r, b)); });
         neededBy.forEach(b => edges.push({ from: element.id, to: b.id, kind: "input" }));
         specializedBy.forEach(a => edges.push({ from: a.id, to: element.id, kind: "general" }));
         return {
             columns: [
-                { kind: "role", sections: [{ label: "Responsible roles", items: owners }] },
+                { kind: "role", sections: [{ label: declaredOwners.length ? "Owners" : "Responsible roles", items: owners }] },
                 { kind: "method", sections: [{ label: "Produced by", items: producedBy }, { label: "Needed by", items: neededBy }] },
                 { kind: "product", center: true, sections: [{ label: "Specialized by", items: specializedBy }] },
             ],
@@ -224,7 +235,7 @@ export class ElementGraph {
                 const y1 = a.y + a.h / 2, y2 = b.y + b.h / 2, c = Math.max(40, Math.abs(x2 - x1) / 2) * (leftToRight ? 1 : -1);
                 d = `M${x1},${y1} C${x1 + c},${y1} ${x2 - c},${y2} ${x2},${y2}`;
             }
-            const verb = { performs: "performs", facilitates: "facilitates", output: "produces", input: "is needed by", contains: "contains", general: "specializes" }[e.kind];
+            const verb = { performs: "performs", facilitates: "facilitates", output: "produces", input: "is needed by", contains: "contains", general: "specializes", owns: "owns" }[e.kind];
             const title = `${model.nameOf(e.from)} ${verb} ${model.nameOf(e.to)}`;
             const marker = e.kind === "general" ? 'marker-end="url(#eg-generalization)"' : e.kind === "input" || e.kind === "output" || e.kind === "contains" ? 'marker-end="url(#eg-arrow)"' : "";
             edgeParts.push(`<path class="ed-edge ${e.kind} declared" d="${d}" ${marker}><title>${escapeHtml(title)}</title></path>`);
@@ -270,6 +281,7 @@ export class ElementGraph {
                     <span><i class="ed-swatch performs"></i>performs</span>
                     <span><i class="ed-swatch facilitates"></i>facilitates</span>
                     <span><i class="ed-swatch product"></i>needs / produces</span>
+                    <span><i class="ed-swatch owns"></i>owns</span>
                     <span><i class="ed-swatch inherited"></i>inherited or library</span>
                 </div>
             </div>`;

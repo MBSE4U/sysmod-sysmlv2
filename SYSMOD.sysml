@@ -267,7 +267,7 @@ library package SYSMOD {
         action defaultProcess : SYSMODProcesses::SYSMODDefaultProcess {
             doc
             /* The SYSMOD process performed by the project. It defaults to SYSMODDefaultProcess and can be redefined with a specialization of it to tailor the process. */
-            in item projectDescription = new SYSMODProcesses::ProjectDescription(
+            in item projectDescription = new SYSMODProcesses::Products::ProjectDescription(
                 projectPurpose = Project::purpose,
                 projectScope = Project::scope,
                 projectOwnerName = Project::projectOwner.name);

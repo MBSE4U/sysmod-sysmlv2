@@ -661,7 +661,8 @@ export class FormView extends EventTarget {
             const productUse = e => {
                 const out = tree.filter(b => model.parameterProductIds(b, "outputFeatures").includes(e.id)).length + Number(used(e, "targetArtifactIds") || 0);
                 const inp = tree.filter(b => model.parameterProductIds(b, "inputFeatures").includes(e.id)).length + Number(used(e, "sourceArtifactIds") || 0);
-                return [out && `produced by ${out}`, inp && `needed by ${inp}`].filter(Boolean).join(", ");
+                const owners = model.ownersOfProduct(e, environment.id).map(r => r.name);
+                return [owners.length && `owned by ${owners.join(", ")}`, out && `produced by ${out}`, inp && `needed by ${inp}`].filter(Boolean).join(", ");
             };
             head = ["Name", "Specializes", ...(extra ? [kind === "roles" ? "Methods" : "Facilitates"] : []), kind === "products" ? "Methods" : spec.usedLabel, "Description"];
             rows = list.map(e => `<tr${e.environmentId !== environment.id ? ' class="fv-inherited"' : ""}>

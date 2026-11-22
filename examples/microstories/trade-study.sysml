@@ -55,6 +55,6 @@ package MicroStory_TradeStudy {
             attribute bOnTime :> assessments { ref part :>> alternative = optionB; ref concern :>> criterion = systemObjectives.onTimeDelivery; attribute :>> score = 0.9; }
         }
 
-        view tradeStudyView : SYSMODViews::TradeStudyView { expose chargingConceptStudy; }
+        view tradeStudyView : SYSMODViews::ViewDefinitions::TradeStudyView { expose chargingConceptStudy; }
     }
 }

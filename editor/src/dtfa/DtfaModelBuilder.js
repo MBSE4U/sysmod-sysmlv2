@@ -48,6 +48,13 @@ const SLOT_OWNERS = [BEHAVIOR, "MBSEMethodology::Methodology", "MBSEMethodology:
 // The features and connections through which a methodology declares the performers and tools of its behaviors.
 const PERFORMER_FEATURES = { "MBSEMethodology::MethodologyBehavior::primaryPerformer": "primary", "MBSEMethodology::MethodologyBehavior::additionalPerformers": "additional" };
 const TOOL_FEATURE = "MBSEMethodology::MethodologyBehavior::facilitationTools";
+const OWNERSHIP = "MBSEMethodology::ProductOwnershipConnection";
+/** The performer features of MethodologyBehavior, as connection ends meaning the performers of the enclosing behavior. */
+const ENCLOSING_PERFORMERS = {
+    "MBSEMethodology::MethodologyBehavior::primaryPerformer": "primary",
+    "MBSEMethodology::MethodologyBehavior::additionalPerformers": "additional",
+    "MBSEMethodology::MethodologyBehavior::facilitationTools": "tool",
+};
 const CONNECTIONS = { "MBSEMethodology::ResponsibleForConnection": "primary", "MBSEMethodology::SupportsConnection": "additional", "MBSEMethodology::FacilitatesConnection": "tool" };
 
 // The element class of a symbol: the definition it conforms to and the metaclasses it may have, in priority order.
@@ -268,6 +275,16 @@ export function buildDtfaModel(symbols, { documentOf = () => "", truncated = fal
                 const ends = [endOf(feature.id, 0), endOf(feature.id, 1)].filter(Boolean);
                 const behaviorEnd = ends.find(isBehavior) || ends[1], slotEnd = ends.find(e => e !== behaviorEnd && get(e));
                 if (behaviorEnd && slotEnd) addSlot(behaviorEnd, slotOf(get(slotEnd), connection[1]));
+                // A performer feature of the enclosing behavior itself, e.g. "connect primaryPerformer to step".
+                const own = ends.find(e => e !== behaviorEnd && ENCLOSING_PERFORMERS[e]);
+                if (behaviorEnd && !slotEnd && own) addSlot(behaviorEnd, { slotId: `${symbol.id}::${own.split("::").pop()}`, kind: connection[1], typeIds: [], valueIds: [], ofEnclosing: ENCLOSING_PERFORMERS[own] });
+            }
+            // "connection :> productOwnership connect owner to step.product": the owner of a product of a step.
+            if (feature.kind === "connectionUsage" && generalIds.includes(OWNERSHIP)) {
+                const ends = (feature.childIds || []).map(get).filter(Boolean);
+                const owner = ends[0] && ends[0].referencedId && get(ends[0].referencedId);
+                const chained = ends[1] && (ends[1].specializations || []).find(sp => sp.kind === "subsets" && sp.chain && sp.chain.length >= 2);
+                if (owner && chained && !model.ownerships.some(o => o.id === feature.id)) model.ownerships.push({ id: feature.id, behaviorId: chained.chain[chained.chain.length - 2], paramId: chained.chain[chained.chain.length - 1], slot: slotOf(owner, "owner") });
             }
         }
     }

@@ -290,6 +290,8 @@ export class DtfaModel {
         this.tools = [];
         this.methods = [];
         this.artifacts = [];
+        /** Product ownerships (ProductOwnershipConnection): { behaviorId, paramId, slot }, e.g. "connect projectManager to setupProject.projectCover". */
+        this.ownerships = [];
         /** @type {Map<string, ModelElement>} */
         this.elements = new Map();
         /** Notes about the model that the views show, e.g. truncated symbol collection. */
@@ -421,14 +423,67 @@ export class DtfaModel {
         const add = id => { if (!result.includes(id)) result.push(id); };
         for (const slot of behavior.slots || []) {
             if (slot.kind !== kind) continue;
-            // A value may refer to a redefined element, e.g. a tool of the company environment.
-            slot.valueIds.forEach(id => { const c = candidates.find(x => x.id === id || x.redefinedIds.includes(id)); if (c) add(c.id); });
-            if (!slot.valueIds.length) {
-                // The slot itself (e.g. "connect editor to write"), or the roles and tools that specialize its types.
-                for (const c of candidates) if (c.id === slot.slotId || slot.typeIds.some(t => c.typeIds.includes(t))) add(c.id);
+            if (slot.ofEnclosing) {
+                // A performer feature of the enclosing behavior, e.g. "connection :> supports connect primaryPerformer to
+                // specifyVerificationCases" in SpecifySystem: the primary performer of specifySystem.
+                const parent = this.get(this.parentInTree(behavior.id, environmentId));
+                if (parent) this.declaredPerformersOf(parent, environmentId, slot.ofEnclosing).forEach(id => add(id));
+                continue;
             }
+            this.resolveSlot(slot, candidates).forEach(add);
         }
         // In the order of the slots: the first one is the role (tool) of the process step.
+        return result;
+    }
+
+    /**
+     * The roles (tools) of an environment that fill a slot: its values; otherwise the slot itself (e.g. "connect editor
+     * to write"), or the roles (tools) whose type is the type of the slot, e.g. verificationEngineer : VerificationEngineer
+     * for a slot typed VerificationEngineer, and only if there is none, those whose types specialize it (e.g. a
+     * TestEngineer, which specializes VerificationEngineer).
+     */
+    resolveSlot(slot, candidates) {
+        const byValue = [];
+        // A value may refer to a redefined element, e.g. a tool of the company environment.
+        slot.valueIds.forEach(id => { const c = candidates.find(x => x.id === id || x.redefinedIds.includes(id)); if (c && !byValue.includes(c.id)) byValue.push(c.id); });
+        if (slot.valueIds.length) return byValue;
+        const itself = candidates.filter(c => c.id === slot.slotId || c.redefinedIds.includes(slot.slotId));
+        if (itself.length) return itself.map(c => c.id);
+        const type = slot.typeIds[0];
+        if (!type) return [];
+        const exact = candidates.filter(c => c.typeIds[0] === type);
+        return (exact.length ? exact : candidates.filter(c => c.typeIds.includes(type))).map(c => c.id);
+    }
+
+    /** The roles of an environment that own a product (ProductOwnershipConnection) in its methodology. */
+    ownersOfProduct(product, environmentId) {
+        const roles = [];
+        for (const { element } of this.methodologyTree(environmentId)) {
+            for (const o of this.productOwnersOf(element, environmentId)) if (o.product === product) o.roles.forEach(r => { if (!roles.includes(r)) roles.push(r); });
+        }
+        return roles;
+    }
+
+    /**
+     * The owners of the products of a behavior in an environment (MBSEMethodology::ProductOwnershipConnection, e.g.
+     * "connection :> productOwnership connect requirementsEngineer to specifySystem.systemSpecification"):
+     * [{ product, param, roles }].
+     */
+    productOwnersOf(behavior, environmentId) {
+        const ids = [behavior.id, ...(behavior.redefinedIds || [])];
+        const candidates = this.inScope(this.roles, environmentId);
+        const params = [...(behavior.outputFeatures || []), ...(behavior.inputFeatures || [])];
+        const result = [];
+        for (const o of this.ownerships.filter(o => ids.includes(o.behaviorId))) {
+            const name = o.paramId.split("::").pop();
+            const param = params.find(f => f.id === o.paramId || f.name === name);
+            const product = param && this.get(param.typeIds[0]);
+            if (!(product instanceof Artifact)) continue;
+            const roles = (environmentId ? this.resolveSlot(o.slot, candidates) : [o.slot.slotId]).map(id => this.get(id)).filter(Boolean);
+            const entry = result.find(e => e.product === product);
+            if (entry) roles.forEach(r => { if (!entry.roles.includes(r)) entry.roles.push(r); });
+            else result.push({ product, param, roles });
+        }
         return result;
     }
 

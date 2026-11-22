@@ -26,8 +26,8 @@ package MicroStory_ProblemStatement {
 
         // Two views of the same statement. SYSMODViews defines them;
         // the project declares them and exposes its problem statement.
-        view problemStatementView : SYSMODViews::ProblemStatementView { expose problemStatement; }
-        view problemStatementAIView : SYSMODViews::ProblemStatementAIView { expose problemStatement; }
+        view problemStatementView : SYSMODViews::ViewDefinitions::ProblemStatementView { expose problemStatement; }
+        view problemStatementAIView : SYSMODViews::ViewDefinitions::ProblemStatementAIView { expose problemStatement; }
         // Both satisfy the ProblemSolutionViewpoint, which frames the concerns
         // ProblemSolutionPitch and MissionGoalsAndMeasures of the
         // ProductManager and the Acquirer.

@@ -80,7 +80,7 @@ library package MBSEMethodology {
         view productViews[*] {
             doc /* The views that present the product, e.g., the views of a SYSMOD project. */
         }
-        ref modelElements[*] : KerML::Element {
+        ref modelElements[*] {
             doc /* The model elements that make up the product. */
         }
     }

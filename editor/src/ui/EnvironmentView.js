@@ -91,7 +91,8 @@ export class EnvironmentView extends EventTarget {
         const productUse = a => {
             const out = tree.filter(b => model.parameterProductIds(b, "outputFeatures").includes(a.id)).length + steps.filter(s => s.targetArtifactIds.includes(a.id)).length;
             const inp = tree.filter(b => model.parameterProductIds(b, "inputFeatures").includes(a.id)).length + steps.filter(s => s.sourceArtifactIds.includes(a.id)).length;
-            return [out && `produced by ${out}`, inp && `needed by ${inp}`].filter(Boolean).join(", ");
+            const owners = model.ownersOfProduct(a, environment.id).map(r => r.name);
+            return [owners.length && `owned by ${owners.join(", ")}`, out && `produced by ${out}`, inp && `needed by ${inp}`].filter(Boolean).join(", ");
         };
         const card = (title, hint, items, command, label) => `<section class="ev-card${title === "Methodology" ? " ev-methodology" : ""}">
             <h3><button type="button" class="ev-card-open" data-collection="${COLLECTION_OF[command]}" data-id="${id}" title="Open the ${escapeHtml(title.toLowerCase())} editor">${escapeHtml(title)}</button> <span class="fv-count">${items.length}</span></h3>

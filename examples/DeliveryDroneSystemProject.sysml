@@ -70,9 +70,7 @@ package <DD> DeliveryDrone {
                     action :>> modelLogicalArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
                     action :>> modelProductArchitecture { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
                 }
-                action :>> modelSubProjects { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-                action :>> integrateSubProjects { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
-                action :>> specifyVerificationContext { @StepStatus { status = StepStatusKind::inProgress; percentage = 0.2 as Percentage; } }
+                action :>> modelSubProject { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
                 action :>> performVerification { @StepStatus { status = StepStatusKind::open; percentage = 0.0 as Percentage; } }
                 action :>> specifyTradeStudy { @StepStatus { status = StepStatusKind::done; percentage = 1.0 as Percentage; } }
             }
@@ -324,53 +322,51 @@ package <DD> DeliveryDrone {
         //
         private import SYSMODViews::*;
 
-        view projectCoverView : SYSMODViews::ProjectView { 
+        view projectCoverView : ViewDefinitions::ProjectView { 
             doc
             /* The Project Cover view shows the project with its purpose, project owner, and the main engineering artifacts. */
             expose this;
         }
-        view projectCoverAIView : SYSMODViews::ProjectAIView {
+        view projectCoverAIView : ViewDefinitions::ProjectAIView {
             doc
             /* The Project Cover view is an AI-generated management summary of the project. It exposes the project itself, i.e., its purpose, project owner, and the main engineering artifacts. */
             expose this;
         }
-        view sysmodMapView : SYSMODViews::SYSMODMapView {
+        view sysmodMapView : ViewDefinitions::SYSMODMapView {
             doc
             /* The SYSMOD Map shows the project's features by concerns, black box, and white box from the brownfield system to verification, with the status of the steps. */
             expose this;
         }
-        view problemStatementView : SYSMODViews::ProblemStatementView {
+        view problemStatementView : ViewDefinitions::ProblemStatementView {
             doc
             /* The Problem Statement view shows the problem statement with its project owner and the brownfield system. */
             expose problemStatement;
         }
-        view problemStatementAIView : SYSMODViews::ProblemStatementAIView {
+        view problemStatementAIView : ViewDefinitions::ProblemStatementAIView {
             doc
             /* The Problem Statement view is an AI-generated summary of the problem statement. It exposes the problem statement itself, i.e., its project owner and the brownfield system. */
             expose problemStatement;
         }
-        view systemObjectivesView : SYSMODViews::SystemObjectivesView {
+        view systemObjectivesView : ViewDefinitions::SystemObjectivesView {
             doc
             /* The System Objectives view shows the measurable goals of the system idea with the project owner, the system idea, and the stakeholder needs they frame. */
             expose systemObjectives;
         }
-        view specificationTreeView : SYSMODViews::SpecificationTreeView {
+        view specificationTreeView : ViewDefinitions::SpecificationTreeView {
             doc
             /* The Specification Tree view shows the project with its control station sub-project, the building block the sub-project develops, the system requirements of both levels, and the requirement flow-down between them. */
             expose this;
             expose controlStationProject;
         }
-        view tradeStudyView : SYSMODViews::TradeStudyView {
+        view tradeStudyView : ViewDefinitions::TradeStudyView {
             doc
             /* The Trade Study view shows the charging concept trade study as decision matrix: the alternatives, the system objectives as weighted criteria, the scores, and the selected alternative. */
             expose chargingConceptStudy;
         }
-
-
-        view useCaseView : AIUseCaseView {
+            view useCaseView : ViewDefinitions::AIUseCaseView {
             expose DD_SPECIFICATION::UseCases::*;
         }
-        view useCaseManagerView : AIUseCase4ManagersView {
+        view useCaseManagerView : ViewDefinitions::AIUseCase4ManagersView {
             expose DD_SPECIFICATION::UseCases::*;
         }
 

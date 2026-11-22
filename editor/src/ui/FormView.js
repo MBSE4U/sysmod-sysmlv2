@@ -229,9 +229,12 @@ export class FormView extends EventTarget {
             </select>${current ? this.link(current) : ""}</label>`;
     }
 
-    /** Elements of a library (e.g. a role of the SYSMOD methodology) are read-only; they are changed by specializing them. */
+    /**
+     * Elements of a library (e.g. a role of the SYSMOD methodology) are read-only; they are changed by specializing them,
+     * unless the libraries are being edited (the switch "Edit the libraries").
+     */
     editableFor(element) {
-        return this.state.editable && !element.external && !element.library;
+        return this.state.editable && !element.external && (!element.library || !!this.state.libraryEditing);
     }
 
     deleteButton(element, label = `Delete ${element.kindLabel.toLowerCase()}`) {
@@ -432,7 +435,8 @@ export class FormView extends EventTarget {
     /** The MBSE environment that declares an element of an environment, and the environments that inherit it. */
     environmentLine(element) {
         const { model } = this.state;
-        if (element.external || element.library) return `<p class="fv-line fv-muted">Declared in the library ${escapeHtml(element.document || "")}; read-only here. Specialize it to change it.</p>`;
+        if (element.library && this.state.libraryEditing && !element.external) return `<p class="fv-line fv-library-edit">Declared in the library ${escapeHtml(element.document || "")}. You are editing the libraries: changes here change the library for every model that uses it.</p>`;
+        if (element.external || element.library) return `<p class="fv-line fv-muted">Declared in the library ${escapeHtml(element.document || "")}; read-only here. Specialize it to change it, or switch on "Edit the libraries".</p>`;
         if (!element.environmentId) return "";
         const heirs = model.environments.filter(e => e.id !== element.environmentId && model.environmentScope(e.id).includes(element.environmentId));
         return `<p class="fv-line">${escapeHtml(element.kindLabel)} of the MBSE environment ${this.link(element.environmentId)}${heirs.length
@@ -562,7 +566,9 @@ export class FormView extends EventTarget {
         }).join("")}</nav>` : "";
         return `<header class="fv-header"><span class="fv-kind">Document</span><h2 class="fv-title">${escapeHtml(name)}</h2>
                 <span class="fv-source"><button type="button" class="fv-link" data-view="text">Show text</button></span></header>
-            ${[...model.elements.values()].some(e => e.library && inDocument(e)) ? '<p class="fv-line fv-muted">A library: read-only. Specialize its elements in your own documents.</p>' : ""}
+            ${[...model.elements.values()].some(e => e.library && inDocument(e)) ? (this.state.libraryEditing
+                ? '<p class="fv-line fv-library-edit">A library, open for editing: changes apply to every model that uses it.</p>'
+                : '<p class="fv-line fv-muted">A library: read-only. Specialize its elements in your own documents, or switch on "Edit the libraries".</p>') : ""}
             ${jump}${sections || '<p class="fv-muted">The document declares no MBSE environment, flow analysis, process, method, role, tool or product. Show its text to see its content.</p>'}`;
     }
 

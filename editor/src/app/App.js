@@ -40,6 +40,7 @@ import { formDialog, confirmDialog, infoDialog } from "../ui/FormDialog.js";
 const $ = selector => document.querySelector(selector);
 const VIEWS = ["environment", "roles", "tools", "methodology", "products", "process", "overview", "text", "form", "matrix", "steps", "policy"];
 /** Views without a tab of their own: their tab shows only while they are open (the form, the DTFA views). */
+const LIBRARY_EDITING_KEY = "mbse-methodology-editor.library-editing";
 const TRANSIENT_VIEWS = ["form", "matrix", "steps", "policy"];
 /** The tab of the elements of a collection, and of an element. */
 const COLLECTION_TABS = { roles: "roles", tools: "tools", methods: "methodology", products: "products" };
@@ -107,6 +108,11 @@ export class App {
         this.engineError = null;
         this.checkTimer = null;
         this.draftTimer = null;
+        /** The switch "Edit the libraries": the library documents are writable. */
+        this.libraryEditing = false;
+        try { this.libraryEditing = localStorage.getItem(LIBRARY_EDITING_KEY) === "true"; } catch (_) { /* storage unavailable */ }
+        /** The copies of the libraries in the opened folder (e.g. the library repository itself): [{ name, content, handle }]. */
+        this.folderLibraries = [];
     }
 
     async start() {
@@ -302,7 +308,8 @@ export class App {
     viewState(message) {
         const model = this.analysis ? this.analysis.result.model : null;
         return { model, analyses: this.analyses, selectedId: this.selectedId, collection: this.collection, document: this.documentView,
-            activeDocument: this.activeName, environmentId: model ? this.currentEnvironmentId(model) : null, editable: true, message };
+            activeDocument: this.activeName, environmentId: model ? this.currentEnvironmentId(model) : null, editable: true,
+            libraryEditing: this.libraryEditing, message };
     }
 
     /**
@@ -410,12 +417,95 @@ export class App {
                 }
             }
             if (content === undefined) missing.push(name);
-            else this.workspace.add(new SourceDocument({ name, content, readOnly: true, library: true, origin: "library" }));
+            else {
+                const document = new SourceDocument({ name, content, readOnly: !this.libraryEditing, library: true, origin: "library" });
+                /** The content of the editor's own copy, restored when the libraries are no longer edited. */
+                document.builtinContent = content;
+                this.workspace.add(document);
+            }
         }));
         // Keep the configured order of the libraries in the document list.
         const order = this.config.libraries.map(l => l.name);
         this.workspace.documents.sort((a, b) => (a.library && b.library ? order.indexOf(a.name) - order.indexOf(b.name) : 0));
         if (missing.length) this.status(`The libraries ${missing.join(", ")} could not be loaded. Imports of them will not resolve.`, "error");
+        this.renderLibraryMode();
+    }
+
+    // ---------- editing the libraries ----------
+
+    /**
+     * Switches "Edit the libraries" on or off. On: the library documents are writable in all views, and the copies of the
+     * libraries in the opened folder replace the editor's own copies, so Save writes back to them (open the folder of
+     * the library repository to improve the libraries). Off: the libraries are read-only again and come from the editor;
+     * unsaved changes of the libraries are discarded after asking.
+     */
+    async setLibraryEditing(on) {
+        if (on === this.libraryEditing) return this.renderLibraryMode();
+        const libraries = this.workspace.documents.filter(d => d.library);
+        if (!on) {
+            const unsaved = libraries.filter(d => d.dirty);
+            if (unsaved.length && !(await confirmDialog(`Discard the unsaved changes of ${unsaved.map(d => d.name).join(", ")}?`, { confirmLabel: "Discard changes" }))) {
+                return this.renderLibraryMode();
+            }
+        }
+        this.libraryEditing = on;
+        try { localStorage.setItem(LIBRARY_EDITING_KEY, String(on)); } catch (_) { /* storage unavailable */ }
+        for (const document of libraries) {
+            if (on) document.readOnly = false;
+            else this.useBuiltinLibrary(document);
+        }
+        const adopted = on ? this.adoptFolderLibraries() : [];
+        this.afterLibraryChange();
+        this.status(on
+            ? `You are editing the libraries. ${adopted.length ? `${adopted.length} of them come from the folder ${this.folder.name} and are saved back there.`
+                : "Save writes a library to a file you choose; open the folder of the library repository (File ▸ Open folder) to save back to its files."}`
+            : "The libraries are read-only again.");
+        await this.check();
+    }
+
+    /** The editor's own, read-only copy of a library. */
+    useBuiltinLibrary(document) {
+        if (document.builtinContent !== undefined) document.content = document.savedContent = document.builtinContent;
+        document.handle = null;
+        document.origin = "library";
+        document.readOnly = true;
+    }
+
+    /** The copies of the libraries in the opened folder replace the editor's own copies (only while editing them). */
+    adoptFolderLibraries() {
+        if (!this.libraryEditing) return [];
+        const adopted = [];
+        for (const file of this.folderLibraries) {
+            const document = this.workspace.get(file.name);
+            if (!document || !document.library || document.dirty) continue;
+            document.content = document.savedContent = file.content;
+            document.handle = file.handle || null;
+            document.origin = "folder";
+            document.readOnly = false;
+            adopted.push(document);
+        }
+        return adopted;
+    }
+
+    afterLibraryChange() {
+        if (this.active) this.editor.setValue(this.active.content, { readOnly: this.active.readOnly, keepView: true });
+        this.history = { undo: [], redo: [] };
+        this.updateHistoryButtons();
+        this.renderLibraryMode();
+        this.renderTabs();
+        this.renderDocumentList();
+        this.workspace.changed("libraries", this.activeName, true);
+    }
+
+    renderLibraryMode() {
+        const box = $("#library-editing");
+        if (box) box.checked = this.libraryEditing;
+        const mode = $("#library-mode");
+        if (mode) {
+            mode.textContent = this.libraryEditing ? "editing" : "read-only";
+            mode.classList.toggle("editing", this.libraryEditing);
+        }
+        document.body.classList.toggle("library-editing", this.libraryEditing);
     }
 
     addDocument(document) {
@@ -468,7 +558,7 @@ export class App {
         $("#tabs").innerHTML = this.workspace.documents.map(d => `
             <div class="tab${d.name === this.activeName ? " active" : ""}${d.library ? " library" : ""}" role="presentation">
                 <button type="button" role="tab" class="tab-label" data-activate="${escapeHtml(d.name)}" aria-selected="${d.name === this.activeName}"
-                    title="${escapeHtml(d.library ? "Library (read-only)" : d.name)}">${d.library ? "🔒 " : ""}${escapeHtml(d.name)}${d.dirty ? '<span class="dirty" aria-label="unsaved changes">●</span>' : ""}</button>
+                    title="${escapeHtml(d.library ? (d.readOnly ? "Library (read-only)" : `Library, open for editing${d.origin === "folder" ? " (from the opened folder)" : ""}`) : d.name)}">${d.library ? (d.readOnly ? "🔒 " : "✎ ") : ""}${escapeHtml(d.name)}${d.dirty ? '<span class="dirty" aria-label="unsaved changes">●</span>' : ""}</button>
                 ${d.library ? "" : `<button type="button" class="tab-close" data-close="${escapeHtml(d.name)}" aria-label="Close ${escapeHtml(d.name)}" title="Close">×</button>`}
             </div>`).join("");
     }
@@ -482,7 +572,7 @@ export class App {
         const item = d => `
             <li><button type="button" data-open-document="${escapeHtml(d.name)}" class="${d.name === this.activeName ? "active" : ""}">
                 <span class="doc-name">${escapeHtml(d.name)}</span>
-                <span class="doc-state">${d.library ? "" : d.dirty ? "unsaved" : d.handle ? "saved" : d.origin === "file" || d.origin === "folder" ? "opened" : "not saved yet"}</span>
+                <span class="doc-state">${d.library ? (d.readOnly ? "" : d.dirty ? "unsaved" : d.origin === "folder" ? "from folder" : d.handle ? "saved" : "editor's copy") : d.dirty ? "unsaved" : d.handle ? "saved" : d.origin === "file" || d.origin === "folder" ? "opened" : "not saved yet"}</span>
             </button></li>`;
         // The user's documents, and separately the integrated read-only libraries.
         const own = this.workspace.modelDocuments;
@@ -514,7 +604,16 @@ export class App {
         for (const props of opened) {
             const existing = this.workspace.get(props.name);
             if (existing && existing.library) {
-                this.status(`${props.name} has the name of the library and was not opened.`, "error");
+                if (!this.libraryEditing) {
+                    this.status(`${props.name} has the name of a library and was not opened. Switch on "Edit the libraries" to open your copy of the library.`, "error");
+                    continue;
+                }
+                if (existing.dirty && !(await confirmDialog(`${props.name} has unsaved changes. Replace it with the file?`, { confirmLabel: "Replace" }))) continue;
+                existing.content = existing.savedContent = props.content;
+                existing.handle = props.handle || null;
+                existing.origin = "file";
+                existing.readOnly = false;
+                this.afterLibraryChange();
                 continue;
             }
             if (existing && existing.dirty && !(await confirmDialog(`${props.name} is open with unsaved changes. Replace it with the file?`, { confirmLabel: "Replace" }))) continue;
@@ -545,6 +644,12 @@ export class App {
         const libraryNames = new Set(this.workspace.libraryNames);
         const files = opened.files.filter(f => !libraryNames.has(f.name.split("/").pop()));
         const skipped = opened.files.length - files.length;
+        // The copies of the libraries in the folder: used while the libraries are edited, otherwise not opened.
+        for (const document of this.workspace.documents.filter(d => d.library && d.origin === "folder")) this.useBuiltinLibrary(document);
+        if (this.libraryEditing) this.workspace.documents.filter(d => d.library).forEach(d => { d.readOnly = false; });
+        this.folderLibraries = opened.files.filter(f => libraryNames.has(f.name.split("/").pop())).map(f => ({ ...f, name: f.name.split("/").pop() }));
+        const adopted = this.adoptFolderLibraries();
+        if (skipped) this.afterLibraryChange();
         for (const document of this.workspace.modelDocuments) this.workspace.remove(document.name);
         this.history = { undo: [], redo: [] };
         this.updateHistoryButtons();
@@ -554,7 +659,8 @@ export class App {
         if (firstDocument) this.activate(firstDocument.name);
         this.renderDocumentList();
         this.status(`${reload ? "Reloaded" : "Opened"} the folder ${opened.folder.name}: ${files.length} file${files.length === 1 ? "" : "s"}`
-            + (skipped ? `; ${skipped} copie${skipped === 1 ? "" : "s"} of the libraries not opened (the editor uses its read-only libraries)` : "")
+            + (adopted.length ? `; ${adopted.length} librar${adopted.length === 1 ? "y" : "ies"} from the folder, open for editing`
+                : skipped ? `; ${skipped} copie${skipped === 1 ? "" : "s"} of the libraries not opened (the editor uses its read-only libraries; switch on "Edit the libraries" to edit the copies of the folder)` : "")
             + (opened.folder.handle ? "." : ". This browser cannot write to the folder: Save downloads the files."));
         const result = await this.check();
         const first = result && (result.model.analyses[0] || result.model.environments.find(e => !e.library));
@@ -617,16 +723,21 @@ export class App {
     }
 
     async save(document = this.active, { as = false } = {}) {
-        if (!document || document.library) return;
+        if (!document || document.readOnly) return;
         try {
             const saved = as ? await this.repository.saveAs(document) : await this.repository.save(document);
             const wasActive = document.name === this.activeName;
+            if (document.library && saved.name && saved.name !== document.name) {
+                // A library keeps its name: the copy under another name is not the library.
+                this.status(`Saved a copy of the library ${document.name} as ${saved.name}; the library itself is still unsaved.`, "error");
+                return;
+            }
             if (saved.name && saved.name !== document.name) {
                 this.workspace.rename(document.name, saved.name);
                 if (wasActive) this.activeName = saved.name;
             }
             document.handle = saved.handle;
-            document.origin = "file";
+            if (!(document.library && document.origin === "folder")) document.origin = "file";
             document.markSaved();
             this.workspace.changed("save", document.name);
             this.saveDrafts();
@@ -657,6 +768,13 @@ export class App {
         if (unsaved.length && !(await confirmDialog(`${unsaved.length} document${unsaved.length === 1 ? " has" : "s have"} unsaved changes (${unsaved.map(d => d.name).join(", ")}). Close anyway?`,
             { confirmLabel: "Close without saving" }))) return;
         for (const document of this.workspace.modelDocuments) this.workspace.remove(document.name);
+        // The libraries of the closed folder: the editor's own copies again (still editable while the switch is on).
+        for (const document of this.workspace.documents.filter(d => d.library && (d.origin === "folder" || d.origin === "file"))) {
+            this.useBuiltinLibrary(document);
+            document.readOnly = !this.libraryEditing;
+        }
+        this.folderLibraries = [];
+        this.afterLibraryChange();
         this.folder = null;
         this.repository.folder = null;
         this.history = { undo: [], redo: [] };
@@ -668,7 +786,7 @@ export class App {
         if (first) this.activate(first.name);
         this.renderDocumentList();
         this.saveDrafts();
-        this.status("Closed all documents. The libraries remain, read-only.");
+        this.status(`Closed all documents. The libraries remain${this.libraryEditing ? ", open for editing" : ", read-only"}.`);
         await this.check();
     }
 
@@ -1344,7 +1462,7 @@ export class App {
                     const { edits } = this.behaviorEdits(result, model.get(analysis.environmentId), [{ id: target.id, pairs: [["inputs", listValue(rest.map(id => this.nameRef(id, model)))]] }]);
                     return { edits, label: `remove the hand-over ${element.name}`, select: analysis.id };
                 }
-                if (element instanceof FlowAnalysis || element instanceof MBSEEnvironment || element.external || element.library) throw new ModelEditError(`Delete the ${element.kindLabel.toLowerCase()} ${element.name} in the text.`);
+                if (element instanceof FlowAnalysis || element instanceof MBSEEnvironment || element.external || (element.library && !this.libraryEditing)) throw new ModelEditError(`Delete the ${element.kindLabel.toLowerCase()} ${element.name} in the text.`);
                 if (!result.locate(element.id)) throw new ModelEditError(`${element.name} is declared in ${model.nameOf(element.environmentId, "another environment")}; delete it there.`);
                 const doomed = [element.id];
                 let question = `Delete ${element.kindLabel.toLowerCase()} ${element.name}?`;
@@ -1493,7 +1611,7 @@ export class App {
             const item = e.target.closest("[data-snippet]");
             if (!item) return;
             closeMenus();
-            if (!this.active || this.active.readOnly) { this.status("The library is read-only. Insert into one of your documents.", "error"); return; }
+            if (!this.active || this.active.readOnly) { this.status('The library is read-only. Insert into one of your documents, or switch on "Edit the libraries".', "error"); return; }
             this.setView("text");
             this.editor.insertAtCursor(SNIPPETS[Number(item.dataset.snippet)].text);
         });
@@ -1508,6 +1626,7 @@ export class App {
             else if (!typing && key === "z") { e.preventDefault(); this.undo(e.shiftKey); }
             else if (!typing && key === "y") { e.preventDefault(); this.undo(true); }
         });
+        $("#library-editing").addEventListener("change", e => this.setLibraryEditing(e.target.checked));
         window.addEventListener("beforeunload", e => {
             this.saveDrafts();
             if (this.workspace.dirtyDocuments.length) { e.preventDefault(); e.returnValue = ""; }

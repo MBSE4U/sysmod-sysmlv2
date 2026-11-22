@@ -523,3 +523,9 @@ kbd { font: 12px var(--mono); color: var(--muted); }
 .doc-readonly { margin-left: 4px; font-weight: 400; text-transform: none; letter-spacing: 0; }
 .documents.libraries { max-height: 22vh; }
 .documents.libraries button { color: var(--muted); }
+.library-switch { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px; padding-left: 14px; font-size: 12px; color: var(--muted); cursor: pointer; user-select: none; }
+.library-switch input { margin: 0; accent-color: var(--warning); }
+.doc-readonly.editing { color: var(--warning); font-weight: 600; }
+body.library-editing .documents.libraries button { color: var(--text); }
+body.library-editing .libraries-panel { box-shadow: inset 3px 0 0 var(--warning); }
+.fv-library-edit { color: var(--warning); }

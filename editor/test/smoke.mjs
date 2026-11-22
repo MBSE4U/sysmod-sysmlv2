@@ -453,6 +453,22 @@ check("overview for management: stages, sub-projects, on demand, who does what, 
     assert.deepEqual(lo.stages.find(s => s.title === "Perform verification").leads.map(p => p.label), ["Test engineer"]);
 });
 
+check("editing the libraries: a model edit of a library element changes the library document", () => {
+    const docs = libraries.map(l => ({ ...l }));
+    const text = name => docs.find(d => d.name === name).content;
+    const analyzed = () => buildFromAnalysis(analyzeWith(engine, docs, { libraryNames, browseLibraries: ["ISO15288Processes.sysml"], ...ANALYSIS_OPTIONS }), docs, { libraryNames });
+    const before = analyzed();
+    const id = "ISO15288Processes::Stakeholders::SystemArchitect";
+    assert.ok(before.model.get(id) && before.model.get(id).library, "a library element");
+    const edits = new TextModelEditor({ locate: before.locate, documentText: text }).setDoc(id, "Improved in the editor.");
+    assert.deepEqual([...new Set(edits.map(e => e.document))], ["ISO15288Processes.sysml"]);
+    const target = docs.find(d => d.name === "ISO15288Processes.sysml");
+    target.content = applyEditsToText(target.content, edits);
+    const after = analyzed();
+    assert.deepEqual(errorsOf(after), []);
+    assert.equal(after.model.get(id).doc, "Improved in the editor.");
+});
+
 check("specializations: a role inherits the doc and the responsibilities of its general role", () => {
     const result = load([{ name: "Spec.sysml", content: `package Spec {
         private import MBSEMethodology::*;

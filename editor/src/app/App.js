@@ -451,15 +451,16 @@ export class App {
         this.libraryEditing = on;
         try { localStorage.setItem(LIBRARY_EDITING_KEY, String(on)); } catch (_) { /* storage unavailable */ }
         for (const document of libraries) {
-            if (on) document.readOnly = false;
-            else this.useBuiltinLibrary(document);
+            // Off: unsaved changes are discarded; the libraries of the opened folder stay, read-only.
+            if (!on) document.content = document.savedContent;
+            document.readOnly = !on;
         }
-        const adopted = on ? this.adoptFolderLibraries() : [];
+        const adopted = libraries.filter(d => d.origin === "folder");
         this.afterLibraryChange();
         this.status(on
             ? `You are editing the libraries. ${adopted.length ? `${adopted.length} of them come from the folder ${this.folder.name} and are saved back there.`
                 : "Save writes a library to a file you choose; open the folder of the library repository (File ▸ Open folder) to save back to its files."}`
-            : "The libraries are read-only again.");
+            : `The libraries are read-only again${adopted.length ? `; ${adopted.length} of them still come from the folder ${this.folder.name}` : ""}.`);
         await this.check();
     }
 
@@ -471,17 +472,20 @@ export class App {
         document.readOnly = true;
     }
 
-    /** The copies of the libraries in the opened folder replace the editor's own copies (only while editing them). */
+    /**
+     * The copies of the libraries in the opened folder (e.g. the library repository itself) replace the editor's own
+     * copies, so the model uses the libraries as they are in the folder; read-only unless the libraries are edited.
+     */
     adoptFolderLibraries() {
-        if (!this.libraryEditing) return [];
         const adopted = [];
         for (const file of this.folderLibraries) {
             const document = this.workspace.get(file.name);
             if (!document || !document.library || document.dirty) continue;
             document.content = document.savedContent = file.content;
             document.handle = file.handle || null;
+            document.lastModified = file.lastModified;
             document.origin = "folder";
-            document.readOnly = false;
+            document.readOnly = !this.libraryEditing;
             adopted.push(document);
         }
         return adopted;
@@ -495,6 +499,71 @@ export class App {
         this.renderTabs();
         this.renderDocumentList();
         this.workspace.changed("libraries", this.activeName, true);
+    }
+
+    // ---------- watching the opened folder ----------
+
+    /**
+     * Watches the files of the opened folder (and of opened files) while the folder is open: a file changed on disk,
+     * e.g. by another editor or by git, is read again and the views follow; a new model file in the folder is opened.
+     * A document with unsaved changes in the editor is not overwritten: the status says that the file changed.
+     * Needs the File System Access API (Chrome, Edge); the check runs every 2 s while the page is visible.
+     */
+    watchFolder() {
+        clearInterval(this.watchTimer);
+        this.watchTimer = null;
+        const watched = () => (this.folder && this.folder.handle) || this.workspace.documents.some(d => d.handle && d.handle.getFile);
+        if (!watched()) return;
+        this.watchTimer = setInterval(() => {
+            if (!watched()) { clearInterval(this.watchTimer); this.watchTimer = null; return; }
+            if (document.visibilityState !== "visible" || this.watching) return;
+            this.watching = this.syncWithDisk().catch(() => { /* e.g. permission revoked: try again later */ }).finally(() => { this.watching = null; });
+        }, 2000);
+    }
+
+    async syncWithDisk() {
+        const changed = [];
+        const conflicts = [];
+        for (const document of this.workspace.documents) {
+            if (!document.handle || !document.handle.getFile) continue;
+            let file;
+            try { file = await document.handle.getFile(); } catch (_) { continue; } // removed or renamed
+            if (document.lastModified === file.lastModified) continue;
+            document.lastModified = file.lastModified;
+            const content = await file.text();
+            if (content === document.savedContent) continue; // e.g. saved by the editor
+            if (document.dirty) {
+                if (document.content !== content) conflicts.push(document.name);
+                document.savedContent = content; // the editor's version is now the unsaved one
+                continue;
+            }
+            document.content = document.savedContent = content;
+            changed.push(document.name);
+        }
+        // New model files in the folder.
+        const added = [];
+        if (this.folder && this.folder.handle && this.folder.handle.entries) {
+            const libraryNames = new Set(this.workspace.libraryNames);
+            for await (const [name, handle] of this.folder.handle.entries()) {
+                if (handle.kind !== "file" || !/\.(sysml|kerml)$/i.test(name) || this.workspace.get(name) || libraryNames.has(name)) continue;
+                const file = await handle.getFile();
+                this.workspace.add(Object.assign(new SourceDocument({ name, content: await file.text(), handle, origin: "folder" }), { lastModified: file.lastModified }));
+                added.push(name);
+            }
+        }
+        if (!changed.length && !added.length && !conflicts.length) return;
+        if (changed.length) {
+            if (changed.includes(this.activeName)) this.editor.setValue(this.active.content, { readOnly: this.active.readOnly, keepView: true });
+            // The undo steps refer to the old texts.
+            this.history = { undo: [], redo: [] };
+            this.updateHistoryButtons();
+            this.workspace.changed("disk", changed[0], true);
+        } else if (added.length) this.workspace.changed("disk", added[0], true);
+        this.status([
+            changed.length && `Changed on disk, read again: ${changed.join(", ")}.`,
+            added.length && `New in the folder: ${added.join(", ")}.`,
+            conflicts.length && `Changed on disk while you have unsaved changes: ${conflicts.join(", ")}. Save to keep yours, or Reload the folder to take the file.`,
+        ].filter(Boolean).join(" "), conflicts.length ? "error" : "info");
     }
 
     renderLibraryMode() {
@@ -572,7 +641,7 @@ export class App {
         const item = d => `
             <li><button type="button" data-open-document="${escapeHtml(d.name)}" class="${d.name === this.activeName ? "active" : ""}">
                 <span class="doc-name">${escapeHtml(d.name)}</span>
-                <span class="doc-state">${d.library ? (d.readOnly ? "" : d.dirty ? "unsaved" : d.origin === "folder" ? "from folder" : d.handle ? "saved" : "editor's copy") : d.dirty ? "unsaved" : d.handle ? "saved" : d.origin === "file" || d.origin === "folder" ? "opened" : "not saved yet"}</span>
+                <span class="doc-state">${d.library ? (d.dirty ? "unsaved" : d.origin === "folder" ? "from folder" : d.origin === "file" ? "from file" : d.readOnly ? "" : "editor's copy") : d.dirty ? "unsaved" : d.handle ? "saved" : d.origin === "file" || d.origin === "folder" ? "opened" : "not saved yet"}</span>
             </button></li>`;
         // The user's documents, and separately the integrated read-only libraries.
         const own = this.workspace.modelDocuments;
@@ -604,21 +673,20 @@ export class App {
         for (const props of opened) {
             const existing = this.workspace.get(props.name);
             if (existing && existing.library) {
-                if (!this.libraryEditing) {
-                    this.status(`${props.name} has the name of a library and was not opened. Switch on "Edit the libraries" to open your copy of the library.`, "error");
-                    continue;
-                }
+                // Your copy of a library replaces the editor's copy (read-only unless the libraries are edited).
                 if (existing.dirty && !(await confirmDialog(`${props.name} has unsaved changes. Replace it with the file?`, { confirmLabel: "Replace" }))) continue;
                 existing.content = existing.savedContent = props.content;
                 existing.handle = props.handle || null;
+                existing.lastModified = props.lastModified;
                 existing.origin = "file";
-                existing.readOnly = false;
+                existing.readOnly = !this.libraryEditing;
                 this.afterLibraryChange();
                 continue;
             }
             if (existing && existing.dirty && !(await confirmDialog(`${props.name} is open with unsaved changes. Replace it with the file?`, { confirmLabel: "Replace" }))) continue;
-            this.addDocument(new SourceDocument(props));
+            this.addDocument(Object.assign(new SourceDocument(props), { lastModified: props.lastModified }));
         }
+        this.watchFolder();
         if (opened.length) {
             await this.check();
             this.openDocument(opened[0].name);
@@ -627,8 +695,9 @@ export class App {
 
     /**
      * Opens a folder: all its .sysml files (not those of its subfolders) replace the open documents and are checked together
-     * with the libraries. The libraries (MBSEMethodology, DTFA, SYSMOD, ...) always come from the editor and stay
-     * read-only; copies of them in the folder are not opened.
+     * with the libraries. Copies of the libraries (MBSEMethodology, DTFA, SYSMOD, ...) in the folder, e.g. when the folder
+     * is the library repository, replace the editor's own copies (read-only unless "Edit the libraries" is on). The
+     * folder is watched: files changed on disk are read again (watchFolder).
      */
     async openFolder({ reload = false } = {}) {
         const unsaved = this.workspace.dirtyDocuments;
@@ -644,7 +713,7 @@ export class App {
         const libraryNames = new Set(this.workspace.libraryNames);
         const files = opened.files.filter(f => !libraryNames.has(f.name.split("/").pop()));
         const skipped = opened.files.length - files.length;
-        // The copies of the libraries in the folder: used while the libraries are edited, otherwise not opened.
+        // The copies of the libraries in the folder replace the editor's own copies.
         for (const document of this.workspace.documents.filter(d => d.library && d.origin === "folder")) this.useBuiltinLibrary(document);
         if (this.libraryEditing) this.workspace.documents.filter(d => d.library).forEach(d => { d.readOnly = false; });
         this.folderLibraries = opened.files.filter(f => libraryNames.has(f.name.split("/").pop())).map(f => ({ ...f, name: f.name.split("/").pop() }));
@@ -654,13 +723,13 @@ export class App {
         this.history = { undo: [], redo: [] };
         this.updateHistoryButtons();
         this.folder = opened.folder;
-        files.forEach(props => this.workspace.add(new SourceDocument(props)));
+        files.forEach(props => this.workspace.add(Object.assign(new SourceDocument(props), { lastModified: props.lastModified })));
+        this.watchFolder();
         const firstDocument = this.workspace.modelDocuments[0] || this.workspace.documents[0];
         if (firstDocument) this.activate(firstDocument.name);
         this.renderDocumentList();
         this.status(`${reload ? "Reloaded" : "Opened"} the folder ${opened.folder.name}: ${files.length} file${files.length === 1 ? "" : "s"}`
-            + (adopted.length ? `; ${adopted.length} librar${adopted.length === 1 ? "y" : "ies"} from the folder, open for editing`
-                : skipped ? `; ${skipped} copie${skipped === 1 ? "" : "s"} of the libraries not opened (the editor uses its read-only libraries; switch on "Edit the libraries" to edit the copies of the folder)` : "")
+            + (adopted.length ? `; ${adopted.length} librar${adopted.length === 1 ? "y" : "ies"} from the folder${this.libraryEditing ? ", open for editing" : " (read-only; switch on \"Edit the libraries\" to edit them)"}` : "")
             + (opened.folder.handle ? "." : ". This browser cannot write to the folder: Save downloads the files."));
         const result = await this.check();
         const first = result && (result.model.analyses[0] || result.model.environments.find(e => !e.library));
@@ -776,6 +845,7 @@ export class App {
         this.folderLibraries = [];
         this.afterLibraryChange();
         this.folder = null;
+        this.watchFolder();
         this.repository.folder = null;
         this.history = { undo: [], redo: [] };
         this.updateHistoryButtons();

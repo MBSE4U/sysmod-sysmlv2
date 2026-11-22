@@ -82,7 +82,7 @@ export class LocalFileRepository extends ModelRepository {
             }
             return Promise.all(handles.map(async handle => {
                 const file = await handle.getFile();
-                return { name: file.name, content: await file.text(), handle, origin: "file" };
+                return { name: file.name, content: await file.text(), handle, origin: "file", lastModified: file.lastModified };
             }));
         }
         const files = await pickFiles();
@@ -136,7 +136,8 @@ async function readFolder(directory) {
     const files = [];
     for await (const [name, handle] of directory.entries()) {
         if (handle.kind !== "file" || !MODEL_FILE.test(name)) continue;
-        files.push({ name, content: await (await handle.getFile()).text(), handle, origin: "folder" });
+        const file = await handle.getFile();
+        files.push({ name, content: await file.text(), handle, origin: "folder", lastModified: file.lastModified });
     }
     return files.sort((a, b) => a.name.localeCompare(b.name));
 }

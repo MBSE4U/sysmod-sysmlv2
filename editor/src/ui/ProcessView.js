@@ -8,6 +8,9 @@
 //   performers that the process declares (e.g. "systemArchitect : SystemArchitect"), or the performer of the process
 // - a step with steps of its own has a ▸ mark: double-click it to show its flow; "Up" shows the enclosing process
 // - a click on a step opens its editor
+// - between the step that hands over to sub-projects (it outputs a project, e.g. modelSubProject) and the step that takes
+//   them back (e.g. integrateSubProjects), a dashed line says that each sub-project performs its own process; steps
+//   without a succession (e.g. specifyTradeStudy) are performed on demand
 //
 // - without a selected process, the view follows the document selected in the Documents or Libraries panel: the flow of
 //   its only process, otherwise an overview of all its processes and methods
@@ -15,6 +18,7 @@
 // Events: "select" { id, open }, "view" { view }
 
 import { Process, Method, MBSEEnvironment } from "../dtfa/model.js";
+import { subProjectSpan } from "../dtfa/overview.js";
 
 const BOX_W = 200, BOX_H_PLAIN = 46, ROW_GAP = 30, LANE_PAD = 20, HEAD_H = 40, END_R = 11;
 
@@ -308,7 +312,18 @@ export class ProcessView extends EventTarget {
         parts.push(`<line class="pd-lane-line strong" x1="0" y1="${HEAD_H}" x2="${width}" y2="${HEAD_H}"/>`);
         if (free.length && successions.length) {
             const y = rowY((doneRank ?? maxStep) + 1) - ROW_GAP / 2;
-            parts.push(`<line class="pd-free-line" x1="0" y1="${y}" x2="${width}" y2="${y}"/><text class="pd-free-label" x="8" y="${y + 13}">without succession</text>`);
+            parts.push(`<line class="pd-free-line" x1="0" y1="${y}" x2="${width}" y2="${y}"/><text class="pd-free-label" x="8" y="${y + 13}">on demand · without succession</text>`);
+        }
+        // Sub-projects: each one performs its own process between the hand-over and the integration.
+        const productsOf = (step, list) => (step[list] || []).map(f => ({ product: model.get(f.typeIds[0]) }));
+        const span = subProjectSpan([...ordered].sort((a, b) => rank.get(a.id) - rank.get(b.id))
+            .map(step => ({ step, inputs: productsOf(step, "inputFeatures"), outputs: productsOf(step, "outputFeatures") })));
+        if (span) {
+            const y = rowY(rank.get(span.from.id)) + BOX_H + ROW_GAP / 2;
+            const text = span.to ? `⇉ sub-projects perform their own process (e.g. at a supplier) until ${span.to.name}` : "⇉ sub-projects perform their own process (e.g. at a supplier)";
+            parts.push(`<g class="pd-subprojects"><line class="pd-subproject-line" x1="0" y1="${y}" x2="${width}" y2="${y}"/>
+                <text class="pd-subproject-label" x="${width - 8}" y="${y - 4}" text-anchor="end">${escapeHtml(text)}</text>
+                <title>${escapeHtml(`${span.from.name} hands over a sub-project for each building block that another team or a supplier develops. The sub-project performs its own process with the handed-over context, stakeholders and requirements${span.to ? `; ${span.to.name} integrates its results` : ""}.`)}</title></g>`);
         }
         // Successions below the nodes.
         for (const s of successions) {
@@ -377,6 +392,7 @@ export class ProcessView extends EventTarget {
                     <span>→ succession</span>
                     ${withProducts ? "<span>→ X: output products</span>" : ""}
                     <span>▸ has steps (double-click)</span>
+                    ${span ? '<span><i class="ed-swatch subprojects"></i>sub-projects</span>' : ""}
                     <span><i class="ed-swatch inherited"></i>inherited</span>
                 </div>
             </div>`;

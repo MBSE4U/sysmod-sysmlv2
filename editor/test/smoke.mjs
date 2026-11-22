@@ -23,6 +23,7 @@ import {
 } from "../src/workspace/TextModelEditor.js";
 import { SNIPPETS, emptyPackage, environmentDocument } from "../src/dtfa/templates.js";
 import { buildOutline } from "../src/text/sysml-text.js";
+import { buildOverview, overviewCandidates, humanize, plainSummary } from "../src/dtfa/overview.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -400,6 +401,58 @@ check("SYSMOD Delivery Drone example: its MBSE environment and the SYSMOD steps 
     // The roles that SYSMOD declares make the steps; the drone environment has no flow analysis yet.
     assert.equal(drone.model.analyses.length, 0);
 });
+check("SYSMOD Delivery Drone example: no roles or products from the forks and performers of the inherited library process", () => {
+    const names = ["Project", "ControlStationProject", "ControlStationHandover", "DomainLibrary", "Stakeholders", "Idea", "Specification",
+        "BrownfieldArchitecture", "FunctionalArchitecture", "LogicalArchitecture", "ProductArchitecture"];
+    const drone = load(names.map(n => ({ name: `DeliveryDroneSystem${n}.sysml`, content: read(`examples/DeliveryDroneSystem${n}.sysml`) })));
+    // SYSMODDefaultProcess distributes the output products with forks (e.g. forkSpecifySystem::in_systemSpecificationProduct):
+    // their pins are no products, and the performers of the process (e.g. SYSMODDefaultProcess::systemArchitect) no roles.
+    const leaked = list => list.filter(e => e.id.startsWith("SYSMODProcesses::SYSMODDefaultProcess::")).map(e => e.id);
+    assert.deepEqual(leaked(drone.model.artifacts), [], "products of the library process");
+    assert.deepEqual(leaked(drone.model.roles), [], "roles of the library process");
+});
+
+check("overview for management: stages, sub-projects, on demand, who does what, deliverables", () => {
+    assert.equal(humanize("modelSubProject"), "Model sub-project");
+    assert.equal(humanize("setupProject"), "Set up project");
+    assert.equal(humanize("SystemArchitect"), "System architect");
+    assert.equal(plainSummary("Models the brownfield system (brownfieldContext and brownfieldContextImpl) as black box. More text."),
+        "Models the brownfield system as black box.");
+    const names = ["Project", "ControlStationProject", "ControlStationHandover", "DomainLibrary", "Stakeholders", "Idea", "Specification",
+        "BrownfieldArchitecture", "FunctionalArchitecture", "LogicalArchitecture", "ProductArchitecture"];
+    const drone = load(names.map(n => ({ name: `DeliveryDroneSystem${n}.sysml`, content: read(`examples/DeliveryDroneSystem${n}.sysml`) })));
+    const process = overviewCandidates(drone.model).find(p => p.name === "SYSMODDefaultProcess");
+    assert.ok(process, "the SYSMOD process of the drone environment");
+    const o = buildOverview(drone.model, process);
+    assert.ok(o.environmentId, "performed in the drone environment");
+    assert.deepEqual(o.stages.map(s => s.title), ["Set up project", "Model brownfield system", "Describe problem statement", "Identify stakeholders",
+        "Identify stakeholder needs", "Describe system idea", "Define system objectives", "Specify system", "Model solution architecture",
+        "Model sub-project", "Integrate sub-projects", "Specify verification context", "Perform verification"], "the stages in the order of the successions");
+    assert.deepEqual(o.onDemand.map(s => s.title), ["Specify trade study"], "on demand: the trade study");
+    assert.equal(o.subProjects.from.name, "modelSubProject");
+    assert.equal(o.subProjects.to.name, "integrateSubProjects");
+    const stage = title => [...o.stages, ...o.onDemand].find(s => s.title === title);
+    assert.deepEqual(stage("Specify system").leads.map(p => p.label), ["Requirements engineer"]);
+    assert.deepEqual(stage("Specify system").supports.map(p => p.label), ["Verification engineer", "System architect"]);
+    assert.deepEqual(stage("Specify system").outputs.map(p => p.label), ["System specification", "Verification specification"]);
+    assert.deepEqual(stage("Model solution architecture").includes, ["Model functional architecture", "Model logical architecture", "Model product architecture"]);
+    // The drone environment has no test engineer: the declared role is shown, as not staffed.
+    assert.deepEqual(stage("Perform verification").leads.map(p => [p.label, p.staffed]), [["Test engineer", false]]);
+    assert.deepEqual(stage("Model sub-project").outputs.map(p => p.label), ["Sub-project", "Requirement flow down"]);
+    const deliverable = label => o.deliverables.find(d => d.label === label);
+    assert.deepEqual(deliverable("System specification").owners, ["Requirements engineer"]);
+    assert.deepEqual(deliverable("Sub-project").usedBy.map(s => s.title), ["Integrate sub-projects"], "the integration takes the sub-projects back");
+    assert.deepEqual(deliverable("Trade study report").producedBy.map(s => s.title), ["Specify trade study"]);
+    assert.ok(o.roles.some(r => r.label === "System analyst" && !r.staffed), "roles of the methodology without a role in the environment");
+    // The library process without an environment: the declared performer types.
+    const library = buildFromAnalysis(analyzeWith(engine, libraries, { libraryNames, browseLibraries: ["SYSMODProcesses.sysml"], ...ANALYSIS_OPTIONS }), libraries, { libraryNames }).model;
+    const lo = buildOverview(library, library.get("SYSMODProcesses::SYSMODDefaultProcess"));
+    assert.equal(lo.environmentId, null);
+    assert.equal(lo.stages.length, 13);
+    assert.deepEqual(lo.stages[0].leads.map(p => p.label), ["Project manager"]);
+    assert.deepEqual(lo.stages.find(s => s.title === "Perform verification").leads.map(p => p.label), ["Test engineer"]);
+});
+
 check("specializations: a role inherits the doc and the responsibilities of its general role", () => {
     const result = load([{ name: "Spec.sysml", content: `package Spec {
         private import MBSEMethodology::*;

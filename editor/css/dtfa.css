@@ -507,3 +507,79 @@
 
 .ed-edge.owns { stroke: var(--tag-role); stroke-dasharray: 2 3; stroke-linecap: round; }
 .ed-swatch.owns { border-top: 2px dotted var(--tag-role); }
+
+/* Process diagram: sub-projects between the hand-over and the integration */
+.pd-subproject-line { stroke: var(--tag-alt); stroke-width: 1.4; stroke-dasharray: 6 4; fill: none; }
+.pd-subproject-label { font: 600 11px var(--sans); fill: var(--tag-alt); }
+
+/* ---------- Overview: the methodology for management and non-technical engineers (OverviewView) ---------- */
+.overview-view { display: flex; flex-direction: column; height: 100%; min-height: 0; background: var(--bg); }
+.ov-page { flex: 1; overflow: auto; padding: 18px 24px 40px; font: 14px/1.45 var(--sans); color: var(--text); }
+.ov-page > section { max-width: 1240px; margin: 0 auto; }
+.ov-hero { padding: 4px 0 18px; border-bottom: 1px solid var(--line); }
+.ov-eyebrow { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); }
+.ov-hero h2 { margin: 4px 0 6px; font-size: 24px; letter-spacing: 0; text-transform: none; color: var(--text); }
+.ov-lead { margin: 0 0 12px; max-width: 70ch; color: var(--muted); font-size: 15px; }
+.ov-figures { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; }
+.ov-figures li { padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); font-size: 13px; }
+.ov-figures strong { color: var(--text); font-size: 15px; margin-right: 2px; }
+.ov-note { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
+.ov-section { padding-top: 22px; }
+.ov-section > h2 { margin: 0 0 2px; font-size: 17px; letter-spacing: 0; text-transform: none; color: var(--text); }
+.ov-hint { margin: 0 0 12px; font-size: 12.5px; color: var(--muted); }
+
+.ov-roadmap { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; counter-reset: stage; }
+.ov-stage { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; min-width: 0; }
+.ov-stage:hover { border-color: var(--accent); }
+.ov-stage:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ov-stage.selected { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+.ov-stage header { display: flex; align-items: center; gap: 10px; }
+.ov-stage h3 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: 0; text-transform: none; color: var(--text); }
+.ov-number { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-text); font: 700 13px var(--sans); }
+.ov-number.on-demand { background: var(--tag-alt); color: #fff; font-size: 15px; }
+.ov-summary { margin: 0; color: var(--muted); font-size: 13px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.ov-stage dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 4px 0 0; font-size: 12.5px; align-items: baseline; }
+.ov-stage dt { color: var(--muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: .03em; }
+.ov-stage dd { margin: 0; display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.ov-person { display: inline-block; padding: 1px 8px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--tag-role) 45%, transparent); background: color-mix(in srgb, var(--tag-role) 10%, transparent); font-size: 12px; white-space: nowrap; }
+.ov-person.unstaffed { border-style: dashed; background: transparent; color: var(--muted); }
+.ov-delivers { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.ov-delivers li { padding: 1px 8px; border-radius: 4px; background: color-mix(in srgb, var(--tag-artifact) 12%, transparent); color: var(--text); font-size: 12px; }
+.ov-delivers li::before { content: "▤ "; color: var(--tag-artifact); }
+.ov-includes { color: var(--muted); font-size: 12px; display: block !important; }
+.ov-none { color: var(--muted); }
+.ov-stage.ov-handover, .ov-stage.ov-takeback { border-color: color-mix(in srgb, var(--tag-alt) 55%, var(--line)); }
+.ov-subprojects { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1.5px dashed var(--tag-alt); border-radius: 10px; background: color-mix(in srgb, var(--tag-alt) 7%, var(--surface)); font-size: 13px; }
+.ov-subprojects p { margin: 4px 0 0; color: var(--muted); }
+.ov-subprojects-icon { font-size: 24px; line-height: 1; color: var(--tag-alt); }
+.ov-stage.ov-on-demand { border-style: dashed; border-color: color-mix(in srgb, var(--tag-alt) 55%, var(--line)); }
+
+.ov-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.ov-table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+.ov-table th, .ov-table td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.ov-table thead th { position: sticky; top: 0; background: var(--surface-2); font-weight: 600; white-space: nowrap; }
+.ov-table tbody tr:last-child > * { border-bottom: 0; }
+.ov-table tbody th { font-weight: 600; white-space: nowrap; }
+.ov-table [data-open] { cursor: pointer; }
+.ov-table [data-open]:hover { color: var(--accent); text-decoration: underline; }
+.ov-table tr.selected > * { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.ov-raci td { text-align: center; white-space: nowrap; }
+.ov-raci thead th.unstaffed { color: var(--muted); font-style: italic; }
+.ov-raci td.lead span:first-child, .ov-key.lead { display: inline-block; padding: 1px 7px; border-radius: 4px; background: var(--accent); color: var(--accent-text); font-weight: 600; font-size: 11.5px; }
+.ov-raci td.support span:first-child, .ov-key.support { display: inline-block; padding: 1px 7px; border-radius: 4px; border: 1px solid var(--accent); color: var(--accent); font-size: 11.5px; }
+.ov-owner { margin-left: 4px; color: var(--tag-alt); }
+.ov-register .fv-link { font-size: 12.5px; }
+
+@media print {
+    body:has(#view-overview:not([hidden])) :is(.toolbar, .sidebar, .view-bar, .problems-panel, .statusbar, .ov-toolbar) { display: none !important; }
+    body:has(#view-overview:not([hidden])) :is(.workbench, .editor-area, #view-overview, .overview-view, .ov-page) { display: block !important; height: auto !important; overflow: visible !important; }
+    .ov-page { padding: 0; }
+    .ov-stage, .ov-subprojects, .ov-table tr { break-inside: avoid; }
+    .ov-summary { -webkit-line-clamp: unset; }
+    .ov-table-wrap { overflow: visible; }
+    .ov-table { font-size: 9.5px; table-layout: auto; }
+    .ov-table th, .ov-table td { padding: 3px 4px; }
+    .ov-table thead th, .ov-table tbody th { white-space: normal; }
+    .ov-raci td.lead span:first-child, .ov-raci td.support span:first-child { font-size: 9px; padding: 0 3px; }
+}
+.ed-swatch.subprojects { border-top: 2px dashed var(--tag-alt); }

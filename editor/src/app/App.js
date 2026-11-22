@@ -33,11 +33,12 @@ import { StepDefinitionView } from "../ui/StepDefinitionView.js";
 import { PolicyView } from "../ui/PolicyView.js";
 import { FormView } from "../ui/FormView.js";
 import { ProcessView } from "../ui/ProcessView.js";
+import { OverviewView } from "../ui/OverviewView.js";
 import { ElementsView } from "../ui/ElementsView.js";
 import { formDialog, confirmDialog, infoDialog } from "../ui/FormDialog.js";
 
 const $ = selector => document.querySelector(selector);
-const VIEWS = ["environment", "roles", "tools", "methodology", "products", "process", "text", "form", "matrix", "steps", "policy"];
+const VIEWS = ["environment", "roles", "tools", "methodology", "products", "process", "overview", "text", "form", "matrix", "steps", "policy"];
 /** Views without a tab of their own: their tab shows only while they are open (the form, the DTFA views). */
 const TRANSIENT_VIEWS = ["form", "matrix", "steps", "policy"];
 /** The tab of the elements of a collection, and of an element. */
@@ -118,6 +119,7 @@ export class App {
         this.policyView = new PolicyView($("#policy"));
         this.formView = new FormView($("#form"));
         this.processView = new ProcessView($("#process"));
+        this.overviewView = new OverviewView($("#overview"));
         this.elementViews = Object.fromEntries(["roles", "tools", "methodology", "products"].map(kind => [kind, new ElementsView($(`#${kind}`), kind)]));
         this.wireUi();
 
@@ -287,6 +289,11 @@ export class App {
             const steps = model.flowOf(process).steps;
             return selected && steps.some(s => s.id === selected) ? selected : process.id;
         }
+        if (view === "overview") {
+            const process = model.get(this.overviewView.processId);
+            if (!process) return selected;
+            return selected && model.flowOf(process).steps.some(s => s.id === selected) ? selected : process.id;
+        }
         if (view === "environment") return this.environmentView.environmentId || selected;
         if (view === "form" && this.collection) return this.collection.environmentId;
         return selected;
@@ -327,6 +334,7 @@ export class App {
         if (this.view === "policy") this.policyView.show(state);
         if (this.view === "form") this.formView.show(state);
         if (this.view === "process") this.processView.show(state);
+        if (this.view === "overview") this.overviewView.show(state);
         if (this.elementViews[this.view]) this.elementViews[this.view].show(state);
     }
 
@@ -579,7 +587,7 @@ export class App {
         const model = this.analysis && this.analysis.result.model;
         const own = kind => model ? [...model.elements.values()].filter(e => e.document === name && kind(e)).length : 0;
         if (!model || model.environments.some(e => e.document === name)) this.setView("environment");
-        else if (this.view === "process" || this.view === "methodology") this.setView(this.view);
+        else if (this.view === "process" || this.view === "overview" || this.view === "methodology") this.setView(this.view);
         else if (own(e => e instanceof Method || e instanceof Process)) this.setView("methodology");
         else if (own(e => e instanceof Artifact)) this.setView("products");
         else if (own(e => e instanceof Role)) this.setView("roles");
@@ -1411,12 +1419,13 @@ export class App {
         this.processView.addEventListener("document", e => this.openDocument(e.detail.name, { section: e.detail.section, form: true }));
         this.modelView.addEventListener("command", e => this.runCommand(e.detail.command, e.detail.id));
         this.problemsView.addEventListener("select", e => this.revealDiagnostic(e.detail.diagnostic));
-        for (const view of [this.environmentView, this.matrixView, this.stepView, this.policyView, this.formView, this.processView]) {
+        for (const view of [this.environmentView, this.matrixView, this.stepView, this.policyView, this.formView, this.processView, this.overviewView]) {
             view.addEventListener("select", e => (e.detail.collection ? this.openCollection(e.detail.collection, e.detail.id)
                 : e.detail.open ? this.openElement(e.detail.id) : this.select(e.detail.id, { reveal: false })));
             view.addEventListener("command", e => this.runCommand(e.detail.command, e.detail.id, e.detail.args));
         }
         this.processView.addEventListener("view", e => this.setView(e.detail.view));
+        this.overviewView.addEventListener("view", e => this.setView(e.detail.view));
         for (const view of Object.values(this.elementViews)) {
             view.addEventListener("select", e => this.select(e.detail.id, { reveal: false }));
             view.addEventListener("open", e => this.openElement(e.detail.id));

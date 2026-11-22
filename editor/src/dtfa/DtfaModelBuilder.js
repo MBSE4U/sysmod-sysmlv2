@@ -43,6 +43,8 @@ export const ANALYSIS_OPTIONS = {
 };
 
 const BEHAVIOR = "MBSEMethodology::MethodologyBehavior";
+// Metaclasses of behaviors (actions and their kinds), as the engine reports them for general types.
+const ACTION_KINDS = /^(action|calculation|analysisCase|case|state|useCase|verificationCase)(Definition|Usage)$/;
 const RULE = "DTFA::ToolPolicyRule";
 const SLOT_OWNERS = [BEHAVIOR, "MBSEMethodology::Methodology", "MBSEMethodology::MBSEEnvironment"];
 // The features and connections through which a methodology declares the performers and tools of its behaviors.
@@ -112,8 +114,20 @@ export function buildDtfaModel(symbols, { documentOf = () => "", truncated = fal
     const get = id => symbols[id] || null;
     model.generals = generals;
     const isBehavior = id => { const symbol = get(id); return !!symbol && (symbol.types || []).includes(BEHAVIOR); };
-    /** True if a behavior owns the element, e.g. a performer or a parameter of a process: not a role, tool or product of an environment. */
-    const ownedByBehavior = id => { for (let o = ownerOf(id); o; o = ownerOf(o)) if (isBehavior(o)) return true; return false; };
+    /**
+     * True if a behavior owns the element, e.g. a performer or a parameter of a process, or a pin of a fork in a process
+     * (e.g. "fork forkSpecifySystem { in item in_systemSpecificationProduct : SystemSpecification; ... }" in
+     * SYSMODDefaultProcess): not a role, tool or product of an environment. An environment that specializes a library
+     * process reports the inherited features of the library process, but not the library process itself: its kind comes
+     * from the general types.
+     */
+    const ownedByBehavior = id => {
+        for (let o = ownerOf(id); o; o = ownerOf(o)) {
+            if (isBehavior(o)) return true;
+            if (!get(o) && generals[o] && ACTION_KINDS.test(generals[o].kind || "")) return true;
+        }
+        return false;
+    };
     const ownedByFramingElement = id => { for (let o = ownerOf(id); o; o = ownerOf(o)) if (symbols[o] && FRAMING_KINDS.test(symbols[o].kind)) return true; return false; };
     /** The general types of an element that are not part of the languages, e.g. ISO15288Processes::Stakeholders::SystemArchitect. */
     const typesOf = symbol => (symbol.generalIds || []).filter(g => !inLanguage(g));

@@ -6,6 +6,9 @@
 // trade study for an architecture decision); who does what (roles × stages); and the deliverables with their owners.
 // The content comes from the model (see src/dtfa/overview.js): change the methodology, and the overview follows.
 //
+// A click on a methodology artifact (a stage, a role, a deliverable) opens its editing canvas: the graph of the element
+// in the tab of its kind (Methodology, Roles, Products), where its form is one click away.
+//
 // Events: "select" { id, open }, "view" { view }
 
 import { Process, Method } from "../dtfa/model.js";
@@ -40,21 +43,17 @@ export class OverviewView extends EventTarget {
                 return;
             }
             const node = e.target.closest("[data-open]");
-            if (node) this.dispatchEvent(new CustomEvent("select", { detail: { id: node.dataset.open } }));
-        });
-        this.root.addEventListener("dblclick", e => {
-            const node = e.target.closest("[data-open]");
-            if (!node) return;
-            const element = this.state && this.state.model && this.state.model.get(node.dataset.open);
-            // A stage with steps of its own: its flow; otherwise its form.
-            const nested = isBehavior(element) && this.state.model.subBehaviors(element).length;
-            this.dispatchEvent(new CustomEvent("select", { detail: { id: node.dataset.open } }));
-            this.dispatchEvent(new CustomEvent("view", { detail: { view: nested ? "process" : "form" } }));
+            if (node) this.open(node.dataset.open);
         });
         this.root.addEventListener("keydown", e => {
             const node = e.target.closest("[data-open]");
-            if (node && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); this.dispatchEvent(new CustomEvent("select", { detail: { id: node.dataset.open } })); }
+            if (node && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); this.open(node.dataset.open); }
         });
+    }
+
+    /** Opens the editing canvas of a methodology artifact: its graph in the tab of its kind. */
+    open(id) {
+        this.dispatchEvent(new CustomEvent("select", { detail: { id, open: true } }));
     }
 
     /**
@@ -103,13 +102,18 @@ export class OverviewView extends EventTarget {
         const { model } = this.state;
         const environment = o.environmentId ? model.get(o.environmentId) : null;
         const isSelected = stage => selected && selected.id === stage.step.id;
-        const person = p => `<span class="ov-person${p.staffed ? "" : " unstaffed"}"${p.staffed ? "" : ` title="${environment ? `${escapeHtml(environment.name)} has no role for this yet` : "a role of the methodology"}"`}>${escapeHtml(p.label)}</span>`;
+        const openable = id => !!(id && model.get(id));
+        const openAttrs = (id, tip) => openable(id) ? ` data-open="${escapeHtml(id)}" tabindex="0" role="link" title="${escapeHtml(tip)}"` : "";
+        const person = p => {
+            const tip = p.staffed ? `${p.label}: open the role` : environment ? `${environment.name} has no role for this yet` : "a role of the methodology";
+            return `<span class="ov-person${p.staffed ? "" : " unstaffed"}${openable(p.id) ? " ov-open" : ""}"${openable(p.id) ? openAttrs(p.id, `${tip}${p.staffed ? "" : " · click: open the role"}`) : ` title="${escapeHtml(tip)}"`}>${escapeHtml(p.label)}</span>`;
+        };
         const people = list => list.length ? list.map(person).join("") : `<span class="ov-none">–</span>`;
         const deliverables = stage => stage.outputs.length
-            ? `<ul class="ov-delivers">${stage.outputs.map(p => `<li>${escapeHtml(p.label)}</li>`).join("")}</ul>` : `<span class="ov-none">–</span>`;
+            ? `<ul class="ov-delivers">${stage.outputs.map(p => `<li${openable(p.id) ? ` class="ov-open"${openAttrs(p.id, `${p.label}: open the product`)}` : ""}>${escapeHtml(p.label)}</li>`).join("")}</ul>` : `<span class="ov-none">–</span>`;
         const card = (stage, extraClass = "") => `
             <article class="ov-stage${isSelected(stage) ? " selected" : ""}${extraClass}" data-open="${escapeHtml(stage.step.id)}" tabindex="0"
-                    title="${escapeHtml(`${stage.title}\nClick: select · double-click: ${stage.nested ? "show the flow" : "open the details"}`)}">
+                    role="link" title="${escapeHtml(`${stage.title}\nClick: open the step in the Methodology tab`)}">
                 <header>
                     ${stage.number ? `<span class="ov-number">${stage.number}</span>` : `<span class="ov-number on-demand" aria-label="on demand">⟳</span>`}
                     <h3>${escapeHtml(stage.title)}</h3>
@@ -119,7 +123,8 @@ export class OverviewView extends EventTarget {
                     <dt>Lead</dt><dd>${people(stage.leads)}</dd>
                     ${stage.supports.length ? `<dt>With</dt><dd>${people(stage.supports)}</dd>` : ""}
                     <dt>Delivers</dt><dd>${deliverables(stage)}</dd>
-                    ${stage.includes.length ? `<dt>Includes</dt><dd class="ov-includes">${stage.includes.map(escapeHtml).join(" · ")}</dd>` : ""}
+                    ${stage.includes.length ? `<dt>Includes</dt><dd class="ov-includes">${stage.includes.map((label, i) => openable(stage.includeIds[i])
+                        ? `<span class="ov-open ov-include"${openAttrs(stage.includeIds[i], `${label}: open the step`)}>${escapeHtml(label)}</span>` : escapeHtml(label)).join(" · ")}</dd>` : ""}
                 </dl>
             </article>`;
 
@@ -162,17 +167,17 @@ export class OverviewView extends EventTarget {
             return `<td class="${lead ? "lead" : support ? "support" : ""}"${tip ? ` title="${escapeHtml(tip)}"` : ""}>${label ? `<span>${label}</span>` : ""}${owns.length ? `<span class="ov-owner" aria-label="owner">★</span>` : ""}</td>`;
         };
         const raci = `<div class="ov-table-wrap"><table class="ov-table ov-raci">
-            <thead><tr><th>Stage</th>${o.roles.map(r => `<th class="${r.staffed ? "" : "unstaffed"}"${r.id && model.get(r.id) ? ` data-open="${escapeHtml(r.id)}"` : ""}>${escapeHtml(r.label)}</th>`).join("")}</tr></thead>
-            <tbody>${all.map(s => `<tr${isSelected(s) ? ' class="selected"' : ""}><th data-open="${escapeHtml(s.step.id)}">${s.number ? `${s.number}. ` : "⟳ "}${escapeHtml(s.title)}</th>${o.roles.map(r => cell(s, r)).join("")}</tr>`).join("")}</tbody>
+            <thead><tr><th>Stage</th>${o.roles.map(r => `<th class="${r.staffed ? "" : "unstaffed"}"${openAttrs(r.id, `${r.label}: open the role`)}>${escapeHtml(r.label)}</th>`).join("")}</tr></thead>
+            <tbody>${all.map(s => `<tr${isSelected(s) ? ' class="selected"' : ""}><th${openAttrs(s.step.id, `${s.title}: open the step`)}>${s.number ? `${s.number}. ` : "⟳ "}${escapeHtml(s.title)}</th>${o.roles.map(r => cell(s, r)).join("")}</tr>`).join("")}</tbody>
         </table></div>`;
 
         const stageRef = s => `<button type="button" class="fv-link" data-open="${escapeHtml(s.step.id)}">${s.number ? s.number : "⟳"} ${escapeHtml(s.title)}</button>`;
         const register = `<div class="ov-table-wrap"><table class="ov-table ov-register">
             <thead><tr><th>Deliverable</th><th>Produced in</th><th>Owner</th><th>Used in</th></tr></thead>
             <tbody>${o.deliverables.map(d => `<tr>
-                <th${d.id && model.get(d.id) ? ` data-open="${escapeHtml(d.id)}"` : ""}>${escapeHtml(d.label)}</th>
+                <th${openAttrs(d.id, `${d.label}: open the product`)}>${escapeHtml(d.label)}</th>
                 <td>${d.producedBy.map(stageRef).join("<br>")}</td>
-                <td>${d.owners.length ? d.owners.map(escapeHtml).join(", ") : `<span class="ov-none">–</span>`}</td>
+                <td>${d.ownerRefs.length ? d.ownerRefs.map(o => { const role = o.id && openable(o.id) ? o : null; return role ? `<button type="button" class="fv-link" data-open="${escapeHtml(role.id)}">${escapeHtml(role.label)}</button>` : escapeHtml(o.label || o); }).join(", ") : `<span class="ov-none">–</span>`}</td>
                 <td>${d.usedBy.length ? d.usedBy.map(stageRef).join("<br>") : `<span class="ov-none">–</span>`}</td></tr>`).join("")}</tbody>
         </table></div>`;
 
@@ -207,7 +212,7 @@ export class OverviewView extends EventTarget {
 
                 <section class="ov-section">
                     <h2>Who does what</h2>
-                    <p class="ov-hint"><span class="ov-key lead">Lead</span> is responsible for the stage · <span class="ov-key support">Support</span> contributes · ★ owns a deliverable of the stage</p>
+                    <p class="ov-hint">Click a stage, a role or a deliverable to open it. <span class="ov-key lead">Lead</span> is responsible for the stage · <span class="ov-key support">Support</span> contributes · ★ owns a deliverable of the stage</p>
                     ${raci}
                 </section>
 

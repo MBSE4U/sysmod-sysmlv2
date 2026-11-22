@@ -85,7 +85,8 @@ function peopleOf(model, step, environmentId, kind) {
         const name = type || value || (slot.slotId.includes("<") ? "" : lastSegment(slot.slotId));
         if (!name) continue;
         const label = humanize(name);
-        add({ key: `type:${label}`, id: slot.valueIds[0] && model.get(slot.valueIds[0]) ? slot.valueIds[0] : null, label, staffed: !environmentId });
+        const id = slot.valueIds[0] && model.get(slot.valueIds[0]) ? slot.valueIds[0] : slot.typeIds[0] && model.get(slot.typeIds[0]) ? slot.typeIds[0] : null;
+        add({ key: `type:${label}`, id, label, staffed: !environmentId });
     }
     return result;
 }
@@ -141,7 +142,7 @@ export function buildOverview(model, process) {
     const free = steps.filter(s => !rank.has(s.id));
 
     const stageOf = (step, number) => {
-        const owners = model.productOwnersOf(step, environmentId).map(o => ({ product: o.product.name, roles: o.roles.map(r => humanize(r.name)) }));
+        const owners = model.productOwnersOf(step, environmentId).map(o => ({ product: o.product.name, roles: o.roles.map(r => humanize(r.name)), roleIds: o.roles.map(r => r.id) }));
         const sub = model.subBehaviors(step);
         const leads = peopleOf(model, step, environmentId, "primary");
         const supports = peopleOf(model, step, environmentId, "additional").filter(p => !leads.some(l => l.key === p.key || l.label === p.label));
@@ -153,6 +154,7 @@ export function buildOverview(model, process) {
             // Informal inputs, e.g. a ProjectDescription, are named but are not deliverables of other stages.
             inputs: productsOfStep(model, step, "inputFeatures"),
             includes: sub.map(s => humanize(s.name)),
+            includeIds: sub.map(s => s.id),
             nested: sub.length,
             inherited: !step.id.startsWith(process.id + "::"),
         };
@@ -175,9 +177,11 @@ export function buildOverview(model, process) {
     const deliverables = [];
     for (const stage of all) for (const out of stage.outputs) {
         let d = deliverables.find(x => x.key === (out.id || out.name) && !!x.subProject === !!out.subProject);
-        if (!d) { d = { key: out.id || out.name, id: out.id, name: out.name, label: out.label, subProject: !!out.subProject, producedBy: [], owners: [], usedBy: [] }; deliverables.push(d); }
+        if (!d) { d = { key: out.id || out.name, id: out.id, name: out.name, label: out.label, subProject: !!out.subProject, producedBy: [], owners: [], ownerRefs: [], usedBy: [] }; deliverables.push(d); }
         if (!d.producedBy.includes(stage)) d.producedBy.push(stage);
-        for (const o of stage.owners) if (o.product === out.name) o.roles.forEach(r => { if (!d.owners.includes(r)) d.owners.push(r); });
+        for (const o of stage.owners) if (o.product === out.name) o.roles.forEach((r, i) => {
+            if (!d.owners.includes(r)) { d.owners.push(r); d.ownerRefs.push({ label: r, id: o.roleIds[i] }); }
+        });
     }
     for (const stage of all) for (const input of stage.inputs) {
         // A stage that takes projects back (e.g. integrateSubProjects) uses the sub-projects.

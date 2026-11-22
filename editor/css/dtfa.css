@@ -583,3 +583,8 @@
     .ov-raci td.lead span:first-child, .ov-raci td.support span:first-child { font-size: 9px; padding: 0 3px; }
 }
 .ed-swatch.subprojects { border-top: 2px dashed var(--tag-alt); }
+.ov-open { cursor: pointer; }
+.ov-person.ov-open:hover, .ov-delivers li.ov-open:hover { border-color: var(--accent); color: var(--accent); text-decoration: underline; }
+.ov-delivers li.ov-open:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.ov-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ov-include:hover { color: var(--accent); text-decoration: underline; }

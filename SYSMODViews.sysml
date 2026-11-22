@@ -47,7 +47,7 @@ library package SYSMODViews {
                 in e; e istype SYSMODDefaultProcess or e istype Methods::SetupProject or e istype Methods::ModelBrownfieldSystem
                     or e istype Methods::DescribeProblemStatement or e istype Methods::IdentifyStakeholders or e istype Methods::IdentifyStakeholderNeeds
                     or e istype Methods::DescribeSystemIdea or e istype Methods::DefineSystemObjectives or e istype Methods::SpecifySystem or e istype Methods::ModelSolutionArchitecture
-                    or e istype Methods::ModelSubProject 
+                    or e istype Methods::ModelSubProject or e istype Methods::IntegrateSubProjects or e istype Methods::SpecifyVerificationContext
                     or e istype Methods::PerformVerification or e istype Methods::SpecifyTradeStudy
             }
         }
@@ -312,7 +312,7 @@ library package SYSMODViews {
         }
         rendering asSYSMODMap :> Views::renderings {
             doc /* Rendering of the exposed Project as SYSMOD Map. The cells, their Project features, and the steps that create them:
-                    * Title block: purpose, projectOwner, defaultProcess (setupProject), subProjects (modelSubProjects).
+                    * Title block: purpose, projectOwner, defaultProcess (setupProject), subProjects (modelSubProject).
                     * A1: problemStatement, projectStakeholders, stakeholderNeeds (describeProblemStatement, identifyStakeholders, identifyStakeholderNeeds).
                     * A2: systemObjectives (defineSystemObjectives).
                     * A3: systemRequirementSpecification, verificationContext.verificationCases (specifySystem).
@@ -446,7 +446,7 @@ library package SYSMODViews {
             filter @SysML::AllocationUsage or @SystemContextMetadata;
             render Views::asElementTable;
         }
-        // Sub-Projects (modelSubProjects, integrateSubProjects)
+        // Sub-Projects (modelSubProject, integrateSubProjects)
         view def SpecificationTreeView :> StandardViewDefinitions::GeneralView {
             doc /* Product "Sub-Projects": the specification tree of the exposed Project, i.e., the Project and its subProjects (recursively),
                     * the building block that each subProject develops, the systemRequirementSpecification of each level,

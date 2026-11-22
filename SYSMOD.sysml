@@ -280,7 +280,7 @@ library package SYSMOD {
             doc
             /* List of all subProjects, for example, a standalone project for a subsystem or component of the system. A sub-project
              * that develops a building block of the white box product context (productContextImpl) is linked to this project by the
-             * sub-project contract, which a separate handover package carries. Created by the modelSubProjects step.
+             * sub-project contract, which a separate handover package carries. Created by the modelSubProject step.
              * 1. Boundary: the handover package contains a handover context: a system context whose system of interest is the black box
              *    of the building block and whose actors are the external entities of the building block that are handed over (its
              *    neighbors in the white box and the actors whose interfaces this project delegates to it), with the actor/system
@@ -302,7 +302,7 @@ library package SYSMOD {
             /* Only for a sub-project: the requirements that the parent project hands over to this sub-project, typed by a requirement
              * definition of the handover package. The parent project derives them from its own requirements (requirementFlowDowns),
              * and the sub-project derives its systemRequirementSpecification from them with #derivation connections. Created by the
-             * modelSubProjects step of the parent project. */
+             * modelSubProject step of the parent project. */
         }
         abstract connection requirementFlowDowns : DerivationConnections::Derivation [0..*] :> DerivationConnections::derivations {
             doc
@@ -310,7 +310,7 @@ library package SYSMOD {
              * constrain the building block that a sub-project develops (#original) to the handoverRequirements of that sub-project (#derive),
              * e.g., end #derive ::> <sub-project usage>.handoverRequirements.<requirement>. They are declared in this project, where
              * the requirements of both levels are accessible; the sub-project does not need access to this project. Together with the
-             * subProjects, they form the specification tree. Created by the modelSubProjects step. */
+             * subProjects, they form the specification tree. Created by the modelSubProject step. */
         }
     }
     abstract occurrence projects : Project [*] {

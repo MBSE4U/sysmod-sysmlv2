@@ -372,11 +372,11 @@ check("SYSMOD Delivery Drone example: its MBSE environment and the SYSMOD steps 
     assert.ok(tree.some(n => n.inherited), "the methodology tree contains inherited behaviors");
     const performed = tree.filter(n => drone.model.performersOf(n.element, environment.id).some(r => r.id === architect.id));
     assert.deepEqual(performed.map(n => n.element.name).filter(n => n !== "SYSMODDefaultProcess"),
-        ["modelBrownfieldSystem", "describeSystemIdea", "specifySystem", "modelSolutionArchitecture", "modelSubProjects", "integrateSubProjects",
-            "specifyVerificationContext", "specifyTradeStudy", "defineSystemObjectives"],
+        ["modelBrownfieldSystem", "describeSystemIdea", "specifySystem", "modelSolutionArchitecture", "modelSubProject", "specifyTradeStudy",
+            "defineSystemObjectives", "integrateSubProjects", "specifyVerificationContext"],
         "systemArchitect performs the steps that SYSMOD assigns to SystemArchitect (anonymous responsibleFor and supports connections)");
     assert.deepEqual(tree.filter(n => drone.model.performersOf(n.element, environment.id, ["primary"]).some(r => r.id === architect.id)).map(n => n.element.name),
-        ["modelBrownfieldSystem", "modelSolutionArchitecture", "modelSubProjects", "integrateSubProjects", "specifyTradeStudy"],
+        ["modelBrownfieldSystem", "modelSolutionArchitecture", "modelSubProject", "specifyTradeStudy", "integrateSubProjects"],
         "systemArchitect is responsible for the architecture steps");
     assert.ok(tree.some(n => n.inherited && n.element.name === "defineSystemObjectives"), "inherited step of the library process");
     // Only the declared performers: no performers of the enclosing process.
@@ -396,7 +396,7 @@ check("SYSMOD Delivery Drone example: its MBSE environment and the SYSMOD steps 
     assert.deepEqual(owners, ["SystemSpecification=requirementsEngineer", "VerificationSpecification=verificationEngineer"], "product ownership");
     // The products of the environment include the products of the parameters of the SYSMOD steps.
     const products = drone.model.productsOf(environment.id).map(p => p.name);
-    for (const p of ["ProjectCover", "SystemSpecification", "ProductArchitecture", "VerificationReport"]) assert.ok(products.includes(p), `product ${p}: ${products}`);
+    for (const p of ["Project", "SystemSpecification", "ProductArchitecture", "VerificationReport"]) assert.ok(products.includes(p), `product ${p}: ${products}`);
     // The roles that SYSMOD declares make the steps; the drone environment has no flow analysis yet.
     assert.equal(drone.model.analyses.length, 0);
 });

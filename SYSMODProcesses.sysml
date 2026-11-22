@@ -36,7 +36,7 @@ library package SYSMODProcesses {
      * | 1     | describe | Text in natural language without a prescribed structure, e.g., an elevator pitch               | Is a paragraph of prose enough?                                            | DescribeProblemStatement, DescribeSystemIdea |
      * | 2     | identify | Named elements with a short text, optionally traced or classified                              | Is it about what exists, not how it is structured?                         | IdentifyStakeholders, IdentifyStakeholderNeeds, identifyUseCases |
      * | 3     | define   | Elements with fixed attributes and clear boundaries                                            | Must ambiguity be ruled out, without needing structure yet?                | DefineSystemObjectives |
-     * | 4     | model    | Structure: contexts, parts, connections, allocations, and refinements                          | Does the result connect to other model elements as structure?              | ModelBrownfieldSystem, modelSpecificationContext, ModelSolutionArchitecture, modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture, ModelSubProjects |
+     * | 4     | model    | Structure: contexts, parts, connections, allocations, and refinements                          | Does the result connect to other model elements as structure?              | ModelBrownfieldSystem, modelSpecificationContext, ModelSolutionArchitecture, modelFunctionalArchitecture, modelLogicalArchitecture, modelProductArchitecture, ModelSubProject |
      * | 5     | specify  | Verifiable or executable content: measurable requirements, constraints, and verification cases | Can a tool or test evaluate the result?                                    | SpecifySystem, specifySystemRequirements, specifyVerificationCases, SpecifyVerificationContext, SpecifyTradeStudy |
      *
      * SetupProject, IntegrateSubProjects, and PerformVerification are outside the scale: SetupProject organizes the project rather
@@ -201,15 +201,15 @@ library package SYSMODProcesses {
         /*
             * The default SYSMOD process: setupProject, modelBrownfieldSystem, describeProblemStatement, identifyStakeholders,
             * identifyStakeholderNeeds, describeSystemIdea, defineSystemObjectives, specifySystem, modelSolutionArchitecture (with the nested steps
-            * modelFunctionalArchitecture, modelLogicalArchitecture, and modelProductArchitecture), modelSubProjects, integrateSubProjects,
-            * specifyVerificationContext, and performVerification, in this order. Between modelSubProjects and integrateSubProjects, each
+            * modelFunctionalArchitecture, modelLogicalArchitecture, and modelProductArchitecture), modelSubProject, integrateSubProjects,
+            * specifyVerificationContext, and performVerification, in this order. Between modelSubProject and integrateSubProjects, each
             * sub-project performs its own process. specifyTradeStudy has no succession: it is performed for any architecture decision
             * with alternatives.
             * Verification is split into two parts: specifySystem specifies the verification cases against the black box specification system
             * (nested step specifyVerificationCases) before any solution architecture is modeled and returns the verification context with them,
             * and specifyVerificationContext completes the verification context with the test systems and the system of interest, which can be
             * any system, e.g., the product system, a prototype, or a simulation model. Verification engineers thus take part from the specification on.
-            * The project that performs the process is referenced by project. The project manager is the primary performer,
+            * The project that performs the process is referenced by thisProject. The project manager is the primary performer,
             * and the other roles are additional performers. Each step has a responsible role (responsibleFor), supporting roles
             * (supports), and owners of its output products (productOwnership), derived from the ISO/IEC/IEEE 15288 processes
             * that the step refines, e.g., the requirements engineer is responsible for SpecifySystem (System Requirements Definition)
@@ -218,7 +218,9 @@ library package SYSMODProcesses {
             * The input parameters are the information a human or an AI assistant provides to start the process, e.g., the descriptions of
             * the architectures; they flow into the inputs of the steps. */
         
-        ref part thisProject : SYSMOD::Project :> outputs :>> this;
+        ref occurrence thisProject : SYSMOD::Project :> outputs :>> this {
+            doc /* The project that performs the process. The outputs of the steps flow into its features. */
+        }
 
         ref part projectManager : ISO15288Processes::Stakeholders::ProjectManager :>> primaryPerformer {
             doc /* The project manager, the primary performer of the process. */
@@ -308,8 +310,6 @@ library package SYSMODProcesses {
             /* The product architecture is a description of the concrete, physical or deployable building blocks of the solution system. */
         }
 
-        out item solutionArchitecture : Products::SolutionArchitecture :> outputs;
-
         first start then setupProject;
         first [0..1]setupProject then [0..1]modelBrownfieldSystem;
         first [0..1]modelBrownfieldSystem then [0..1]describeProblemStatement;
@@ -320,28 +320,31 @@ library package SYSMODProcesses {
         first [0..1]defineSystemObjectives then [0..1]specifySystem;
         first [0..1]specifySystem then [0..1]modelSolutionArchitecture;
         first [0..1]modelSolutionArchitecture then [0..1]modelSubProject;
-        first [0..1]modelSubProject then [0..1]performVerification;
+        first [0..1]modelSubProject then [0..1]integrateSubProjects;
+        first [0..1]integrateSubProjects then [0..1]specifyVerificationContext;
+        first [0..1]specifyVerificationContext then [0..1]performVerification;
         first [0..1]performVerification then done;
 
-        // Flows for information coming from the outside or created by steps for project features
+        // Flows for information coming from the outside or created by steps for project features.
+        // A fork distributes the output product of a step to the steps that need it (out_<product>_<Step>) and
+        // extracts the model elements that flow into the project features.
 
         // Project
         bind projectDescription = setupProject.projectDescription;
-        flow from setupProject.project to forkProjectProduct.in_projectProduct;
+        flow from setupProject.projectProduct to forkProjectProduct.in_projectProduct;
         fork forkProjectProduct {
             in item in_projectProduct : Products::Project;
             out item out_projectOwnerProduct : Products::ProjectOwner = in_projectProduct.projectOwner;
-            out item out_projectProduct : Products::Project = in_projectProduct;
         }
 
         // Brownfield System
-        bind brownfieldArchitectureDescription =modelBrownfieldSystem.brownfieldArchitectureDescription;       
-        flow from modelBrownfieldSystem.brownfieldSystem to forkBrownfieldSystemProduct.in_brownfieldSystempProduct;
+        bind brownfieldArchitectureDescription = modelBrownfieldSystem.brownfieldArchitectureDescription;
+        flow from modelBrownfieldSystem.brownfieldSystem to forkBrownfieldSystemProduct.in_brownfieldSystemProduct;
         fork forkBrownfieldSystemProduct {
-            in item in_brownfieldSystempProduct : Products::BrownfieldSystem;
-            out item out_brownfieldSystemProduct : Products::BrownfieldSystem;
-            out part brownfieldContext : SYSMOD::SystemContext = in_brownfieldSystempProduct.brownfieldBlackBoxContext;
-            out part brownfieldContextImpl : SYSMOD::SystemContext = in_brownfieldSystempProduct.brownfieldWhiteBoxContext;
+            in item in_brownfieldSystemProduct : Products::BrownfieldSystem;
+            out item out_brownfieldSystemProduct : Products::BrownfieldSystem = in_brownfieldSystemProduct;
+            out part brownfieldContext : SYSMOD::SystemContext = in_brownfieldSystemProduct.brownfieldBlackBoxContext;
+            out part brownfieldContextImpl : SYSMOD::SystemContext = in_brownfieldSystemProduct.brownfieldWhiteBoxContext;
         }
         flow from forkBrownfieldSystemProduct.brownfieldContext to thisProject.brownfieldContext;
         flow from forkBrownfieldSystemProduct.brownfieldContextImpl to thisProject.brownfieldContextImpl;
@@ -350,11 +353,13 @@ library package SYSMODProcesses {
         bind problemStatementDescription = describeProblemStatement.problemStatementDescription;
         flow from forkBrownfieldSystemProduct.out_brownfieldSystemProduct to describeProblemStatement.brownfieldSystem;
         flow from forkProjectProduct.out_projectOwnerProduct to describeProblemStatement.projectOwner;
-        flow from describeProblemStatement.problemStatement.problemStatement to thisProject.problemStatement;
+        flow from describeProblemStatement.problemStatement to forkProblemStatement.in_problemStatementProduct;
         fork forkProblemStatement {
             in item in_problemStatementProduct : Products::ProblemStatement;
             out item out_problemStatementProduct_IdentifyStakeholders : Products::ProblemStatement = in_problemStatementProduct;
+            out item out_problemStatementProduct_IdentifyStakeholderNeeds : Products::ProblemStatement = in_problemStatementProduct;
             out item out_problemStatementProduct_DescribeSystemIdea : Products::ProblemStatement = in_problemStatementProduct;
+            out item out_problemStatementProduct_ModelSubProject : Products::ProblemStatement = in_problemStatementProduct;
             out concern problemStatement : SYSMOD::ExtendedConcern = in_problemStatementProduct.problemStatement;
         }
         flow from forkProblemStatement.problemStatement to thisProject.problemStatement;
@@ -372,9 +377,12 @@ library package SYSMODProcesses {
 
         // Identify Stakeholder Needs
         bind stakeholderNeedsDescription = identifyStakeholderNeeds.stakeholderNeedsDescription;
+        flow from forkProblemStatement.out_problemStatementProduct_IdentifyStakeholderNeeds to identifyStakeholderNeeds.problemStatement;
         flow from forkIdentifyStakeholders.out_identifyStakeholdersProduct to identifyStakeholderNeeds.stakeholderList;
+        flow from identifyStakeholderNeeds.stakeholderNeeds to forkIdentifyStakeholderNeeds.in_identifyStakeholderNeedsProduct;
         fork forkIdentifyStakeholderNeeds {
             in item in_identifyStakeholderNeedsProduct : Products::StakeholderNeeds;
+            out item out_identifyStakeholderNeedsProduct_DescribeSystemIdea : Products::StakeholderNeeds = in_identifyStakeholderNeedsProduct;
             out item out_identifyStakeholderNeedsProduct_DefineSystemObjectives : Products::StakeholderNeeds = in_identifyStakeholderNeedsProduct;
             out item out_identifyStakeholderNeedsProduct_SpecifySystem : Products::StakeholderNeeds = in_identifyStakeholderNeedsProduct;
             out concern stakeholderNeeds : SYSMOD::ExtendedConcern = in_identifyStakeholderNeedsProduct.stakeholderNeeds;
@@ -384,6 +392,7 @@ library package SYSMODProcesses {
         // System Idea
         bind systemIdeaArchitectureDescription = describeSystemIdea.systemIdeaArchitectureDescription;
         flow from forkProblemStatement.out_problemStatementProduct_DescribeSystemIdea to describeSystemIdea.problemStatement;
+        flow from forkIdentifyStakeholderNeeds.out_identifyStakeholderNeedsProduct_DescribeSystemIdea to describeSystemIdea.stakeholderNeeds;
         flow from describeSystemIdea.systemIdea to forkDescribeSystemIdea.in_systemIdeaProduct;
         fork forkDescribeSystemIdea {
             in item in_systemIdeaProduct : Products::SystemIdeaSystem;
@@ -394,14 +403,16 @@ library package SYSMODProcesses {
         }
         flow from forkDescribeSystemIdea.systemIdeaContext to thisProject.systemIdeaContext;
         flow from forkDescribeSystemIdea.systemIdeaContextImpl to thisProject.systemIdeaContextImpl;
-        
+
         // System Objectives
         bind systemObjectivesDescription = defineSystemObjectives.systemObjectivesDescription;
         flow from forkIdentifyStakeholderNeeds.out_identifyStakeholderNeedsProduct_DefineSystemObjectives to defineSystemObjectives.stakeholderNeeds;
         flow from forkDescribeSystemIdea.out_systemIdeaProduct_DefineSystemObjectives to defineSystemObjectives.systemIdea;
+        flow from defineSystemObjectives.systemObjectives to forkDefineSystemObjectives.in_systemObjectivesProduct;
         fork forkDefineSystemObjectives {
             in item in_systemObjectivesProduct : Products::SystemObjectives;
             out item out_systemObjectivesProduct_SpecifySystem : Products::SystemObjectives = in_systemObjectivesProduct;
+            out item out_systemObjectivesProduct_SpecifyTradeStudy : Products::SystemObjectives = in_systemObjectivesProduct;
             out concern systemObjectives : SYSMOD::SystemObjective = in_systemObjectivesProduct.systemObjectives;
         }
         flow from forkDefineSystemObjectives.systemObjectives to thisProject.systemObjectives;
@@ -414,19 +425,110 @@ library package SYSMODProcesses {
         flow from forkDescribeSystemIdea.out_systemIdeaProduct_SpecifySystem to specifySystem.systemIdea;
         flow from forkIdentifyStakeholderNeeds.out_identifyStakeholderNeedsProduct_SpecifySystem to specifySystem.stakeholderNeeds;
         flow from forkDefineSystemObjectives.out_systemObjectivesProduct_SpecifySystem to specifySystem.systemObjectives;
+        flow from specifySystem.systemSpecification to forkSpecifySystem.in_systemSpecificationProduct;
+        fork forkSpecifySystem {
+            in item in_systemSpecificationProduct : Products::SystemSpecification;
+            out item out_systemSpecificationProduct_ModelSolutionArchitecture : Products::SystemSpecification = in_systemSpecificationProduct;
+            out item out_systemSpecificationProduct_ModelSubProject : Products::SystemSpecification = in_systemSpecificationProduct;
+            out item out_systemSpecificationProduct_SpecifyVerificationContext : Products::SystemSpecification = in_systemSpecificationProduct;
+            out item out_systemRequirementsProduct_SpecifyTradeStudy : Products::SystemRequirements = in_systemSpecificationProduct.systemRequirements;
+            out part specificationContext : SYSMOD::SystemContext = in_systemSpecificationProduct.specificationSystem.specificationContext;
+            out part specificationContextImpl : SYSMOD::SystemContext = in_systemSpecificationProduct.specificationSystem.specificationContextImpl;
+            out requirement systemRequirementSpecification : SYSMOD::ExtendedRequirement = in_systemSpecificationProduct.systemRequirements.systemRequirementSpecification;
+        }
+        flow from forkSpecifySystem.specificationContext to thisProject.specificationContext;
+        flow from forkSpecifySystem.specificationContextImpl to thisProject.specificationContextImpl;
+        flow from forkSpecifySystem.systemRequirementSpecification to thisProject.systemRequirementSpecification;
+        flow from specifySystem.verificationSpecification to forkSpecifyVerificationCases.in_verificationSpecificationProduct;
+        fork forkSpecifyVerificationCases {
+            in item in_verificationSpecificationProduct : Products::VerificationSpecification;
+            out item out_verificationSpecificationProduct_ModelSubProject : Products::VerificationSpecification = in_verificationSpecificationProduct;
+            out item out_verificationSpecificationProduct_SpecifyVerificationContext : Products::VerificationSpecification = in_verificationSpecificationProduct;
+        }
 
         // Model Solution Architecture
         bind functionalArchitectureDescription = modelSolutionArchitecture.functionalArchitectureDescription;
         bind logicalArchitectureDescription = modelSolutionArchitecture.logicalArchitectureDescription;
         bind productArchitectureDescription = modelSolutionArchitecture.productArchitectureDescription;
-        flow from specifySystem.systemSpecification to modelSolutionArchitecture.systemSpecification;
+        flow from forkSpecifySystem.out_systemSpecificationProduct_ModelSolutionArchitecture to modelSolutionArchitecture.systemSpecification;
+        flow from modelSolutionArchitecture.functionalArchitecture to forkFunctionalArchitecture.in_functionalArchitectureProduct;
+        fork forkFunctionalArchitecture {
+            in item in_functionalArchitectureProduct : Products::FunctionalArchitecture;
+            out part functionalContext : SYSMOD::SystemContext = in_functionalArchitectureProduct.functionalContext;
+            out part functionalContextImpl : SYSMOD::SystemContext = in_functionalArchitectureProduct.functionalContextImpl;
+        }
+        flow from forkFunctionalArchitecture.functionalContext to thisProject.functionalContext;
+        flow from forkFunctionalArchitecture.functionalContextImpl to thisProject.functionalContextImpl;
+        flow from modelSolutionArchitecture.logicalArchitecture to forkLogicalArchitecture.in_logicalArchitectureProduct;
+        fork forkLogicalArchitecture {
+            in item in_logicalArchitectureProduct : Products::LogicalArchitecture;
+            out part logicalContext : SYSMOD::SystemContext = in_logicalArchitectureProduct.logicalContext;
+            out part logicalContextImpl : SYSMOD::SystemContext = in_logicalArchitectureProduct.logicalContextImpl;
+            out allocation functional2logical[0..1] = in_logicalArchitectureProduct.functional2logical;
+            out allocation functionalImpl2logicalImpl[0..1] = in_logicalArchitectureProduct.functionalImpl2logicalImpl;
+        }
+        flow from forkLogicalArchitecture.logicalContext to thisProject.logicalContext;
+        flow from forkLogicalArchitecture.logicalContextImpl to thisProject.logicalContextImpl;
+        flow from forkLogicalArchitecture.functional2logical to thisProject.functional2logical;
+        flow from forkLogicalArchitecture.functionalImpl2logicalImpl to thisProject.functionalImpl2logicalImpl;
+        flow from modelSolutionArchitecture.productArchitecture to forkProductArchitecture.in_productArchitectureProduct;
+        fork forkProductArchitecture {
+            in item in_productArchitectureProduct : Products::ProductArchitecture;
+            out item out_productArchitectureProduct_ModelSubProject : Products::ProductArchitecture = in_productArchitectureProduct;
+            out item out_productArchitectureProduct_IntegrateSubProjects : Products::ProductArchitecture = in_productArchitectureProduct;
+            out part productContext : SYSMOD::SystemContext = in_productArchitectureProduct.productContext;
+            out part productContextImpl : SYSMOD::SystemContext = in_productArchitectureProduct.productContextImpl;
+            out allocation logical2product[0..1] = in_productArchitectureProduct.logical2product;
+            out allocation logicalImpl2productImpl[0..1] = in_productArchitectureProduct.logicalImpl2productImpl;
+        }
+        flow from forkProductArchitecture.productContext to thisProject.productContext;
+        flow from forkProductArchitecture.productContextImpl to thisProject.productContextImpl;
+        flow from forkProductArchitecture.logical2product to thisProject.logical2product;
+        flow from forkProductArchitecture.logicalImpl2productImpl to thisProject.logicalImpl2productImpl;
+
+        // Sub-Projects
+        flow from forkProblemStatement.out_problemStatementProduct_ModelSubProject to modelSubProject.problemStatement;
+        flow from forkSpecifySystem.out_systemSpecificationProduct_ModelSubProject to modelSubProject.systemSpecification;
+        flow from forkSpecifyVerificationCases.out_verificationSpecificationProduct_ModelSubProject to modelSubProject.verificationSpecification;
+        flow from forkProductArchitecture.out_productArchitectureProduct_ModelSubProject to modelSubProject.productArchitecture;
+        flow from modelSubProject.subProject to forkModelSubProject.in_subProject;
+        fork forkModelSubProject {
+            in occurrence in_subProject : SYSMOD::Project;
+            out occurrence out_subProject_IntegrateSubProjects : SYSMOD::Project = in_subProject;
+            out occurrence subProject : SYSMOD::Project = in_subProject;
+        }
+        flow from forkModelSubProject.subProject to thisProject.subProjects;
+        flow from modelSubProject.requirementFlowDown.requirementFlowDowns to thisProject.requirementFlowDowns;
+
+        // Integrate Sub-Projects: updates the white box product context with the product systems of the sub-projects
+        flow from forkModelSubProject.out_subProject_IntegrateSubProjects to integrateSubProjects.subProjects;
+        flow from forkProductArchitecture.out_productArchitectureProduct_IntegrateSubProjects to integrateSubProjects.productArchitecture;
+        flow from integrateSubProjects.productArchitecture.productContextImpl to thisProject.productContextImpl;
+
+        // Specify Verification Context
+        flow from forkSpecifySystem.out_systemSpecificationProduct_SpecifyVerificationContext to specifyVerificationContext.systemSpecification;
+        flow from forkSpecifyVerificationCases.out_verificationSpecificationProduct_SpecifyVerificationContext to specifyVerificationContext.verificationSpecification;
+        flow from specifyVerificationContext.verificationSpecification to forkSpecifyVerificationContext.in_verificationSpecificationProduct;
+        fork forkSpecifyVerificationContext {
+            in item in_verificationSpecificationProduct : Products::VerificationSpecification;
+            out item out_verificationSpecificationProduct_PerformVerification : Products::VerificationSpecification = in_verificationSpecificationProduct;
+            out part verificationContext : SYSMOD::SystemContext = in_verificationSpecificationProduct.verificationContext;
+        }
+        flow from forkSpecifyVerificationContext.verificationContext to thisProject.verificationContext;
 
         // Perform Verification
+        flow from forkSpecifyVerificationContext.out_verificationSpecificationProduct_PerformVerification to performVerification.verificationSpecification;
         flow from performVerification.verificationReports to thisProject.verificationContext.verificationReports;
+
+        // Specify Trade Study: the decision context comes from the step that faces the architecture decision.
+        flow from forkDefineSystemObjectives.out_systemObjectivesProduct_SpecifyTradeStudy to specifyTradeStudy.systemObjectives;
+        flow from forkSpecifySystem.out_systemRequirementsProduct_SpecifyTradeStudy to specifyTradeStudy.systemRequirementSpecification;
+        flow from specifyTradeStudy.tradeStudies to thisProject.tradeStudies;
 
         // Steps with their responsible (primary performer) and supporting roles (additional performers), and the owners
         // of the products of the steps. The roles follow the ISO/IEC/IEEE 15288 processes that the steps refine.
         connection :> responsibleFor connect projectManager to setupProject;
+        connection :> supports connect productManager to setupProject;
         connection :> productOwnership connect projectManager to setupProject.projectProduct;
         action setupProject : Methods::SetupProject :> submethods { @StepStatus; }
 
@@ -480,7 +582,21 @@ library package SYSMODProcesses {
         connection :> responsibleFor connect systemArchitect to modelSubProject;
         connection :> supports connect projectManager to modelSubProject;
         connection :> supports connect requirementsEngineer to modelSubProject;
+        connection :> productOwnership connect projectManager to modelSubProject.subProject;
+        connection :> productOwnership connect systemArchitect to modelSubProject.requirementFlowDown;
         action modelSubProject : Methods::ModelSubProject :> submethods { @StepStatus; }
+
+        connection :> responsibleFor connect systemArchitect to integrateSubProjects;
+        connection :> supports connect integrationEngineer to integrateSubProjects;
+        connection :> productOwnership connect systemArchitect to integrateSubProjects.productArchitecture;
+        action integrateSubProjects : Methods::IntegrateSubProjects :> submethods { @StepStatus; }
+
+        connection :> responsibleFor connect verificationEngineer to specifyVerificationContext;
+        connection :> supports connect systemArchitect to specifyVerificationContext;
+        connection :> supports connect testEngineer to specifyVerificationContext;
+        connection :> supports connect validationEngineer to specifyVerificationContext;
+        connection :> productOwnership connect verificationEngineer to specifyVerificationContext.verificationSpecification;
+        action specifyVerificationContext : Methods::SpecifyVerificationContext :> submethods { @StepStatus; }
 
         connection :> responsibleFor connect testEngineer to performVerification;
         connection :> supports connect verificationEngineer to performVerification;
@@ -508,17 +624,20 @@ library package SYSMODProcesses {
 
         action def SetupProject :> MBSEMethodology::Method {
             doc
-            /* Sets up a new SYSMOD project: assigns the name of the project owner and the purpose of the project. Refines the ISO 15288 Project Planning process. */
+            /* Sets up a new SYSMOD project: assigns the name of the project owner, the purpose, and the scope of the project. Refines the ISO 15288 Project Planning process. */
             ref occurrence project :>> this : SYSMOD::Project {
                 doc /* The project that is set up. */
             }
-            ref part primaryPerformer :>> primaryPerformer = project.projectOwner;
 
             in item projectDescription : Products::ProjectDescription :> inputs {
                 doc
                 /* The project description contains the basic information about the project, including the project owner and the project purpose. */
             }
-            out item projectProduct : Products::Project :> outputs;
+            out item projectProduct : Products::Project :> outputs {
+                doc /* The project cover as product: the project and its project owner. */
+            }
+            bind projectProduct.project = project;
+            bind projectProduct.projectOwner.projectOwner = project.projectOwner;
 
             assign project.projectOwner.name := projectDescription.projectOwnerName;
             assign project.purpose := projectDescription.projectPurpose;
@@ -541,10 +660,10 @@ library package SYSMODProcesses {
                 doc
                 /* The problem statement is a brief description of the problem the system of interest is intended to solve. */
             }
-            in part projectOwner : Products::ProjectOwner :> inputs {
+            in item projectOwner : Products::ProjectOwner :> inputs {
                 doc /* The project owner, the stakeholder of the problem statement. */
             }
-            in part brownfieldSystem : Products::BrownfieldSystem :> inputs {
+            in item brownfieldSystem[0..1] : Products::BrownfieldSystem :> inputs {
                 doc /* The existing system, whose system of interest is the subject of the problem statement. */
             }
             out item problemStatement : Products::ProblemStatement :> outputs {
@@ -579,8 +698,8 @@ library package SYSMODProcesses {
             in item stakeholderList : Products::StakeholderList :> inputs {
                 doc /* The stakeholders whose needs are identified. */
             }
-            out item stakeholderNeeds : Products::StakeholderNeeds {
-                doc /* The stakeholder needs */
+            out item stakeholderNeeds : Products::StakeholderNeeds :> outputs {
+                doc /* The stakeholder needs. */
             }
         }
 
@@ -599,9 +718,6 @@ library package SYSMODProcesses {
             out item systemIdea : Products::SystemIdeaSystem :> outputs {
                 doc /* The system idea. */
             }
-            out item systemObjectives : Products::SystemObjectives :> outputs {
-                doc /* The system objectives. */
-            }
         }
 
         action def DefineSystemObjectives :> MBSEMethodology::Method {
@@ -613,10 +729,10 @@ library package SYSMODProcesses {
             in item stakeholderNeeds : Products::StakeholderNeeds :> inputs {
                 doc /* The stakeholder needs that the system objectives frame. */
             }
-            in item systemIdea : Products::SystemIdeaSystem {
+            in item systemIdea : Products::SystemIdeaSystem :> inputs {
                 doc /* The white box context of the system idea, whose system is the subject of the system objectives. */
             }
-            out item systemObjectives : Products::SystemObjectives {
+            out item systemObjectives : Products::SystemObjectives :> outputs {
                 doc /* The system objectives. */
             }
         }
@@ -688,7 +804,7 @@ library package SYSMODProcesses {
 
             // Specify System Requirements
             bind systemRequirementsDescription = specifySystemRequirements.systemRequirementsDescription;
-            bind stakeholderNeeds = identifyUseCases.stakeholderNeeds;
+            bind stakeholderNeeds = specifySystemRequirements.stakeholderNeeds;
             bind systemObjectives = specifySystemRequirements.systemObjectives;
             flow from forkModelSpecificationContext.out_specificationSystemProduct_specifySystemRequirements to specifySystemRequirements.specificationSystem;
             bind specifySystemRequirements.systemRequirements = SpecifySystem::systemSpecification.systemRequirements;
@@ -700,6 +816,7 @@ library package SYSMODProcesses {
             bind specifyVerificationCases.verificationSpecification = SpecifySystem::verificationSpecification;
 
             action modelSpecificationContext : MBSEMethodology::Method :> submethods {
+                @StepStatus;
                 doc
                 /* Models the black box and white box specification contexts by refining the system idea contexts: the actors at the system boundary in the black box context, and the subparts or attributes of the system used by use cases and requirements in the white box context. */
                 in item specificationArchitectureDescription : Products::ArchitectureDescription :> inputs;
@@ -707,14 +824,16 @@ library package SYSMODProcesses {
                 out item specificationSystem : Products::SpecificationSystem :> outputs;               
             }
             action identifyUseCases : MBSEMethodology::Method :> submethods {
+                @StepStatus;
                 doc
                 /* Identifies the system use cases of the specification context that describe how the actors interact with the system. */
-                in item useCaseDescriptions : Products::SystemUseCasesDescription :> inputs; 
+                in item useCaseDescriptions : Products::SystemUseCasesDescription :> inputs;
                 in item stakeholderNeeds : Products::StakeholderNeeds :> inputs;
-                in item specificationSystem : Products::SpecificationSystem :> inputs = SpecifySystem::systemSpecification.specificationSystem;
+                in item specificationSystem : Products::SpecificationSystem :> inputs;
                 out item systemUseCases : Products::SystemUseCases :> outputs;
             }
             action specifySystemRequirements : MBSEMethodology::Method :> submethods {
+                @StepStatus;
                 doc
                 /* Specifies the verifiable, solution-neutral system requirements that frame the stakeholder needs. */
                 in item systemRequirementsDescription : Products::SystemRequirementsDescription :> inputs;
@@ -724,6 +843,7 @@ library package SYSMODProcesses {
                 out item systemRequirements : Products::SystemRequirements :> outputs;
             }
             action specifyVerificationCases : MBSEMethodology::Method :> submethods {
+                @StepStatus;
                 doc
                 /* Specifies the verification cases of the system requirements against the black box specification system, alongside specifySystemRequirements and before any solution architecture exists: a verification case definition per verification case with the objective (verify) and the verdict (e.g., VerificationCases::PassIf), and a verification case usage in the verification context of the project, typed by the definition and subsetting verificationCases. The step returns the updated verification context. The VerificationEngineer is a stakeholder of this step and specifies the verification cases together with the RequirementsEngineer (concern VerificationCoverage), so that both discuss the verification in SysML rather than in a separate test language. The test systems and the system of interest of the verification context follow in SpecifyVerificationContext. */
                 in item verificationArchitectureDescription : Products::ArchitectureDescription :> inputs;
@@ -745,17 +865,17 @@ library package SYSMODProcesses {
             in item productArchitectureDescription[0..1] : Products::ArchitectureDescription :> inputs {
                 doc /* The informal description of the product architecture. */
             }
-            in item systemSpecification : Products::SystemSpecification {
-                doc /* The system requirements that the elements of the architectures refine. */
+            in item systemSpecification : Products::SystemSpecification :> inputs {
+                doc /* The system specification: the specification contexts that the architectures specialize and the system requirements that the elements of the architectures refine. */
             }
 
-            out item functionalArchitecture[0..1] : Products::FunctionalArchitecture {
+            out item functionalArchitecture[0..1] : Products::FunctionalArchitecture :> outputs {
                 doc /* The functional architecture. */
             }
-            out item logicalArchitecture[0..1] : Products::LogicalArchitecture {
+            out item logicalArchitecture[0..1] : Products::LogicalArchitecture :> outputs {
                 doc /* The logical architecture. */
-            }            
-            out item productArchitecture[0..1] : Products::ProductArchitecture {
+            }
+            out item productArchitecture[0..1] : Products::ProductArchitecture :> outputs {
                 doc /* The product architecture. */
             }
 
@@ -775,6 +895,7 @@ library package SYSMODProcesses {
             // Modeling the functional architecture
             bind functionalArchitectureDescription = modelFunctionalArchitecture.functionalArchitectureDescription;
             bind systemSpecification = modelFunctionalArchitecture.systemSpecification;
+            flow from modelFunctionalArchitecture.functionalArchitecture to forkModelFunctionalArchitecture.in_functionalArchitecture;
             fork forkModelFunctionalArchitecture {
                 in item in_functionalArchitecture : Products::FunctionalArchitecture;
                 out item out_functionalArchitecture_ModelLogicalArchitecture : Products::FunctionalArchitecture = in_functionalArchitecture;
@@ -784,13 +905,13 @@ library package SYSMODProcesses {
 
             // Modeling the logical architecture
             bind logicalArchitectureDescription = modelLogicalArchitecture.logicalArchitectureDescription;
-            bind logicalArchitecture = modelLogicalArchitecture.logicalArchitecture;
+            bind systemSpecification = modelLogicalArchitecture.systemSpecification;
             flow from forkModelFunctionalArchitecture.out_functionalArchitecture_ModelLogicalArchitecture to modelLogicalArchitecture.functionalArchitecture;
             bind modelLogicalArchitecture.logicalArchitecture = logicalArchitecture;
 
             // Modeling the product architecture
             bind productArchitectureDescription = modelProductArchitecture.productArchitectureDescription;
-            bind productArchitecture = modelProductArchitecture.productArchitecture;
+            bind systemSpecification = modelProductArchitecture.systemSpecification;
             flow from forkModelFunctionalArchitecture.out_functionalArchitecture_ModelProductArchitecture to modelProductArchitecture.functionalArchitecture;
             flow from modelLogicalArchitecture.logicalArchitecture to modelProductArchitecture.logicalArchitecture;
             bind modelProductArchitecture.productArchitecture = productArchitecture;
@@ -799,52 +920,76 @@ library package SYSMODProcesses {
                 @StepStatus;
                 doc
                 /* Models the optional functional architecture based on the black box specification context: the black box functional context and the white box functional context with the functional blocks, and the #refinement dependencies from the functional elements to the system requirements they refine. Refines the ISO 15288 System Architecture Definition process. */
-                in item functionalArchitectureDescription : Products::ArchitectureDescription;
-                in item systemSpecification : Products::SystemSpecification;
-                out item functionalArchitecture : Products::ArchitectureDescription;
+                in item functionalArchitectureDescription : Products::ArchitectureDescription :> inputs;
+                in item systemSpecification : Products::SystemSpecification :> inputs;
+                out item functionalArchitecture : Products::FunctionalArchitecture :> outputs;
             }
 
             action modelLogicalArchitecture : MBSEMethodology::Method :> submethods {
                 @StepStatus;
                 doc
                 /* Models the optional logical architecture based on the white box specification context and, if present, the white box functional context: the black box logical context and the white box logical context with the technology-independent building blocks, the #refinement dependencies from the logical elements to the system requirements they refine, and, if a functional architecture is present, the allocations functional2logical and functionalImpl2logicalImpl from the functional to the logical architecture. Refines the ISO 15288 System Architecture Definition process. */
-                in item logicalArchitectureDescription : Products::ArchitectureDescription;
-                in item systemSpecification : Products::SystemSpecification;
-                in item functionalArchitecture[0..1] : Products::FunctionalArchitecture;
-                out item logicalArchitecture : Products::LogicalArchitecture;
+                in item logicalArchitectureDescription : Products::ArchitectureDescription :> inputs;
+                in item systemSpecification : Products::SystemSpecification :> inputs;
+                in item functionalArchitecture[0..1] : Products::FunctionalArchitecture :> inputs;
+                out item logicalArchitecture : Products::LogicalArchitecture :> outputs;
             }
 
             action modelProductArchitecture : MBSEMethodology::Method :> submethods {
                 @StepStatus;
                 doc
                 /* Models the optional product architecture based on the white box specification context and, if present, the white box functional and logical contexts: the black box product context and the white box product context with the concrete, physical or deployable building blocks, and, if a logical architecture is present, the allocations logical2product and logicalImpl2productImpl from the logical to the product architecture. Refines the ISO 15288 System Architecture Definition process. */
-                in item productArchitectureDescription : Products::ArchitectureDescription;
-                in item systemSpecification : Products::SystemSpecification;
-                in item functionalArchitecture[0..1] : Products::FunctionalArchitecture;
-                in item logicalArchitecture[0..1] : Products::LogicalArchitecture;
-                out item productArchitecture : Products::ProductArchitecture;
+                in item productArchitectureDescription : Products::ArchitectureDescription :> inputs;
+                in item systemSpecification : Products::SystemSpecification :> inputs;
+                in item functionalArchitecture[0..1] : Products::FunctionalArchitecture :> inputs;
+                in item logicalArchitecture[0..1] : Products::LogicalArchitecture :> inputs;
+                out item productArchitecture : Products::ProductArchitecture :> outputs;
             }
         }
 
         action def ModelSubProject :> MBSEMethodology::Method {
             doc
             /* Models a sub-project for each building block of the white box product context that is developed separately, e.g., by another team or a supplier, and the sub-project contract: the sub-project usage subsets subProjects; a separate handover package carries the contract: the handover context (the building block as the system of interest, its external entities that are handed over as actors, and its connections and delegations as the actor/system interfaces), whose system of interest definition types the building block, whose other elements the parent white box specializes, and which the sub-project uses as its black box brownfield context, so that the sub-project, e.g., a supplier, needs no access to the parent project; the handover package also contains the stakeholders and the handover requirements of the sub-project, which the parent derives from its requirements that constrain the building block via its requirementFlowDowns; the sub-project derives its system requirements from the handover requirements. Optional; each sub-project then performs its own process. Refines the ISO 15288 System Architecture Definition process. */
-            // The model elements are the parameters; the products that contain them (package Products) subset inputs or outputs.
             // A project is a product itself.
-            in part componentArchitecture : Products::SolutionArchitecture {
-                doc /* The white box product context whose building blocks are developed by sub-projects. */
+            in item productArchitecture : Products::ProductArchitecture :> inputs {
+                doc /* The product architecture whose white box product context contains the building blocks that are developed by sub-projects. */
             }
-            in concern componentProblemStatement : Products::ProblemStatement {
-                doc /* The problem statement of the component. */
+            in item problemStatement : Products::ProblemStatement :> inputs {
+                doc /* The problem statement of the project, the context for the problem statements of the sub-projects. */
             }
-            in part componentSpecification : Products::SystemSpecification {
+            in item systemSpecification : Products::SystemSpecification :> inputs {
                 doc /* The system requirements of the project, from which the handover requirements of the sub-projects are derived. */
             }
-            in part componentVerificationSpecification : Products::VerificationSpecification {
-                doc /* The verification context of the component. */
+            in item verificationSpecification : Products::VerificationSpecification :> inputs {
+                doc /* The verification context of the project, the context for the verification of the sub-projects. */
             }
             out occurrence subProject : SYSMOD::Project :> outputs {
                 doc /* The sub-project. */
+            }
+            out item requirementFlowDown : Products::RequirementFlowDown :> outputs {
+                doc /* The derivations of the handover requirements of the sub-project from the requirements of the project. */
+            }
+        }
+
+        action def IntegrateSubProjects :> MBSEMethodology::Method {
+            doc
+            /* Integrates the products of the sub-projects into the architecture of the project: binds each building block of the white box product context that a sub-project develops to the product system of the sub-project, or keeps the black box of the handover context if the sub-project, e.g., a supplier, delivers no white box. Optional; performed when the product architectures of the sub-projects are available. Outside the verb scale: it combines the products of the sub-projects. Refines the ISO 15288 Integration process. */
+            in occurrence subProjects[*] : SYSMOD::Project :> inputs {
+                doc /* The sub-projects whose product systems are integrated. */
+            }
+            inout item productArchitecture : Products::ProductArchitecture :> inputs, outputs {
+                doc /* The product architecture, whose white box product context is updated with the integrated product systems. */
+            }
+        }
+
+        action def SpecifyVerificationContext :> MBSEMethodology::Method {
+            doc
+            /* Specifies the verification context returned by SpecifySystem: types it by a system context definition whose system of interest is the system under verification, which can be any system, e.g., the integrated product system, a prototype, or a simulation model, and adds the test systems, e.g., test benches or a wind tunnel, as actors. The verification cases of the context, specified in SpecifySystem, are bound to the system under verification and not changed. Refines the ISO 15288 Verification and Validation processes. */
+            in item systemSpecification : Products::SystemSpecification :> inputs {
+                doc /* The system specification with the system requirements that the verification cases verify. */
+            }
+            inout item verificationSpecification : Products::VerificationSpecification :> inputs, outputs {
+                doc /* The verification context with the verification cases, completed by the step with the test systems and the system of interest. */
             }
         }
 
@@ -861,27 +1006,29 @@ library package SYSMODProcesses {
 
         action def SpecifyTradeStudy :> MBSEMethodology::Method {
             doc
-            /* Specifies a SYSMOD trade study for an architecture decision, e.g., between candidate system ideas or candidate product architectures: models the alternatives as variants of the respective context of the project, which becomes a variation usage (e.g., productContextImpl), assesses each alternative against the system objectives (criteria weighted by their priority), selects the alternative with the maximum evaluation, binds the variation to the selected variant, and records the decision on the variation with Rationale metadata whose explanation is the trade study. It takes the open context as decisionContext and returns the decided variation as decidedContext. Mandatory system requirements, if already defined, exclude ineligible alternatives. Optional and without succession: performed whenever a step faces an architecture decision with alternatives. Refines the ISO 15288 Decision Management and System Analysis processes. */
+            /* Specifies a SYSMOD trade study for an architecture decision, e.g., between candidate system ideas or candidate product architectures: models the alternatives as variants of the respective context of the project, which becomes a variation usage (e.g., productContextImpl), assesses each alternative against the system objectives (criteria weighted by their priority), selects the alternative with the maximum evaluation, binds the variation to the selected variant, and records the decision on the variation with Rationale metadata whose explanation is the trade study. It takes the open context as decisionSituation and returns the decided variation as decidedContext and, with the trade studies, as tradeStudyReport. Mandatory system requirements, if already defined, exclude ineligible alternatives. Optional and without succession: performed whenever a step faces an architecture decision with alternatives. Refines the ISO 15288 Decision Management and System Analysis processes. */
             in item systemObjectives : Products::SystemObjectives :> inputs {
                 doc /* The system objectives, the criteria of the trade study. */
             }
             in item systemRequirementSpecification [0..1] : Products::SystemRequirements :> inputs {
                 doc /* The system requirements, if already defined. Mandatory requirements exclude ineligible alternatives. */
             }
-            in item decisionContext : Products::SolutionArchitecture :> inputs {
-                doc /* The project context of the open architecture decision as it is before the trade study, e.g., productContextImpl.
+            in item decisionSituation : Products::DecisionSituation :> inputs {
+                doc /* The open architecture decision: the project context as it is before the trade study, e.g., productContextImpl.
                     It provides the base context, e.g., the white box specification context, that the alternatives specialize. */
             }
-            out item decidedContext : Products::SolutionArchitecture :> outputs {
+            out part decidedContext : SYSMOD::SystemContext {
                 doc /* The same project context after the decision: a variation usage whose variants are the alternatives, bound to the
                     selected variant. */
             }
-            out analysis tradeStudies [1..*] : Products::TradeStudy :> outputs {
+            out analysis tradeStudies [1..*] : SYSMOD::SYSMODTradeStudy {
                 doc /* The trade studies of the decision. */
             }
             out item tradeStudyReport : Products::TradeStudyReport :> outputs {
                 doc /* The decision as product: the trade studies and the decided context. */
             }
+            bind tradeStudyReport.decidedContext = decidedContext;
+            bind tradeStudyReport.tradeStudies = tradeStudies;
         }
     }
 
@@ -891,14 +1038,14 @@ library package SYSMODProcesses {
     package Products {
         doc
         /* The products that the SYSMOD steps produce and need (outputs and inputs, MBSEMethodology::Product). A product is a
-         * work product of the project model: it refers to the Project features it consists of, e.g., ProblemStatementModel to
+         * work product of the project model: it refers to the Project features it consists of, e.g., ProblemStatement to
          * Project::problemStatement. The step binds these references to its parameters, so the products show which model
          * elements a step reads and creates; the output of one step is the input of others, e.g., the SystemSpecification of
          * SpecifySystem is an input of ModelSolutionArchitecture.
          * A product specializes the product of ISO15288Processes::Products if it is a kind of it, e.g., SystemSpecification
          * is a kind of SystemRequirements; this corresponds to the #refinement of the ISO 15288 processes by the SYSMOD steps.
          * Further products of SYSMOD are the informal input artifacts above (e.g., ProjectDescription), the Project itself
-         * (e.g., the subProjects of ModelSubProjects), and the VerificationReport.
+         * (e.g., the subProject of ModelSubProject), and the VerificationReport.
          */
 
         item def ProjectOwner :> MBSEMethodology::Product {
@@ -917,7 +1064,7 @@ library package SYSMODProcesses {
             }
             attribute projectScope : ScalarValues::String {
                 doc
-                /* The scope of the project is a brief description of the boundaries and extent of the project. In particular, it describes what is not part of the project but could be consideres by stakeholders. */
+                /* The scope of the project is a brief description of the boundaries and extent of the project. In particular, it describes what is not part of the project but could be considered by stakeholders. */
             }
             attribute projectOwnerName : ScalarValues::String {
                 doc
@@ -930,7 +1077,9 @@ library package SYSMODProcesses {
                 doc /* The project. */
             }
 
-            ref item projectOwner : ProjectOwner;
+            ref item projectOwner : ProjectOwner {
+                doc /* The project owner as product. */
+            }
         }
 
         item def ArchitectureDescription :> MBSEMethodology::Product {
@@ -961,7 +1110,7 @@ library package SYSMODProcesses {
         }
         item def StakeholderList :> ISO15288Processes::Products::MajorStakeholderIdentification {
             doc /* The stakeholders of the project with their risk, effort, and categories. Output of IdentifyStakeholders. */
-            ref part projectStakeholders[*] : SYSMOD::ExtendedStakeholder {
+            ref part projectStakeholders[1..*] : SYSMOD::ExtendedStakeholder :> modelElements {
                 doc /* The stakeholders of the project (Project::projectStakeholders). */
             }
         }
@@ -971,18 +1120,18 @@ library package SYSMODProcesses {
         }
         item def StakeholderNeeds :> ISO15288Processes::Products::StakeholderNeeds {
             doc /* The needs of the stakeholders, traced to the stakeholders they come from. Output of IdentifyStakeholderNeeds. */
-            ref concern stakeholderNeeds : SYSMOD::ExtendedConcern {
+            ref concern stakeholderNeeds : SYSMOD::ExtendedConcern :> modelElements {
                 doc /* The stakeholder needs (Project::stakeholderNeeds). */
             }
         }
 
         item def SystemIdeaSystem :> MBSEMethodology::Product {
             doc /* The system idea: a conceptual outline of the new or changed system. Output of DescribeSystemIdea. */
-            ref part systemIdeaContext : SYSMOD::SystemContext {
-                doc /* The black box system idea context. */
+            ref part systemIdeaContext : SYSMOD::SystemContext :> modelElements {
+                doc /* The black box system idea context (Project::systemIdeaContext). */
             }
-            ref part systemIdeaContextImpl : SYSMOD::SystemContext {
-                doc /* The white box system idea context. */
+            ref part systemIdeaContextImpl : SYSMOD::SystemContext :> modelElements {
+                doc /* The white box system idea context (Project::systemIdeaContextImpl). */
             }
         }
 
@@ -991,14 +1140,15 @@ library package SYSMODProcesses {
         }
         item def SystemObjectives :> MBSEMethodology::Product {
             doc /* The system objectives with their measures of effectiveness and measures of performance. Output of DefineSystemObjectives. */
-            ref concern systemObjectives : SYSMOD::SystemObjective {
-                doc /* The system objectives. */
+            ref concern systemObjectives : SYSMOD::SystemObjective :> modelElements {
+                doc /* The system objectives (Project::systemObjectives). */
             }
         }
 
-        item def SystemSpecification :> MBSEMethodology::Product {
+        item def SystemSpecification :> ISO15288Processes::Products::SystemRequirements {
+            doc /* The system specification: the specification contexts with the system use cases, and the system requirements. Output of SpecifySystem. */
             ref item specificationSystem : SpecificationSystem {
-                doc /* The specification system. */
+                doc /* The specification contexts. */
             }
             ref item systemRequirements : SystemRequirements {
                 doc /* The system requirements. */
@@ -1009,33 +1159,33 @@ library package SYSMODProcesses {
         }
 
         item def SpecificationSystem :> MBSEMethodology::Product {
-            doc /* The system specification: the specification contexts with the system use cases, and the system requirements. Output of SpecifySystem. */
-            ref part specificationContext : SYSMOD::SystemContext {
+            doc /* The black box and white box specification contexts. Output of SpecifySystem (modelSpecificationContext). */
+            ref part specificationContext : SYSMOD::SystemContext :> modelElements {
                 doc /* The black box specification context with the system use cases (Project::specificationContext). */
             }
-            ref part specificationContextImpl : SYSMOD::SystemContext {
+            ref part specificationContextImpl : SYSMOD::SystemContext :> modelElements {
                 doc /* The white box specification context (Project::specificationContextImpl). */
             }
         }
 
         item def SystemRequirementsDescription :> MBSEMethodology::Product {
-            doc /* The system requirements description. Output of SpecifySystem. */
+            doc /* An informal description of the system requirements, given by a human or an AI assistant as input to SpecifySystem. */
         }
         item def SystemRequirements :> ISO15288Processes::Products::SystemRequirements {
-            doc /* The system requirements. Output of SpecifySystem. */
+            doc /* The system requirements. Output of SpecifySystem (specifySystemRequirements). */
 
-            ref requirement systemRequirementSpecification : SYSMOD::ExtendedRequirement {
-                doc /* The system requirements. */
+            ref requirement systemRequirementSpecification : SYSMOD::ExtendedRequirement :> modelElements {
+                doc /* The system requirements (Project::systemRequirementSpecification). */
             }
         }
 
         item def SystemUseCasesDescription :> MBSEMethodology::Product {
-            doc /* The system use case description. Output of SpecifySystem. */
+            doc /* An informal description of the system use cases, given by a human or an AI assistant as input to SpecifySystem. */
         }
         item def SystemUseCases :> MBSEMethodology::Product {
-            doc /* The system use cases. Output of SpecifySystem. */
+            doc /* The system use cases. Output of SpecifySystem (identifyUseCases). */
 
-            ref use case systemUseCaes[*] : SYSMOD::SystemUseCase {
+            ref use case systemUseCases[*] : SYSMOD::SystemUseCase :> modelElements {
                 doc /* The system use cases. */
             }
         }
@@ -1044,13 +1194,13 @@ library package SYSMODProcesses {
         item def VerificationSpecification :> ISO15288Processes::Products::VerificationProcedures {
             doc /* The verification context with the verification cases, the test systems, and the system of interest.
                  * Output of SpecifySystem, completed by SpecifyVerificationContext. */
-            ref part verificationContext : SYSMOD::SystemContext {
+            ref part verificationContext : SYSMOD::SystemContext :> modelElements {
                 doc /* The verification context (Project::verificationContext). */
             }
         }
 
-        item def VerificationReport  {
-            doc /* The verification report with the results of the verification cases. */
+        item def VerificationReport :> SYSMOD::VerificationReport {
+            doc /* The verification report with the results of the verification cases. Output of PerformVerification. */
         }
 
         abstract item def SolutionArchitecture :> ISO15288Processes::Products::ArchitectureDescription {
@@ -1059,19 +1209,19 @@ library package SYSMODProcesses {
 
         item def FunctionalArchitecture :> SolutionArchitecture {
             doc /* The functional architecture. Output of ModelSolutionArchitecture (modelFunctionalArchitecture). */
-            ref part functionalContext : SYSMOD::SystemContext {
+            ref part functionalContext : SYSMOD::SystemContext :> modelElements {
                 doc /* The black box functional context (Project::functionalContext). */
             }
-            ref part functionalContextImpl : SYSMOD::SystemContext {
+            ref part functionalContextImpl : SYSMOD::SystemContext :> modelElements {
                 doc /* The white box functional context (Project::functionalContextImpl). */
             }
         }
         item def LogicalArchitecture :> SolutionArchitecture {
             doc /* The logical architecture with the allocations from the functional architecture. Output of ModelSolutionArchitecture (modelLogicalArchitecture). */
-            ref part logicalContext : SYSMOD::SystemContext {
+            ref part logicalContext : SYSMOD::SystemContext :> modelElements {
                 doc /* The black box logical context (Project::logicalContext). */
             }
-            ref part logicalContextImpl : SYSMOD::SystemContext {
+            ref part logicalContextImpl : SYSMOD::SystemContext :> modelElements {
                 doc /* The white box logical context (Project::logicalContextImpl). */
             }
             abstract ref allocation functional2logical[0..1] {
@@ -1084,10 +1234,10 @@ library package SYSMODProcesses {
         item def ProductArchitecture :> SolutionArchitecture {
             doc /* The product architecture with the allocations from the logical architecture. Output of ModelSolutionArchitecture
                  * (modelProductArchitecture), updated by IntegrateSubProjects. */
-            ref part productContext : SYSMOD::SystemContext {
+            ref part productContext : SYSMOD::SystemContext :> modelElements {
                 doc /* The black box product context (Project::productContext). */
             }
-            ref part productContextImpl : SYSMOD::SystemContext {
+            ref part productContextImpl : SYSMOD::SystemContext :> modelElements {
                 doc /* The white box product context (Project::productContextImpl). */
             }
             abstract ref allocation logical2product[0..1] {
@@ -1098,27 +1248,23 @@ library package SYSMODProcesses {
             }
         }
         item def RequirementFlowDown :> ISO15288Processes::Products::SystemElementRequirements {
-            doc /* The derivations of the handover requirements of the sub-projects from the requirements of the project. Output of ModelSubProjects. */
-            abstract ref connection requirementFlowDowns[*] : DerivationConnections::Derivation {
+            doc /* The derivations of the handover requirements of the sub-projects from the requirements of the project. Output of ModelSubProject. */
+            abstract ref connection requirementFlowDowns[*] : DerivationConnections::Derivation :> modelElements {
                 doc /* The requirement flow-downs (Project::requirementFlowDowns). */
             }
         }
         item def DecisionSituation :> ISO15288Processes::Products::DecisionSituation {
             doc /* An open architecture decision with alternatives: the project context of the decision before the trade study. Input of SpecifyTradeStudy. */
-            ref part decisionContext : SYSMOD::SystemContext {
+            ref part decisionContext : SYSMOD::SystemContext :> modelElements {
                 doc /* The project context of the open decision, e.g., Project::productContextImpl. */
             }
         }
-        item def TradeStudy {
-            doc /* A Trade Study: the trade studies and the decided project context. Output of SpecifyTradeStudy. */
-        }
-
         item def TradeStudyReport :> ISO15288Processes::Products::DecisionReport {
             doc /* The decision: the trade studies and the decided project context. Output of SpecifyTradeStudy. */
-            ref analysis tradeStudies[*] : SYSMOD::SYSMODTradeStudy {
+            ref analysis tradeStudies[*] : SYSMOD::SYSMODTradeStudy :> modelElements {
                 doc /* The trade studies of the decision (Project::tradeStudies). */
             }
-            ref part decidedContext : SYSMOD::SystemContext {
+            ref part decidedContext : SYSMOD::SystemContext :> modelElements {
                 doc /* The project context after the decision, bound to the selected variant. */
             }
         }
@@ -1140,6 +1286,9 @@ library package SYSMODProcesses {
     #refinement dependency Methods::SpecifySystem to ISO15288Processes::Verification;
     #refinement dependency Methods::ModelSolutionArchitecture to ISO15288Processes::SystemArchitectureDefinition;
     #refinement dependency Methods::ModelSubProject to ISO15288Processes::SystemArchitectureDefinition;
+    #refinement dependency Methods::IntegrateSubProjects to ISO15288Processes::Integration;
+    #refinement dependency Methods::SpecifyVerificationContext to ISO15288Processes::Verification;
+    #refinement dependency Methods::SpecifyVerificationContext to ISO15288Processes::Validation;
     #refinement dependency Methods::PerformVerification to ISO15288Processes::Verification;
     #refinement dependency Methods::SpecifyTradeStudy to ISO15288Processes::DecisionManagement;
     #refinement dependency Methods::SpecifyTradeStudy to ISO15288Processes::SystemAnalysis;

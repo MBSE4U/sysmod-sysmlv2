@@ -517,7 +517,6 @@ library package SYSMODProcesses {
         // Steps with their responsible (primary performer) and supporting roles (additional performers), and the owners
         // of the products of the steps. The roles follow the ISO/IEC/IEEE 15288 processes that the steps refine.
         connection :> responsibleFor connect projectManager to setupProject;
-        connection :> supports connect productManager to setupProject;
         connection :> productOwnership connect projectManager to setupProject.projectProduct;
         action setupProject : Methods::SetupProject :> submethods { @StepStatus; }
         bind setupProject.productManager = productManager;

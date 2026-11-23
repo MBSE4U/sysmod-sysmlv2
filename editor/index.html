@@ -30,6 +30,8 @@
                     <button type="button" role="menuitem" data-action="save">Save<kbd>Ctrl+S</kbd></button>
                     <button type="button" role="menuitem" data-action="save-as">Save as…<kbd>Ctrl+Shift+S</kbd></button>
                     <button type="button" role="menuitem" data-action="save-all">Save all</button>
+                    <button type="button" role="menuitemcheckbox" data-action="toggle-autosave" id="autosave" aria-checked="true"
+                        title="Write every change to its file right away: documents of an opened folder and libraries opened for editing. New documents and examples without a file stay drafts until you save them.">Save automatically</button>
                     <hr>
                     <button type="button" role="menuitem" data-action="close" title="Close all opened documents and the folder; the read-only libraries remain">Close</button>
                 </div>
@@ -85,7 +87,8 @@
                     <button type="button" role="tab" data-view-tab="process" aria-controls="view-process" title="The flow of a process: its steps in the lanes of their performers">Processes</button>
                     <button type="button" role="tab" data-view-tab="overview" aria-controls="view-overview" title="The methodology at a glance, for management and non-technical engineers: stages, who does what, deliverables">Overview</button>
                     <button type="button" role="tab" data-view-tab="text" aria-controls="view-text">Text</button>
-                    <!-- Views without a tab of their own: their tab shows while they are open. -->
+                    <!-- Views without a tab of their own: the DTFA views show their tab while they are open. The form never shows its
+                         tab: it is the mode Form of the switch Diagram | Table | Form, and the tab of what it shows is active. -->
                     <button type="button" role="tab" class="view-tab-transient" data-view-tab="form" aria-controls="view-form" hidden>Form</button>
                     <button type="button" role="tab" class="view-tab-transient" data-view-tab="matrix" aria-controls="view-matrix" title="DTFA Steps #1 and #2: Tools Roles Methods Matrix and rating of the tool transitions" hidden>Matrix</button>
                     <button type="button" role="tab" class="view-tab-transient" data-view-tab="steps" aria-controls="view-steps" title="DTFA Steps #3 and #4: step definitions and measures" hidden>Step definition</button>

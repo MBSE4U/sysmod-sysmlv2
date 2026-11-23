@@ -487,10 +487,11 @@
 /* ---------- Roles, Tools, Methodology, Products: list and graph (ElementsView, ElementGraph) ---------- */
 .el-host { flex: 1; min-height: 0; }
 .el-view { display: flex; height: 100%; min-height: 0; background: var(--bg); }
-.el-list { width: 270px; flex: none; display: flex; flex-direction: column; border-right: 1px solid var(--line); background: var(--surface); min-height: 0; }
+.el-list { position: relative; width: var(--el-list-width, 300px); flex: none; display: flex; flex-direction: column; border-right: 1px solid var(--line); background: var(--surface); min-height: 0; }
 .el-list-head { padding: 12px 12px 4px; display: flex; flex-direction: column; gap: 2px; }
 .el-list-head h2 { margin: 0; font-size: 15px; text-transform: none; letter-spacing: 0; color: var(--text); }
-.el-list-actions { display: flex; gap: 10px; align-items: center; padding: 4px 12px 8px; border-bottom: 1px solid var(--line); }
+.el-list-actions { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; padding: 4px 12px 8px; border-bottom: 1px solid var(--line); }
+.el-list-actions button, .el-list-actions .ev-modes { white-space: nowrap; flex: none; }
 .el-items { list-style: none; margin: 0; padding: 4px 0; overflow: auto; flex: 1; min-height: 0; }
 .el-items li { padding-right: 6px; }
 .el-item { display: flex; align-items: center; width: 100%; text-align: left; border: 0; background: none; padding: 4px 6px; border-radius: 5px; color: var(--text); font: 13px var(--sans); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

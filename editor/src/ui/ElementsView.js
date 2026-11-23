@@ -6,6 +6,7 @@
 // Events: "select" { id } (list), "open" { id } (graph node: the graph of that element in its tab),
 //         "form" { id } (the form of the element), "command" { command, id }, "collection" { kind, id }, "view" { view }
 
+import { splitterHandle, makeResizable } from "./splitter.js";
 import { Process, Method, Role, Tool, Artifact, MBSEEnvironment } from "../dtfa/model.js";
 import { ElementGraph } from "./ElementGraph.js";
 
@@ -32,6 +33,8 @@ export class ElementsView extends EventTarget {
         this.root.classList.add("el-view");
         this.graph = new ElementGraph();
         this.currentId = null;
+        // The list is resizable; all four tabs share its width.
+        makeResizable(this.root, { pane: ".el-list", variable: "--el-list-width", key: "element-list", min: 220 });
         this.root.addEventListener("click", e => {
             const item = e.target.closest("[data-item]");
             if (item) { this.currentId = item.dataset.item; this.dispatchEvent(new CustomEvent("select", { detail: { id: item.dataset.item } })); return; }
@@ -106,6 +109,7 @@ export class ElementsView extends EventTarget {
                     </span></div>` : ""}
                 <ul class="el-items">${list}${missing ? `<li class="selected el-extra"><button type="button" class="el-item" data-item="${escapeHtml(current.id)}">${escapeHtml(current.name)}</button></li>` : ""}</ul>
                 ${entries.length ? "" : `<p class="fv-muted el-none">No ${escapeHtml(this.spec.title.toLowerCase())} ${context}.</p>`}
+                ${splitterHandle(`Width of the list of ${escapeHtml(this.spec.title.toLowerCase())}`)}
             </aside>
             <div class="el-graph diagram-view"></div>`;
         const host = this.root.querySelector(".el-graph");

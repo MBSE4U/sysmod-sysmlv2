@@ -6,7 +6,7 @@ The editor follows the concepts of the [PLEML editor](https://github.com/MBSE4U/
 
 ## Editors on one model
 
-The editor works with single clicks only, no double-clicks.
+The editor works with single clicks only, no double-clicks. The side panel and the lists of the Roles, Tools, Methodology and Products tabs are resizable: drag the line at their right edge (or focus it and press ← / →, Home resets); the browser remembers the widths.
 
 The tabs show the main artifacts of the methodology: **Environment | Roles | Tools | Methodology | Products | Processes | Overview | Text**. They share one selection, and every change is saved to the `.sysml` text.
 

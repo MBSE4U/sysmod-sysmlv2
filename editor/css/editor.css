@@ -186,7 +186,7 @@ kbd { font: 12px var(--mono); color: var(--muted); }
 
 .workbench {
     display: grid;
-    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    grid-template-columns: var(--sidebar-width, minmax(260px, 340px)) minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr) auto;
     grid-template-areas: "sidebar editor" "sidebar problems";
     min-height: 0;
@@ -531,3 +531,11 @@ body.library-editing .libraries-panel { box-shadow: inset 3px 0 0 var(--warning)
 .fv-library-edit { color: var(--warning); }
 .menu-items button[role=menuitemcheckbox]::before { content: ""; display: inline-block; width: 1.2em; }
 .menu-items button[role=menuitemcheckbox][aria-checked=true]::before { content: "✓"; }
+
+/* Resizable panes (src/ui/splitter.js): the handle at the right edge of the side panel and of the element lists */
+.sidebar { position: relative; }
+.splitter { position: absolute; top: 0; right: -4px; width: 8px; height: 100%; cursor: col-resize; z-index: 5; touch-action: none; }
+.splitter::after { content: ""; position: absolute; top: 0; bottom: 0; left: 3px; width: 2px; background: transparent; transition: background .12s; }
+.splitter:hover::after, .splitter.dragging::after, .splitter:focus-visible::after { background: var(--accent); }
+.splitter:focus-visible { outline: none; }
+body.resizing { cursor: col-resize; user-select: none; }

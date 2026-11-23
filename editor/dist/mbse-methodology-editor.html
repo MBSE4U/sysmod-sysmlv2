@@ -742,7 +742,7 @@ kbd { font: 12px var(--mono); color: var(--muted); }
 
 .workbench {
     display: grid;
-    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    grid-template-columns: var(--sidebar-width, minmax(260px, 340px)) minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr) auto;
     grid-template-areas: "sidebar editor" "sidebar problems";
     min-height: 0;
@@ -1087,6 +1087,14 @@ body.library-editing .libraries-panel { box-shadow: inset 3px 0 0 var(--warning)
 .fv-library-edit { color: var(--warning); }
 .menu-items button[role=menuitemcheckbox]::before { content: ""; display: inline-block; width: 1.2em; }
 .menu-items button[role=menuitemcheckbox][aria-checked=true]::before { content: "✓"; }
+
+/* Resizable panes (src/ui/splitter.js): the handle at the right edge of the side panel and of the element lists */
+.sidebar { position: relative; }
+.splitter { position: absolute; top: 0; right: -4px; width: 8px; height: 100%; cursor: col-resize; z-index: 5; touch-action: none; }
+.splitter::after { content: ""; position: absolute; top: 0; bottom: 0; left: 3px; width: 2px; background: transparent; transition: background .12s; }
+.splitter:hover::after, .splitter.dragging::after, .splitter:focus-visible::after { background: var(--accent); }
+.splitter:focus-visible { outline: none; }
+body.resizing { cursor: col-resize; user-select: none; }
 
 /* EEE Editor: view switcher, diagram and form styles shared with the PLEML editor */
 
@@ -1880,10 +1888,11 @@ body.library-editing .libraries-panel { box-shadow: inset 3px 0 0 var(--warning)
 /* ---------- Roles, Tools, Methodology, Products: list and graph (ElementsView, ElementGraph) ---------- */
 .el-host { flex: 1; min-height: 0; }
 .el-view { display: flex; height: 100%; min-height: 0; background: var(--bg); }
-.el-list { width: 270px; flex: none; display: flex; flex-direction: column; border-right: 1px solid var(--line); background: var(--surface); min-height: 0; }
+.el-list { position: relative; width: var(--el-list-width, 300px); flex: none; display: flex; flex-direction: column; border-right: 1px solid var(--line); background: var(--surface); min-height: 0; }
 .el-list-head { padding: 12px 12px 4px; display: flex; flex-direction: column; gap: 2px; }
 .el-list-head h2 { margin: 0; font-size: 15px; text-transform: none; letter-spacing: 0; color: var(--text); }
-.el-list-actions { display: flex; gap: 10px; align-items: center; padding: 4px 12px 8px; border-bottom: 1px solid var(--line); }
+.el-list-actions { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; padding: 4px 12px 8px; border-bottom: 1px solid var(--line); }
+.el-list-actions button, .el-list-actions .ev-modes { white-space: nowrap; flex: none; }
 .el-items { list-style: none; margin: 0; padding: 4px 0; overflow: auto; flex: 1; min-height: 0; }
 .el-items li { padding-right: 6px; }
 .el-item { display: flex; align-items: center; width: 100%; text-align: left; border: 0; background: none; padding: 4px 6px; border-radius: 5px; color: var(--text); font: 13px var(--sans); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -2036,6 +2045,7 @@ body.library-editing .libraries-panel { box-shadow: inset 3px 0 0 var(--warning)
 
     <div class="workbench">
         <aside class="sidebar" aria-label="Model">
+            <div class="splitter" role="separator" aria-orientation="vertical" tabindex="0" aria-label="Width of the side panel" title="Width of the side panel: drag, or ← / → (Home resets)"></div>
             <section class="panel">
                 <h2 id="documents-title">Documents</h2>
                 <ul id="documents" class="documents"></ul>
@@ -2824,8 +2834,83 @@ const config = {
 return { config };
 })();
 
-// src/workspace/Workspace.js
+// src/ui/splitter.js
 const __module1 = (() => {
+// Resizable panes: a handle at the right edge of a pane changes its width (a CSS variable on the document, so every
+// pane of the kind, e.g. the lists of the Roles, Tools, Methodology and Products tabs, has the same width, also after
+// a pane is rendered again). The width is remembered in the browser. Drag with the mouse; with the keyboard, focus the
+// handle and press ← / → (Shift: larger steps), Home resets the width.
+
+const PREFIX = "mbse-methodology-editor.width.";
+
+function store(key, value) {
+    try { value == null ? localStorage.removeItem(PREFIX + key) : localStorage.setItem(PREFIX + key, String(value)); } catch (_) { /* storage unavailable */ }
+}
+
+/** The handle of a pane: a vertical separator for the right edge of the pane. */
+function splitterHandle(label) {
+    return `<div class="splitter" role="separator" aria-orientation="vertical" tabindex="0" aria-label="${label}" title="${label}: drag, or ← / → (Home resets)"></div>`;
+}
+
+/**
+ * Makes the panes with a handle (.splitter) inside root resizable.
+ * @param {Element} root the element that contains the pane and its handle (also when they are rendered again)
+ * @param {{pane: string, variable: string, key: string, min: number, max: function(): number}} options
+ *   pane: selector of the pane (the parent of the handle); variable: CSS variable with the width, e.g. "--el-list-width"
+ */
+function makeResizable(root, { pane, variable, key, min = 200, max = () => window.innerWidth * 0.6 }) {
+    const set = width => {
+        const clamped = Math.round(Math.max(min, Math.min(max(), width)));
+        document.documentElement.style.setProperty(variable, `${clamped}px`);
+        return clamped;
+    };
+    try { const saved = Number(localStorage.getItem(PREFIX + key)); if (saved) set(saved); } catch (_) { /* storage unavailable */ }
+    const handleOf = e => { const h = e.target.closest(".splitter"); return h && root.contains(h) && h.parentElement.matches(pane) ? h : null; };
+
+    root.addEventListener("pointerdown", e => {
+        const handle = handleOf(e);
+        if (!handle || e.button !== 0) return;
+        e.preventDefault();
+        // In the pane's own CSS pixels; the pointer moves in screen pixels (they differ under a CSS zoom).
+        const pane = handle.parentElement, width = pane.offsetWidth;
+        const scale = pane.getBoundingClientRect().width / (width || 1) || 1;
+        const start = e.clientX;
+        handle.setPointerCapture(e.pointerId);
+        handle.classList.add("dragging");
+        document.body.classList.add("resizing");
+        const move = ev => set(width + (ev.clientX - start) / scale);
+        const up = ev => {
+            handle.removeEventListener("pointermove", move);
+            handle.removeEventListener("pointerup", up);
+            handle.removeEventListener("pointercancel", up);
+            handle.classList.remove("dragging");
+            document.body.classList.remove("resizing");
+            store(key, set(width + (ev.clientX - start) / scale));
+        };
+        handle.addEventListener("pointermove", move);
+        handle.addEventListener("pointerup", up);
+        handle.addEventListener("pointercancel", up);
+    });
+    root.addEventListener("keydown", e => {
+        const handle = handleOf(e);
+        if (!handle) return;
+        const width = handle.parentElement.offsetWidth;
+        const step = e.shiftKey ? 64 : 16;
+        if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+            e.preventDefault();
+            store(key, set(width + (e.key === "ArrowRight" ? step : -step)));
+        } else if (e.key === "Home") {
+            e.preventDefault();
+            document.documentElement.style.removeProperty(variable);
+            store(key, null);
+        }
+    });
+}
+return { splitterHandle, makeResizable };
+})();
+
+// src/workspace/Workspace.js
+const __module2 = (() => {
 // The open documents of the editor.
 //
 // A document holds the text of one .sysml file. Libraries (e.g. DTFA.sysml) are read-only documents that are
@@ -2949,7 +3034,7 @@ return { SourceDocument, Workspace };
 })();
 
 // src/dtfa/model.js
-const __module2 = (() => {
+const __module3 = (() => {
 // Domain model of the editor: MBSE environments (MBSEMethodology) and their Digital Thread Flow Analyses (DTFA).
 //
 // The views work on this model only. It does not know where the model comes from:
@@ -3553,7 +3638,7 @@ return { ModelElement, MBSEEnvironment, Role, Tool, Artifact, Process, Method, S
 })();
 
 // src/dtfa/DtfaModelBuilder.js
-const __module3 = (() => {
+const __module4 = (() => {
 // Builds the domain model from the symbols of the SysML engine (see engine-core.js).
 //
 // The DTFA extends the MBSE methodology concepts of MBSEMethodology (SYSMOD library). The elements are recognized by
@@ -3573,7 +3658,7 @@ const __module3 = (() => {
 // The builder relies on these semantic facts. The source-specific parts are passed in as hooks:
 //   documentOf(id) -> name of the declaring document
 
-const { DtfaModel, MBSEEnvironment, FlowAnalysis, Role, Process, Tool, Method, Artifact, Step, Handover, ToolTransition, Measure, ToolPolicyRule } = __module2;
+const { DtfaModel, MBSEEnvironment, FlowAnalysis, Role, Process, Tool, Method, Artifact, Step, Handover, ToolTransition, Measure, ToolPolicyRule } = __module3;
 
 /** The DTFA and MBSEMethodology definitions whose conformance the engine reports for each symbol. */
 const LANGUAGE_TYPES = [
@@ -4018,7 +4103,7 @@ return { LANGUAGE_TYPES, LANGUAGE_PACKAGES, ANALYSIS_OPTIONS, elementClassOf, bu
 })();
 
 // src/text/sysml-text.js
-const __module4 = (() => {
+const __module5 = (() => {
 // Lightweight, comment-aware outline of SysML v2 textual notation.
 //
 // The editor maps the qualified names of the engine's symbols to the text itself, with this outline.
@@ -4262,7 +4347,7 @@ return { KEYWORDS, tokenize, buildOutline, locate, splitQualifiedName, lastSegme
 })();
 
 // src/workspace/TextModelProvider.js
-const __module5 = (() => {
+const __module6 = (() => {
 // Model provider for SysML v2 textual notation.
 //
 // A model provider turns a model source into what the views show:
@@ -4270,8 +4355,8 @@ const __module5 = (() => {
 // This provider parses the open .sysml documents (and the libraries) with the SysML engine.
 // A provider for the SysML v2 API answers the same shape from the elements of a project commit.
 
-const { buildDtfaModel, ANALYSIS_OPTIONS } = __module3;
-const { buildOutline, locate } = __module4;
+const { buildDtfaModel, ANALYSIS_OPTIONS } = __module4;
+const { buildOutline, locate } = __module5;
 
 /**
  * Builds the provider result from an engine analysis of the given documents.
@@ -4337,7 +4422,7 @@ return { buildFromAnalysis, TextModelProvider };
 })();
 
 // src/workspace/TextModelEditor.js
-const __module6 = (() => {
+const __module7 = (() => {
 // Model editor for SysML v2 textual notation.
 //
 // A model editor executes the editing commands of the views (matrix, step definition, policy, form):
@@ -4354,7 +4439,7 @@ const __module6 = (() => {
 // workspace applies. A model editor for the SysML v2 API answers the same commands with a commit of
 // element changes instead.
 
-const { buildOutline, locate: locateInOutline, lineIndent, tokenize } = __module4;
+const { buildOutline, locate: locateInOutline, lineIndent, tokenize } = __module5;
 
 const INDENT = "    ";
 const NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
@@ -4719,7 +4804,7 @@ return { ModelEditError, checkName, stringLiteral, listValue, referenceValue, qu
 })();
 
 // src/engine/SysmlEngine.js
-const __module7 = (() => {
+const __module8 = (() => {
 // Page-side client of the SysML engine worker (engine.worker.js).
 //
 // It implements the parser service the editor depends on:
@@ -4817,7 +4902,7 @@ return { SysmlEngine };
 })();
 
 // src/repository/ModelRepository.js
-const __module8 = (() => {
+const __module9 = (() => {
 // Model repositories: where models are read from and written to.
 //
 // The editor talks to repositories through this interface, so a new storage only needs a new class.
@@ -4865,7 +4950,7 @@ return { ModelRepository, CancelledError };
 })();
 
 // src/repository/LocalFileRepository.js
-const __module9 = (() => {
+const __module10 = (() => {
 // Files on the user's computer.
 //
 // With the File System Access API (Chrome, Edge) the editor saves back to the opened file, and an opened folder
@@ -4873,7 +4958,7 @@ const __module9 = (() => {
 // Other browsers, and pages embedded in another page (e.g. the preview of an IDE, where the
 // file pickers of that API may not open at all), open files with a file input and save them as a download.
 
-const { ModelRepository, CancelledError } = __module8;
+const { ModelRepository, CancelledError } = __module9;
 
 const FILE_TYPES = [{ description: "SysML v2 / KerML textual notation", accept: { "text/plain": [".sysml", ".kerml"] } }];
 
@@ -5039,7 +5124,7 @@ return { isEmbedded, LocalFileRepository };
 })();
 
 // src/dtfa/DtfaAnalyzer.js
-const __module10 = (() => {
+const __module11 = (() => {
 // The editor's own evaluation of the Digital Thread Flow Analysis on the domain model.
 //
 // The SysML engine checks syntax, names and SysML rules. This analyzer adds what the DTFA asks for:
@@ -5165,10 +5250,10 @@ return { handoverKind, analyzeFlow, analyzePolicy, analyzeAll };
 })();
 
 // src/dtfa/edits.js
-const __module11 = (() => {
+const __module12 = (() => {
 // Edits of the behaviors of a methodology as an MBSE environment performs them.
 
-const { ModelEditError, valueLines, stepDefinitionLines, redefinitionLines, stringLiteral, listValue } = __module6;
+const { ModelEditError, valueLines, stepDefinitionLines, redefinitionLines, stringLiteral, listValue } = __module7;
 
 /**
  * Edits that change behaviors (methods, processes) as an environment performs them. A behavior declared in the
@@ -5237,7 +5322,7 @@ return { behaviorEdits };
 })();
 
 // src/dtfa/templates.js
-const __module12 = (() => {
+const __module13 = (() => {
 // Templates for new documents and snippets for the Insert menu.
 
 function emptyPackage(packageName) {
@@ -5376,11 +5461,11 @@ return { emptyPackage, environmentDocument, SNIPPETS };
 })();
 
 // src/ui/CodeEditor.js
-const __module13 = (() => {
+const __module14 = (() => {
 // Text editor for SysML v2 textual notation: a textarea over a highlighting layer,
 // with line numbers and diagnostic marks. No dependencies.
 
-const { tokenize, KEYWORDS, offsetOf } = __module4;
+const { tokenize, KEYWORDS, offsetOf } = __module5;
 
 const TAB = "    ";
 
@@ -5625,7 +5710,7 @@ return { CodeEditor };
 })();
 
 // src/ui/ModelOutlineView.js
-const __module14 = (() => {
+const __module15 = (() => {
 // Outline of the model: the MBSE environments with their roles, tools, methods and products, their flow analyses
 // (process steps, hand-overs, tool transitions, measures) and the rules of their tool policy; and the methodology
 // elements of the active document outside an environment, e.g. the processes, roles and products of a library.
@@ -5636,7 +5721,7 @@ const __module14 = (() => {
 //   "command" detail { command, id }            the user asked for an editing command:
 //             addRole, addArtifact, addTool, addMethod, addAnalysis, addRule (environment), addStep, addTransition (analysis)
 
-const { RATINGS, POLICY_STATUS, Process, Method, MBSEEnvironment } = __module2;
+const { RATINGS, POLICY_STATUS, Process, Method, MBSEEnvironment } = __module3;
 
 /** Groups with more items start collapsed. */
 const COLLAPSE_ABOVE = 20;
@@ -5827,7 +5912,7 @@ return { ModelOutlineView };
 })();
 
 // src/ui/ProblemsView.js
-const __module15 = (() => {
+const __module16 = (() => {
 // List of the diagnostics of all documents. Dispatches "select" with detail { diagnostic }.
 
 function escapeHtml(s) {
@@ -5875,7 +5960,7 @@ return { ProblemsView };
 })();
 
 // src/ui/EnvironmentDiagram.js
-const __module16 = (() => {
+const __module17 = (() => {
 // Diagram of an MBSE environment (MBSEMethodology::MBSEEnvironment).
 //
 // Not SysML notation, but a methodology diagram meant to be read without SysML knowledge:
@@ -5891,7 +5976,7 @@ const __module16 = (() => {
 //
 // Events (dispatched by the owning EnvironmentView): "open" { id } for a click on an element.
 
-const { Process } = __module2;
+const { Process } = __module3;
 
 const NODE_H = 30, GAP = 10, GROUP_GAP = 34, COL_W = 200, METHOD_W = 250, COL_GAP = 150, HEAD_H = 54, TOP = HEAD_H + 46;
 
@@ -6153,7 +6238,7 @@ return { EnvironmentDiagram };
 })();
 
 // src/ui/EnvironmentView.js
-const __module17 = (() => {
+const __module18 = (() => {
 // Editor of an MBSE environment (MBSEMethodology::MBSEEnvironment), the anchor point of the flow analyses.
 //
 // It shows the roles, tools, methodology (processes and methods) and products of the environment, including those
@@ -6164,8 +6249,8 @@ const __module17 = (() => {
 //
 // Events: "select" { id, open }, "command" { command, id, args }, "reveal" { id }, "view" { view }
 
-const { MBSEEnvironment, Process, Method } = __module2;
-const { EnvironmentDiagram } = __module16;
+const { MBSEEnvironment, Process, Method } = __module3;
+const { EnvironmentDiagram } = __module17;
 
 /** The collection editor (see App.openCollection) of the command that adds an element to it. */
 const COLLECTION_OF = { addRole: "roles", addTool: "tools", addMethod: "methods", addArtifact: "products" };
@@ -6370,7 +6455,7 @@ return { EnvironmentView };
 })();
 
 // src/ui/MatrixView.js
-const __module18 = (() => {
+const __module19 = (() => {
 // Graphical editor: the Tools Roles Methods Matrix of a Digital Thread Flow Analysis (DTFA Steps #1 and #2).
 //
 // - roles are the rows, tools the columns; the process steps (the methods of the methodology that a role performs
@@ -6387,7 +6472,7 @@ const __module18 = (() => {
 //
 // Events: "select" { id }, "command" { command, id, args }
 
-const { Method, Handover, ToolTransition, RATINGS } = __module2;
+const { Method, Handover, ToolTransition, RATINGS } = __module3;
 
 const SVG = "http://www.w3.org/2000/svg";
 const HEAD_H = 44, BOX_H = 44, BOX_GAP = 14, CELL_PAD = 16, MIN_COL = 150, MIN_ROW = 76, MAX_BOX = 210;
@@ -6916,7 +7001,7 @@ return { MatrixView };
 })();
 
 // src/ui/StepDefinitionView.js
-const __module19 = (() => {
+const __module20 = (() => {
 // Editor of the step definitions of a Digital Thread Flow Analysis (DTFA Steps #3 and #4).
 //
 // The swimlanes of the diagram are rows: goal, source products, viewpoints, automation steps and target products.
@@ -6929,7 +7014,7 @@ const __module19 = (() => {
 //
 // Events: "select" { id }, "command" { command, id, args }
 
-const { Method, Handover, ToolTransition, Measure, STEP_DEFINITION_LANES, RATINGS, laneValue } = __module2;
+const { Method, Handover, ToolTransition, Measure, STEP_DEFINITION_LANES, RATINGS, laneValue } = __module3;
 
 function escapeHtml(s) {
     return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -7092,7 +7177,7 @@ return { StepDefinitionView };
 })();
 
 // src/ui/PolicyView.js
-const __module20 = (() => {
+const __module21 = (() => {
 // Editor of the tool policy of an MBSE environment: methods (rows) × tools (columns).
 //
 // The tool policy of an environment is the set of its tool policy rules (DTFA::ToolPolicyRule: a facilitates connection
@@ -7104,7 +7189,7 @@ const __module20 = (() => {
 //
 // Events: "select" { id }, "command" { command, id, args }
 
-const { MBSEEnvironment, POLICY_STATUS } = __module2;
+const { MBSEEnvironment, POLICY_STATUS } = __module3;
 
 function escapeHtml(s) {
     return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -7223,7 +7308,7 @@ return { PolicyView };
 })();
 
 // src/ui/FormView.js
-const __module21 = (() => {
+const __module22 = (() => {
 // Form-based editor: the selected element as a form.
 //
 // - Flow analysis: the progress of the four DTFA steps, the prioritized bottlenecks and the findings
@@ -7238,7 +7323,7 @@ const __module21 = (() => {
 //
 // Events: "select" { id }, "command" { command, id, args }, "reveal" { id }, "view" { view }
 
-const { MBSEEnvironment, FlowAnalysis, Process, Role, Tool, Method, Artifact, Handover, ToolTransition, Measure, ToolPolicyRule, STEP_DEFINITION_LANES, RATINGS, POLICY_STATUS, laneValue } = __module2;
+const { MBSEEnvironment, FlowAnalysis, Process, Role, Tool, Method, Artifact, Handover, ToolTransition, Measure, ToolPolicyRule, STEP_DEFINITION_LANES, RATINGS, POLICY_STATUS, laneValue } = __module3;
 
 /** The collections of an MBSE environment that have a collection editor (see FormView.collectionForm). */
 const COLLECTIONS = {
@@ -8039,14 +8124,14 @@ return { FormView };
 })();
 
 // src/dtfa/overview.js
-const __module22 = (() => {
+const __module23 = (() => {
 // The overview of a process for management and non-technical engineers: the stages of the process in their order, who
 // leads and supports them, what they deliver, the sub-projects (e.g. suppliers) that run their own process, and the
 // activities without a fixed position (on demand, e.g. a trade study for an architecture decision).
 //
 // Pure functions on the domain model (no DOM), shared by the Overview and the Processes view and tested in Node.
 
-const { Process, Method, Artifact } = __module2;
+const { Process, Method, Artifact } = __module3;
 
 const isBehavior = e => e instanceof Process || e instanceof Method;
 const lastSegment = id => String(id || "").split("::").pop();
@@ -8249,7 +8334,7 @@ return { humanize, plainSummary, isProjectProduct, environmentOf, subProjectSpan
 })();
 
 // src/ui/ProcessView.js
-const __module23 = (() => {
+const __module24 = (() => {
 // Graphical view of a process (or of a method with steps): its flow as a swimlane diagram.
 //
 // Not SysML notation, but a methodology diagram meant to be read without SysML knowledge:
@@ -8269,8 +8354,8 @@ const __module23 = (() => {
 //
 // Events: "select" { id, open }, "view" { view }
 
-const { Process, Method, MBSEEnvironment } = __module2;
-const { subProjectSpan } = __module22;
+const { Process, Method, MBSEEnvironment } = __module3;
+const { subProjectSpan } = __module23;
 
 const BOX_W = 200, BOX_H_PLAIN = 46, ROW_GAP = 30, LANE_PAD = 20, HEAD_H = 40, END_R = 11;
 
@@ -8738,7 +8823,7 @@ return { ProcessView };
 })();
 
 // src/ui/OverviewView.js
-const __module24 = (() => {
+const __module25 = (() => {
 // Overview: a simplified view on the methodology for management and non-technical engineers.
 //
 // No SysML notation and no model names: a process (e.g. SYSMODDefaultProcess) as a numbered sequence of stages in plain
@@ -8752,8 +8837,8 @@ const __module24 = (() => {
 //
 // Events: "select" { id, open }, "view" { view }
 
-const { Process, Method } = __module2;
-const { buildOverview, overviewCandidates, environmentOf } = __module22;
+const { Process, Method } = __module3;
+const { buildOverview, overviewCandidates, environmentOf } = __module23;
 
 function escapeHtml(s) {
     return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -8969,7 +9054,7 @@ return { OverviewView };
 })();
 
 // src/ui/ElementGraph.js
-const __module25 = (() => {
+const __module26 = (() => {
 // Graph of an element of the methodology and its connected artifacts: a role, a tool, a process or method, or a product.
 //
 // Not SysML notation, but a methodology diagram meant to be read without SysML knowledge. The element is the
@@ -8985,7 +9070,7 @@ const __module25 = (() => {
 // The connections depend on an MBSE environment (its roles and tools perform the methodology); without one (e.g. a
 // library such as ISO15288Processes) the roles and tools that the behaviors declare are used.
 
-const { Process, Method, Role, Tool, Artifact } = __module2;
+const { Process, Method, Role, Tool, Artifact } = __module3;
 
 const NODE_H = 30, GAP = 10, GROUP_GAP = 34, COL_GAP = 140, TOP = 30, HEAD_H = 54;
 const WIDTH = { role: 200, tool: 200, method: 250, product: 220 };
@@ -9337,7 +9422,7 @@ return { kindOf, connections, graphOf, ElementGraph };
 })();
 
 // src/ui/ElementsView.js
-const __module26 = (() => {
+const __module27 = (() => {
 // The tabs Roles, Tools, Methodology and Products: a list of the elements of the current MBSE environment (own and
 // inherited, the methodology as a tree) and the graph of the selected element with its connected artifacts
 // (ElementGraph). Without an environment in the current document (e.g. the library ISO15288Processes), the list
@@ -9346,8 +9431,9 @@ const __module26 = (() => {
 // Events: "select" { id } (list), "open" { id } (graph node: the graph of that element in its tab),
 //         "form" { id } (the form of the element), "command" { command, id }, "collection" { kind, id }, "view" { view }
 
-const { Process, Method, Role, Tool, Artifact, MBSEEnvironment } = __module2;
-const { ElementGraph } = __module25;
+const { splitterHandle, makeResizable } = __module1;
+const { Process, Method, Role, Tool, Artifact, MBSEEnvironment } = __module3;
+const { ElementGraph } = __module26;
 
 function escapeHtml(s) {
     return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -9372,6 +9458,8 @@ class ElementsView extends EventTarget {
         this.root.classList.add("el-view");
         this.graph = new ElementGraph();
         this.currentId = null;
+        // The list is resizable; all four tabs share its width.
+        makeResizable(this.root, { pane: ".el-list", variable: "--el-list-width", key: "element-list", min: 220 });
         this.root.addEventListener("click", e => {
             const item = e.target.closest("[data-item]");
             if (item) { this.currentId = item.dataset.item; this.dispatchEvent(new CustomEvent("select", { detail: { id: item.dataset.item } })); return; }
@@ -9446,6 +9534,7 @@ class ElementsView extends EventTarget {
                     </span></div>` : ""}
                 <ul class="el-items">${list}${missing ? `<li class="selected el-extra"><button type="button" class="el-item" data-item="${escapeHtml(current.id)}">${escapeHtml(current.name)}</button></li>` : ""}</ul>
                 ${entries.length ? "" : `<p class="fv-muted el-none">No ${escapeHtml(this.spec.title.toLowerCase())} ${context}.</p>`}
+                ${splitterHandle(`Width of the list of ${escapeHtml(this.spec.title.toLowerCase())}`)}
             </aside>
             <div class="el-graph diagram-view"></div>`;
         const host = this.root.querySelector(".el-graph");
@@ -9467,7 +9556,7 @@ return { KINDS, ElementsView };
 })();
 
 // src/ui/FormDialog.js
-const __module27 = (() => {
+const __module28 = (() => {
 // Small modal form built on <dialog>. Answers the field values, or null if the user cancels.
 //
 // fields: { name, label, type: "text"|"textarea"|"number"|"select"|"checkboxes"|"radio", value, options: [{value, label}], hint, required,
@@ -9592,7 +9681,7 @@ return { formDialog, infoDialog, confirmDialog };
 })();
 
 // src/app/App.js
-const __module28 = (() => {
+const __module29 = (() => {
 // Application controller: connects workspace, repository, engine, model provider, model editor and views.
 //
 // The controller depends on interfaces only:
@@ -9602,29 +9691,30 @@ const __module28 = (() => {
 // The editors (environment, matrix, step definition, tool policy, form, text) show the same model and share one
 // selection. The graphical and form editors change the model through commands; each command is one undoable step.
 
-const { Workspace, SourceDocument } = __module1;
-const { TextModelProvider } = __module5;
-const { TextModelEditor, ModelEditError, environmentElementLines, quoteName, analysisLines, methodLines, redefinitionLines, valueLines, stepDefinitionLines, toolTransitionLines, measureLines, policyRuleLines, stringLiteral, listValue } = __module6;
-const { SysmlEngine } = __module7;
-const { LocalFileRepository } = __module9;
-const { CancelledError } = __module8;
-const { MBSEEnvironment, FlowAnalysis, Role, Tool, Method, Process, Artifact, Handover, ToolTransition, Measure, ToolPolicyRule, STEP_DEFINITION_LANES, RATINGS, POLICY_STATUS, laneValue } = __module2;
-const { analyzeAll } = __module10;
-const { behaviorEdits } = __module11;
-const { SNIPPETS, emptyPackage, environmentDocument } = __module12;
-const { offsetOf, splitQualifiedName } = __module4;
-const { CodeEditor } = __module13;
-const { ModelOutlineView } = __module14;
-const { ProblemsView } = __module15;
-const { EnvironmentView } = __module17;
-const { MatrixView } = __module18;
-const { StepDefinitionView } = __module19;
-const { PolicyView } = __module20;
-const { FormView } = __module21;
-const { ProcessView } = __module23;
-const { OverviewView } = __module24;
-const { ElementsView } = __module26;
-const { formDialog, confirmDialog, infoDialog } = __module27;
+const { makeResizable } = __module1;
+const { Workspace, SourceDocument } = __module2;
+const { TextModelProvider } = __module6;
+const { TextModelEditor, ModelEditError, environmentElementLines, quoteName, analysisLines, methodLines, redefinitionLines, valueLines, stepDefinitionLines, toolTransitionLines, measureLines, policyRuleLines, stringLiteral, listValue } = __module7;
+const { SysmlEngine } = __module8;
+const { LocalFileRepository } = __module10;
+const { CancelledError } = __module9;
+const { MBSEEnvironment, FlowAnalysis, Role, Tool, Method, Process, Artifact, Handover, ToolTransition, Measure, ToolPolicyRule, STEP_DEFINITION_LANES, RATINGS, POLICY_STATUS, laneValue } = __module3;
+const { analyzeAll } = __module11;
+const { behaviorEdits } = __module12;
+const { SNIPPETS, emptyPackage, environmentDocument } = __module13;
+const { offsetOf, splitQualifiedName } = __module5;
+const { CodeEditor } = __module14;
+const { ModelOutlineView } = __module15;
+const { ProblemsView } = __module16;
+const { EnvironmentView } = __module18;
+const { MatrixView } = __module19;
+const { StepDefinitionView } = __module20;
+const { PolicyView } = __module21;
+const { FormView } = __module22;
+const { ProcessView } = __module24;
+const { OverviewView } = __module25;
+const { ElementsView } = __module27;
+const { formDialog, confirmDialog, infoDialog } = __module28;
 
 const $ = selector => document.querySelector(selector);
 const VIEWS = ["environment", "roles", "tools", "methodology", "products", "process", "overview", "text", "form", "matrix", "steps", "policy"];
@@ -11404,6 +11494,8 @@ class App {
             else if (!typing && key === "y") { e.preventDefault(); this.undo(true); }
         });
         $("#library-editing").addEventListener("change", e => this.setLibraryEditing(e.target.checked));
+        // The side panel is resizable.
+        makeResizable(document.querySelector(".workbench"), { pane: ".sidebar", variable: "--sidebar-width", key: "sidebar", min: 220, max: () => window.innerWidth * 0.5 });
         $("#autosave").setAttribute("aria-checked", String(this.autoSaveOn));
         window.addEventListener("beforeunload", e => {
             this.saveDrafts();
@@ -11423,9 +11515,9 @@ return { App };
 })();
 
 // src/standalone-main.js
-const __module29 = (() => {
+const __module30 = (() => {
 const { config } = __module0;
-const { App } = __module28;
+const { App } = __module29;
 
 // Data embedded by tools/build-standalone.mjs.
 const text = id => document.getElementById(id).textContent;

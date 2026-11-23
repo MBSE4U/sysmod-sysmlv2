@@ -39,8 +39,11 @@ import { formDialog, confirmDialog, infoDialog } from "../ui/FormDialog.js";
 
 const $ = selector => document.querySelector(selector);
 const VIEWS = ["environment", "roles", "tools", "methodology", "products", "process", "overview", "text", "form", "matrix", "steps", "policy"];
-/** Views without a tab of their own: their tab shows only while they are open (the form, the DTFA views). */
 const LIBRARY_EDITING_KEY = "mbse-methodology-editor.library-editing";
+/**
+ * Views without a tab of their own: the DTFA views show their tab only while they are open; the form never shows its tab
+ * (it is the mode Form of the switch Diagram | Table | Form; see App.updateViewTabs).
+ */
 const TRANSIENT_VIEWS = ["form", "matrix", "steps", "policy"];
 /** The tab of the elements of a collection, and of an element. */
 const COLLECTION_TABS = { roles: "roles", tools: "tools", methods: "methodology", products: "products" };
@@ -260,13 +263,8 @@ export class App {
         // The element the previous view shows, e.g. the process of the graph, for the text view to jump to.
         const context = view === "text" && this.view !== "text" ? this.contextId(this.view) : null;
         this.view = view;
-        for (const v of VIEWS) {
-            $(`#view-${v}`).hidden = v !== view;
-            const tab = document.querySelector(`[data-view-tab="${v}"]`);
-            tab.setAttribute("aria-selected", String(v === view));
-            tab.classList.toggle("active", v === view);
-            if (TRANSIENT_VIEWS.includes(v)) tab.hidden = v !== view;
-        }
+        for (const v of VIEWS) $(`#view-${v}`).hidden = v !== view;
+        this.updateViewTabs();
         try { localStorage.setItem(VIEW_KEY, view); } catch (_) { /* storage unavailable */ }
         if (view === "text" && this.active) {
             if (this.editor.value !== this.active.content) this.editor.setValue(this.active.content, { readOnly: this.active.readOnly, keepView: true });
@@ -277,6 +275,36 @@ export class App {
             const result = this.analysis && this.analysis.result;
             if (result && result.locate(context)) this.reveal(context);
         }
+    }
+
+    /**
+     * The active tab. The form has no tab of its own: it is the mode Form of the switch Diagram | Table | Form, so the tab
+     * of what it shows is active: Roles for the form or the table of a role, Methodology for a process or method,
+     * Environment for an MBSE environment, no tab for other forms (e.g. a document). The DTFA views show their own tab
+     * while they are open.
+     */
+    updateViewTabs() {
+        const active = this.view === "form" ? this.formTab() : this.view;
+        for (const v of VIEWS) {
+            const tab = document.querySelector(`[data-view-tab="${v}"]`);
+            tab.setAttribute("aria-selected", String(v === active));
+            tab.classList.toggle("active", v === active);
+            if (TRANSIENT_VIEWS.includes(v)) tab.hidden = v === "form" || v !== this.view;
+        }
+    }
+
+    /** The tab of the content of the form view (see updateViewTabs), or null. */
+    formTab() {
+        if (this.collection) return COLLECTION_TABS[this.collection.kind] || "environment";
+        if (this.documentView) return null;
+        const model = this.analysis && this.analysis.result.model;
+        const element = model && model.get(this.selectedId);
+        if (element instanceof Role) return "roles";
+        if (element instanceof Tool) return "tools";
+        if (element instanceof Method || element instanceof Process) return "methodology";
+        if (element instanceof Artifact) return "products";
+        if (element instanceof MBSEEnvironment) return "environment";
+        return null;
     }
 
     /**
@@ -343,6 +371,8 @@ export class App {
         if (this.view === "process") this.processView.show(state);
         if (this.view === "overview") this.overviewView.show(state);
         if (this.elementViews[this.view]) this.elementViews[this.view].show(state);
+        // The form follows the selection: its tab too.
+        if (this.view === "form") this.updateViewTabs();
     }
 
     /**

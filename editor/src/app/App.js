@@ -361,6 +361,25 @@ export class App {
         else if (element instanceof Artifact) this.setView("products");
     }
 
+    /**
+     * Opens the form of the current element of a collection of an environment ("roles", "tools", "methods", "products"):
+     * the element shown in the tab of the collection, otherwise the first element of its list.
+     */
+    openFormOf(kind, environmentId) {
+        const view = Object.values(this.elementViews).find(v => v.spec.collection === kind);
+        const model = this.analysis && this.analysis.result.model;
+        if (!view || !model) return;
+        let element = model.get(view.currentId);
+        if (!element || !view.spec.is(element)) {
+            const first = view.entries(model, environmentId, this.activeName)[0];
+            element = first ? first.element : null;
+        }
+        if (!element) { this.status(`No ${view.spec.title.toLowerCase()} in this environment yet.`, "error"); return; }
+        if (environmentId) this.environmentId = environmentId;
+        view.currentId = element.id;
+        this.openForm(element.id);
+    }
+
     /** Opens the form of an element. */
     openForm(id) {
         this.select(id, { reveal: false });
@@ -1613,6 +1632,8 @@ export class App {
             view.addEventListener("command", e => this.runCommand(e.detail.command, e.detail.id, e.detail.args));
         }
         this.processView.addEventListener("view", e => this.setView(e.detail.view));
+        this.formView.addEventListener("collection", e => this.openTable(e.detail.kind, e.detail.id));
+        this.formView.addEventListener("formOf", e => this.openFormOf(e.detail.kind, e.detail.environmentId));
         this.overviewView.addEventListener("view", e => this.setView(e.detail.view));
         for (const view of Object.values(this.elementViews)) {
             view.addEventListener("select", e => this.select(e.detail.id, { reveal: false }));

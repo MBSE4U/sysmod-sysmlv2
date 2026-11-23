@@ -102,6 +102,7 @@ export class ElementsView extends EventTarget {
                     <span class="ev-modes" role="group" aria-label="Show the ${escapeHtml(this.spec.title.toLowerCase())} as">
                         <button type="button" class="active" aria-pressed="true">Diagram</button>
                         <button type="button" data-table="${escapeHtml(environment.id)}" aria-pressed="false" title="All ${escapeHtml(this.spec.title.toLowerCase())} as a table">Table</button>
+                        <button type="button" ${current ? `data-form="${escapeHtml(current.id)}" title="The form of ${escapeHtml(current.name)}"` : 'disabled title="Select an element first"'} aria-pressed="false">Form</button>
                     </span></div>` : ""}
                 <ul class="el-items">${list}${missing ? `<li class="selected el-extra"><button type="button" class="el-item" data-item="${escapeHtml(current.id)}">${escapeHtml(current.name)}</button></li>` : ""}</ul>
                 ${entries.length ? "" : `<p class="fv-muted el-none">No ${escapeHtml(this.spec.title.toLowerCase())} ${context}.</p>`}

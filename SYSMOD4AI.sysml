@@ -332,7 +332,8 @@ package SYSMOD4AI {
                 6. For the black box view, redefine the inherited soi part (within brownfieldContext) with an appropriately named and typed part definition. For the white box view, redefine the inherited soiImpl part (within brownfieldContextImpl, which specializes brownfieldContext) accordingly.
                 7. Ensure the brownfield context reflects constraints and givens only — it must not include solution elements.
                 8. Create the SysML v2 textual notation for the brownfieldContext and brownfieldContextImpl.
-                9. If the user asks to insert the brownfieldContext into the SysML model, find the project and redefine the inherited brownfieldContext and brownfieldContextImpl part usages. If the project does not exist, create one first.";
+                9. If the user asks to insert the brownfieldContext into the SysML model, find the project and redefine the inherited brownfieldContext and brownfieldContextImpl part usages. If the project does not exist, create one first.
+                10. If the project already has stakeholders (projectStakeholders), link each actor that is the same entity as a stakeholder in the project's brownfieldContext usage: redefine the actor and bind it to the stakeholder part usage (part :>> <actor> = <stakeholder>;); type the stakeholder part usage also by the actor definition, if any (multiple typing).";
             create_questions = (
                 "What is the name of the existing system (system of interest)?",
                 "Which external actors (users, operators, external systems, environments) interact with the existing system?",
@@ -348,6 +349,7 @@ package SYSMOD4AI {
                 5. Actor-system interfaces (actorSystemInterfaces) connect actor ports to system ports.
                 6. The brownfield context contains only elements that exist before the project starts — no solution-specific parts, new system ideas, or future-state components.
                 7. Each actor has a meaningful name and, ideally, a doc comment describing its role.
+                8. Each actor that is the same entity as a stakeholder in projectStakeholders is bound to it in the project's brownfieldContext usage (part :>> <actor> = <stakeholder>;).
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -426,8 +428,9 @@ package SYSMOD4AI {
                 2. For each stakeholder, create a part definition specializing ExtendedStakeholder.
                 3. Assess and set the risk (what is the risk of failure if this stakeholder is ignored?), effort (how much effort is needed to identify their concerns?), and one or more stakeholder categories (user, requirementOwner, expert, other) for each stakeholder.
                 4. Add each stakeholder as a named part usage subsetting projectStakeholders inside the project, typed by the corresponding stakeholder definition.
-                5. Create the SysML v2 textual notation for all stakeholder definitions and their usages within the project.
-                6. If the user asks to insert the stakeholders into the SysML model, find the project and add or update the stakeholder part usages.";
+                5. If a stakeholder and an actor of the brownfieldContext are the same entity (e.g., the human operator actor and the drone operator stakeholder), link them: in the project's brownfieldContext usage, redefine the actor and bind it to the stakeholder part usage (part :>> <actor> = <stakeholder>;). If the actor is typed by an actor definition, also type the stakeholder part usage by it (multiple typing, e.g., part droneOperator : DroneOperator, Operator :> projectStakeholders), since the bound value must conform to the type of the actor. The later contexts (systemIdeaContext, specificationContext, ...) inherit the link. Link only actors and stakeholders that are the same entity; an actor and a stakeholder that only have a relationship with each other (e.g., the sender of a package and its recipient) stay unlinked.
+                6. Create the SysML v2 textual notation for all stakeholder definitions, their usages within the project, and the actor/stakeholder links.
+                7. If the user asks to insert the stakeholders into the SysML model, find the project and add or update the stakeholder part usages.";
             create_questions = (
                 "Who are the primary users of the system?",
                 "Which organizations or roles own or define the requirements?",
@@ -442,9 +445,10 @@ package SYSMOD4AI {
                 4. Each stakeholder definition has the effort attribute set to a non-default LevelKind value (i.e., not LevelKind::none).
                 5. Each stakeholder definition has at least one category assigned from StakeholderCategoryKind.
                 6. The set of stakeholders covers all actors present in the brownfieldContext — every actor should map to at least one stakeholder.
-                7. At least one stakeholder with category requirementOwner is present (beyond the projectOwner).
-                8. Each stakeholder has a doc comment or name that clearly identifies its role.
-                9. No two stakeholders have identical risk, effort, and category values without a distinguishing doc comment explaining the distinction.
+                7. Each actor of the brownfieldContext that is the same entity as a stakeholder is linked to it: the project's brownfieldContext usage redefines the actor and binds it to the stakeholder part usage (part :>> <actor> = <stakeholder>;), and the stakeholder part usage conforms to the type of the actor. No actor is bound to a stakeholder that is a different entity.
+                8. At least one stakeholder with category requirementOwner is present (beyond the projectOwner).
+                9. Each stakeholder has a doc comment or name that clearly identifies its role.
+                10. No two stakeholders have identical risk, effort, and category values without a distinguishing doc comment explaining the distinction.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
 
@@ -1069,7 +1073,7 @@ package SYSMOD4AI {
                 2. Use the handover context as the black box brownfield context of the sub-project (part <name> :>> brownfieldContext : <handover package>::<handover context>). Do not use any other element of the parent architecture: the sub-project, e.g., a supplier, may have no access to it.
                 3. If the sub-project needs an actor or interface that the handover context lacks, report it as a request to the parent project instead of adding it in the sub-project.
                 4. Put the internal structure of an existing implementation of the element, if any, into the white box brownfield context; its definition specializes the system of interest definition of the handover context.
-                5. Redefine handoverRequirements with the handover requirement definition of the handover package (requirement :>> handoverRequirements : <handover package>::<handover requirement definition>), and use the handover stakeholders as the stakeholders of the sub-project.
+                5. Redefine handoverRequirements with the handover requirement definition of the handover package (requirement :>> handoverRequirements : <handover package>::<handover requirement definition>), and use the handover stakeholders as the stakeholders of the sub-project. Link each actor of the handover context that is the same entity as a stakeholder of the sub-project in the brownfieldContext usage (part :>> <actor> = <stakeholder>;), e.g., the operator actor and the drone operator stakeholder; type the stakeholder part usage also by the actor definition of the handover context (multiple typing).
                 6. Derive the system requirements of the sub-project from the handover requirements in its systemRequirementSpecification, with the system of interest definition of the handover context as subject and a motivation that explains the derivation. Declare the derivation in the sub-project: one #derivation connection per handover requirement, with end #original ::> handoverRequirements.<handover requirement> and one end #derive ::> <requirement specification usage>.<requirement> per derived requirement (private import RequirementDerivation::*).
                 7. If a requirement that the sub-project needs is missing from the handover requirements, report it as a request to the parent project instead of adding it as a handover requirement.
                 8. Create the SysML v2 textual notation for the handoverRequirements redefinition, the brownfield contexts, the derived requirements, and their #derivation connections.";
@@ -1088,6 +1092,7 @@ package SYSMOD4AI {
                 5. handoverRequirements is typed by the handover requirement definition of the handover package, and each handover requirement is the #original of a #derivation connection in the sub-project, or a doc comment explains why it is not refined.
                 6. Every system requirement of the sub-project is either the #derive end of such a #derivation connection or frames a stakeholder need of the sub-project.
                 7. The derived requirements are consistent with the handover requirements, i.e., they do not relax them, and their subject is the system of interest definition of the handover context.
+                8. Each actor of the handover context that is the same entity as a stakeholder of the sub-project is bound to it in the brownfieldContext usage.
                 Report each finding with the element name, the violated SYSMOD rule, and a concrete suggestion for correction.";
         }
     }

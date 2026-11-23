@@ -71,13 +71,13 @@ library package SYSMODProcesses {
         part projectManager : Roles::ProjectManager :> roles {
             doc /* The project manager of the environment, who is responsible for the SYSMOD process. */
         }
-        part productManager : ISO15288Processes::Stakeholders::ProductManager :> roles {
+        part productManager : Roles::ProductOwner :> roles {
             doc /* The product manager of the environment, typically played by the project owner. */
         }
-        part requirementsEngineer : ISO15288Processes::Stakeholders::RequirementsEngineer :> roles {
+        part requirementsEngineer : Roles::RequirementsEngineer :> roles {
             doc /* The requirements engineer of the environment. */
         }
-        part systemArchitect : ISO15288Processes::Stakeholders::SystemArchitect :> roles {
+        part systemArchitect : Roles::SystemArchitect :> roles {
             doc /* The system architect of the environment, who supports the SYSMOD process and is responsible for the architecture steps. */
         }
         part designEngineer : ISO15288Processes::Stakeholders::DesignEngineer :> roles {
@@ -89,7 +89,7 @@ library package SYSMODProcesses {
         part integrationEngineer : ISO15288Processes::Stakeholders::IntegrationEngineer :> roles {
             doc /* The integration engineer of the environment. */
         }
-        part verificationEngineer : ISO15288Processes::Stakeholders::VerificationEngineer :> roles {
+        part verificationEngineer : Roles::VerificationEngineer :> roles {
             doc /* The verification engineer of the environment. */
         }
         part testEngineer : Roles::TestEngineer :> roles {
@@ -128,18 +128,19 @@ library package SYSMODProcesses {
         doc
         /* SYSMOD as an MBSE methodology: the process defaultProcess (SYSMODDefaultProcess) with its steps (methods) and products,
          * and its roles. The roles are the stakeholders of ISO15288Processes::Stakeholders, derived from the ISO/IEC/IEEE 15288
-         * processes that the SYSMOD steps refine, and the SYSMOD sub role TestEngineer. The project manager is responsible
+         * processes that the SYSMOD steps refine, and the SYSMOD sub roles of package Roles (ProjectManager, ProductOwner, RequirementsEngineer,
+         * SystemArchitect, VerificationEngineer, TestEngineer). The project manager is responsible
          * for the process; the other roles support it and are responsible for steps (see SYSMODDefaultProcess). */
         part projectManager : Roles::ProjectManager :> roles {
             doc /* The role that is responsible for the SYSMOD process. */
         }
-        part productManager : ISO15288Processes::Stakeholders::ProductManager :> roles {
+        part productManager : Roles::ProductOwner :> roles {
             doc /* The role that is responsible for the problem, the system idea, and the system objectives. */
         }
-        part requirementsEngineer : ISO15288Processes::Stakeholders::RequirementsEngineer :> roles {
+        part requirementsEngineer : Roles::RequirementsEngineer :> roles {
             doc /* The role that is responsible for the stakeholders, their needs, and the system specification. */
         }
-        part systemArchitect : ISO15288Processes::Stakeholders::SystemArchitect :> roles {
+        part systemArchitect : Roles::SystemArchitect :> roles {
             doc /* The role that is responsible for the architecture steps. */
         }
         part designEngineer : ISO15288Processes::Stakeholders::DesignEngineer :> roles {
@@ -151,7 +152,7 @@ library package SYSMODProcesses {
         part integrationEngineer : ISO15288Processes::Stakeholders::IntegrationEngineer :> roles {
             doc /* The role that supports the integration of the sub-projects. */
         }
-        part verificationEngineer : ISO15288Processes::Stakeholders::VerificationEngineer :> roles {
+        part verificationEngineer : Roles::VerificationEngineer :> roles {
             doc /* The role that is responsible for the verification cases and the verification context. */
         }
         part testEngineer : Roles::TestEngineer :> roles {
@@ -621,6 +622,34 @@ library package SYSMODProcesses {
             doc
             /* The project manager who is responsible for the overall project planning, execution, and delivery. A sub role of the ProjectManager
             * defined in the ISO/IEC/IEEE 15288 standard. */
+        }
+
+        part def ProductOwner :> ISO15288Processes::Stakeholders::ProductManager {
+            doc
+            /* The product owner who is responsible for the problem statement, the system idea, and the system objectives.
+            * In a SYSMOD project, the project owner typically plays this role, since the project owner is the stakeholder
+            * of the problem statement. A sub role of the ProductManager defined in the ISO/IEC/IEEE 15288 standard. */
+        }
+
+        part def RequirementsEngineer :> ISO15288Processes::Stakeholders::RequirementsEngineer {
+            doc
+            /* The requirements engineer who elicits the stakeholder needs and specifies the requirements of the system of interest,
+            * e.g., the stakeholder requirements and the system requirements. A sub role of the RequirementsEngineer
+            * defined in the ISO/IEC/IEEE 15288 standard. */
+        }
+
+        part def SystemArchitect :> ISO15288Processes::Stakeholders::SystemArchitect {
+            doc
+            /* The system architect who is responsible for the architecture steps of SYSMOD, e.g., the system context, the
+            * logical and product architecture, and the architecture decisions and trade studies. A sub role of the SystemArchitect
+            * defined in the ISO/IEC/IEEE 15288 standard. */
+        }
+
+        part def VerificationEngineer :> ISO15288Processes::Stakeholders::VerificationEngineer {
+            doc
+            /* The verification engineer who specifies the verification: the verification context and the verification cases
+            * that provide objective evidence that the system of interest fulfills its requirements. The test engineer performs
+            * the verification. A sub role of the VerificationEngineer defined in the ISO/IEC/IEEE 15288 standard. */
         }
 
         part def TestEngineer :> ISO15288Processes::Stakeholders::VerificationEngineer {

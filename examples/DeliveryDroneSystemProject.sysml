@@ -26,20 +26,19 @@ package <DD> DeliveryDrone {
 
     private import SYSMOD::*;
     private import SYSMODProcesses::*;
-    private import ISO15288Processes::Stakeholders::*;
     private import RequirementDerivation::*;
 
     occurrence def <DDMBSEEnvironment> 'Delivery Drone MBSE Environment' :> MBSEMethodology::MBSEEnvironment {
 
-        // Tools used in the Delivery Drone MBSE Environment
+        // External tools used in the Delivery Drone MBSE Environment
         part matlab :> tools;
         part requirementsTool :> tools;
 
         // Roles involved in the Delivery Drone MBSE Environment
-        part systemArchitect : SystemArchitect :> roles;
-        part verificationEngineer : VerificationEngineer :> roles;
+        part systemArchitect : Roles::SystemArchitect :> roles;
+        part verificationEngineer : Roles::VerificationEngineer :> roles;
         part projectManager : Roles::ProjectManager :> roles;
-        part requirementsEngineer : RequirementsEngineer :> roles;
+        part requirementsEngineer : Roles::RequirementsEngineer :> roles;
     
         // Methodology used in the Delivery Drone MBSE Environment
         part sysmodMethodology :>> methodology {
@@ -98,10 +97,10 @@ package <DD> DeliveryDrone {
         attribute :>> purpose = "Develop an autonomous delivery drone system for remote last-mile deliveries that is faster and cheaper than the client's ground-based delivery.";
         attribute :>> scope = "The project covers the model-based systems engineering of the delivery drone system with in-flight recharging between drones: the model of the existing system, the problem statement, the stakeholders and their needs, the system idea, the system specification with the verification cases, and the functional, logical, and product architectures. Not included: the detailed design of the mechanics, electronics, and software, and building and flight-testing a hardware prototype, which stakeholders could expect as a result of the project.";
         
-        part johnFinch : ProductManager :>> projectOwner {
+        part johnFinch : Roles::ProductOwner :>> projectOwner {
             doc /* John Finch is the head of drone engineering at the contractor
                    and accountable for the Delivery Drone project. As project owner,
-                   he plays the ProductManager role, i.e., he is responsible for the
+                   he plays the ProductOwner role, i.e., he is responsible for the
                    problem statement (ISO 15288 Business or Mission Analysis). */
             attribute :>> name = "John Finch";
         }
@@ -118,7 +117,7 @@ package <DD> DeliveryDrone {
 
         //------------------------- Stakeholders
         private import DD_STAKEHOLDERS::*;
-        part logisticCompany : LogisticCompany, Acquirer :> projectStakeholders {
+        part logisticCompany : LogisticCompany, ISO15288Processes::Stakeholders::Acquirer :> projectStakeholders {
             doc /* The client who has the problem. It plays the Acquirer role and must
                    agree with the problem statement (ISO 15288 Business or Mission Analysis). */
             attribute :>> name = "Logistic Company";
@@ -132,7 +131,7 @@ package <DD> DeliveryDrone {
         part regulator : Regulator :> projectStakeholders {
             attribute :>> name = "Aviation Authority";
         }
-        part flightTestTeam : VerificationEngineer :> projectStakeholders {
+        part flightTestTeam : Roles::VerificationEngineer :> projectStakeholders {
             doc /* The flight test team of the contractor plays the VerificationEngineer role
                    (ISO 15288 Verification). It joins the project while the system is specified
                    and specifies the verification cases together with the systems engineers
@@ -165,6 +164,7 @@ package <DD> DeliveryDrone {
         //------------------------- Brownfield Architecture
         part deliveryDroneBrownfieldContext :>> brownfieldContext : DD_BROWNFIELD::DeliveryDroneSystemContext {
             part deliveryDroneSystem :>> deliveryDroneSystem, soi;
+            part :>> operator = droneOperator;
         }
         part deliveryDroneBrownfieldContextImpl :>> brownfieldContextImpl : DD_BROWNFIELD::DeliveryDroneSystemContextImpl :> deliveryDroneBrownfieldContext {
             part deliveryDroneSystemImpl :>> deliveryDroneSystem, deliveryDroneSystemImpl, soiImpl;

@@ -3,7 +3,7 @@ library package MBSEMethodology {
     /*
      * Definition of MBSE Methodology Concepts
      *
-     * Version v5.1.9 (proposal: capabilities)
+     * Version v5.1.9
      *
      * The metamodel of an MBSE environment: the methodology with its processes and methods, the roles that
      * perform them, the tools that facilitate them, the products they need and produce, and the capabilities
@@ -176,26 +176,26 @@ library package MBSEMethodology {
              * capabilities. A methodology behavior is composed of subbehaviors; the "all" features collect the
              * respective features of the behavior and its direct subbehaviors.
              */
-        item allInputs  : Product[0..*] = SequenceFunctions::union(inputs, subbehavior.allInputs) {
+        derived ref item allInputs  : Product[0..*] = SequenceFunctions::union(inputs, subbehavior.allInputs) {
             doc /* The inputs of the behavior and of its subbehaviors. */
         }
-        item allOutputs : Product[1..*] = SequenceFunctions::union(outputs, subbehavior.allOutputs) {
+        derived ref item allOutputs : Product[1..*] = SequenceFunctions::union(outputs, subbehavior.allOutputs) {
             doc /* The outputs of the behavior and of its subbehaviors. */
         }
-        ref part allPrimaryPerformers[1..*] : Role = SequenceFunctions::union(primaryPerformer, subbehavior.primaryPerformer) {
+        derived ref part allPrimaryPerformers[1..*] : Role = SequenceFunctions::union(primaryPerformer, subbehavior.primaryPerformer) {
             doc /* The primary performers of the behavior and of its direct subbehaviors. */
         }
-        ref part allAdditionalPerformers[*] : Role = SequenceFunctions::union(additionalPerformers, subbehavior.additionalPerformers) {
+        derived ref part allAdditionalPerformers[*] : Role = SequenceFunctions::union(additionalPerformers, subbehavior.additionalPerformers) {
             doc /* The additional performers of the behavior and of its direct subbehaviors. */
         }
-        ref part allFacilitationTools[*] : Tool = SequenceFunctions::union(facilitationTools, subbehavior.facilitationTools) {
+        derived ref part allFacilitationTools[*] : Tool = SequenceFunctions::union(facilitationTools, subbehavior.facilitationTools) {
             doc /* The facilitation tools of the behavior and of its direct subbehaviors. */
         }
 
-        item inputs  : Product[0..*] {
+        ref item inputs  : Product[0..*] {
             doc /* The products the behavior requires. */
         }
-        item outputs : Product[1..*] {
+        ref item outputs : Product[1..*] {
             doc /* The products the behavior produces. A methodology behavior produces at least one product. */
         }
         ref occurrence providedCapabilities[*] : Capability {
@@ -204,10 +204,10 @@ library package MBSEMethodology {
         ref occurrence requiredCapabilities[*] : Capability {
             doc /* "requires": the behavior can only be performed with the capability. */
         }
-        ref occurrence allProvidedCapabilities[*] : Capability = SequenceFunctions::union(providedCapabilities, subbehavior.allProvidedCapabilities) {
+        derived ref occurrence allProvidedCapabilities[*] : Capability = SequenceFunctions::union(providedCapabilities, subbehavior.allProvidedCapabilities) {
             doc /* The capabilities provided by the behavior and by its subbehaviors. */
         }
-        ref occurrence allRequiredCapabilities[*] : Capability = SequenceFunctions::union(requiredCapabilities, subbehavior.allRequiredCapabilities) {
+        derived ref occurrence allRequiredCapabilities[*] : Capability = SequenceFunctions::union(requiredCapabilities, subbehavior.allRequiredCapabilities) {
             doc /* The capabilities required by the behavior and by its subbehaviors. */
         }
         ref part primaryPerformer : Role {

@@ -62,9 +62,11 @@ package <DDCS> DeliveryDroneControlStation {
         }
 
         //------------------------- Stakeholders
-        part droneOperator : DDCS_HANDOVER::DroneOperator :> projectStakeholders {
+        part droneOperator : DDCS_HANDOVER::DroneOperator, DDCS_HANDOVER::Operator :> projectStakeholders {
             doc /* Handed over by the parent Delivery Drone project: the operator is
-                   the primary user of the control station. */
+                   the primary user of the control station. The drone operator is also the
+                   operator actor of the brownfield context and is therefore also typed by
+                   the actor definition Operator. */
             attribute :>> name = "Drone Operator";
         }
 
@@ -81,7 +83,9 @@ package <DDCS> DeliveryDroneControlStation {
         //------------------------- Brownfield Architecture
         // The black box brownfield context is the handover context of the parent project
         // (sub-project contract); the white box adds the existing control station.
-        part controlStationBrownfieldContext :>> brownfieldContext : DDCS_HANDOVER::ControlStationContext;
+        part controlStationBrownfieldContext :>> brownfieldContext : DDCS_HANDOVER::ControlStationContext {
+            part :>> operator = droneOperator;
+        }
         part controlStationBrownfieldContextImpl :>> brownfieldContextImpl : ControlStationContextImpl :> controlStationBrownfieldContext;
 
         //------------------------- System Idea

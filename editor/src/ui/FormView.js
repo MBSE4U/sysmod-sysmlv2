@@ -191,6 +191,24 @@ export class FormView extends EventTarget {
             : `<button type="button" class="fv-link" data-select="${escapeHtml(e.id)}">${escapeHtml(e.name)}</button>`).join('<span class="fv-sep">›</span>')}</nav>`;
     }
 
+    /**
+     * The switch Diagram | Table | Form of a role, tool, method or process, or product, as in the tabs of these elements:
+     * Diagram opens the element in its tab, Table the table of its kind in the environment, Form (this form) is active.
+     */
+    modeSwitch(element) {
+        const kind = element instanceof Role ? "roles" : element instanceof Tool ? "tools"
+            : element instanceof Method || element instanceof Process ? "methods" : element instanceof Artifact ? "products" : null;
+        if (!kind) return "";
+        const { model } = this.state;
+        let environmentId = this.state.environmentId && model.get(this.state.environmentId) ? this.state.environmentId : null;
+        for (let e = element; !environmentId && e; e = model.get(e.ownerId)) if (e.environmentId && model.get(e.environmentId)) environmentId = e.environmentId;
+        return `<span class="ev-modes" role="group" aria-label="Show ${escapeHtml(element.name)} as">
+                <button type="button" data-select="${escapeHtml(element.id)}" data-open-diagram aria-pressed="false" title="The diagram of the element with its connected artifacts">Diagram</button>
+                <button type="button" ${environmentId ? `data-table-of="${kind}" data-id="${escapeHtml(environmentId)}" title="All ${COLLECTIONS[kind].title.toLowerCase()} of ${escapeHtml(model.get(environmentId).name)} as a table"` : 'disabled title="No MBSE environment selected"'} aria-pressed="false">Table</button>
+                <button type="button" class="active" aria-pressed="true">Form</button>
+            </span>`;
+    }
+
     header(element, renameable = true) {
         const editable = this.editableFor(element) && renameable;
         return `<header class="fv-header">
@@ -200,9 +218,8 @@ export class FormView extends EventTarget {
                     <input id="fv-name" class="fv-name-input" data-rename-input data-focus-key="name" data-original="${escapeHtml(element.name)}" value="${escapeHtml(element.name)}" spellcheck="false" autocomplete="off">
                     <button type="button" data-rename disabled>Rename</button></div>`
                 : `<h2 class="fv-title">${escapeHtml(element.name)}</h2>`}
+            ${this.modeSwitch(element)}
             <span class="fv-source">${escapeHtml(element.document || "")}
-                ${element instanceof Role || element instanceof Tool || element instanceof Method || element instanceof Process || element instanceof Artifact
-                    ? `<button type="button" class="fv-link" data-select="${escapeHtml(element.id)}" title="The diagram of the element with its connected artifacts">Show diagram</button>` : ""}
                 <button type="button" class="fv-link" data-reveal="${escapeHtml(element.id)}">Show in text</button></span>
         </header>`;
     }
@@ -684,6 +701,7 @@ export class FormView extends EventTarget {
                 <span class="ev-modes" role="group" aria-label="Show the ${escapeHtml(spec.title.toLowerCase())} as">
                     <button type="button" data-collection="${kind}" data-id="${escapeHtml(environment.id)}" aria-pressed="false" title="List and diagram of the ${escapeHtml(spec.title.toLowerCase())}">Diagram</button>
                     <button type="button" class="active" aria-pressed="true">Table</button>
+                    <button type="button" data-form-of="${kind}" data-id="${escapeHtml(environment.id)}" aria-pressed="false"${count ? ` title="The form of the current element of the ${escapeHtml(spec.title.toLowerCase())}"` : " disabled"}>Form</button>
                 </span>
                 <span class="fv-source">${others}</span></header>
             <p class="fv-line fv-muted">${spec.hint} Including the ${spec.title.toLowerCase()} inherited from the environments that ${escapeHtml(environment.name)} specializes and from libraries (shaded).</p>
@@ -700,6 +718,10 @@ export class FormView extends EventTarget {
     }
 
     onClick(e) {
+        const tableOf = e.target.closest("[data-table-of]");
+        if (tableOf) { this.dispatchEvent(new CustomEvent("collection", { detail: { kind: tableOf.dataset.tableOf, id: tableOf.dataset.id } })); return; }
+        const formOf = e.target.closest("[data-form-of]");
+        if (formOf) { this.dispatchEvent(new CustomEvent("formOf", { detail: { kind: formOf.dataset.formOf, environmentId: formOf.dataset.id } })); return; }
         const collection = e.target.closest("[data-collection]");
         if (collection) {
             this.dispatchEvent(new CustomEvent("select", { detail: { id: collection.dataset.id, open: true, collection: collection.dataset.collection } }));
@@ -720,7 +742,7 @@ export class FormView extends EventTarget {
         if (reveal) { this.dispatchEvent(new CustomEvent("reveal", { detail: { id: reveal.dataset.reveal } })); return; }
         const select = e.target.closest("[data-select]");
         // A link opens the editor of the element, e.g. the role editor (see App.openElement).
-        if (select) this.dispatchEvent(new CustomEvent("select", { detail: { id: select.dataset.select, open: select.classList.contains("fv-link") } }));
+        if (select) this.dispatchEvent(new CustomEvent("select", { detail: { id: select.dataset.select, open: select.classList.contains("fv-link") || select.hasAttribute("data-open-diagram") } }));
     }
 
     /** Scrolls the document form to a section, e.g. "Products". */

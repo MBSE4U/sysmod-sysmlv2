@@ -40,6 +40,9 @@ import { formDialog, confirmDialog, infoDialog } from "../ui/FormDialog.js";
 const $ = selector => document.querySelector(selector);
 const VIEWS = ["environment", "roles", "tools", "methodology", "products", "process", "overview", "text", "form", "matrix", "steps", "policy"];
 const LIBRARY_EDITING_KEY = "mbse-methodology-editor.library-editing";
+const AUTOSAVE_KEY = "mbse-methodology-editor.autosave";
+/** The pause after the last change before it is written (typing in the text editor writes once, not per key). */
+const AUTOSAVE_DELAY = 500;
 /**
  * Views without a tab of their own: the DTFA views show their tab only while they are open; the form never shows its tab
  * (it is the mode Form of the switch Diagram | Table | Form; see App.updateViewTabs).
@@ -116,6 +119,13 @@ export class App {
         try { this.libraryEditing = localStorage.getItem(LIBRARY_EDITING_KEY) === "true"; } catch (_) { /* storage unavailable */ }
         /** The copies of the libraries in the opened folder (e.g. the library repository itself): [{ name, content, handle }]. */
         this.folderLibraries = [];
+        /** "Save automatically": every change is written to its file right away (see autoSave). */
+        this.autoSaveOn = true;
+        try { this.autoSaveOn = localStorage.getItem(AUTOSAVE_KEY) !== "false"; } catch (_) { /* storage unavailable */ }
+        this.autoSaveTimer = null;
+        this.autoSaving = null;
+        /** Documents whose file could not be written automatically (e.g. no write permission): name -> message. */
+        this.autoSaveFailed = new Map();
     }
 
     async start() {
@@ -664,7 +674,62 @@ export class App {
         if (reason !== "save") {
             this.scheduleCheck();
             this.scheduleDraftSave();
+            if (reason !== "disk") this.scheduleAutoSave();
         }
+    }
+
+    // ---------- saving automatically ----------
+
+    /** True if a document can be written without asking: it has a file, or it is new in an opened folder. */
+    autoSaveTarget(document) {
+        if (document.readOnly || this.autoSaveFailed.has(document.name)) return false;
+        if (document.handle && document.handle.createWritable) return true;
+        return !document.library && !document.handle && document.origin !== "example" && !!(this.folder && this.folder.handle);
+    }
+
+    scheduleAutoSave() {
+        if (!this.autoSaveOn) return;
+        clearTimeout(this.autoSaveTimer);
+        this.autoSaveTimer = setTimeout(() => this.autoSave(), AUTOSAVE_DELAY);
+    }
+
+    /**
+     * Writes the changed documents to their files, one after the other: the documents of an opened folder (also new ones,
+     * into the folder), opened files, and the libraries opened for editing. A change during a write is written next.
+     * Documents without a file (examples, new documents without a folder) stay drafts until Save.
+     */
+    async autoSave() {
+        if (!this.autoSaveOn) return;
+        if (this.autoSaving) { this.autoSavePending = true; return; }
+        this.autoSaving = (async () => {
+            for (const document of this.workspace.dirtyDocuments.filter(d => this.autoSaveTarget(d))) {
+                const content = document.content;
+                try {
+                    const saved = await this.repository.save(document);
+                    document.handle = saved.handle || document.handle;
+                    if (!document.library && document.origin !== "folder") document.origin = document.handle ? "file" : document.origin;
+                    // The content written; a change during the write stays unsaved for the next round.
+                    document.savedContent = content;
+                    try { document.lastModified = (await document.handle.getFile()).lastModified; } catch (_) { /* not readable */ }
+                    this.workspace.changed("save", document.name);
+                } catch (e) {
+                    this.autoSaveFailed.set(document.name, e.message);
+                    this.status(`${document.name} could not be saved automatically (${e.message}). Save it with Ctrl+S.`, "error");
+                }
+            }
+        })();
+        try { await this.autoSaving; } finally { this.autoSaving = null; }
+        this.saveDrafts();
+        if (this.autoSavePending) { this.autoSavePending = false; this.autoSave(); }
+    }
+
+    setAutoSave(on) {
+        this.autoSaveOn = on;
+        try { localStorage.setItem(AUTOSAVE_KEY, String(on)); } catch (_) { /* storage unavailable */ }
+        const item = $("#autosave");
+        if (item) item.setAttribute("aria-checked", String(on));
+        this.status(on ? "Changes are saved automatically to their files." : "Changes are saved with Save (Ctrl+S).");
+        if (on) { this.autoSaveFailed.clear(); this.autoSave(); }
     }
 
     showDiagnosticsOfActive() {
@@ -857,6 +922,7 @@ export class App {
             document.handle = saved.handle;
             if (!(document.library && document.origin === "folder")) document.origin = "file";
             document.markSaved();
+            this.autoSaveFailed.delete(document.name);
             this.workspace.changed("save", document.name);
             this.saveDrafts();
             this.status(saved.handle ? `Saved ${document.name}.` : `Downloaded ${document.name}.`);
@@ -1687,6 +1753,7 @@ export class App {
             "save": () => this.save(),
             "save-as": () => this.save(this.active, { as: true }),
             "save-all": async () => { for (const d of this.workspace.dirtyDocuments) await this.save(d); },
+            "toggle-autosave": () => this.setAutoSave(!this.autoSaveOn),
             "close": () => this.closeAll(),
             "check": () => this.check(),
             "undo": () => this.undo(),
@@ -1748,6 +1815,7 @@ export class App {
             else if (!typing && key === "y") { e.preventDefault(); this.undo(true); }
         });
         $("#library-editing").addEventListener("change", e => this.setLibraryEditing(e.target.checked));
+        $("#autosave").setAttribute("aria-checked", String(this.autoSaveOn));
         window.addEventListener("beforeunload", e => {
             this.saveDrafts();
             if (this.workspace.dirtyDocuments.length) { e.preventDefault(); e.returnValue = ""; }

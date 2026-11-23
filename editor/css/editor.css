@@ -529,3 +529,5 @@ kbd { font: 12px var(--mono); color: var(--muted); }
 body.library-editing .documents.libraries button { color: var(--text); }
 body.library-editing .libraries-panel { box-shadow: inset 3px 0 0 var(--warning); }
 .fv-library-edit { color: var(--warning); }
+.menu-items button[role=menuitemcheckbox]::before { content: ""; display: inline-block; width: 1.2em; }
+.menu-items button[role=menuitemcheckbox][aria-checked=true]::before { content: "✓"; }

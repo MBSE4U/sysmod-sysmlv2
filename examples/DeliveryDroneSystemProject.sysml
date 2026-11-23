@@ -38,7 +38,7 @@ package <DD> DeliveryDrone {
         // Roles involved in the Delivery Drone MBSE Environment
         part systemArchitect : SystemArchitect :> roles;
         part verificationEngineer : VerificationEngineer :> roles;
-        part projectManager : ProjectManager :> roles;
+        part projectManager : Roles::ProjectManager :> roles;
         part requirementsEngineer : RequirementsEngineer :> roles;
     
         // Methodology used in the Delivery Drone MBSE Environment

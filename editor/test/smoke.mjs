@@ -433,7 +433,7 @@ check("overview for management: stages, sub-projects, on demand, who does what, 
     assert.equal(o.subProjects.to.name, "integrateSubProjects");
     const stage = title => [...o.stages, ...o.onDemand].find(s => s.title === title);
     assert.deepEqual(stage("Specify system").leads.map(p => p.label), ["Requirements engineer"]);
-    assert.deepEqual(stage("Specify system").supports.map(p => p.label), ["Verification engineer", "System architect"]);
+    assert.deepEqual(stage("Specify system").supports.map(p => p.label), ["System architect", "Verification engineer"]);
     assert.deepEqual(stage("Specify system").outputs.map(p => p.label), ["System specification", "Verification specification"]);
     assert.deepEqual(stage("Model solution architecture").includes, ["Model functional architecture", "Model logical architecture", "Model product architecture"]);
     // The drone environment has no test engineer: the declared role is shown, as not staffed.

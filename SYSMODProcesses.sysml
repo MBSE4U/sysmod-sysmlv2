@@ -68,7 +68,7 @@ library package SYSMODProcesses {
         /* The MBSE environment of a project that uses SYSMOD as its methodology. It provides the roles of the SYSMOD
          * methodology (see SYSMODMethodology) and connects them to it. A project environment specializes it and
          * adds its tools, further roles, and the project as the root product. */
-        part projectManager : ISO15288Processes::Stakeholders::ProjectManager :> roles {
+        part projectManager : Roles::ProjectManager :> roles {
             doc /* The project manager of the environment, who is responsible for the SYSMOD process. */
         }
         part productManager : ISO15288Processes::Stakeholders::ProductManager :> roles {
@@ -92,7 +92,7 @@ library package SYSMODProcesses {
         part verificationEngineer : ISO15288Processes::Stakeholders::VerificationEngineer :> roles {
             doc /* The verification engineer of the environment. */
         }
-        part testEngineer : TestEngineer :> roles {
+        part testEngineer : Roles::TestEngineer :> roles {
             doc /* The test engineer of the environment. */
         }
         part validationEngineer : ISO15288Processes::Stakeholders::ValidationEngineer :> roles {
@@ -130,7 +130,7 @@ library package SYSMODProcesses {
          * and its roles. The roles are the stakeholders of ISO15288Processes::Stakeholders, derived from the ISO/IEC/IEEE 15288
          * processes that the SYSMOD steps refine, and the SYSMOD sub role TestEngineer. The project manager is responsible
          * for the process; the other roles support it and are responsible for steps (see SYSMODDefaultProcess). */
-        part projectManager : ISO15288Processes::Stakeholders::ProjectManager :> roles {
+        part projectManager : Roles::ProjectManager :> roles {
             doc /* The role that is responsible for the SYSMOD process. */
         }
         part productManager : ISO15288Processes::Stakeholders::ProductManager :> roles {
@@ -154,7 +154,7 @@ library package SYSMODProcesses {
         part verificationEngineer : ISO15288Processes::Stakeholders::VerificationEngineer :> roles {
             doc /* The role that is responsible for the verification cases and the verification context. */
         }
-        part testEngineer : TestEngineer :> roles {
+        part testEngineer : Roles::TestEngineer :> roles {
             doc /* The role that performs the verification. */
         }
         part validationEngineer : ISO15288Processes::Stakeholders::ValidationEngineer :> roles {
@@ -185,17 +185,6 @@ library package SYSMODProcesses {
         }
     }
 
-    //
-    // Roles
-    //
-    part def TestEngineer :> ISO15288Processes::Stakeholders::VerificationEngineer {
-        doc
-        /* A verification engineer who performs the verification: executes the verification cases on the system of interest,
-         * e.g., on a test bench, and documents the results in the verification reports. A sub role of the VerificationEngineer
-         * derived from the ISO/IEC/IEEE 15288 Verification process: the verification engineer specifies the verification,
-         * the test engineer performs it. */
-    }
-
     action def SYSMODDefaultProcess :> MBSEMethodology::Process {
         doc
         /*
@@ -222,7 +211,7 @@ library package SYSMODProcesses {
             doc /* The project that performs the process. The outputs of the steps flow into its features. */
         }
 
-        ref part projectManager : ISO15288Processes::Stakeholders::ProjectManager :>> primaryPerformer {
+        ref part projectManager : Roles::ProjectManager :>> primaryPerformer {
             doc /* The project manager, the primary performer of the process. */
         }
         ref part productManager : ISO15288Processes::Stakeholders::ProductManager :> additionalPerformers {
@@ -246,7 +235,7 @@ library package SYSMODProcesses {
         ref part verificationEngineer : ISO15288Processes::Stakeholders::VerificationEngineer :> additionalPerformers {
             doc /* The verification engineer, an additional performer of the process (Verification). */
         }
-        ref part testEngineer : TestEngineer :> additionalPerformers {
+        ref part testEngineer : Roles::TestEngineer :> additionalPerformers {
             doc /* The test engineer, an additional performer of the process (Verification). */
         }
         ref part validationEngineer : ISO15288Processes::Stakeholders::ValidationEngineer :> additionalPerformers {
@@ -464,8 +453,8 @@ library package SYSMODProcesses {
             in item in_logicalArchitectureProduct : Products::LogicalArchitecture;
             out part logicalContext : SYSMOD::SystemContext = in_logicalArchitectureProduct.logicalContext;
             out part logicalContextImpl : SYSMOD::SystemContext = in_logicalArchitectureProduct.logicalContextImpl;
-            out allocation functional2logical[0..1] = in_logicalArchitectureProduct.functional2logical;
-            out allocation functionalImpl2logicalImpl[0..1] = in_logicalArchitectureProduct.functionalImpl2logicalImpl;
+            out ref functional2logical[0..1] : Allocations::Allocation = in_logicalArchitectureProduct.functional2logical;
+            out ref functionalImpl2logicalImpl[0..1] : Allocations::Allocation = in_logicalArchitectureProduct.functionalImpl2logicalImpl;
         }
         flow from forkLogicalArchitecture.logicalContext to thisProject.logicalContext;
         flow from forkLogicalArchitecture.logicalContextImpl to thisProject.logicalContextImpl;
@@ -478,8 +467,8 @@ library package SYSMODProcesses {
             out item out_productArchitectureProduct_IntegrateSubProjects : Products::ProductArchitecture = in_productArchitectureProduct;
             out part productContext : SYSMOD::SystemContext = in_productArchitectureProduct.productContext;
             out part productContextImpl : SYSMOD::SystemContext = in_productArchitectureProduct.productContextImpl;
-            out allocation logical2product[0..1] = in_productArchitectureProduct.logical2product;
-            out allocation logicalImpl2productImpl[0..1] = in_productArchitectureProduct.logicalImpl2productImpl;
+            out ref logical2product[0..1] : Allocations::Allocation = in_productArchitectureProduct.logical2product;
+            out ref logicalImpl2productImpl[0..1] : Allocations::Allocation = in_productArchitectureProduct.logicalImpl2productImpl;
         }
         flow from forkProductArchitecture.productContext to thisProject.productContext;
         flow from forkProductArchitecture.productContextImpl to thisProject.productContextImpl;
@@ -531,37 +520,45 @@ library package SYSMODProcesses {
         connection :> supports connect productManager to setupProject;
         connection :> productOwnership connect projectManager to setupProject.projectProduct;
         action setupProject : Methods::SetupProject :> submethods { @StepStatus; }
+        bind setupProject.productManager = productManager;
 
         connection :> responsibleFor connect systemArchitect to modelBrownfieldSystem;
         connection :> supports connect productManager to modelBrownfieldSystem;
         connection :> productOwnership connect systemArchitect to modelBrownfieldSystem.brownfieldSystem;
         action modelBrownfieldSystem : Methods::ModelBrownfieldSystem :> submethods { @StepStatus; }
+        bind modelBrownfieldSystem.productManager = productManager;
 
         connection :> responsibleFor connect productManager to describeProblemStatement;
         connection :> supports connect requirementsEngineer to describeProblemStatement;
         connection :> productOwnership connect productManager to describeProblemStatement.problemStatement;
         action describeProblemStatement : Methods::DescribeProblemStatement :> submethods { @StepStatus; }
+        bind describeProblemStatement.requirementsEngineer = requirementsEngineer;
 
         connection :> responsibleFor connect requirementsEngineer to identifyStakeholders;
         connection :> supports connect productManager to identifyStakeholders;
         connection :> productOwnership connect requirementsEngineer to identifyStakeholders.stakeholderList;
         action identifyStakeholders : Methods::IdentifyStakeholders :> submethods { @StepStatus; }
+        bind identifyStakeholders.productManager = productManager;
 
         connection :> responsibleFor connect requirementsEngineer to identifyStakeholderNeeds;
         connection :> supports connect productManager to identifyStakeholderNeeds;
         connection :> productOwnership connect requirementsEngineer to identifyStakeholderNeeds.stakeholderNeeds;
         action identifyStakeholderNeeds : Methods::IdentifyStakeholderNeeds :> submethods { @StepStatus; }
+        bind identifyStakeholderNeeds.productManager = productManager;
 
         connection :> responsibleFor connect productManager to describeSystemIdea;
         connection :> supports connect systemArchitect to describeSystemIdea;
         connection :> productOwnership connect productManager to describeSystemIdea.systemIdea;
         action describeSystemIdea : Methods::DescribeSystemIdea :> submethods { @StepStatus; }
+        bind describeSystemIdea.systemArchitect = systemArchitect;
 
         connection :> responsibleFor connect productManager to defineSystemObjectives;
         connection :> supports connect systemArchitect to defineSystemObjectives;
         connection :> supports connect validationEngineer to defineSystemObjectives;
         connection :> productOwnership connect productManager to defineSystemObjectives.systemObjectives;
         action defineSystemObjectives : Methods::DefineSystemObjectives :> submethods { @StepStatus; }
+        bind defineSystemObjectives.systemArchitect = systemArchitect;
+        bind defineSystemObjectives.validationEngineer = validationEngineer;
 
         connection :> responsibleFor connect requirementsEngineer to specifySystem;
         connection :> supports connect systemArchitect to specifySystem;
@@ -570,6 +567,7 @@ library package SYSMODProcesses {
         connection :> productOwnership connect verificationEngineer to specifySystem.verificationSpecification;
         action specifySystem : Methods::SpecifySystem :> submethods { @StepStatus; }
         bind specifySystem.verificationEngineer = verificationEngineer;
+        bind specifySystem.systemArchitect = systemArchitect;
 
         connection :> responsibleFor connect systemArchitect to modelSolutionArchitecture;
         connection :> supports connect designEngineer to modelSolutionArchitecture;
@@ -585,11 +583,14 @@ library package SYSMODProcesses {
         connection :> productOwnership connect projectManager to modelSubProject.subProject;
         connection :> productOwnership connect systemArchitect to modelSubProject.requirementFlowDown;
         action modelSubProject : Methods::ModelSubProject :> submethods { @StepStatus; }
+        bind modelSubProject.projectManager = projectManager;
+        bind modelSubProject.requirementsEngineer = requirementsEngineer;
 
         connection :> responsibleFor connect systemArchitect to integrateSubProjects;
         connection :> supports connect integrationEngineer to integrateSubProjects;
         connection :> productOwnership connect systemArchitect to integrateSubProjects.productArchitecture;
         action integrateSubProjects : Methods::IntegrateSubProjects :> submethods { @StepStatus; }
+        bind integrateSubProjects.integrationEngineer = integrationEngineer;
 
         connection :> responsibleFor connect verificationEngineer to specifyVerificationContext;
         connection :> supports connect systemArchitect to specifyVerificationContext;
@@ -597,19 +598,42 @@ library package SYSMODProcesses {
         connection :> supports connect validationEngineer to specifyVerificationContext;
         connection :> productOwnership connect verificationEngineer to specifyVerificationContext.verificationSpecification;
         action specifyVerificationContext : Methods::SpecifyVerificationContext :> submethods { @StepStatus; }
+        bind specifyVerificationContext.systemArchitect = systemArchitect;
+        bind specifyVerificationContext.testEngineer = testEngineer;
+        bind specifyVerificationContext.validationEngineer = validationEngineer;
 
         connection :> responsibleFor connect testEngineer to performVerification;
         connection :> supports connect verificationEngineer to performVerification;
         connection :> productOwnership connect testEngineer to performVerification.verificationReports;
         action performVerification : Methods::PerformVerification :> submethods { @StepStatus; }
+        bind performVerification.verificationEngineer = verificationEngineer;
 
         // No succession: performed for any architecture decision with alternatives.
         connection :> responsibleFor connect systemArchitect to specifyTradeStudy;
         connection :> supports connect systemAnalyst to specifyTradeStudy;
         connection :> productOwnership connect systemArchitect to specifyTradeStudy.tradeStudyReport;
         action specifyTradeStudy : Methods::SpecifyTradeStudy [0..*] :> submethods { @StepStatus; }
+        bind specifyTradeStudy.systemAnalyst = systemAnalyst;
     }
 
+    package Roles {
+        doc /* The roles defined in the SYSMOD methodology. */
+
+        part def ProjectManager :> ISO15288Processes::Stakeholders::ProjectManager {
+            doc
+            /* The project manager who is responsible for the overall project planning, execution, and delivery. A sub role of the ProjectManager
+            * defined in the ISO/IEC/IEEE 15288 standard. */
+        }
+
+        part def TestEngineer :> ISO15288Processes::Stakeholders::VerificationEngineer {
+            doc
+            /* A verification engineer who performs the verification: executes the verification cases on the system of interest,
+            * e.g., on a test bench, and documents the results in the verification reports. A sub role of the VerificationEngineer
+            * derived from the ISO/IEC/IEEE 15288 Verification process: the verification engineer specifies the verification,
+            * the test engineer performs it. */
+        }
+    }
+    
     package Methods {
         doc
         /* The methods of the SYSMOD steps (MBSEMethodology::Method): one action definition per step of SYSMODDefaultProcess,
@@ -619,7 +643,9 @@ library package SYSMODProcesses {
          * input product of others. Methods with nested steps (SpecifySystem, ModelSolutionArchitecture) define them as
          * submethods; the primary performer of the step is responsible for them unless a nested responsibleFor connection
          * assigns another role. Each method refines one or more ISO/IEC/IEEE 15288 processes (#refinement dependencies below).
-         * The roles that perform the steps and own their products are assigned in SYSMODDefaultProcess.
+         * Each method types its primary performer (redefinition of primaryPerformer) and names its additional performers
+         * (subsets of additionalPerformers); SYSMODDefaultProcess connects its roles to them (responsibleFor, supports, and
+         * binds of the additional performers) and assigns the owners of the products.
          */
 
         action def SetupProject :> MBSEMethodology::Method {
@@ -636,6 +662,11 @@ library package SYSMODProcesses {
             out item projectProduct : Products::Project :> outputs {
                 doc /* The project cover as product: the project and its project owner. */
             }
+
+            ref part :>> primaryPerformer : Roles::ProjectManager {
+                doc /* The primary performer of the setup project action. */
+            }
+
             bind projectProduct.project = project;
             bind projectProduct.projectOwner.projectOwner = project.projectOwner;
 
@@ -647,6 +678,12 @@ library package SYSMODProcesses {
         action def ModelBrownfieldSystem :> MBSEMethodology::Method {
             doc
             /* Models the existing (brownfield) system and its actors as black box context (brownfieldContext) and white box context (brownfieldContextImpl), based on a given description of the existing architecture. Optional for greenfield projects. Refines the ISO 15288 Business or Mission Analysis process. */
+            ref part :>> primaryPerformer : ISO15288Processes::Stakeholders::SystemArchitect {
+                doc /* The system architect, who is responsible for the step. */
+            }
+            ref part productManager : ISO15288Processes::Stakeholders::ProductManager :> additionalPerformers {
+                doc /* The product manager, who knows the existing system and its use. */
+            }
             in item brownfieldArchitectureDescription : Products::ArchitectureDescription :> inputs {
                 doc /* The informal description of the existing system and its actors, e.g., a text, sketch, or document. */
             }
@@ -656,6 +693,12 @@ library package SYSMODProcesses {
         action def DescribeProblemStatement :> MBSEMethodology::Method {
             doc
             /* Describes the problem statement: a solution-free elevator pitch of the problem, with the brownfield system as subject and the project owner as stakeholder. Refines the ISO 15288 Business or Mission Analysis process. */
+            ref part :>> primaryPerformer : ISO15288Processes::Stakeholders::ProductManager {
+                doc /* The product manager, who is responsible for the step. */
+            }
+            ref part requirementsEngineer : ISO15288Processes::Stakeholders::RequirementsEngineer :> additionalPerformers {
+                doc /* The requirements engineer, who supports the description of the problem statement. */
+            }
             in item problemStatementDescription : Products::ProblemStatementDescription :> inputs {
                 doc
                 /* The problem statement is a brief description of the problem the system of interest is intended to solve. */
@@ -674,6 +717,12 @@ library package SYSMODProcesses {
         action def IdentifyStakeholders :> MBSEMethodology::Method {
             doc
             /* Identifies the stakeholders of the project based on the problem statement and assesses their risk, effort, and categories. Refines the ISO 15288 Business or Mission Analysis process (identification of the major stakeholders) and the Stakeholder Needs and Requirements Definition process. */
+            ref part :>> primaryPerformer : ISO15288Processes::Stakeholders::RequirementsEngineer {
+                doc /* The requirements engineer, who is responsible for the step. */
+            }
+            ref part productManager : ISO15288Processes::Stakeholders::ProductManager :> additionalPerformers {
+                doc /* The product manager, who knows the stakeholders of the product. */
+            }
 
             in item stakeholdersDescription : Products::StakeholdersDescription :> inputs {
                 doc /* An informal description of the stakeholders, given by a human or an AI assistant as input to the process step. */
@@ -689,6 +738,12 @@ library package SYSMODProcesses {
         action def IdentifyStakeholderNeeds :> MBSEMethodology::Method {
             doc
             /* Identifies the needs of the stakeholders at intent level, framed by the problem statement and traced to the stakeholders they come from. Refines the ISO 15288 Stakeholder Needs and Requirements Definition process. */
+            ref part :>> primaryPerformer : ISO15288Processes::Stakeholders::RequirementsEngineer {
+                doc /* The requirements engineer, who is responsible for the step. */
+            }
+            ref part productManager : ISO15288Processes::Stakeholders::ProductManager :> additionalPerformers {
+                doc /* The product manager, who supports the identification of the stakeholder needs. */
+            }
             in item stakeholderNeedsDescription : Products::StakeholderNeedsDescription :> inputs {
                 doc /* An informal description of the stakeholder needs, given by a human or an AI assistant as input to the process step. */
             }
@@ -706,6 +761,12 @@ library package SYSMODProcesses {
         action def DescribeSystemIdea :> MBSEMethodology::Method {
             doc
             /* Describes the system idea: a conceptual, elevator-pitch-style outline of the new or changed system that answers the problem statement and the stakeholder needs, as black box (systemIdeaContext) and white box (systemIdeaContextImpl) context. Refines the ISO 15288 Business or Mission Analysis process. */
+            ref part :>> primaryPerformer : ISO15288Processes::Stakeholders::ProductManager {
+                doc /* The product manager, who is responsible for the step. */
+            }
+            ref part systemArchitect : ISO15288Processes::Stakeholders::SystemArchitect :> additionalPerformers {
+                doc /* The system architect, who supports the system idea with the view of the architecture. */
+            }
             in item systemIdeaArchitectureDescription : Products::ArchitectureDescription :> inputs {
                 doc /* The informal description of the system idea, e.g., a text, sketch, or document. */
             }
@@ -723,6 +784,15 @@ library package SYSMODProcesses {
         action def DefineSystemObjectives :> MBSEMethodology::Method {
             doc
             /* Defines the system objectives: the measurable goals of the system idea, agreed with the project owner. Each objective is a SystemObjective with the system idea as subject, its measures of effectiveness (MOE) and measures of performance (MOP), and their target values. The system objectives frame the stakeholder needs and direct the development: they are the basis for the system requirements, for validation, and for the criteria of trade studies. Refines the ISO 15288 Business or Mission Analysis process. */
+            ref part :>> primaryPerformer : ISO15288Processes::Stakeholders::ProductManager {
+                doc /* The product manager, who is responsible for the step. */
+            }
+            ref part systemArchitect : ISO15288Processes::Stakeholders::SystemArchitect :> additionalPerformers {
+                doc /* The system architect, who supports the system objectives with the view of the architecture. */
+            }
+            ref part validationEngineer : ISO15288Processes::Stakeholders::ValidationEngineer :> additionalPerformers {
+                doc /* The validation engineer, who supports the system objectives with the view of validation. */
+            }
             in item systemObjectivesDescription : Products::SystemObjectivesDescription :> inputs {
                 doc /* The informal description of the system objectives. */
             }
@@ -740,6 +810,12 @@ library package SYSMODProcesses {
         action def SpecifySystem :> MBSEMethodology::Method {
             doc
             /* Specifies the system based on the system idea, the system objectives, and the stakeholder needs: the specification contexts, the system use cases, the system requirements, and the verification cases that verify them against the black box specification system. Refines the ISO 15288 System Requirements Definition process and the preparation of the ISO 15288 Verification process. */
+            ref part :>> primaryPerformer : ISO15288Processes::Stakeholders::RequirementsEngineer {
+                doc /* The requirements engineer, who is responsible for the step. */
+            }
+            ref part systemArchitect : ISO15288Processes::Stakeholders::SystemArchitect :> additionalPerformers {
+                doc /* The system architect, who supports the specification contexts and the system requirements with the view of the architecture. */
+            }
             in item specificationArchitectureDescription : Products::ArchitectureDescription :> inputs {
                 doc /* The architecture description that the specification contexts refine. */
             }
@@ -856,6 +932,9 @@ library package SYSMODProcesses {
         action def ModelSolutionArchitecture :> MBSEMethodology::Method {
             doc
             /* Models the solution architecture based on the specification contexts and the system requirements, in the nested steps modelFunctionalArchitecture (optional), modelLogicalArchitecture (optional), and modelProductArchitecture (optional), in this order. Each nested step creates the black box and the white box context of its architecture; the logical and product steps also create the allocations from the preceding architecture. Refines the ISO 15288 System Architecture Definition process. */
+            ref part :>> primaryPerformer : ISO15288Processes::Stakeholders::SystemArchitect {
+                doc /* The system architect, who is responsible for the step. */
+            }
             in item functionalArchitectureDescription[0..1] : Products::ArchitectureDescription :> inputs {
                 doc /* The informal description of the functional architecture. */
             }
@@ -950,6 +1029,15 @@ library package SYSMODProcesses {
         action def ModelSubProject :> MBSEMethodology::Method {
             doc
             /* Models a sub-project for each building block of the white box product context that is developed separately, e.g., by another team or a supplier, and the sub-project contract: the sub-project usage subsets subProjects; a separate handover package carries the contract: the handover context (the building block as the system of interest, its external entities that are handed over as actors, and its connections and delegations as the actor/system interfaces), whose system of interest definition types the building block, whose other elements the parent white box specializes, and which the sub-project uses as its black box brownfield context, so that the sub-project, e.g., a supplier, needs no access to the parent project; the handover package also contains the stakeholders and the handover requirements of the sub-project, which the parent derives from its requirements that constrain the building block via its requirementFlowDowns; the sub-project derives its system requirements from the handover requirements. Optional; each sub-project then performs its own process. Refines the ISO 15288 System Architecture Definition process. */
+            ref part :>> primaryPerformer : ISO15288Processes::Stakeholders::SystemArchitect {
+                doc /* The system architect, who is responsible for the step. */
+            }
+            ref part projectManager : Roles::ProjectManager :> additionalPerformers {
+                doc /* The project manager, who sets up the sub-projects and owns them. */
+            }
+            ref part requirementsEngineer : ISO15288Processes::Stakeholders::RequirementsEngineer :> additionalPerformers {
+                doc /* The requirements engineer, who supports the derivation of the handover requirements. */
+            }
             // A project is a product itself.
             in item productArchitecture : Products::ProductArchitecture :> inputs {
                 doc /* The product architecture whose white box product context contains the building blocks that are developed by sub-projects. */
@@ -974,6 +1062,12 @@ library package SYSMODProcesses {
         action def IntegrateSubProjects :> MBSEMethodology::Method {
             doc
             /* Integrates the products of the sub-projects into the architecture of the project: binds each building block of the white box product context that a sub-project develops to the product system of the sub-project, or keeps the black box of the handover context if the sub-project, e.g., a supplier, delivers no white box. Optional; performed when the product architectures of the sub-projects are available. Outside the verb scale: it combines the products of the sub-projects. Refines the ISO 15288 Integration process. */
+            ref part :>> primaryPerformer : ISO15288Processes::Stakeholders::SystemArchitect {
+                doc /* The system architect, who is responsible for the step. */
+            }
+            ref part integrationEngineer : ISO15288Processes::Stakeholders::IntegrationEngineer :> additionalPerformers {
+                doc /* The integration engineer, who supports the integration of the product systems of the sub-projects. */
+            }
             in occurrence subProjects[*] : SYSMOD::Project :> inputs {
                 doc /* The sub-projects whose product systems are integrated. */
             }
@@ -985,6 +1079,18 @@ library package SYSMODProcesses {
         action def SpecifyVerificationContext :> MBSEMethodology::Method {
             doc
             /* Specifies the verification context returned by SpecifySystem: types it by a system context definition whose system of interest is the system under verification, which can be any system, e.g., the integrated product system, a prototype, or a simulation model, and adds the test systems, e.g., test benches or a wind tunnel, as actors. The verification cases of the context, specified in SpecifySystem, are bound to the system under verification and not changed. Refines the ISO 15288 Verification and Validation processes. */
+            ref part :>> primaryPerformer : ISO15288Processes::Stakeholders::VerificationEngineer {
+                doc /* The verification engineer, who is responsible for the step. */
+            }
+            ref part systemArchitect : ISO15288Processes::Stakeholders::SystemArchitect :> additionalPerformers {
+                doc /* The system architect, who supports the verification context with the view of the architecture. */
+            }
+            ref part testEngineer : Roles::TestEngineer :> additionalPerformers {
+                doc /* The test engineer, who supports the verification context with the view of the test systems. */
+            }
+            ref part validationEngineer : ISO15288Processes::Stakeholders::ValidationEngineer :> additionalPerformers {
+                doc /* The validation engineer, who supports the verification context with the view of validation. */
+            }
             in item systemSpecification : Products::SystemSpecification :> inputs {
                 doc /* The system specification with the system requirements that the verification cases verify. */
             }
@@ -996,6 +1102,12 @@ library package SYSMODProcesses {
         action def PerformVerification :> MBSEMethodology::Method {
             doc
             /* Performs the verification: executes the verification cases of the verification context on its system of interest, e.g., the product system, a prototype, or a simulation model, with the test systems of the context, and documents the results in verification reports (SYSMOD::VerificationReport, content aligned with ISO/IEC/IEEE 15289): the verdict of each verification case, the verified requirements, and the evidence. The verification reports become part of the verification context (Project::verificationContext::verificationReports). The step does not change the verification cases; failed verdicts are fed back to the steps that created the requirements or the system of interest. Outside the verb scale: it executes specified content. Refines the ISO 15288 Verification process. */
+            ref part :>> primaryPerformer : Roles::TestEngineer {
+                doc /* The test engineer, who is responsible for the step. */
+            }
+            ref part verificationEngineer : ISO15288Processes::Stakeholders::VerificationEngineer :> additionalPerformers {
+                doc /* The verification engineer, who supports the verification and assesses its results. */
+            }
             in item verificationSpecification : Products::VerificationSpecification :> inputs {
                 doc /* The verification context completed by SpecifyVerificationContext: the verification cases, the test systems, and the system of interest. */
             }
@@ -1007,6 +1119,12 @@ library package SYSMODProcesses {
         action def SpecifyTradeStudy :> MBSEMethodology::Method {
             doc
             /* Specifies a SYSMOD trade study for an architecture decision, e.g., between candidate system ideas or candidate product architectures: models the alternatives as variants of the respective context of the project, which becomes a variation usage (e.g., productContextImpl), assesses each alternative against the system objectives (criteria weighted by their priority), selects the alternative with the maximum evaluation, binds the variation to the selected variant, and records the decision on the variation with Rationale metadata whose explanation is the trade study. It takes the open context as decisionSituation and returns the decided variation as decidedContext and, with the trade studies, as tradeStudyReport. Mandatory system requirements, if already defined, exclude ineligible alternatives. Optional and without succession: performed whenever a step faces an architecture decision with alternatives. Refines the ISO 15288 Decision Management and System Analysis processes. */
+            ref part :>> primaryPerformer : ISO15288Processes::Stakeholders::SystemArchitect {
+                doc /* The system architect, who is responsible for the step. */
+            }
+            ref part systemAnalyst : ISO15288Processes::Stakeholders::SystemAnalyst :> additionalPerformers {
+                doc /* The system analyst, who supports the assessment of the alternatives. */
+            }
             in item systemObjectives : Products::SystemObjectives :> inputs {
                 doc /* The system objectives, the criteria of the trade study. */
             }

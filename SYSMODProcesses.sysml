@@ -519,7 +519,6 @@ library package SYSMODProcesses {
         connection :> responsibleFor connect projectManager to setupProject;
         connection :> productOwnership connect projectManager to setupProject.projectProduct;
         action setupProject : Methods::SetupProject :> submethods { @StepStatus; }
-        bind setupProject.productManager = productManager;
 
         connection :> responsibleFor connect systemArchitect to modelBrownfieldSystem;
         connection :> supports connect productManager to modelBrownfieldSystem;

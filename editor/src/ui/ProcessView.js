@@ -6,8 +6,8 @@
 //   succession stand at the bottom
 // - the swimlanes (columns) are the responsible performers of the steps: in an MBSE environment its roles, otherwise the
 //   performers that the process declares (e.g. "systemArchitect : SystemArchitect"), or the performer of the process
-// - a step with steps of its own has a ▸ mark: double-click it to show its flow; "Up" shows the enclosing process
-// - a click on a step opens its editor
+// - a step with steps of its own has a ▸ mark: a click shows its flow; "Up" shows the enclosing process
+// - a click on a step without steps of its own opens its form (single clicks only, no double-clicks)
 // - between the step that hands over to sub-projects (it outputs a project, e.g. modelSubProject) and the step that takes
 //   them back (e.g. integrateSubProjects), a dashed line says that each sub-project performs its own process; steps
 //   without a succession (e.g. specifyTradeStudy) are performed on demand
@@ -157,7 +157,7 @@ export class ProcessView extends EventTarget {
             const types = p.typeIds.slice(0, 1).map(t => (model.generals[t] && model.generals[t].name) || model.nameOf(t, t.split("::").pop()));
             const doc = p.doc || (p.inheritedDoc ? p.inheritedDoc.text : "");
             return `<button type="button" class="pd-card${steps ? " has-steps" : ""}${selected && selected.id === p.id ? " selected" : ""}" data-open="${escapeHtml(p.id)}" data-nested="${steps}"
-                    title="${escapeHtml([`${p.kindLabel} ${p.name}${types.length ? ` : ${types[0]}` : ""}`, doc, steps ? "double-click to show the flow" : "double-click to open the form"].filter(Boolean).join("\n"))}">
+                    title="${escapeHtml([`${p.kindLabel} ${p.name}${types.length ? ` : ${types[0]}` : ""}`, doc, steps ? "click to show the flow" : "click to open the form"].filter(Boolean).join("\n"))}">
                 <span class="pd-card-kind">${escapeHtml(p.kindLabel)}${p.isDefinition ? " definition" : ""}</span>
                 <span class="pd-card-name">${steps ? "▸ " : ""}${escapeHtml(p.name)}</span>
                 <span class="pd-card-meta">${[steps ? `${steps} steps` : "no steps", performer, types.length ? `: ${types[0]}` : ""].filter(Boolean).map(escapeHtml).join(" · ")}</span>
@@ -173,7 +173,7 @@ export class ProcessView extends EventTarget {
             <div class="pd-overview">
                 ${own.length ? [...groups].map(([pkg, list]) => `<section class="pd-group"><h3>${escapeHtml(pkg)}</h3><div class="pd-cards">${list.map(card).join("")}</div></section>`).join("")
                     : `<div class="fv-empty"><p>${escapeHtml(document)} contains no processes or methods.</p></div>`}
-                <p class="pd-hint">Click: select · double-click: show the flow (▸ has steps) or open the form</p>
+                <p class="pd-hint">Click: show the flow (▸ has steps) or open the form</p>
             </div>`;
         this.root.querySelector(".dg-toolbar").addEventListener("click", e => {
             const target = e.target.closest("[data-document-section]");
@@ -183,17 +183,14 @@ export class ProcessView extends EventTarget {
         box.addEventListener("click", e => {
             const node = e.target.closest("[data-open]");
             if (!node) return;
-            this.lastSelectedId = node.dataset.open;   // stay in the overview
-            this.dispatchEvent(new CustomEvent("select", { detail: { id: node.dataset.open } }));
-        });
-        box.addEventListener("dblclick", e => {
-            const node = e.target.closest("[data-open]");
-            if (!node) return;
             if (Number(node.dataset.nested)) {
                 this.overview = null; this.processId = node.dataset.open; this.fitPending = true;
                 this.lastSelectedId = undefined;
                 this.dispatchEvent(new CustomEvent("select", { detail: { id: node.dataset.open } }));
-            } else this.dispatchEvent(new CustomEvent("view", { detail: { view: "form" } }));
+            } else {
+                this.dispatchEvent(new CustomEvent("select", { detail: { id: node.dataset.open } }));
+                this.dispatchEvent(new CustomEvent("view", { detail: { view: "form" } }));
+            }
         });
     }
 
@@ -352,7 +349,7 @@ export class ProcessView extends EventTarget {
             const inputs = productNames(s, "inputFeatures"), outputs = productNames(s, "outputFeatures");
             const tip = [`${s.kindLabel} ${s.name}${types.length ? ` : ${types[0]}` : ""}`, s.doc || (s.inheritedDoc ? s.inheritedDoc.text : ""),
                 inputs.length ? `Inputs: ${inputs.join(", ")}` : "", outputs.length ? `Outputs: ${outputs.join(", ")}` : "",
-                nested ? `${nested} steps: double-click to show them` : "", inherited ? "inherited" : ""].filter(Boolean).join("\n");
+                nested ? `${nested} steps: click to show them` : "click to open the form", inherited ? "inherited" : ""].filter(Boolean).join("\n");
             const productLine = withProducts && outputs.length ? `→ ${outputs.join(", ")}` : "";
             const nameY = p.y + (withProducts ? (second ? 18 : (productLine ? 24 : 35)) : (second ? 19 : 27));
             parts.push(`<g class="ed-node method${s instanceof Process ? " process" : ""}${inherited ? " inherited" : ""}${selected && selected.id === s.id ? " selected" : ""}" data-open="${escapeHtml(s.id)}" data-nested="${nested}" tabindex="0">
@@ -391,7 +388,7 @@ export class ProcessView extends EventTarget {
                     <span>wheel: scroll · Ctrl+wheel: zoom</span>
                     <span>→ succession</span>
                     ${withProducts ? "<span>→ X: output products</span>" : ""}
-                    <span>▸ has steps (double-click)</span>
+                    <span>▸ has steps (click)</span>
                     ${span ? '<span><i class="ed-swatch subprojects"></i>sub-projects</span>' : ""}
                     <span><i class="ed-swatch inherited"></i>inherited</span>
                 </div>
@@ -466,24 +463,22 @@ export class ProcessView extends EventTarget {
                 apply();
             }
         }, { passive: false });
-        // A click selects a step (and shows it in the other views); a double-click on a step with steps shows its flow.
-        svg.addEventListener("click", e => {
-            if (dragged) { dragged = false; return; }
-            const node = e.target.closest("[data-open]");
-            if (node) this.dispatchEvent(new CustomEvent("select", { detail: { id: node.dataset.open } }));
-        });
-        svg.addEventListener("dblclick", e => {
-            const node = e.target.closest("[data-open]");
-            if (!node) return;
+        // A click on a step with steps shows its flow, on any other step its form.
+        const open = node => {
             if (Number(node.dataset.nested)) { this.processId = node.dataset.open; this.fitPending = true; this.dispatchEvent(new CustomEvent("select", { detail: { id: node.dataset.open } })); }
             else {
                 this.dispatchEvent(new CustomEvent("select", { detail: { id: node.dataset.open } }));
                 this.dispatchEvent(new CustomEvent("view", { detail: { view: "form" } }));
             }
+        };
+        svg.addEventListener("click", e => {
+            if (dragged) { dragged = false; return; }
+            const node = e.target.closest("[data-open]");
+            if (node) open(node);
         });
         svg.addEventListener("keydown", e => {
             const node = e.target.closest("[data-open]");
-            if (node && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); this.dispatchEvent(new CustomEvent("select", { detail: { id: node.dataset.open } })); }
+            if (node && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); open(node); }
         });
     }
 }

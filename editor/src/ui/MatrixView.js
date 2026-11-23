@@ -8,9 +8,9 @@
 //   not rated (gray, dashed)
 // - a step whose tool the tool policy forbids for its method has a red corner mark
 //
-// Editing: double-click an empty cell to add a process step there; drag a step to another cell to change its
-// role and tool; select a step and press "Connect" (or C), then click the next step to hand over a product;
-// select a hand-over to rate its tool transition. F2 renames, Del deletes. Pan with the mouse, zoom with the wheel.
+// Editing (single clicks only): click the + of a cell to add a process step there; drag a step to another cell to
+// change its role and tool; select a step and press "Connect" (or C), then click the next step to hand over a product;
+// select a hand-over to rate its tool transition. Rename (or F2) renames, Del deletes. Pan with the mouse, zoom with the wheel.
 //
 // Events: "select" { id }, "command" { command, id, args }
 
@@ -152,6 +152,7 @@ export class MatrixView extends EventTarget {
         const inCheck = selected && (check.stepOf(selected.id) || this.state.model.analysisOf(selected.id) === check);
         let html = `<button type="button" data-command="addStep" title="Add a process step: a method that a role performs with a tool">+ Step</button>`;
         if (selected instanceof Method && check.stepOf(selected.id)) {
+            html += `<button type="button" data-rename title="Rename ${escapeHtml(selected.name)} (F2)">Rename</button>`;
             html += `<button type="button" data-connect class="${this.connectFrom ? "active" : ""}" title="Hand over a product from ${escapeHtml(selected.name)}: then click the next process step (C)">→ Connect</button>`;
         }
         // The rating of a hand-over is the rating of the tool transition between the tools of its steps.
@@ -243,7 +244,9 @@ export class MatrixView extends EventTarget {
         for (const col of cols) {
             parts.push(`<line class="mx-line" x1="${col.x}" y1="0" x2="${col.x}" y2="${height}"/>`);
             for (const row of rows) {
-                parts.push(`<rect class="mx-cell" data-cell="${escapeHtml(row.id)}|${escapeHtml(col.id)}" x="${col.x}" y="${row.y}" width="${col.width}" height="${row.height}"><title>${escapeHtml(`${row.name} × ${col.name}${this.state.editable ? " – double-click to add a process step" : ""}`)}</title></rect>`);
+                const cell = `${escapeHtml(row.id)}|${escapeHtml(col.id)}`;
+                parts.push(`<g class="mx-cell-group"><rect class="mx-cell" data-cell="${cell}" x="${col.x}" y="${row.y}" width="${col.width}" height="${row.height}"><title>${escapeHtml(`${row.name} × ${col.name}`)}</title></rect>${this.state.editable
+                    ? `<g class="mx-add" data-add-step="${cell}" transform="translate(${col.x + col.width - 22},${row.y + 4})" role="button" tabindex="0" aria-label="${escapeHtml(`Add a process step: ${row.name} with ${col.name}`)}"><title>${escapeHtml(`Add a process step: ${row.name} with ${col.name}`)}</title><rect width="18" height="18" rx="4"/><text x="9" y="13.5" text-anchor="middle">+</text></g>` : ""}</g>`);
             }
         }
         rows.forEach(row => parts.push(`<line class="mx-line" x1="0" y1="${row.y}" x2="${width}" y2="${row.y}"/>`));
@@ -362,6 +365,7 @@ export class MatrixView extends EventTarget {
             const command = e.target.closest("[data-command]");
             if (command) { this.command(command.dataset.command, this.checkId); return; }
             if (e.target.closest("[data-connect]")) { this.toggleConnect(); return; }
+            if (e.target.closest("[data-rename]")) { this.command("rename", this.state.selectedId); return; }
             const evaluation = e.target.closest("[data-evaluation]");
             if (evaluation) this.command("setRating", this.state.selectedId, { rating: evaluation.dataset.evaluation });
         });
@@ -372,8 +376,14 @@ export class MatrixView extends EventTarget {
             this.command("setPriority", this.state.selectedId, { priority: value ? Number(value) : null });
         });
 
+        const addStep = button => {
+            const [roleId, toolId] = button.dataset.addStep.split("|");
+            this.command("addStep", this.checkId, { roleId: roleId === NO_ROLE ? null : roleId, toolId: toolId === NO_TOOL ? null : toolId });
+        };
         this.svg.addEventListener("click", e => {
             if (this.dragged) return;
+            const add = e.target.closest("[data-add-step]");
+            if (add) { if (this.state && this.state.editable) addStep(add); return; }
             const target = e.target.closest("[data-id]");
             if (!target) {
                 if (this.connectFrom) this.cancelConnect();
@@ -388,18 +398,10 @@ export class MatrixView extends EventTarget {
             }
             this.dispatchEvent(new CustomEvent("select", { detail: { id } }));
         });
-        this.svg.addEventListener("dblclick", e => {
-            if (!this.state || !this.state.editable) return;
-            const node = e.target.closest("[data-step]");
-            if (node) { this.command("rename", node.dataset.id); return; }
-            const cell = e.target.closest("[data-cell]");
-            if (cell) {
-                const [roleId, toolId] = cell.dataset.cell.split("|");
-                this.command("addStep", this.checkId, { roleId: roleId === NO_ROLE ? null : roleId, toolId: toolId === NO_TOOL ? null : toolId });
-            }
-        });
         this.root.addEventListener("keydown", e => {
             if (e.target.closest("input, select, textarea")) return;
+            const add = e.target.closest("[data-add-step]");
+            if (add && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); if (this.state && this.state.editable) addStep(add); return; }
             if (e.key === "Escape" && this.connectFrom) { this.cancelConnect(); return; }
             const node = e.target.closest("[data-id]");
             if (!node || !this.state) return;

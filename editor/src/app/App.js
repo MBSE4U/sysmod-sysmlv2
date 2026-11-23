@@ -7,6 +7,7 @@
 // The editors (environment, matrix, step definition, tool policy, form, text) show the same model and share one
 // selection. The graphical and form editors change the model through commands; each command is one undoable step.
 
+import { makeResizable } from "../ui/splitter.js";
 import { Workspace, SourceDocument } from "../workspace/Workspace.js";
 import { TextModelProvider } from "../workspace/TextModelProvider.js";
 import {
@@ -1815,6 +1816,8 @@ export class App {
             else if (!typing && key === "y") { e.preventDefault(); this.undo(true); }
         });
         $("#library-editing").addEventListener("change", e => this.setLibraryEditing(e.target.checked));
+        // The side panel is resizable.
+        makeResizable(document.querySelector(".workbench"), { pane: ".sidebar", variable: "--sidebar-width", key: "sidebar", min: 220, max: () => window.innerWidth * 0.5 });
         $("#autosave").setAttribute("aria-checked", String(this.autoSaveOn));
         window.addEventListener("beforeunload", e => {
             this.saveDrafts();

@@ -647,8 +647,7 @@ library package SYSMODProcesses {
          */
 
         action def SetupProject :> MBSEMethodology::Method {
-            doc
-            /* Sets up a new SYSMOD project: assigns the name of the project owner, the purpose, and the scope of the project. Refines the ISO 15288 Project Planning process. */
+            doc /* Sets up a new SYSMOD project by assigning the project owner, purpose, and scope. Covers parts of the ISO 15288 Project Planning process. */
             ref occurrence project :>> this : SYSMOD::Project {
                 doc /* The project that is set up. */
             }

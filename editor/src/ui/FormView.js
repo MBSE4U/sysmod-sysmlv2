@@ -190,19 +190,17 @@ export class FormView extends EventTarget {
     }
 
     /**
-     * The switch Diagram | Table | Form of a role, tool, method or process, or product, as in the tabs of these elements:
-     * Diagram opens the element in its tab, Table the table of its kind in the environment, Form (this form) is active.
+     * The switch Diagram | Table | Form of a role, tool, method or process, or product, as on the right side of the tabs
+     * of these elements: Diagram and Table show the element there (its diagram or its table), Form (this form) is active.
      */
     modeSwitch(element) {
         const kind = element instanceof Role ? "roles" : element instanceof Tool ? "tools"
             : element instanceof Method || element instanceof Process ? "methods" : element instanceof Artifact ? "products" : null;
         if (!kind) return "";
-        const { model } = this.state;
-        let environmentId = this.state.environmentId && model.get(this.state.environmentId) ? this.state.environmentId : null;
-        for (let e = element; !environmentId && e; e = model.get(e.ownerId)) if (e.environmentId && model.get(e.environmentId)) environmentId = e.environmentId;
+        const id = escapeHtml(element.id);
         return `<span class="ev-modes" role="group" aria-label="Show ${escapeHtml(element.name)} as">
-                <button type="button" data-select="${escapeHtml(element.id)}" data-open-diagram aria-pressed="false" title="The diagram of the element with its connected artifacts">Diagram</button>
-                <button type="button" ${environmentId ? `data-table-of="${kind}" data-id="${escapeHtml(environmentId)}" title="All ${COLLECTIONS[kind].title.toLowerCase()} of ${escapeHtml(model.get(environmentId).name)} as a table"` : 'disabled title="No MBSE environment selected"'} aria-pressed="false">Table</button>
+                <button type="button" data-element-mode="diagram" data-id="${id}" aria-pressed="false" title="${escapeHtml(element.name)} and its connected artifacts as a diagram">Diagram</button>
+                <button type="button" data-element-mode="table" data-id="${id}" aria-pressed="false" title="${escapeHtml(element.name)} and its connected artifacts as a table">Table</button>
                 <button type="button" class="active" aria-pressed="true">Form</button>
             </span>`;
     }
@@ -696,11 +694,7 @@ export class FormView extends EventTarget {
         return `<nav class="fv-crumbs" aria-label="Location"><button type="button" class="fv-link" data-select="${escapeHtml(environment.id)}">${escapeHtml(environment.name)}</button>
                 <span class="fv-sep">›</span><span aria-current="page">${spec.title}</span></nav>
             <header class="fv-header"><span class="fv-kind">${spec.title}</span><h2 class="fv-title">${spec.title} of ${escapeHtml(environment.name)}</h2>
-                <span class="ev-modes" role="group" aria-label="Show the ${escapeHtml(spec.title.toLowerCase())} as">
-                    <button type="button" data-collection="${kind}" data-id="${escapeHtml(environment.id)}" aria-pressed="false" title="List and diagram of the ${escapeHtml(spec.title.toLowerCase())}">Diagram</button>
-                    <button type="button" class="active" aria-pressed="true">Table</button>
-                    <button type="button" data-form-of="${kind}" data-id="${escapeHtml(environment.id)}" aria-pressed="false"${count ? ` title="The form of the current element of the ${escapeHtml(spec.title.toLowerCase())}"` : " disabled"}>Form</button>
-                </span>
+                <button type="button" class="fv-link" data-collection="${kind}" data-id="${escapeHtml(environment.id)}" title="The list of the ${escapeHtml(spec.title.toLowerCase())} with the diagram or table of the selected element">← Back to the list</button>
                 <span class="fv-source">${others}</span></header>
             <p class="fv-line fv-muted">${spec.hint} Including the ${spec.title.toLowerCase()} inherited from the environments that ${escapeHtml(environment.name)} specializes and from libraries (shaded).</p>
             ${this.state.editable ? `<div class="fv-buttons fv-collection-add"><button type="button" data-command="${spec.command}" data-id="${escapeHtml(environment.id)}">${spec.add}</button></div>` : ""}
@@ -758,6 +752,8 @@ export class FormView extends EventTarget {
     }
 
     onClick(e) {
+        const elementMode = e.target.closest("[data-element-mode]");
+        if (elementMode) { this.dispatchEvent(new CustomEvent("elementMode", { detail: { id: elementMode.dataset.id, mode: elementMode.dataset.elementMode } })); return; }
         const tableOf = e.target.closest("[data-table-of]");
         if (tableOf) { this.dispatchEvent(new CustomEvent("collection", { detail: { kind: tableOf.dataset.tableOf, id: tableOf.dataset.id } })); return; }
         const formOf = e.target.closest("[data-form-of]");

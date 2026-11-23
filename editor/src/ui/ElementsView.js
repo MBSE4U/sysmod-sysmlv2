@@ -8,7 +8,7 @@
 
 import { splitterHandle, makeResizable } from "./splitter.js";
 import { Process, Method, Role, Tool, Artifact, MBSEEnvironment } from "../dtfa/model.js";
-import { ElementGraph } from "./ElementGraph.js";
+import { graphOf, ElementGraph } from "./ElementGraph.js";
 
 function escapeHtml(s) {
     return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -25,6 +25,9 @@ export const KINDS = {
 };
 
 export class ElementsView extends EventTarget {
+    /** How the right side shows the current element: "diagram" or "table" (shared by the Roles, Tools, Methodology and Products tabs). */
+    static mode = "diagram";
+
     constructor(container, kind) {
         super();
         this.root = container;
@@ -36,6 +39,10 @@ export class ElementsView extends EventTarget {
         // The list is resizable; all four tabs share its width.
         makeResizable(this.root, { pane: ".el-list", variable: "--el-list-width", key: "element-list", min: 220 });
         this.root.addEventListener("click", e => {
+            const modeButton = e.target.closest("[data-element-mode]");
+            if (modeButton) { ElementsView.mode = modeButton.dataset.elementMode; if (this.state) this.show(this.state); return; }
+            const openElement = e.target.closest("[data-open-element]");
+            if (openElement) { this.dispatchEvent(new CustomEvent("open", { detail: { id: openElement.dataset.openElement } })); return; }
             const item = e.target.closest("[data-item]");
             if (item) { this.currentId = item.dataset.item; this.dispatchEvent(new CustomEvent("select", { detail: { id: item.dataset.item } })); return; }
             const command = e.target.closest("[data-command]");
@@ -102,11 +109,7 @@ export class ElementsView extends EventTarget {
                     <span class="fv-muted">${context}</span></div>
                 ${environment ? `<div class="el-list-actions">
                     ${editable ? `<button type="button" data-command="${this.spec.command}" data-id="${escapeHtml(environment.id)}">+ ${escapeHtml(this.spec.singular === "process or method" ? "Method" : this.spec.singular[0].toUpperCase() + this.spec.singular.slice(1))}</button>` : ""}
-                    <span class="ev-modes" role="group" aria-label="Show the ${escapeHtml(this.spec.title.toLowerCase())} as">
-                        <button type="button" class="active" aria-pressed="true">Diagram</button>
-                        <button type="button" data-table="${escapeHtml(environment.id)}" aria-pressed="false" title="All ${escapeHtml(this.spec.title.toLowerCase())} as a table">Table</button>
-                        <button type="button" ${current ? `data-form="${escapeHtml(current.id)}" title="The form of ${escapeHtml(current.name)}"` : 'disabled title="Select an element first"'} aria-pressed="false">Form</button>
-                    </span></div>` : ""}
+                    <button type="button" class="fv-link" data-table="${escapeHtml(environment.id)}" title="All ${escapeHtml(this.spec.title.toLowerCase())} of ${escapeHtml(environment.name)} in one table">All as table</button></div>` : ""}
                 <ul class="el-items">${list}${missing ? `<li class="selected el-extra"><button type="button" class="el-item" data-item="${escapeHtml(current.id)}">${escapeHtml(current.name)}</button></li>` : ""}</ul>
                 ${entries.length ? "" : `<p class="fv-muted el-none">No ${escapeHtml(this.spec.title.toLowerCase())} ${context}.</p>`}
                 ${splitterHandle(`Width of the list of ${escapeHtml(this.spec.title.toLowerCase())}`)}
@@ -118,12 +121,64 @@ export class ElementsView extends EventTarget {
             return;
         }
         const flow = isBehavior(current) && model.subBehaviors(current).length;
+        // The switch Diagram | Table | Form refers to the element shown here (e.g. the method SetupProject).
+        const mode = ElementsView.mode;
         const toolbar = `<strong class="eg-name">${escapeHtml(current.name)}</strong>
-            <button type="button" class="fv-link" data-form="${escapeHtml(current.id)}">Open form</button>
+            <span class="ev-modes" role="group" aria-label="Show ${escapeHtml(current.name)} as">
+                <button type="button" data-element-mode="diagram" class="${mode === "diagram" ? "active" : ""}" aria-pressed="${mode === "diagram"}" title="${escapeHtml(current.name)} and its connected artifacts as a diagram">Diagram</button>
+                <button type="button" data-element-mode="table" class="${mode === "table" ? "active" : ""}" aria-pressed="${mode === "table"}" title="${escapeHtml(current.name)} and its connected artifacts as a table">Table</button>
+                <button type="button" data-form="${escapeHtml(current.id)}" aria-pressed="false" title="The form of ${escapeHtml(current.name)}">Form</button>
+            </span>
             ${flow ? `<button type="button" class="fv-link" data-goto-view="process" data-id="${escapeHtml(current.id)}">Show flow</button>` : ""}`;
+        if (mode === "table") {
+            host.innerHTML = this.elementTable(model, current, environmentId, toolbar);
+            return;
+        }
         this.graph.render(host, { model, element: current, environmentId, selectedId, toolbar }, {
             onOpen: id => this.dispatchEvent(new CustomEvent("open", { detail: { id } })),
             onCenter: id => this.dispatchEvent(new CustomEvent("form", { detail: { id } })),
         });
+    }
+
+    /**
+     * The table of an element: what its diagram shows, row by row (e.g. for a method its responsible and supporting
+     * roles, product owners, tools, the process it is part of, its steps, inputs and outputs), with the kind and the
+     * description of each connected artifact. A click on an artifact opens it.
+     */
+    elementTable(model, element, environmentId, toolbar) {
+        const graph = graphOf(model, element, environmentId);
+        const kindOfColumn = { role: "Role", tool: "Tool", method: "Process or method", product: "Product" };
+        const describe = e => {
+            const doc = e.doc || (e.inheritedDoc ? e.inheritedDoc.text : "");
+            const first = doc.replace(/\s+/g, " ").trim().match(/^.{0,160}?[.!?](\s|$)/);
+            return first ? first[0].trim() : doc.length > 160 ? doc.slice(0, 160) + "…" : doc;
+        };
+        const rows = [];
+        for (const g of element.typeIds || []) {
+            const general = model.get(g);
+            const name = (model.generals[g] && model.generals[g].name) || model.nameOf(g, g.split("::").pop());
+            rows.push({ relation: "Specializes", e: general, name, kind: general ? general.kindLabel : "", doc: general ? describe(general) : "" });
+        }
+        for (const column of graph.columns) for (const section of column.sections) {
+            const items = section.items.filter(Boolean);
+            items.forEach((e, i) => rows.push({ relation: section.label, first: i === 0, count: items.length, e, name: e.name,
+                kind: kindOfColumn[section.kind || column.kind] || e.kindLabel, doc: describe(e), inherited: !!e.library }));
+            if (!items.length) rows.push({ relation: section.label, first: true, count: 1, empty: true });
+        }
+        const body = rows.map(r => `<tr${r.empty ? ' class="el-empty-row"' : ""}>
+                <th scope="row">${r.first !== false ? escapeHtml(r.relation) : ""}</th>
+                <td>${r.empty ? '<span class="fv-muted">–</span>' : r.e ? `<button type="button" class="fv-link" data-open-element="${escapeHtml(r.e.id)}">${escapeHtml(r.name)}</button>${r.inherited ? ' <span class="fv-muted" title="from a library">◌</span>' : ""}` : escapeHtml(r.name)}</td>
+                <td class="fv-muted">${escapeHtml(r.kind || "")}</td>
+                <td>${escapeHtml(r.doc || "")}</td></tr>`).join("");
+        const own = describe(element);
+        return `<div class="dg-toolbar">${toolbar}<span class="dg-status">${escapeHtml(graph.summary)}</span></div>
+            <div class="el-table-page">
+                <p class="el-table-lead"><span class="fv-muted">${escapeHtml(element.kindLabel)}</span> <strong>${escapeHtml(element.name)}</strong>${own ? ` – ${escapeHtml(own)}` : ""}
+                    <span class="fv-muted">· ${escapeHtml(element.document || "")}</span></p>
+                <table class="fv-table el-table">
+                    <thead><tr><th>Relation</th><th>Element</th><th>Kind</th><th>Description</th></tr></thead>
+                    <tbody>${body}</tbody>
+                </table>
+            </div>`;
     }
 }

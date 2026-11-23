@@ -596,3 +596,11 @@
 .mx-add text { fill: var(--accent); font: 700 14px var(--sans); pointer-events: none; }
 .mx-add:hover rect { fill: var(--accent); }
 .mx-add:hover text { fill: var(--accent-text); }
+/* The table of an element on the right side of the Roles, Tools, Methodology and Products tabs */
+.el-graph .dg-toolbar .ev-modes { margin: 0 4px; }
+.el-table-page { flex: 1; overflow: auto; padding: 14px 18px 30px; }
+.el-table-lead { margin: 0 0 10px; max-width: 90ch; }
+.el-table { width: 100%; }
+.el-table th[scope=row] { white-space: nowrap; vertical-align: top; color: var(--muted); font-weight: 600; }
+.el-table tbody tr:has(th[scope=row]:not(:empty)) > * { border-top: 1px solid var(--line); }
+.el-table .el-empty-row td { color: var(--muted); }

@@ -1730,6 +1730,8 @@ export class App {
         }
         this.processView.addEventListener("view", e => this.setView(e.detail.view));
         this.formView.addEventListener("collection", e => this.openTable(e.detail.kind, e.detail.id));
+        // Diagram | Table in a form: the element on the right side of its tab, as diagram or table.
+        this.formView.addEventListener("elementMode", e => { ElementsView.mode = e.detail.mode; this.openElement(e.detail.id); });
         this.formView.addEventListener("formOf", e => this.openFormOf(e.detail.kind, e.detail.environmentId));
         this.overviewView.addEventListener("view", e => this.setView(e.detail.view));
         for (const view of Object.values(this.elementViews)) {

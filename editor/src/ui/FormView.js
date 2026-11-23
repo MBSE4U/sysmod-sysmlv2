@@ -53,15 +53,11 @@ export class FormView extends EventTarget {
                 const button = this.root.querySelector("[data-rename]");
                 if (button) button.disabled = !e.target.value.trim() || e.target.value.trim() === e.target.dataset.original;
             }
-            if (e.target.matches("[data-doc-input]")) {
-                const button = this.root.querySelector("[data-save-doc]");
-                if (button) button.disabled = e.target.value === e.target.dataset.original;
-            }
-            if (e.target.matches("[data-explanation-input]")) {
-                const button = this.root.querySelector("[data-save-explanation]");
-                if (button) button.disabled = e.target.value === e.target.dataset.original;
-            }
+            // A description or explanation changes the file as you type (no Save button).
+            if (e.target.matches("[data-live-command]")) this.scheduleLive(e.target);
         });
+        // Leaving the field writes at once.
+        this.root.addEventListener("focusout", e => { if (e.target.matches("[data-live-command]")) this.flushLive(); });
         this.root.addEventListener("keydown", e => {
             if (e.key === "Enter" && e.target.matches("[data-rename-input]")) {
                 e.preventDefault();
@@ -98,6 +94,7 @@ export class FormView extends EventTarget {
             return;
         }
         const focused = document.activeElement && this.root.contains(document.activeElement) ? document.activeElement.dataset.focusKey : null;
+        const live = this.liveFieldState();
         const body = element instanceof FlowAnalysis ? this.analysisForm(element)
             : element instanceof Handover ? this.handoverForm(element)
                 : element instanceof ToolTransition ? this.transitionForm(element)
@@ -105,7 +102,8 @@ export class FormView extends EventTarget {
                         : element instanceof ToolPolicyRule ? this.ruleForm(element)
                             : this.basicForm(element);
         this.root.innerHTML = `<div class="fv-page">${this.breadcrumb(element)}${body}</div>`;
-        if (focused) {
+        if (live) this.restoreLiveField(live);
+        else if (focused) {
             const again = this.root.querySelector(`[data-focus-key="${CSS.escape(focused)}"]`);
             if (again) again.focus({ preventScroll: true });
         }
@@ -232,9 +230,9 @@ export class FormView extends EventTarget {
                 <footer class="fv-muted">Inherited from ${this.link(element.inheritedDoc.fromId, element.inheritedDoc.fromName)}</footer></blockquote>` : "";
         if (!this.editableFor(element)) return element.doc ? `<p class="fv-line">${escapeHtml(element.doc)}</p>` : inherited;
         return `<section class="fv-section"><h3>${escapeHtml(label)}</h3>${inherited}
-            <textarea class="fv-doc" data-doc-input data-focus-key="doc" data-original="${escapeHtml(element.doc)}" rows="${Math.min(8, Math.max(2, element.doc.split("\n").length + 1))}"
-                placeholder="${element.inheritedDoc ? "Own doc comment that replaces the inherited description" : `Doc comment of ${escapeHtml(element.name)}`}">${escapeHtml(element.doc)}</textarea>
-            <div class="fv-buttons"><button type="button" data-save-doc data-id="${escapeHtml(element.id)}" disabled>Save description</button></div></section>`;
+            <textarea class="fv-doc" data-doc-input data-live-command="setDoc" data-id="${escapeHtml(element.id)}" data-focus-key="doc" data-original="${escapeHtml(element.doc)}" rows="${Math.min(8, Math.max(2, element.doc.split("\n").length + 1))}"
+                placeholder="${element.inheritedDoc ? "Own doc comment that replaces the inherited description" : `Doc comment of ${escapeHtml(element.name)}`}"
+                title="Changes the file as you type">${escapeHtml(element.doc)}</textarea></section>`;
     }
 
     referenceSelect(owner, feature, options, current, label) {
@@ -400,9 +398,9 @@ export class FormView extends EventTarget {
                 ${r.isBottleneck ? `<label class="fv-field fv-inline"><span>Priority</span><input type="number" min="1" step="1" data-priority data-focus-key="priority" value="${r.priority ?? ""}" ${editable ? "" : "disabled"}>
                     <span class="fv-muted">1 is the highest priority</span></label>` : ""}
                 <label class="fv-field"><span>Explanation</span>
-                    <textarea class="fv-doc" data-explanation-input data-focus-key="explanation" data-original="${escapeHtml(r.explanation)}" rows="2"
+                    <textarea class="fv-doc" data-explanation-input data-live-command="setExplanation" data-id="${escapeHtml(r.id)}" data-focus-key="explanation" data-original="${escapeHtml(r.explanation)}" rows="2"
                         placeholder="Why is the transition ${r.rating === "unrated" ? "rated so" : RATINGS[r.rating].label.toLowerCase()}? E.g. the data is copied manually." ${editable ? "" : "disabled"}>${escapeHtml(r.explanation)}</textarea></label>
-                ${editable ? `<div class="fv-buttons"><button type="button" data-save-explanation data-id="${escapeHtml(r.id)}" disabled>Save explanation</button></div>` : ""}</fieldset>`;
+</fieldset>`;
     }
 
     transitionForm(t) {
@@ -713,6 +711,48 @@ export class FormView extends EventTarget {
 
     // ---------- events ----------
 
+    /**
+     * Text fields that change the model while you type, e.g. the description (setDoc) and the explanation of a rating
+     * (setExplanation): the change is written 400 ms after the last keystroke, or when the field loses the focus.
+     */
+    scheduleLive(field) {
+        clearTimeout(this.liveTimer);
+        this.live = { command: field.dataset.liveCommand, id: field.dataset.id, field };
+        this.liveTimer = setTimeout(() => this.flushLive(), 400);
+    }
+
+    flushLive() {
+        clearTimeout(this.liveTimer);
+        const live = this.live;
+        this.live = null;
+        if (!live) return;
+        const value = live.field.value;
+        const text = live.command === "setDoc" ? value.trim() : value;
+        if (text === (live.command === "setDoc" ? live.field.dataset.original.trim() : live.field.dataset.original)) return;
+        live.field.dataset.original = value;
+        this.emit(live.command, live.id, { text });
+    }
+
+    /** The state of a focused live text field before the form is rendered again: its text and caret stay. */
+    liveFieldState() {
+        const field = document.activeElement;
+        if (!field || !this.root.contains(field) || !field.matches("[data-live-command]")) return null;
+        return { key: field.dataset.focusKey, id: field.dataset.id, value: field.value, start: field.selectionStart, end: field.selectionEnd, scroll: field.scrollTop };
+    }
+
+    restoreLiveField(saved) {
+        if (!saved) return;
+        const field = this.root.querySelector(`[data-focus-key="${CSS.escape(saved.key)}"][data-id="${CSS.escape(saved.id)}"]`);
+        if (!field) return;
+        if (field.value !== saved.value) {
+            field.value = saved.value;
+            if (this.live && this.live.id === saved.id) this.live.field = field;
+        }
+        field.focus({ preventScroll: true });
+        field.setSelectionRange(saved.start, saved.end);
+        field.scrollTop = saved.scroll;
+    }
+
     emit(command, id, args = {}) {
         this.dispatchEvent(new CustomEvent("command", { detail: { command, id, args } }));
     }
@@ -730,10 +770,6 @@ export class FormView extends EventTarget {
         const command = e.target.closest("[data-command]");
         if (command) { this.emit(command.dataset.command, command.dataset.id); return; }
         if (e.target.closest("[data-rename]")) { this.rename(this.root.querySelector("[data-rename-input]")); return; }
-        const saveExplanation = e.target.closest("[data-save-explanation]");
-        if (saveExplanation) { this.emit("setExplanation", saveExplanation.dataset.id, { text: this.root.querySelector("[data-explanation-input]").value }); return; }
-        const saveDoc = e.target.closest("[data-save-doc]");
-        if (saveDoc) { this.emit("setDoc", saveDoc.dataset.id, { text: this.root.querySelector("[data-doc-input]").value.trim() }); return; }
         const jump = e.target.closest("[data-jump]");
         if (jump) { this.scrollToSection(jump.dataset.jump); return; }
         const view = e.target.closest("[data-view]");

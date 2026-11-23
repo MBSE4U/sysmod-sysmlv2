@@ -588,3 +588,10 @@
 .ov-delivers li.ov-open:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .ov-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .ov-include:hover { color: var(--accent); text-decoration: underline; }
+/* Matrix: the + of a cell adds a process step there (visible on hover and focus) */
+.mx-add { cursor: pointer; opacity: 0; transition: opacity .12s; }
+.mx-cell-group:hover .mx-add, .mx-add:focus-visible { opacity: 1; }
+.mx-add rect { fill: var(--surface); stroke: var(--accent); stroke-width: 1.2; }
+.mx-add text { fill: var(--accent); font: 700 14px var(--sans); pointer-events: none; }
+.mx-add:hover rect { fill: var(--accent); }
+.mx-add:hover text { fill: var(--accent-text); }

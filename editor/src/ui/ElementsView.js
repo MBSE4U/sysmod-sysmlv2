@@ -204,7 +204,14 @@ export class ElementsView extends EventTarget {
         const candidates = {
             roles: () => model.inScope(model.roles, environmentId),
             tools: () => model.inScope(model.tools, environmentId),
-            products: () => model.inScope(model.artifacts, environmentId),
+            // All products: those of the environment and its methodology first, then those of the libraries
+            // (e.g. SYSMODProcesses::Products::SystemSpecification), so that new inputs and outputs can be chosen.
+            products: () => {
+                const used = [...model.inScope(model.artifacts, environmentId), ...c.behaviors.flatMap(b => [...c.inputsOf(b), ...c.outputsOf(b)])].filter(Boolean);
+                const byName = (a, b) => a.name.localeCompare(b.name);
+                const first = [...new Set(used)].sort(byName);
+                return [...first, ...model.artifacts.filter(a => !first.includes(a)).sort(byName)];
+            },
             methods: () => c.behaviors,
         }[relation.choose]();
         const current = relation.reverse
@@ -238,16 +245,23 @@ export class ElementsView extends EventTarget {
         const ctx = this.relationContext(label);
         if (!ctx) return;
         const { element, relation, candidates, current } = ctx;
-        const options = [...new Set([...candidates, ...current])].filter(Boolean).map(e => ({ value: e.id, label: e.name }));
-        const values = await formDialog({
-            title: `${label} – ${element.name}`, submitLabel: "Save",
-            fields: [relation.single
-                ? { name: "chosen", label, type: "radio", value: current[0] ? current[0].id : "", options: [{ value: "", label: "(none)" }, ...options] }
-                : { name: "chosen", label, type: "checkboxes", value: current.map(e => e.id), options }],
-        });
+        // The current entries first, then the others; library elements are marked.
+        const ordered = [...new Set([...current, ...candidates])].filter(Boolean);
+        const options = ordered.map(e => ({ value: e.id, label: e.library && !current.includes(e) ? `${e.name} (library)` : e.name }));
+        const products = relation.choose === "products";
+        const fields = [relation.single
+            ? { name: "chosen", label, type: "radio", value: current[0] ? current[0].id : "", options: [{ value: "", label: "(none)" }, ...options] }
+            : { name: "chosen", label, type: "checkboxes", value: current.map(e => e.id), options }];
+        if (products) fields.push({ name: "newProduct", label: "New product (optional)", value: "",
+            hint: `Adds a product to the MBSE environment ${ctx.model.nameOf(ctx.environmentId, "")} and to the ${label.toLowerCase()} of ${element.name}.` });
+        const values = await formDialog({ title: `${label} – ${element.name}`, submitLabel: "Save", fields });
         if (!values) return;
         const chosen = relation.single ? (values.chosen ? [values.chosen] : []) : values.chosen;
-        this.emitChanges(ctx, this.relationChanges(ctx, chosen), `change ${label.toLowerCase()} of ${element.name}`);
+        const newProduct = products && values.newProduct ? values.newProduct : null;
+        const changes = this.relationChanges(ctx, chosen);
+        if (newProduct && !changes.length) changes.push({ id: element.id, feature: relation.feature, ids: chosen });
+        if (newProduct) changes.find(ch => ch.id === element.id).newProduct = newProduct;
+        this.emitChanges(ctx, changes, `change ${label.toLowerCase()} of ${element.name}`);
     }
 
     /** Removes one entry of a relation of the table. */

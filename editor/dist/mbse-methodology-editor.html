@@ -9793,7 +9793,14 @@ class ElementsView extends EventTarget {
         const candidates = {
             roles: () => model.inScope(model.roles, environmentId),
             tools: () => model.inScope(model.tools, environmentId),
-            products: () => model.inScope(model.artifacts, environmentId),
+            // All products: those of the environment and its methodology first, then those of the libraries
+            // (e.g. SYSMODProcesses::Products::SystemSpecification), so that new inputs and outputs can be chosen.
+            products: () => {
+                const used = [...model.inScope(model.artifacts, environmentId), ...c.behaviors.flatMap(b => [...c.inputsOf(b), ...c.outputsOf(b)])].filter(Boolean);
+                const byName = (a, b) => a.name.localeCompare(b.name);
+                const first = [...new Set(used)].sort(byName);
+                return [...first, ...model.artifacts.filter(a => !first.includes(a)).sort(byName)];
+            },
             methods: () => c.behaviors,
         }[relation.choose]();
         const current = relation.reverse
@@ -9827,16 +9834,23 @@ class ElementsView extends EventTarget {
         const ctx = this.relationContext(label);
         if (!ctx) return;
         const { element, relation, candidates, current } = ctx;
-        const options = [...new Set([...candidates, ...current])].filter(Boolean).map(e => ({ value: e.id, label: e.name }));
-        const values = await formDialog({
-            title: `${label} – ${element.name}`, submitLabel: "Save",
-            fields: [relation.single
-                ? { name: "chosen", label, type: "radio", value: current[0] ? current[0].id : "", options: [{ value: "", label: "(none)" }, ...options] }
-                : { name: "chosen", label, type: "checkboxes", value: current.map(e => e.id), options }],
-        });
+        // The current entries first, then the others; library elements are marked.
+        const ordered = [...new Set([...current, ...candidates])].filter(Boolean);
+        const options = ordered.map(e => ({ value: e.id, label: e.library && !current.includes(e) ? `${e.name} (library)` : e.name }));
+        const products = relation.choose === "products";
+        const fields = [relation.single
+            ? { name: "chosen", label, type: "radio", value: current[0] ? current[0].id : "", options: [{ value: "", label: "(none)" }, ...options] }
+            : { name: "chosen", label, type: "checkboxes", value: current.map(e => e.id), options }];
+        if (products) fields.push({ name: "newProduct", label: "New product (optional)", value: "",
+            hint: `Adds a product to the MBSE environment ${ctx.model.nameOf(ctx.environmentId, "")} and to the ${label.toLowerCase()} of ${element.name}.` });
+        const values = await formDialog({ title: `${label} – ${element.name}`, submitLabel: "Save", fields });
         if (!values) return;
         const chosen = relation.single ? (values.chosen ? [values.chosen] : []) : values.chosen;
-        this.emitChanges(ctx, this.relationChanges(ctx, chosen), `change ${label.toLowerCase()} of ${element.name}`);
+        const newProduct = products && values.newProduct ? values.newProduct : null;
+        const changes = this.relationChanges(ctx, chosen);
+        if (newProduct && !changes.length) changes.push({ id: element.id, feature: relation.feature, ids: chosen });
+        if (newProduct) changes.find(ch => ch.id === element.id).newProduct = newProduct;
+        this.emitChanges(ctx, changes, `change ${label.toLowerCase()} of ${element.name}`);
     }
 
     /** Removes one entry of a relation of the table. */
@@ -11054,8 +11068,8 @@ class App {
      * behaviors of the environment and of the environments it specializes are visible by name.
      */
     /**
-     * The reference to an element in a value, e.g. "systemArchitect": its simple name, or its qualified name if another
-     * element has the same name. The simple name could resolve to that one, e.g. inside a redefinition of
+     * The reference to an element in a value, e.g. "systemArchitect": its simple name, or its qualified name if it is
+     * declared in a library or another element has the same name. The simple name could resolve to that one, e.g. inside a redefinition of
      * SYSMODDefaultProcess, "systemArchitect" is the performer SYSMODDefaultProcess::systemArchitect, not the role of the
      * environment.
      */
@@ -11063,6 +11077,8 @@ class App {
         const element = model.get(id);
         if (!element) return id;
         const last = k => String(k).split("::").pop().replace(/^'|'$/g, "");
+        // A library element, e.g. SYSMODProcesses::Products::SystemSpecification, is not necessarily imported by name.
+        if (element.library) return id;
         const clash = [...model.elements.keys(), ...Object.keys(model.generals || {})].some(k => k !== id && last(k) === element.name);
         return clash ? id : quoteName(element.name);
     }
@@ -11564,12 +11580,22 @@ class App {
                 const environment = model.get(environmentId) || this.environmentOf(element, model);
                 if (!environment) throw new ModelEditError(`${element.name} belongs to no MBSE environment.`);
                 const byMethod = new Map();
-                for (const { id, feature, ids } of changes) {
-                    const value = feature === "primaryPerformer" ? (ids[0] ? this.nameRef(ids[0], model) : null) : listValue(ids.map(x => this.nameRef(x, model)));
+                const edits = [];
+                for (const { id, feature, ids, newProduct } of changes) {
+                    const references = ids.map(x => this.nameRef(x, model));
+                    // A new product: declared in the environment, referred to by its qualified name.
+                    if (newProduct) {
+                        const problem = this.validateNewName(newProduct, environment.id, result);
+                        if (problem) throw new ModelEditError(problem);
+                        edits.push(...this.createModelEditor(result).addElement(environment.id, environmentElementLines("product", newProduct)));
+                        references.push(`${environment.id}::${quoteName(newProduct)}`);
+                    }
+                    const value = feature === "primaryPerformer" ? (references[0] || null) : listValue(references);
                     if (!byMethod.has(id)) byMethod.set(id, { id, pairs: [] });
                     byMethod.get(id).pairs.push([feature, value]);
                 }
-                const { edits, ids } = this.behaviorEdits(result, environment, [...byMethod.values()]);
+                const { edits: behaviorEdits, ids } = this.behaviorEdits(result, environment, [...byMethod.values()]);
+                edits.push(...behaviorEdits);
                 return { edits, label: label || `change ${element.name}`, select: ids.get(element.id) || element.id };
             },
 

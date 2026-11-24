@@ -1142,8 +1142,8 @@ export class App {
      * behaviors of the environment and of the environments it specializes are visible by name.
      */
     /**
-     * The reference to an element in a value, e.g. "systemArchitect": its simple name, or its qualified name if another
-     * element has the same name. The simple name could resolve to that one, e.g. inside a redefinition of
+     * The reference to an element in a value, e.g. "systemArchitect": its simple name, or its qualified name if it is
+     * declared in a library or another element has the same name. The simple name could resolve to that one, e.g. inside a redefinition of
      * SYSMODDefaultProcess, "systemArchitect" is the performer SYSMODDefaultProcess::systemArchitect, not the role of the
      * environment.
      */
@@ -1151,6 +1151,8 @@ export class App {
         const element = model.get(id);
         if (!element) return id;
         const last = k => String(k).split("::").pop().replace(/^'|'$/g, "");
+        // A library element, e.g. SYSMODProcesses::Products::SystemSpecification, is not necessarily imported by name.
+        if (element.library) return id;
         const clash = [...model.elements.keys(), ...Object.keys(model.generals || {})].some(k => k !== id && last(k) === element.name);
         return clash ? id : quoteName(element.name);
     }
@@ -1652,12 +1654,22 @@ export class App {
                 const environment = model.get(environmentId) || this.environmentOf(element, model);
                 if (!environment) throw new ModelEditError(`${element.name} belongs to no MBSE environment.`);
                 const byMethod = new Map();
-                for (const { id, feature, ids } of changes) {
-                    const value = feature === "primaryPerformer" ? (ids[0] ? this.nameRef(ids[0], model) : null) : listValue(ids.map(x => this.nameRef(x, model)));
+                const edits = [];
+                for (const { id, feature, ids, newProduct } of changes) {
+                    const references = ids.map(x => this.nameRef(x, model));
+                    // A new product: declared in the environment, referred to by its qualified name.
+                    if (newProduct) {
+                        const problem = this.validateNewName(newProduct, environment.id, result);
+                        if (problem) throw new ModelEditError(problem);
+                        edits.push(...this.createModelEditor(result).addElement(environment.id, environmentElementLines("product", newProduct)));
+                        references.push(`${environment.id}::${quoteName(newProduct)}`);
+                    }
+                    const value = feature === "primaryPerformer" ? (references[0] || null) : listValue(references);
                     if (!byMethod.has(id)) byMethod.set(id, { id, pairs: [] });
                     byMethod.get(id).pairs.push([feature, value]);
                 }
-                const { edits, ids } = this.behaviorEdits(result, environment, [...byMethod.values()]);
+                const { edits: behaviorEdits, ids } = this.behaviorEdits(result, environment, [...byMethod.values()]);
+                edits.push(...behaviorEdits);
                 return { edits, label: label || `change ${element.name}`, select: ids.get(element.id) || element.id };
             },
 

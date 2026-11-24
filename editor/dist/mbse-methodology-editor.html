@@ -1,7 +1,7 @@
 <!doctype html>
 <!--
 MBSE Methodology Editor, standalone build: open this file in a browser, no web server needed.
-Built by tools/build-standalone.mjs on 2026-11-23.
+Built by tools/build-standalone.mjs on 2026-11-24.
 
 ==== MBSE Methodology editor ====
 
@@ -2005,6 +2005,14 @@ body.resizing { cursor: col-resize; user-select: none; }
 .el-table th[scope=row] { white-space: nowrap; vertical-align: top; color: var(--muted); font-weight: 600; }
 .el-table tbody tr:has(th[scope=row]:not(:empty)) > * { border-top: 1px solid var(--line); }
 .el-table .el-empty-row td { color: var(--muted); }
+/* Editing in the table of an element */
+.el-edit, .el-remove { border: 0; background: none; padding: 0 3px; cursor: pointer; color: var(--muted); font-size: 13px; line-height: 1; border-radius: 3px; }
+.el-edit:hover { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.el-remove { opacity: 0; }
+.el-table tr:hover .el-remove, .el-remove:focus-visible { opacity: 1; }
+.el-remove:hover { color: var(--error); background: color-mix(in srgb, var(--error) 10%, transparent); }
+/* The switch of the element above the text */
+.text-modes { border-bottom: 1px solid var(--line); }
 
     </style>
     
@@ -2082,7 +2090,7 @@ body.resizing { cursor: col-resize; user-select: none; }
                     <button type="button" role="tab" data-view-tab="products" aria-controls="view-products" title="The products: who produces and needs them">Products</button>
                     <button type="button" role="tab" data-view-tab="process" aria-controls="view-process" title="The flow of a process: its steps in the lanes of their performers">Processes</button>
                     <button type="button" role="tab" data-view-tab="overview" aria-controls="view-overview" title="The methodology at a glance, for management and non-technical engineers: stages, who does what, deliverables">Overview</button>
-                    <button type="button" role="tab" data-view-tab="text" aria-controls="view-text">Text</button>
+                    <button type="button" role="tab" class="view-tab-transient" data-view-tab="text" aria-controls="view-text" hidden>Text</button>
                     <!-- Views without a tab of their own: the DTFA views show their tab while they are open. The form never shows its
                          tab: it is the mode Form of the switch Diagram | Table | Form, and the tab of what it shows is active. -->
                     <button type="button" role="tab" class="view-tab-transient" data-view-tab="form" aria-controls="view-form" hidden>Form</button>
@@ -2106,6 +2114,7 @@ body.resizing { cursor: col-resize; user-select: none; }
             <section id="view-overview" class="view" role="tabpanel" aria-label="Overview of the methodology" hidden><div id="overview"></div></section>
             <section id="view-form" class="view" role="tabpanel" aria-label="Form editor" hidden><div id="form"></div></section>
             <section id="view-text" class="view text-view" role="tabpanel" aria-label="Text editor" hidden>
+                <div id="text-modes" class="dg-toolbar text-modes" hidden></div>
                 <div id="tabs" class="tabs" role="tablist" aria-label="Open documents"></div>
                 <div id="code"></div>
             </section>
@@ -3750,6 +3759,13 @@ function namesInValueText(text) {
         .map(s => s.trim()).filter(s => /^[A-Za-z_][A-Za-z0-9_]*(::[A-Za-z_][A-Za-z0-9_]*)*$/.test(s));
 }
 
+/** The names in the text of a value that may be qualified with quoted segments, e.g. "(a, Pkg::'Name with spaces'::b)". */
+function referencesInValueText(text) {
+    const segment = "(?:[A-Za-z_][A-Za-z0-9_]*|'(?:[^'\\\\]|\\\\.)*')";
+    const name = new RegExp(`^${segment}(?:::${segment})*$`);
+    return String(text || "").replace(/^\s*\(([\s\S]*)\)\s*$/, "$1").split(",").map(s => s.trim()).filter(s => name.test(s));
+}
+
 /**
  * @param {Object<string, object>} symbols the engine symbols by qualified name
  * @param {{documentOf?: function, truncated?: boolean, generals?: object, libraryNames?: string[]}} hooks
@@ -3871,10 +3887,28 @@ function buildDtfaModel(symbols, { documentOf = () => "", truncated = false, gen
 
     // Values of features: element ids (refs) or literals.
     const rawValues = symbol => (symbol.value === undefined ? [] : Array.isArray(symbol.value) ? symbol.value : [symbol.value]);
+    /**
+     * The elements a value refers to. The engine does not evaluate every list of references (e.g.
+     * ":>> additionalPerformers = (systemArchitect, Pkg::'Env'::projectManager);" in a redefinition): then the names of
+     * the value text are resolved, a simple name in the scopes that enclose the value, a qualified name as it is.
+     */
+    const valueRefs = symbol => {
+        const raw = rawValues(symbol).filter(v => v && v.ref).map(v => v.ref);
+        if (raw.length || !symbol.valueText) return raw;
+        const resolved = [];
+        for (const name of referencesInValueText(symbol.valueText)) {
+            if (name.includes("::")) { if (get(name)) resolved.push(name); continue; }
+            for (let scope = ownerOf(symbol.id); scope; scope = ownerOf(scope)) {
+                const candidate = `${scope}::${name}`;
+                if (candidate !== symbol.id && get(candidate) && !candidate.startsWith(symbol.id + "::")) { resolved.push(candidate); break; }
+            }
+        }
+        return resolved;
+    };
     const valueOf = (ownerId, feature) => get(`${ownerId}::${feature}`);
     const refs = (ownerId, feature) => {
         const symbol = valueOf(ownerId, feature);
-        return symbol ? rawValues(symbol).filter(v => v && v.ref).map(v => v.ref) : [];
+        return symbol ? valueRefs(symbol) : [];
     };
     const literals = (ownerId, feature) => {
         const symbol = valueOf(ownerId, feature);
@@ -3913,7 +3947,7 @@ function buildDtfaModel(symbols, { documentOf = () => "", truncated = false, gen
     // facilitationTools (e.g. "ref part projectManager : ProjectManager :>> primaryPerformer"), and the connections
     // ResponsibleFor, Supports and Facilitates (e.g. "connection :> responsibleFor connect systemArchitect to step").
     // A slot is matched with the roles and tools of an environment by its value or by its types (model.performersOf).
-    const slotOf = (slotSymbol, kind) => ({ slotId: slotSymbol.id, kind, typeIds: typesOf(slotSymbol), valueIds: rawValues(slotSymbol).filter(v => v && v.ref).map(v => v.ref) });
+    const slotOf = (slotSymbol, kind) => ({ slotId: slotSymbol.id, kind, typeIds: typesOf(slotSymbol), valueIds: valueRefs(slotSymbol) });
     const slotsByBehavior = new Map();
     const addSlot = (behaviorId, slot) => {
         if (!slotsByBehavior.has(behaviorId)) slotsByBehavior.set(behaviorId, []);
@@ -7518,6 +7552,7 @@ class FormView extends EventTarget {
                 <button type="button" data-element-mode="diagram" data-id="${id}" aria-pressed="false" title="${escapeHtml(element.name)} and its connected artifacts as a diagram">Diagram</button>
                 <button type="button" data-element-mode="table" data-id="${id}" aria-pressed="false" title="${escapeHtml(element.name)} and its connected artifacts as a table">Table</button>
                 <button type="button" class="active" aria-pressed="true">Form</button>
+                <button type="button" data-reveal="${id}" aria-pressed="false" title="The declaration of ${escapeHtml(element.name)} in the text">Text</button>
             </span>`;
     }
 
@@ -9425,197 +9460,8 @@ class ElementGraph {
 return { kindOf, connections, graphOf, ElementGraph };
 })();
 
-// src/ui/ElementsView.js
-const __module27 = (() => {
-// The tabs Roles, Tools, Methodology and Products: a list of the elements of the current MBSE environment (own and
-// inherited, the methodology as a tree) and the graph of the selected element with its connected artifacts
-// (ElementGraph). Without an environment in the current document (e.g. the library ISO15288Processes), the list
-// shows the elements of the document.
-//
-// Events: "select" { id } (list), "open" { id } (graph node: the graph of that element in its tab),
-//         "form" { id } (the form of the element), "command" { command, id }, "collection" { kind, id }, "view" { view }
-
-const { splitterHandle, makeResizable } = __module1;
-const { Process, Method, Role, Tool, Artifact, MBSEEnvironment } = __module3;
-const { graphOf, ElementGraph } = __module26;
-
-function escapeHtml(s) {
-    return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-}
-
-const isBehavior = e => e instanceof Process || e instanceof Method;
-
-/** The tabs: their element class, the list in the environment, the command that adds an element, the collection editor. */
-const KINDS = {
-    roles: { title: "Roles", singular: "role", is: e => e instanceof Role, command: "addRole", collection: "roles" },
-    tools: { title: "Tools", singular: "tool", is: e => e instanceof Tool, command: "addTool", collection: "tools" },
-    methodology: { title: "Methodology", singular: "process or method", is: isBehavior, command: "addMethod", collection: "methods" },
-    products: { title: "Products", singular: "product", is: e => e instanceof Artifact, command: "addArtifact", collection: "products" },
-};
-
-class ElementsView extends EventTarget {
-    /** How the right side shows the current element: "diagram" or "table" (shared by the Roles, Tools, Methodology and Products tabs). */
-    static mode = "diagram";
-
-    constructor(container, kind) {
-        super();
-        this.root = container;
-        this.kind = kind;
-        this.spec = KINDS[kind];
-        this.root.classList.add("el-view");
-        this.graph = new ElementGraph();
-        this.currentId = null;
-        // The list is resizable; all four tabs share its width.
-        makeResizable(this.root, { pane: ".el-list", variable: "--el-list-width", key: "element-list", min: 220 });
-        this.root.addEventListener("click", e => {
-            const modeButton = e.target.closest("[data-element-mode]");
-            if (modeButton) { ElementsView.mode = modeButton.dataset.elementMode; if (this.state) this.show(this.state); return; }
-            const openElement = e.target.closest("[data-open-element]");
-            if (openElement) { this.dispatchEvent(new CustomEvent("open", { detail: { id: openElement.dataset.openElement } })); return; }
-            const item = e.target.closest("[data-item]");
-            if (item) { this.currentId = item.dataset.item; this.dispatchEvent(new CustomEvent("select", { detail: { id: item.dataset.item } })); return; }
-            const command = e.target.closest("[data-command]");
-            if (command) { this.dispatchEvent(new CustomEvent("command", { detail: { command: command.dataset.command, id: command.dataset.id } })); return; }
-            const form = e.target.closest("[data-form]");
-            if (form) { this.dispatchEvent(new CustomEvent("form", { detail: { id: form.dataset.form } })); return; }
-            const table = e.target.closest("[data-table]");
-            if (table) { this.dispatchEvent(new CustomEvent("collection", { detail: { kind: this.spec.collection, id: table.dataset.table } })); return; }
-            const view = e.target.closest("[data-goto-view]");
-            if (view) this.dispatchEvent(new CustomEvent("view", { detail: { view: view.dataset.gotoView, id: view.dataset.id } }));
-        });
-    }
-
-    /** The elements of the list: [{ element, depth, inherited }]. */
-    entries(model, environmentId, activeDocument) {
-        const { is } = this.spec;
-        if (environmentId) {
-            if (this.kind === "methodology") return model.methodologyTree(environmentId).map(n => ({ element: n.element, depth: n.depth, inherited: n.inherited }));
-            const list = this.kind === "products" ? model.productsOf(environmentId)
-                : model.inScope(this.kind === "roles" ? model.roles : model.tools, environmentId);
-            return list.map(e => ({ element: e, depth: 0, inherited: e.environmentId !== environmentId }));
-        }
-        // The elements of the document outside an environment, e.g. the processes and products of a library.
-        const outside = e => {
-            if (e.document !== activeDocument) return false;
-            for (let o = model.get(e.ownerId); o; o = model.get(o.ownerId)) if (o instanceof MBSEEnvironment || (isBehavior(o) && !isBehavior(e))) return false;
-            return true;
-        };
-        const all = [...model.elements.values()].filter(e => is(e) && outside(e));
-        if (this.kind !== "methodology") return all.map(e => ({ element: e, depth: 0, inherited: false }));
-        // Behaviors as a tree: the top-level ones with their nested steps.
-        const result = [];
-        const walk = (e, depth) => {
-            if (result.some(r => r.element === e)) return;
-            result.push({ element: e, depth, inherited: false });
-            all.filter(c => c.ownerId === e.id).forEach(c => walk(c, depth + 1));
-        };
-        all.filter(e => !isBehavior(model.get(e.ownerId))).forEach(e => walk(e, 0));
-        return result;
-    }
-
-    show(state) {
-        this.state = state;
-        const { model, environmentId, activeDocument, selectedId, editable } = state;
-        if (!model) {
-            this.root.innerHTML = `<div class="fv-empty">${escapeHtml(state.message || "Waiting for the model check…")}</div>`;
-            return;
-        }
-        const entries = this.entries(model, environmentId, activeDocument);
-        const selected = model.get(selectedId);
-        if (selected && this.spec.is(selected)) this.currentId = selected.id;
-        let current = model.get(this.currentId);
-        if (!current || !this.spec.is(current)) current = entries.length ? entries[0].element : null;
-        this.currentId = current ? current.id : null;
-        const environment = model.get(environmentId);
-        const context = environment ? `of ${escapeHtml(environment.name)}` : activeDocument ? `in ${escapeHtml(activeDocument)}` : "";
-        const list = entries.map(({ element: e, depth, inherited }) => `<li class="${e === current ? "selected" : ""}${inherited ? " inherited" : ""}" style="padding-left:${8 + depth * 14}px">
-                <button type="button" class="el-item" data-item="${escapeHtml(e.id)}" title="${escapeHtml([e.kindLabel + " " + e.name, e.doc || (e.inheritedDoc ? e.inheritedDoc.text : "")].filter(Boolean).join("\n"))}">
-                    <span class="fm-dot tag-${this.kind === "methodology" ? "method" : this.kind === "products" ? "artifact" : this.kind.slice(0, -1)}" aria-hidden="true"></span>${escapeHtml(e.name)}</button></li>`).join("");
-        // A current element that the list does not contain (e.g. a product outside the environment) stays visible.
-        const missing = current && !entries.some(x => x.element === current);
-        this.root.innerHTML = `<aside class="el-list" aria-label="${escapeHtml(this.spec.title)}">
-                <div class="el-list-head"><h2>${escapeHtml(this.spec.title)} <span class="fv-count">${entries.length}</span></h2>
-                    <span class="fv-muted">${context}</span></div>
-                ${environment ? `<div class="el-list-actions">
-                    ${editable ? `<button type="button" data-command="${this.spec.command}" data-id="${escapeHtml(environment.id)}">+ ${escapeHtml(this.spec.singular === "process or method" ? "Method" : this.spec.singular[0].toUpperCase() + this.spec.singular.slice(1))}</button>` : ""}
-                    <button type="button" class="fv-link" data-table="${escapeHtml(environment.id)}" title="All ${escapeHtml(this.spec.title.toLowerCase())} of ${escapeHtml(environment.name)} in one table">All as table</button></div>` : ""}
-                <ul class="el-items">${list}${missing ? `<li class="selected el-extra"><button type="button" class="el-item" data-item="${escapeHtml(current.id)}">${escapeHtml(current.name)}</button></li>` : ""}</ul>
-                ${entries.length ? "" : `<p class="fv-muted el-none">No ${escapeHtml(this.spec.title.toLowerCase())} ${context}.</p>`}
-                ${splitterHandle(`Width of the list of ${escapeHtml(this.spec.title.toLowerCase())}`)}
-            </aside>
-            <div class="el-graph diagram-view"></div>`;
-        const host = this.root.querySelector(".el-graph");
-        if (!current) {
-            host.innerHTML = `<div class="fv-empty"><p>Select a ${escapeHtml(this.spec.singular)} in the list.</p></div>`;
-            return;
-        }
-        const flow = isBehavior(current) && model.subBehaviors(current).length;
-        // The switch Diagram | Table | Form refers to the element shown here (e.g. the method SetupProject).
-        const mode = ElementsView.mode;
-        const toolbar = `<strong class="eg-name">${escapeHtml(current.name)}</strong>
-            <span class="ev-modes" role="group" aria-label="Show ${escapeHtml(current.name)} as">
-                <button type="button" data-element-mode="diagram" class="${mode === "diagram" ? "active" : ""}" aria-pressed="${mode === "diagram"}" title="${escapeHtml(current.name)} and its connected artifacts as a diagram">Diagram</button>
-                <button type="button" data-element-mode="table" class="${mode === "table" ? "active" : ""}" aria-pressed="${mode === "table"}" title="${escapeHtml(current.name)} and its connected artifacts as a table">Table</button>
-                <button type="button" data-form="${escapeHtml(current.id)}" aria-pressed="false" title="The form of ${escapeHtml(current.name)}">Form</button>
-            </span>
-            ${flow ? `<button type="button" class="fv-link" data-goto-view="process" data-id="${escapeHtml(current.id)}">Show flow</button>` : ""}`;
-        if (mode === "table") {
-            host.innerHTML = this.elementTable(model, current, environmentId, toolbar);
-            return;
-        }
-        this.graph.render(host, { model, element: current, environmentId, selectedId, toolbar }, {
-            onOpen: id => this.dispatchEvent(new CustomEvent("open", { detail: { id } })),
-            onCenter: id => this.dispatchEvent(new CustomEvent("form", { detail: { id } })),
-        });
-    }
-
-    /**
-     * The table of an element: what its diagram shows, row by row (e.g. for a method its responsible and supporting
-     * roles, product owners, tools, the process it is part of, its steps, inputs and outputs), with the kind and the
-     * description of each connected artifact. A click on an artifact opens it.
-     */
-    elementTable(model, element, environmentId, toolbar) {
-        const graph = graphOf(model, element, environmentId);
-        const kindOfColumn = { role: "Role", tool: "Tool", method: "Process or method", product: "Product" };
-        const describe = e => {
-            const doc = e.doc || (e.inheritedDoc ? e.inheritedDoc.text : "");
-            const first = doc.replace(/\s+/g, " ").trim().match(/^.{0,160}?[.!?](\s|$)/);
-            return first ? first[0].trim() : doc.length > 160 ? doc.slice(0, 160) + "…" : doc;
-        };
-        const rows = [];
-        for (const g of element.typeIds || []) {
-            const general = model.get(g);
-            const name = (model.generals[g] && model.generals[g].name) || model.nameOf(g, g.split("::").pop());
-            rows.push({ relation: "Specializes", e: general, name, kind: general ? general.kindLabel : "", doc: general ? describe(general) : "" });
-        }
-        for (const column of graph.columns) for (const section of column.sections) {
-            const items = section.items.filter(Boolean);
-            items.forEach((e, i) => rows.push({ relation: section.label, first: i === 0, count: items.length, e, name: e.name,
-                kind: kindOfColumn[section.kind || column.kind] || e.kindLabel, doc: describe(e), inherited: !!e.library }));
-            if (!items.length) rows.push({ relation: section.label, first: true, count: 1, empty: true });
-        }
-        const body = rows.map(r => `<tr${r.empty ? ' class="el-empty-row"' : ""}>
-                <th scope="row">${r.first !== false ? escapeHtml(r.relation) : ""}</th>
-                <td>${r.empty ? '<span class="fv-muted">–</span>' : r.e ? `<button type="button" class="fv-link" data-open-element="${escapeHtml(r.e.id)}">${escapeHtml(r.name)}</button>${r.inherited ? ' <span class="fv-muted" title="from a library">◌</span>' : ""}` : escapeHtml(r.name)}</td>
-                <td class="fv-muted">${escapeHtml(r.kind || "")}</td>
-                <td>${escapeHtml(r.doc || "")}</td></tr>`).join("");
-        const own = describe(element);
-        return `<div class="dg-toolbar">${toolbar}<span class="dg-status">${escapeHtml(graph.summary)}</span></div>
-            <div class="el-table-page">
-                <p class="el-table-lead"><span class="fv-muted">${escapeHtml(element.kindLabel)}</span> <strong>${escapeHtml(element.name)}</strong>${own ? ` – ${escapeHtml(own)}` : ""}
-                    <span class="fv-muted">· ${escapeHtml(element.document || "")}</span></p>
-                <table class="fv-table el-table">
-                    <thead><tr><th>Relation</th><th>Element</th><th>Kind</th><th>Description</th></tr></thead>
-                    <tbody>${body}</tbody>
-                </table>
-            </div>`;
-    }
-}
-return { KINDS, ElementsView };
-})();
-
 // src/ui/FormDialog.js
-const __module28 = (() => {
+const __module27 = (() => {
 // Small modal form built on <dialog>. Answers the field values, or null if the user cancels.
 //
 // fields: { name, label, type: "text"|"textarea"|"number"|"select"|"checkboxes"|"radio", value, options: [{value, label}], hint, required,
@@ -9739,6 +9585,335 @@ function confirmDialog(message, { confirmLabel = "OK", cancelLabel = "Cancel" } 
 return { formDialog, infoDialog, confirmDialog };
 })();
 
+// src/ui/ElementsView.js
+const __module28 = (() => {
+// The tabs Roles, Tools, Methodology and Products: a list of the elements of the current MBSE environment (own and
+// inherited, the methodology as a tree) and the graph of the selected element with its connected artifacts
+// (ElementGraph). Without an environment in the current document (e.g. the library ISO15288Processes), the list
+// shows the elements of the document.
+//
+// Events: "select" { id } (list), "open" { id } (graph node: the graph of that element in its tab),
+//         "form" { id } (the form of the element), "command" { command, id }, "collection" { kind, id }, "view" { view }
+
+const { splitterHandle, makeResizable } = __module1;
+const { Process, Method, Role, Tool, Artifact, MBSEEnvironment } = __module3;
+const { graphOf, connections, kindOf, ElementGraph } = __module26;
+const { formDialog } = __module27;
+
+function escapeHtml(s) {
+    return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+const isBehavior = e => e instanceof Process || e instanceof Method;
+
+/** The tabs: their element class, the list in the environment, the command that adds an element, the collection editor. */
+const KINDS = {
+    roles: { title: "Roles", singular: "role", is: e => e instanceof Role, command: "addRole", collection: "roles" },
+    tools: { title: "Tools", singular: "tool", is: e => e instanceof Tool, command: "addTool", collection: "tools" },
+    methodology: { title: "Methodology", singular: "process or method", is: isBehavior, command: "addMethod", collection: "methods" },
+    products: { title: "Products", singular: "product", is: e => e instanceof Artifact, command: "addArtifact", collection: "products" },
+};
+
+class ElementsView extends EventTarget {
+    /** How the right side shows the current element: "diagram" or "table" (shared by the Roles, Tools, Methodology and Products tabs). */
+    static mode = "diagram";
+
+    constructor(container, kind) {
+        super();
+        this.root = container;
+        this.kind = kind;
+        this.spec = KINDS[kind];
+        this.root.classList.add("el-view");
+        this.graph = new ElementGraph();
+        this.currentId = null;
+        // The list is resizable; all four tabs share its width.
+        makeResizable(this.root, { pane: ".el-list", variable: "--el-list-width", key: "element-list", min: 220 });
+        this.root.addEventListener("click", e => {
+            const modeButton = e.target.closest("[data-element-mode]");
+            if (modeButton) { ElementsView.mode = modeButton.dataset.elementMode; if (this.state) this.show(this.state); return; }
+            const revealText = e.target.closest("[data-reveal-text]");
+            if (revealText) { this.dispatchEvent(new CustomEvent("reveal", { detail: { id: revealText.dataset.revealText } })); return; }
+            const editRelation = e.target.closest("[data-edit-relation]");
+            if (editRelation) { this.editRelation(editRelation.dataset.editRelation); return; }
+            const removeRelation = e.target.closest("[data-remove-relation]");
+            if (removeRelation) { this.removeFromRelation(removeRelation.dataset.removeRelation, removeRelation.dataset.target); return; }
+            const editDoc = e.target.closest("[data-edit-doc]");
+            if (editDoc) { this.editDescription(editDoc.dataset.editDoc); return; }
+            const openElement = e.target.closest("[data-open-element]");
+            if (openElement) { this.dispatchEvent(new CustomEvent("open", { detail: { id: openElement.dataset.openElement } })); return; }
+            const item = e.target.closest("[data-item]");
+            if (item) { this.currentId = item.dataset.item; this.dispatchEvent(new CustomEvent("select", { detail: { id: item.dataset.item } })); return; }
+            const command = e.target.closest("[data-command]");
+            if (command) { this.dispatchEvent(new CustomEvent("command", { detail: { command: command.dataset.command, id: command.dataset.id } })); return; }
+            const form = e.target.closest("[data-form]");
+            if (form) { this.dispatchEvent(new CustomEvent("form", { detail: { id: form.dataset.form } })); return; }
+            const table = e.target.closest("[data-table]");
+            if (table) { this.dispatchEvent(new CustomEvent("collection", { detail: { kind: this.spec.collection, id: table.dataset.table } })); return; }
+            const view = e.target.closest("[data-goto-view]");
+            if (view) this.dispatchEvent(new CustomEvent("view", { detail: { view: view.dataset.gotoView, id: view.dataset.id } }));
+        });
+    }
+
+    /** The elements of the list: [{ element, depth, inherited }]. */
+    entries(model, environmentId, activeDocument) {
+        const { is } = this.spec;
+        if (environmentId) {
+            if (this.kind === "methodology") return model.methodologyTree(environmentId).map(n => ({ element: n.element, depth: n.depth, inherited: n.inherited }));
+            const list = this.kind === "products" ? model.productsOf(environmentId)
+                : model.inScope(this.kind === "roles" ? model.roles : model.tools, environmentId);
+            return list.map(e => ({ element: e, depth: 0, inherited: e.environmentId !== environmentId }));
+        }
+        // The elements of the document outside an environment, e.g. the processes and products of a library.
+        const outside = e => {
+            if (e.document !== activeDocument) return false;
+            for (let o = model.get(e.ownerId); o; o = model.get(o.ownerId)) if (o instanceof MBSEEnvironment || (isBehavior(o) && !isBehavior(e))) return false;
+            return true;
+        };
+        const all = [...model.elements.values()].filter(e => is(e) && outside(e));
+        if (this.kind !== "methodology") return all.map(e => ({ element: e, depth: 0, inherited: false }));
+        // Behaviors as a tree: the top-level ones with their nested steps.
+        const result = [];
+        const walk = (e, depth) => {
+            if (result.some(r => r.element === e)) return;
+            result.push({ element: e, depth, inherited: false });
+            all.filter(c => c.ownerId === e.id).forEach(c => walk(c, depth + 1));
+        };
+        all.filter(e => !isBehavior(model.get(e.ownerId))).forEach(e => walk(e, 0));
+        return result;
+    }
+
+    show(state) {
+        this.state = state;
+        const { model, environmentId, activeDocument, selectedId, editable } = state;
+        if (!model) {
+            this.root.innerHTML = `<div class="fv-empty">${escapeHtml(state.message || "Waiting for the model check…")}</div>`;
+            return;
+        }
+        const entries = this.entries(model, environmentId, activeDocument);
+        const selected = model.get(selectedId);
+        if (selected && this.spec.is(selected)) this.currentId = selected.id;
+        let current = model.get(this.currentId);
+        if (!current || !this.spec.is(current)) current = entries.length ? entries[0].element : null;
+        this.currentId = current ? current.id : null;
+        const environment = model.get(environmentId);
+        const context = environment ? `of ${escapeHtml(environment.name)}` : activeDocument ? `in ${escapeHtml(activeDocument)}` : "";
+        const list = entries.map(({ element: e, depth, inherited }) => `<li class="${e === current ? "selected" : ""}${inherited ? " inherited" : ""}" style="padding-left:${8 + depth * 14}px">
+                <button type="button" class="el-item" data-item="${escapeHtml(e.id)}" title="${escapeHtml([e.kindLabel + " " + e.name, e.doc || (e.inheritedDoc ? e.inheritedDoc.text : "")].filter(Boolean).join("\n"))}">
+                    <span class="fm-dot tag-${this.kind === "methodology" ? "method" : this.kind === "products" ? "artifact" : this.kind.slice(0, -1)}" aria-hidden="true"></span>${escapeHtml(e.name)}</button></li>`).join("");
+        // A current element that the list does not contain (e.g. a product outside the environment) stays visible.
+        const missing = current && !entries.some(x => x.element === current);
+        this.root.innerHTML = `<aside class="el-list" aria-label="${escapeHtml(this.spec.title)}">
+                <div class="el-list-head"><h2>${escapeHtml(this.spec.title)} <span class="fv-count">${entries.length}</span></h2>
+                    <span class="fv-muted">${context}</span></div>
+                ${environment ? `<div class="el-list-actions">
+                    ${editable ? `<button type="button" data-command="${this.spec.command}" data-id="${escapeHtml(environment.id)}">+ ${escapeHtml(this.spec.singular === "process or method" ? "Method" : this.spec.singular[0].toUpperCase() + this.spec.singular.slice(1))}</button>` : ""}
+                    <button type="button" class="fv-link" data-table="${escapeHtml(environment.id)}" title="All ${escapeHtml(this.spec.title.toLowerCase())} of ${escapeHtml(environment.name)} in one table">All as table</button></div>` : ""}
+                <ul class="el-items">${list}${missing ? `<li class="selected el-extra"><button type="button" class="el-item" data-item="${escapeHtml(current.id)}">${escapeHtml(current.name)}</button></li>` : ""}</ul>
+                ${entries.length ? "" : `<p class="fv-muted el-none">No ${escapeHtml(this.spec.title.toLowerCase())} ${context}.</p>`}
+                ${splitterHandle(`Width of the list of ${escapeHtml(this.spec.title.toLowerCase())}`)}
+            </aside>
+            <div class="el-graph diagram-view"></div>`;
+        const host = this.root.querySelector(".el-graph");
+        if (!current) {
+            host.innerHTML = `<div class="fv-empty"><p>Select a ${escapeHtml(this.spec.singular)} in the list.</p></div>`;
+            return;
+        }
+        const flow = isBehavior(current) && model.subBehaviors(current).length;
+        // The switch Diagram | Table | Form refers to the element shown here (e.g. the method SetupProject).
+        const mode = ElementsView.mode;
+        const toolbar = `<strong class="eg-name">${escapeHtml(current.name)}</strong>
+            <span class="ev-modes" role="group" aria-label="Show ${escapeHtml(current.name)} as">
+                <button type="button" data-element-mode="diagram" class="${mode === "diagram" ? "active" : ""}" aria-pressed="${mode === "diagram"}" title="${escapeHtml(current.name)} and its connected artifacts as a diagram">Diagram</button>
+                <button type="button" data-element-mode="table" class="${mode === "table" ? "active" : ""}" aria-pressed="${mode === "table"}" title="${escapeHtml(current.name)} and its connected artifacts as a table">Table</button>
+                <button type="button" data-form="${escapeHtml(current.id)}" aria-pressed="false" title="The form of ${escapeHtml(current.name)}">Form</button>
+                <button type="button" data-reveal-text="${escapeHtml(current.id)}" aria-pressed="false" title="The declaration of ${escapeHtml(current.name)} in the text">Text</button>
+            </span>
+            ${flow ? `<button type="button" class="fv-link" data-goto-view="process" data-id="${escapeHtml(current.id)}">Show flow</button>` : ""}`;
+        if (mode === "table") {
+            host.innerHTML = this.elementTable(model, current, environmentId, toolbar, state);
+            return;
+        }
+        this.graph.render(host, { model, element: current, environmentId, selectedId, toolbar }, {
+            onOpen: id => this.dispatchEvent(new CustomEvent("open", { detail: { id } })),
+            onCenter: id => this.dispatchEvent(new CustomEvent("form", { detail: { id } })),
+        });
+    }
+
+    /**
+     * The relations of the table that can be edited, by the label of their section in the graph (graphOf): the feature
+     * of the methods that holds them (MBSEMethodology), what can be chosen, and whether the methods are on the other side
+     * (e.g. "Responsible for" of a role sets the primaryPerformer of methods).
+     */
+    static RELATIONS = {
+        method: {
+            "Responsible": { feature: "primaryPerformer", choose: "roles", single: true },
+            "Supports": { feature: "additionalPerformers", choose: "roles" },
+            "Tools": { feature: "facilitationTools", choose: "tools" },
+            "Inputs": { feature: "inputs", choose: "products" },
+            "Outputs": { feature: "outputs", choose: "products" },
+        },
+        role: {
+            "Responsible for": { feature: "primaryPerformer", choose: "methods", reverse: true },
+            "Supports": { feature: "additionalPerformers", choose: "methods", reverse: true },
+        },
+        tool: { "Facilitates": { feature: "facilitationTools", choose: "methods", reverse: true } },
+        product: {
+            "Produced by": { feature: "outputs", choose: "methods", reverse: true },
+            "Needed by": { feature: "inputs", choose: "methods", reverse: true },
+        },
+    };
+
+    /**
+     * True if the relations of the shown element can be changed: an editable model and an MBSE environment that is not a
+     * library (unless the libraries are edited). Methods inherited from a library, e.g. the SYSMOD steps, are redefined
+     * in the environment.
+     */
+    editable(state, element) {
+        const environment = state.model && state.model.get(state.environmentId);
+        return !!(state.editable !== false && !element.external && environment && (!environment.library || state.libraryEditing));
+    }
+
+    /** The current value of a feature of a method, as the diagram and the table show it. */
+    featureValue(c, method, feature) {
+        if (feature === "primaryPerformer") return c.performers(method, ["primary"]);
+        if (feature === "additionalPerformers") return c.performers(method, ["additional"]);
+        if (feature === "facilitationTools") return c.performers(method, ["tool"]);
+        if (feature === "inputs") return c.inputsOf(method).filter(Boolean);
+        if (feature === "outputs") return c.outputsOf(method).filter(Boolean);
+        return [];
+    }
+
+    relationContext(label) {
+        const { model, environmentId } = this.state;
+        const element = model.get(this.currentId);
+        const kind = element ? kindOf(element) : null;
+        const relation = kind && ElementsView.RELATIONS[kind] && ElementsView.RELATIONS[kind][label];
+        if (!relation) return null;
+        const c = connections(model, environmentId);
+        const candidates = {
+            roles: () => model.inScope(model.roles, environmentId),
+            tools: () => model.inScope(model.tools, environmentId),
+            products: () => model.inScope(model.artifacts, environmentId),
+            methods: () => c.behaviors,
+        }[relation.choose]();
+        const current = relation.reverse
+            ? c.behaviors.filter(m => this.featureValue(c, m, relation.feature).includes(element))
+            : this.featureValue(c, element, relation.feature);
+        return { model, environmentId, element, relation, c, candidates, current };
+    }
+
+    /** The changes of the methods for a new value of a relation: [{ id: method, feature, ids }]. */
+    relationChanges(ctx, chosen) {
+        const { element, relation, c, current } = ctx;
+        if (!relation.reverse) return [{ id: element.id, feature: relation.feature, ids: chosen }];
+        const changes = [];
+        for (const method of new Set([...current, ...chosen.map(id => ctx.model.get(id)).filter(Boolean)])) {
+            const was = current.includes(method), now = chosen.includes(method.id);
+            if (was === now) continue;
+            const value = this.featureValue(c, method, relation.feature).map(e => e.id).filter(id => id !== element.id);
+            changes.push({ id: method.id, feature: relation.feature, ids: now ? (relation.feature === "primaryPerformer" ? [element.id] : [...value, element.id]) : value });
+        }
+        return changes;
+    }
+
+    emitChanges(ctx, changes, label) {
+        if (!changes.length) return;
+        this.dispatchEvent(new CustomEvent("command", { detail: { command: "setBehaviorFeatures", id: ctx.element.id,
+            args: { environmentId: ctx.environmentId, changes, label } } }));
+    }
+
+    /** Edits a relation of the table, e.g. the supporting roles of a method or the methods a role supports. */
+    async editRelation(label) {
+        const ctx = this.relationContext(label);
+        if (!ctx) return;
+        const { element, relation, candidates, current } = ctx;
+        const options = [...new Set([...candidates, ...current])].filter(Boolean).map(e => ({ value: e.id, label: e.name }));
+        const values = await formDialog({
+            title: `${label} – ${element.name}`, submitLabel: "Save",
+            fields: [relation.single
+                ? { name: "chosen", label, type: "radio", value: current[0] ? current[0].id : "", options: [{ value: "", label: "(none)" }, ...options] }
+                : { name: "chosen", label, type: "checkboxes", value: current.map(e => e.id), options }],
+        });
+        if (!values) return;
+        const chosen = relation.single ? (values.chosen ? [values.chosen] : []) : values.chosen;
+        this.emitChanges(ctx, this.relationChanges(ctx, chosen), `change ${label.toLowerCase()} of ${element.name}`);
+    }
+
+    /** Removes one entry of a relation of the table. */
+    removeFromRelation(label, targetId) {
+        const ctx = this.relationContext(label);
+        if (!ctx) return;
+        const chosen = ctx.current.map(e => e.id).filter(id => id !== targetId);
+        this.emitChanges(ctx, this.relationChanges(ctx, chosen), `remove ${ctx.model.nameOf(targetId, targetId)} from ${label.toLowerCase()} of ${ctx.element.name}`);
+    }
+
+    /** Edits the description (doc comment) of an element of the table. */
+    async editDescription(id) {
+        const element = this.state.model.get(id);
+        if (!element) return;
+        const values = await formDialog({
+            title: `Description of ${element.name}`, submitLabel: "Save",
+            fields: [{ name: "text", label: "Description", type: "textarea", rows: 6, value: element.doc || "",
+                hint: element.inheritedDoc && !element.doc ? `Inherited: ${element.inheritedDoc.text}` : "" }],
+        });
+        if (values) this.dispatchEvent(new CustomEvent("command", { detail: { command: "setDoc", id, args: { text: values.text } } }));
+    }
+
+    /**
+     * The table of an element: what its diagram shows, row by row (e.g. for a method its responsible and supporting
+     * roles, product owners, tools, the process it is part of, its steps, inputs and outputs), with the kind and the
+     * description of each connected artifact. A click on an artifact opens it. Editable: the relations that methods hold
+     * (✎ chooses the entries, × removes one) and the descriptions (✎).
+     */
+    elementTable(model, element, environmentId, toolbar, state = this.state) {
+        const graph = graphOf(model, element, environmentId);
+        const kindOfColumn = { role: "Role", tool: "Tool", method: "Process or method", product: "Product" };
+        const relations = ElementsView.RELATIONS[kindOf(element)] || {};
+        const describe = e => {
+            const doc = e.doc || (e.inheritedDoc ? e.inheritedDoc.text : "");
+            const first = doc.replace(/\s+/g, " ").trim().match(/^.{0,160}?[.!?](\s|$)/);
+            return first ? first[0].trim() : doc.length > 160 ? doc.slice(0, 160) + "…" : doc;
+        };
+        const canEdit = this.editable(state, element);
+        const docEditable = e => e && state.editable !== false && !e.external && (!e.library || state.libraryEditing);
+        const rows = [];
+        for (const g of element.typeIds || []) {
+            const general = model.get(g);
+            const name = (model.generals[g] && model.generals[g].name) || model.nameOf(g, g.split("::").pop());
+            rows.push({ relation: "Specializes", e: general, name, kind: general ? general.kindLabel : "", doc: general ? describe(general) : "" });
+        }
+        for (const column of graph.columns) for (const section of column.sections) {
+            const items = section.items.filter(Boolean);
+            const editableRelation = canEdit && relations[section.label];
+            items.forEach((e, i) => rows.push({ relation: section.label, first: i === 0, e, name: e.name, editableRelation,
+                kind: kindOfColumn[section.kind || column.kind] || e.kindLabel, doc: describe(e), inherited: !!e.library }));
+            if (!items.length) rows.push({ relation: section.label, first: true, empty: true, editableRelation });
+        }
+        const relationCell = r => r.first === false ? "" : `${escapeHtml(r.relation)}${r.editableRelation
+            ? ` <button type="button" class="el-edit" data-edit-relation="${escapeHtml(r.relation)}" title="Choose the ${escapeHtml(r.relation.toLowerCase())} of ${escapeHtml(element.name)}" aria-label="Edit ${escapeHtml(r.relation)}">✎</button>` : ""}`;
+        const body = rows.map(r => `<tr${r.empty ? ' class="el-empty-row"' : ""}>
+                <th scope="row">${relationCell(r)}</th>
+                <td>${r.empty ? '<span class="fv-muted">–</span>' : r.e ? `<button type="button" class="fv-link" data-open-element="${escapeHtml(r.e.id)}">${escapeHtml(r.name)}</button>${r.inherited ? ' <span class="fv-muted" title="from a library">◌</span>' : ""}${r.editableRelation
+                    ? ` <button type="button" class="el-remove" data-remove-relation="${escapeHtml(r.relation)}" data-target="${escapeHtml(r.e.id)}" title="Remove ${escapeHtml(r.name)} from ${escapeHtml(r.relation.toLowerCase())}" aria-label="Remove ${escapeHtml(r.name)}">×</button>` : ""}` : escapeHtml(r.name)}</td>
+                <td class="fv-muted">${escapeHtml(r.kind || "")}</td>
+                <td>${escapeHtml(r.doc || "")}${docEditable(r.e) ? ` <button type="button" class="el-edit" data-edit-doc="${escapeHtml(r.e.id)}" title="Edit the description of ${escapeHtml(r.name)}" aria-label="Edit the description of ${escapeHtml(r.name)}">✎</button>` : ""}</td></tr>`).join("");
+        const own = describe(element);
+        return `<div class="dg-toolbar">${toolbar}<span class="dg-status">${escapeHtml(graph.summary)}</span></div>
+            <div class="el-table-page">
+                <p class="el-table-lead"><span class="fv-muted">${escapeHtml(element.kindLabel)}</span> <strong>${escapeHtml(element.name)}</strong>${own ? ` – ${escapeHtml(own)}` : ""}${docEditable(element)
+                    ? ` <button type="button" class="el-edit" data-edit-doc="${escapeHtml(element.id)}" title="Edit the description of ${escapeHtml(element.name)}" aria-label="Edit the description">✎</button>` : ""}
+                    <span class="fv-muted">· ${escapeHtml(element.document || "")}</span></p>
+                ${!canEdit && Object.keys(relations).length ? `<p class="fv-line fv-muted">The MBSE environment is a library: switch on "Edit the libraries" to change it.</p>` : ""}
+                <table class="fv-table el-table">
+                    <thead><tr><th>Relation</th><th>Element</th><th>Kind</th><th>Description</th></tr></thead>
+                    <tbody>${body}</tbody>
+                </table>
+            </div>`;
+    }
+}
+return { KINDS, ElementsView };
+})();
+
 // src/app/App.js
 const __module29 = (() => {
 // Application controller: connects workspace, repository, engine, model provider, model editor and views.
@@ -9772,8 +9947,8 @@ const { PolicyView } = __module21;
 const { FormView } = __module22;
 const { ProcessView } = __module24;
 const { OverviewView } = __module25;
-const { ElementsView } = __module27;
-const { formDialog, confirmDialog, infoDialog } = __module28;
+const { ElementsView } = __module28;
+const { formDialog, confirmDialog, infoDialog } = __module27;
 
 const $ = selector => document.querySelector(selector);
 const VIEWS = ["environment", "roles", "tools", "methodology", "products", "process", "overview", "text", "form", "matrix", "steps", "policy"];
@@ -9785,7 +9960,7 @@ const AUTOSAVE_DELAY = 500;
  * Views without a tab of their own: the DTFA views show their tab only while they are open; the form never shows its tab
  * (it is the mode Form of the switch Diagram | Table | Form; see App.updateViewTabs).
  */
-const TRANSIENT_VIEWS = ["form", "matrix", "steps", "policy"];
+const TRANSIENT_VIEWS = ["form", "text", "matrix", "steps", "policy"];
 /** The tab of the elements of a collection, and of an element. */
 const COLLECTION_TABS = { roles: "roles", tools: "tools", methods: "methodology", products: "products" };
 const VIEW_KEY = "mbse-methodology-editor-view";
@@ -10012,6 +10187,7 @@ class App {
         const context = view === "text" && this.view !== "text" ? this.contextId(this.view) : null;
         this.view = view;
         for (const v of VIEWS) $(`#view-${v}`).hidden = v !== view;
+        if (view === "text") this.renderTextModes();
         this.updateViewTabs();
         try { localStorage.setItem(VIEW_KEY, view); } catch (_) { /* storage unavailable */ }
         if (view === "text" && this.active) {
@@ -10032,21 +10208,48 @@ class App {
      * while they are open.
      */
     updateViewTabs() {
-        const active = this.view === "form" ? this.formTab() : this.view;
+        const active = this.view === "form" ? this.formTab() : this.view === "text" ? this.tabOf(this.textElementId) : this.view;
         for (const v of VIEWS) {
             const tab = document.querySelector(`[data-view-tab="${v}"]`);
             tab.setAttribute("aria-selected", String(v === active));
             tab.classList.toggle("active", v === active);
-            if (TRANSIENT_VIEWS.includes(v)) tab.hidden = v === "form" || v !== this.view;
+            if (TRANSIENT_VIEWS.includes(v)) tab.hidden = v === "form" || v === "text" || v !== this.view;
         }
+    }
+
+    /**
+     * The bar above the text: the switch Diagram | Table | Form | Text of the element whose declaration was opened in the
+     * text (e.g. with Text in the switch of the Methodology tab), so you can go back to its diagram, table or form.
+     */
+    renderTextModes() {
+        const bar = $("#text-modes");
+        if (!bar) return;
+        const model = this.analysis && this.analysis.result.model;
+        const element = model && this.textElementId && model.get(this.textElementId);
+        if (!element || !this.tabOf(element.id) || this.tabOf(element.id) === "environment") { bar.innerHTML = ""; bar.hidden = true; return; }
+        const id = escapeHtml(element.id);
+        bar.hidden = false;
+        bar.innerHTML = `<strong class="eg-name">${escapeHtml(element.name)}</strong>
+            <span class="ev-modes" role="group" aria-label="Show ${escapeHtml(element.name)} as">
+                <button type="button" data-text-mode="diagram" data-id="${id}" aria-pressed="false">Diagram</button>
+                <button type="button" data-text-mode="table" data-id="${id}" aria-pressed="false">Table</button>
+                <button type="button" data-text-mode="form" data-id="${id}" aria-pressed="false">Form</button>
+                <button type="button" class="active" aria-pressed="true">Text</button>
+            </span>
+            <span class="fv-muted">${escapeHtml(element.document || "")}</span>`;
     }
 
     /** The tab of the content of the form view (see updateViewTabs), or null. */
     formTab() {
         if (this.collection) return COLLECTION_TABS[this.collection.kind] || "environment";
         if (this.documentView) return null;
+        return this.tabOf(this.selectedId);
+    }
+
+    /** The tab of an element: Roles for a role, Methodology for a process or method, ...; null for others. */
+    tabOf(id) {
         const model = this.analysis && this.analysis.result.model;
-        const element = model && model.get(this.selectedId);
+        const element = model && id && model.get(id);
         if (element instanceof Role) return "roles";
         if (element instanceof Tool) return "tools";
         if (element instanceof Method || element instanceof Process) return "methodology";
@@ -10850,9 +11053,18 @@ class App {
      * written inside the environment (its methodology, its analyses, its rules), where the roles, tools, products and
      * behaviors of the environment and of the environments it specializes are visible by name.
      */
+    /**
+     * The reference to an element in a value, e.g. "systemArchitect": its simple name, or its qualified name if another
+     * element has the same name. The simple name could resolve to that one, e.g. inside a redefinition of
+     * SYSMODDefaultProcess, "systemArchitect" is the performer SYSMODDefaultProcess::systemArchitect, not the role of the
+     * environment.
+     */
     nameRef(id, model) {
         const element = model.get(id);
-        return element ? quoteName(element.name) : id;
+        if (!element) return id;
+        const last = k => String(k).split("::").pop().replace(/^'|'$/g, "");
+        const clash = [...model.elements.keys(), ...Object.keys(model.generals || {})].some(k => k !== id && last(k) === element.name);
+        return clash ? id : quoteName(element.name);
     }
 
     /** The name with which a statement inside contextId refers to targetId: its simple name if visible, else qualified. */
@@ -11343,6 +11555,24 @@ class App {
                 return { edits, label: `change ${lane.label.toLowerCase()} of ${method.name}`, select: ids.get(method.id) };
             },
 
+            /**
+             * Sets features of methods, e.g. from the table of an element: changes [{ id, feature, ids }] with the
+             * features primaryPerformer, additionalPerformers, facilitationTools, inputs, outputs (MBSEMethodology).
+             */
+            async setBehaviorFeatures(element, result, { environmentId, changes = [], label = "" }) {
+                const { model } = result;
+                const environment = model.get(environmentId) || this.environmentOf(element, model);
+                if (!environment) throw new ModelEditError(`${element.name} belongs to no MBSE environment.`);
+                const byMethod = new Map();
+                for (const { id, feature, ids } of changes) {
+                    const value = feature === "primaryPerformer" ? (ids[0] ? this.nameRef(ids[0], model) : null) : listValue(ids.map(x => this.nameRef(x, model)));
+                    if (!byMethod.has(id)) byMethod.set(id, { id, pairs: [] });
+                    byMethod.get(id).pairs.push([feature, value]);
+                }
+                const { edits, ids } = this.behaviorEdits(result, environment, [...byMethod.values()]);
+                return { edits, label: label || `change ${element.name}`, select: ids.get(element.id) || element.id };
+            },
+
             async setDoc(element, result, { text }) {
                 if (text === element.doc) return null;
                 if (element instanceof Handover) throw new ModelEditError("A hand-over is derived from the inputs and outputs of the methods; describe its tool transition.");
@@ -11412,7 +11642,10 @@ class App {
             this.status("The declaration was not found in the text.", "error");
             return;
         }
+        // The element whose text is shown: the switch Diagram | Table | Form | Text above the text refers to it.
+        this.textElementId = id;
         if (this.view !== "text") this.setView("text");
+        else this.renderTextModes();
         if (location.document !== this.activeName) this.activate(location.document);
         if (this.analysis.revision !== this.workspace.revision) {
             // The text changed since the last check: find the declaration again.
@@ -11475,8 +11708,9 @@ class App {
             view.addEventListener("select", e => this.select(e.detail.id, { reveal: false }));
             view.addEventListener("open", e => this.openElement(e.detail.id));
             view.addEventListener("form", e => this.openForm(e.detail.id));
-            view.addEventListener("command", e => this.runCommand(e.detail.command, e.detail.id));
+            view.addEventListener("command", e => this.runCommand(e.detail.command, e.detail.id, e.detail.args));
             view.addEventListener("collection", e => this.openTable(e.detail.kind, e.detail.id));
+            view.addEventListener("reveal", e => this.reveal(e.detail.id));
             view.addEventListener("view", e => { if (e.detail.id) this.select(e.detail.id, { reveal: false }); this.setView(e.detail.view); });
         }
         for (const view of [this.formView, this.environmentView]) {
@@ -11555,6 +11789,13 @@ class App {
             else if (!typing && key === "y") { e.preventDefault(); this.undo(true); }
         });
         $("#library-editing").addEventListener("change", e => this.setLibraryEditing(e.target.checked));
+        $("#text-modes").addEventListener("click", e => {
+            const button = e.target.closest("[data-text-mode]");
+            if (!button) return;
+            const { textMode, id } = button.dataset;
+            if (textMode === "form") this.openForm(id);
+            else { ElementsView.mode = textMode; this.openElement(id); }
+        });
         // The side panel is resizable.
         makeResizable(document.querySelector(".workbench"), { pane: ".sidebar", variable: "--sidebar-width", key: "sidebar", min: 220, max: () => window.innerWidth * 0.5 });
         $("#autosave").setAttribute("aria-checked", String(this.autoSaveOn));

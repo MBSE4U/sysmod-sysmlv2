@@ -469,6 +469,19 @@ check("editing the libraries: a model edit of a library element changes the libr
     assert.equal(after.model.get(id).doc, "Improved in the editor.");
 });
 
+check("a list of performers with qualified names is read (the engine gives no values for the list)", () => {
+    const names = ["Project", "ControlStationProject", "ControlStationHandover", "DomainLibrary", "Stakeholders", "Idea", "Specification",
+        "BrownfieldArchitecture", "FunctionalArchitecture", "LogicalArchitecture", "ProductArchitecture"];
+    const docs = names.map(n => ({ name: `DeliveryDroneSystem${n}.sysml`, content: read(`examples/DeliveryDroneSystem${n}.sysml`) }));
+    const env = "DeliveryDrone::'Delivery Drone MBSE Environment'";
+    docs[0].content = docs[0].content.replace("action :>> describeSystemIdea {",
+        `action :>> describeSystemIdea { :>> additionalPerformers = (${env}::systemArchitect, ${env}::projectManager);`);
+    const drone = load(docs);
+    const method = drone.model.get(`${env}::sysmodMethodology::SYSMODDefaultProcess::describeSystemIdea`);
+    assert.ok(method, "the redefined step");
+    assert.deepEqual(drone.model.performersOf(method, env, ["additional"]).map(r => r.name).sort(), ["projectManager", "systemArchitect"]);
+});
+
 check("specializations: a role inherits the doc and the responsibilities of its general role", () => {
     const result = load([{ name: "Spec.sysml", content: `package Spec {
         private import MBSEMethodology::*;

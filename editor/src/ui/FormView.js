@@ -202,6 +202,7 @@ export class FormView extends EventTarget {
                 <button type="button" data-element-mode="diagram" data-id="${id}" aria-pressed="false" title="${escapeHtml(element.name)} and its connected artifacts as a diagram">Diagram</button>
                 <button type="button" data-element-mode="table" data-id="${id}" aria-pressed="false" title="${escapeHtml(element.name)} and its connected artifacts as a table">Table</button>
                 <button type="button" class="active" aria-pressed="true">Form</button>
+                <button type="button" data-reveal="${id}" aria-pressed="false" title="The declaration of ${escapeHtml(element.name)} in the text">Text</button>
             </span>`;
     }
 

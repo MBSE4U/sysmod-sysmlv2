@@ -103,6 +103,13 @@ function namesInValueText(text) {
         .map(s => s.trim()).filter(s => /^[A-Za-z_][A-Za-z0-9_]*(::[A-Za-z_][A-Za-z0-9_]*)*$/.test(s));
 }
 
+/** The names in the text of a value that may be qualified with quoted segments, e.g. "(a, Pkg::'Name with spaces'::b)". */
+function referencesInValueText(text) {
+    const segment = "(?:[A-Za-z_][A-Za-z0-9_]*|'(?:[^'\\\\]|\\\\.)*')";
+    const name = new RegExp(`^${segment}(?:::${segment})*$`);
+    return String(text || "").replace(/^\s*\(([\s\S]*)\)\s*$/, "$1").split(",").map(s => s.trim()).filter(s => name.test(s));
+}
+
 /**
  * @param {Object<string, object>} symbols the engine symbols by qualified name
  * @param {{documentOf?: function, truncated?: boolean, generals?: object, libraryNames?: string[]}} hooks
@@ -224,10 +231,28 @@ export function buildDtfaModel(symbols, { documentOf = () => "", truncated = fal
 
     // Values of features: element ids (refs) or literals.
     const rawValues = symbol => (symbol.value === undefined ? [] : Array.isArray(symbol.value) ? symbol.value : [symbol.value]);
+    /**
+     * The elements a value refers to. The engine does not evaluate every list of references (e.g.
+     * ":>> additionalPerformers = (systemArchitect, Pkg::'Env'::projectManager);" in a redefinition): then the names of
+     * the value text are resolved, a simple name in the scopes that enclose the value, a qualified name as it is.
+     */
+    const valueRefs = symbol => {
+        const raw = rawValues(symbol).filter(v => v && v.ref).map(v => v.ref);
+        if (raw.length || !symbol.valueText) return raw;
+        const resolved = [];
+        for (const name of referencesInValueText(symbol.valueText)) {
+            if (name.includes("::")) { if (get(name)) resolved.push(name); continue; }
+            for (let scope = ownerOf(symbol.id); scope; scope = ownerOf(scope)) {
+                const candidate = `${scope}::${name}`;
+                if (candidate !== symbol.id && get(candidate) && !candidate.startsWith(symbol.id + "::")) { resolved.push(candidate); break; }
+            }
+        }
+        return resolved;
+    };
     const valueOf = (ownerId, feature) => get(`${ownerId}::${feature}`);
     const refs = (ownerId, feature) => {
         const symbol = valueOf(ownerId, feature);
-        return symbol ? rawValues(symbol).filter(v => v && v.ref).map(v => v.ref) : [];
+        return symbol ? valueRefs(symbol) : [];
     };
     const literals = (ownerId, feature) => {
         const symbol = valueOf(ownerId, feature);
@@ -266,7 +291,7 @@ export function buildDtfaModel(symbols, { documentOf = () => "", truncated = fal
     // facilitationTools (e.g. "ref part projectManager : ProjectManager :>> primaryPerformer"), and the connections
     // ResponsibleFor, Supports and Facilitates (e.g. "connection :> responsibleFor connect systemArchitect to step").
     // A slot is matched with the roles and tools of an environment by its value or by its types (model.performersOf).
-    const slotOf = (slotSymbol, kind) => ({ slotId: slotSymbol.id, kind, typeIds: typesOf(slotSymbol), valueIds: rawValues(slotSymbol).filter(v => v && v.ref).map(v => v.ref) });
+    const slotOf = (slotSymbol, kind) => ({ slotId: slotSymbol.id, kind, typeIds: typesOf(slotSymbol), valueIds: valueRefs(slotSymbol) });
     const slotsByBehavior = new Map();
     const addSlot = (behaviorId, slot) => {
         if (!slotsByBehavior.has(behaviorId)) slotsByBehavior.set(behaviorId, []);

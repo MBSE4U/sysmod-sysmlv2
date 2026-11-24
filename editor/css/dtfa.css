@@ -604,3 +604,11 @@
 .el-table th[scope=row] { white-space: nowrap; vertical-align: top; color: var(--muted); font-weight: 600; }
 .el-table tbody tr:has(th[scope=row]:not(:empty)) > * { border-top: 1px solid var(--line); }
 .el-table .el-empty-row td { color: var(--muted); }
+/* Editing in the table of an element */
+.el-edit, .el-remove { border: 0; background: none; padding: 0 3px; cursor: pointer; color: var(--muted); font-size: 13px; line-height: 1; border-radius: 3px; }
+.el-edit:hover { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.el-remove { opacity: 0; }
+.el-table tr:hover .el-remove, .el-remove:focus-visible { opacity: 1; }
+.el-remove:hover { color: var(--error); background: color-mix(in srgb, var(--error) 10%, transparent); }
+/* The switch of the element above the text */
+.text-modes { border-bottom: 1px solid var(--line); }

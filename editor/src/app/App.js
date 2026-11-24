@@ -48,7 +48,7 @@ const AUTOSAVE_DELAY = 500;
  * Views without a tab of their own: the DTFA views show their tab only while they are open; the form never shows its tab
  * (it is the mode Form of the switch Diagram | Table | Form; see App.updateViewTabs).
  */
-const TRANSIENT_VIEWS = ["form", "matrix", "steps", "policy"];
+const TRANSIENT_VIEWS = ["form", "text", "matrix", "steps", "policy"];
 /** The tab of the elements of a collection, and of an element. */
 const COLLECTION_TABS = { roles: "roles", tools: "tools", methods: "methodology", products: "products" };
 const VIEW_KEY = "mbse-methodology-editor-view";
@@ -275,6 +275,7 @@ export class App {
         const context = view === "text" && this.view !== "text" ? this.contextId(this.view) : null;
         this.view = view;
         for (const v of VIEWS) $(`#view-${v}`).hidden = v !== view;
+        if (view === "text") this.renderTextModes();
         this.updateViewTabs();
         try { localStorage.setItem(VIEW_KEY, view); } catch (_) { /* storage unavailable */ }
         if (view === "text" && this.active) {
@@ -295,21 +296,48 @@ export class App {
      * while they are open.
      */
     updateViewTabs() {
-        const active = this.view === "form" ? this.formTab() : this.view;
+        const active = this.view === "form" ? this.formTab() : this.view === "text" ? this.tabOf(this.textElementId) : this.view;
         for (const v of VIEWS) {
             const tab = document.querySelector(`[data-view-tab="${v}"]`);
             tab.setAttribute("aria-selected", String(v === active));
             tab.classList.toggle("active", v === active);
-            if (TRANSIENT_VIEWS.includes(v)) tab.hidden = v === "form" || v !== this.view;
+            if (TRANSIENT_VIEWS.includes(v)) tab.hidden = v === "form" || v === "text" || v !== this.view;
         }
+    }
+
+    /**
+     * The bar above the text: the switch Diagram | Table | Form | Text of the element whose declaration was opened in the
+     * text (e.g. with Text in the switch of the Methodology tab), so you can go back to its diagram, table or form.
+     */
+    renderTextModes() {
+        const bar = $("#text-modes");
+        if (!bar) return;
+        const model = this.analysis && this.analysis.result.model;
+        const element = model && this.textElementId && model.get(this.textElementId);
+        if (!element || !this.tabOf(element.id) || this.tabOf(element.id) === "environment") { bar.innerHTML = ""; bar.hidden = true; return; }
+        const id = escapeHtml(element.id);
+        bar.hidden = false;
+        bar.innerHTML = `<strong class="eg-name">${escapeHtml(element.name)}</strong>
+            <span class="ev-modes" role="group" aria-label="Show ${escapeHtml(element.name)} as">
+                <button type="button" data-text-mode="diagram" data-id="${id}" aria-pressed="false">Diagram</button>
+                <button type="button" data-text-mode="table" data-id="${id}" aria-pressed="false">Table</button>
+                <button type="button" data-text-mode="form" data-id="${id}" aria-pressed="false">Form</button>
+                <button type="button" class="active" aria-pressed="true">Text</button>
+            </span>
+            <span class="fv-muted">${escapeHtml(element.document || "")}</span>`;
     }
 
     /** The tab of the content of the form view (see updateViewTabs), or null. */
     formTab() {
         if (this.collection) return COLLECTION_TABS[this.collection.kind] || "environment";
         if (this.documentView) return null;
+        return this.tabOf(this.selectedId);
+    }
+
+    /** The tab of an element: Roles for a role, Methodology for a process or method, ...; null for others. */
+    tabOf(id) {
         const model = this.analysis && this.analysis.result.model;
-        const element = model && model.get(this.selectedId);
+        const element = model && id && model.get(id);
         if (element instanceof Role) return "roles";
         if (element instanceof Tool) return "tools";
         if (element instanceof Method || element instanceof Process) return "methodology";
@@ -1113,9 +1141,18 @@ export class App {
      * written inside the environment (its methodology, its analyses, its rules), where the roles, tools, products and
      * behaviors of the environment and of the environments it specializes are visible by name.
      */
+    /**
+     * The reference to an element in a value, e.g. "systemArchitect": its simple name, or its qualified name if another
+     * element has the same name. The simple name could resolve to that one, e.g. inside a redefinition of
+     * SYSMODDefaultProcess, "systemArchitect" is the performer SYSMODDefaultProcess::systemArchitect, not the role of the
+     * environment.
+     */
     nameRef(id, model) {
         const element = model.get(id);
-        return element ? quoteName(element.name) : id;
+        if (!element) return id;
+        const last = k => String(k).split("::").pop().replace(/^'|'$/g, "");
+        const clash = [...model.elements.keys(), ...Object.keys(model.generals || {})].some(k => k !== id && last(k) === element.name);
+        return clash ? id : quoteName(element.name);
     }
 
     /** The name with which a statement inside contextId refers to targetId: its simple name if visible, else qualified. */
@@ -1606,6 +1643,24 @@ export class App {
                 return { edits, label: `change ${lane.label.toLowerCase()} of ${method.name}`, select: ids.get(method.id) };
             },
 
+            /**
+             * Sets features of methods, e.g. from the table of an element: changes [{ id, feature, ids }] with the
+             * features primaryPerformer, additionalPerformers, facilitationTools, inputs, outputs (MBSEMethodology).
+             */
+            async setBehaviorFeatures(element, result, { environmentId, changes = [], label = "" }) {
+                const { model } = result;
+                const environment = model.get(environmentId) || this.environmentOf(element, model);
+                if (!environment) throw new ModelEditError(`${element.name} belongs to no MBSE environment.`);
+                const byMethod = new Map();
+                for (const { id, feature, ids } of changes) {
+                    const value = feature === "primaryPerformer" ? (ids[0] ? this.nameRef(ids[0], model) : null) : listValue(ids.map(x => this.nameRef(x, model)));
+                    if (!byMethod.has(id)) byMethod.set(id, { id, pairs: [] });
+                    byMethod.get(id).pairs.push([feature, value]);
+                }
+                const { edits, ids } = this.behaviorEdits(result, environment, [...byMethod.values()]);
+                return { edits, label: label || `change ${element.name}`, select: ids.get(element.id) || element.id };
+            },
+
             async setDoc(element, result, { text }) {
                 if (text === element.doc) return null;
                 if (element instanceof Handover) throw new ModelEditError("A hand-over is derived from the inputs and outputs of the methods; describe its tool transition.");
@@ -1675,7 +1730,10 @@ export class App {
             this.status("The declaration was not found in the text.", "error");
             return;
         }
+        // The element whose text is shown: the switch Diagram | Table | Form | Text above the text refers to it.
+        this.textElementId = id;
         if (this.view !== "text") this.setView("text");
+        else this.renderTextModes();
         if (location.document !== this.activeName) this.activate(location.document);
         if (this.analysis.revision !== this.workspace.revision) {
             // The text changed since the last check: find the declaration again.
@@ -1738,8 +1796,9 @@ export class App {
             view.addEventListener("select", e => this.select(e.detail.id, { reveal: false }));
             view.addEventListener("open", e => this.openElement(e.detail.id));
             view.addEventListener("form", e => this.openForm(e.detail.id));
-            view.addEventListener("command", e => this.runCommand(e.detail.command, e.detail.id));
+            view.addEventListener("command", e => this.runCommand(e.detail.command, e.detail.id, e.detail.args));
             view.addEventListener("collection", e => this.openTable(e.detail.kind, e.detail.id));
+            view.addEventListener("reveal", e => this.reveal(e.detail.id));
             view.addEventListener("view", e => { if (e.detail.id) this.select(e.detail.id, { reveal: false }); this.setView(e.detail.view); });
         }
         for (const view of [this.formView, this.environmentView]) {
@@ -1818,6 +1877,13 @@ export class App {
             else if (!typing && key === "y") { e.preventDefault(); this.undo(true); }
         });
         $("#library-editing").addEventListener("change", e => this.setLibraryEditing(e.target.checked));
+        $("#text-modes").addEventListener("click", e => {
+            const button = e.target.closest("[data-text-mode]");
+            if (!button) return;
+            const { textMode, id } = button.dataset;
+            if (textMode === "form") this.openForm(id);
+            else { ElementsView.mode = textMode; this.openElement(id); }
+        });
         // The side panel is resizable.
         makeResizable(document.querySelector(".workbench"), { pane: ".sidebar", variable: "--sidebar-width", key: "sidebar", min: 220, max: () => window.innerWidth * 0.5 });
         $("#autosave").setAttribute("aria-checked", String(this.autoSaveOn));

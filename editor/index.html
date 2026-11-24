@@ -87,7 +87,7 @@
                     <button type="button" role="tab" data-view-tab="products" aria-controls="view-products" title="The products: who produces and needs them">Products</button>
                     <button type="button" role="tab" data-view-tab="process" aria-controls="view-process" title="The flow of a process: its steps in the lanes of their performers">Processes</button>
                     <button type="button" role="tab" data-view-tab="overview" aria-controls="view-overview" title="The methodology at a glance, for management and non-technical engineers: stages, who does what, deliverables">Overview</button>
-                    <button type="button" role="tab" data-view-tab="text" aria-controls="view-text">Text</button>
+                    <button type="button" role="tab" class="view-tab-transient" data-view-tab="text" aria-controls="view-text" hidden>Text</button>
                     <!-- Views without a tab of their own: the DTFA views show their tab while they are open. The form never shows its
                          tab: it is the mode Form of the switch Diagram | Table | Form, and the tab of what it shows is active. -->
                     <button type="button" role="tab" class="view-tab-transient" data-view-tab="form" aria-controls="view-form" hidden>Form</button>
@@ -111,6 +111,7 @@
             <section id="view-overview" class="view" role="tabpanel" aria-label="Overview of the methodology" hidden><div id="overview"></div></section>
             <section id="view-form" class="view" role="tabpanel" aria-label="Form editor" hidden><div id="form"></div></section>
             <section id="view-text" class="view text-view" role="tabpanel" aria-label="Text editor" hidden>
+                <div id="text-modes" class="dg-toolbar text-modes" hidden></div>
                 <div id="tabs" class="tabs" role="tablist" aria-label="Open documents"></div>
                 <div id="code"></div>
             </section>

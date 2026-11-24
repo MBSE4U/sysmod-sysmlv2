@@ -8,7 +8,8 @@
 
 import { splitterHandle, makeResizable } from "./splitter.js";
 import { Process, Method, Role, Tool, Artifact, MBSEEnvironment } from "../dtfa/model.js";
-import { graphOf, ElementGraph } from "./ElementGraph.js";
+import { graphOf, connections, kindOf, ElementGraph } from "./ElementGraph.js";
+import { formDialog } from "./FormDialog.js";
 
 function escapeHtml(s) {
     return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -41,6 +42,14 @@ export class ElementsView extends EventTarget {
         this.root.addEventListener("click", e => {
             const modeButton = e.target.closest("[data-element-mode]");
             if (modeButton) { ElementsView.mode = modeButton.dataset.elementMode; if (this.state) this.show(this.state); return; }
+            const revealText = e.target.closest("[data-reveal-text]");
+            if (revealText) { this.dispatchEvent(new CustomEvent("reveal", { detail: { id: revealText.dataset.revealText } })); return; }
+            const editRelation = e.target.closest("[data-edit-relation]");
+            if (editRelation) { this.editRelation(editRelation.dataset.editRelation); return; }
+            const removeRelation = e.target.closest("[data-remove-relation]");
+            if (removeRelation) { this.removeFromRelation(removeRelation.dataset.removeRelation, removeRelation.dataset.target); return; }
+            const editDoc = e.target.closest("[data-edit-doc]");
+            if (editDoc) { this.editDescription(editDoc.dataset.editDoc); return; }
             const openElement = e.target.closest("[data-open-element]");
             if (openElement) { this.dispatchEvent(new CustomEvent("open", { detail: { id: openElement.dataset.openElement } })); return; }
             const item = e.target.closest("[data-item]");
@@ -128,10 +137,11 @@ export class ElementsView extends EventTarget {
                 <button type="button" data-element-mode="diagram" class="${mode === "diagram" ? "active" : ""}" aria-pressed="${mode === "diagram"}" title="${escapeHtml(current.name)} and its connected artifacts as a diagram">Diagram</button>
                 <button type="button" data-element-mode="table" class="${mode === "table" ? "active" : ""}" aria-pressed="${mode === "table"}" title="${escapeHtml(current.name)} and its connected artifacts as a table">Table</button>
                 <button type="button" data-form="${escapeHtml(current.id)}" aria-pressed="false" title="The form of ${escapeHtml(current.name)}">Form</button>
+                <button type="button" data-reveal-text="${escapeHtml(current.id)}" aria-pressed="false" title="The declaration of ${escapeHtml(current.name)} in the text">Text</button>
             </span>
             ${flow ? `<button type="button" class="fv-link" data-goto-view="process" data-id="${escapeHtml(current.id)}">Show flow</button>` : ""}`;
         if (mode === "table") {
-            host.innerHTML = this.elementTable(model, current, environmentId, toolbar);
+            host.innerHTML = this.elementTable(model, current, environmentId, toolbar, state);
             return;
         }
         this.graph.render(host, { model, element: current, environmentId, selectedId, toolbar }, {
@@ -141,18 +151,142 @@ export class ElementsView extends EventTarget {
     }
 
     /**
+     * The relations of the table that can be edited, by the label of their section in the graph (graphOf): the feature
+     * of the methods that holds them (MBSEMethodology), what can be chosen, and whether the methods are on the other side
+     * (e.g. "Responsible for" of a role sets the primaryPerformer of methods).
+     */
+    static RELATIONS = {
+        method: {
+            "Responsible": { feature: "primaryPerformer", choose: "roles", single: true },
+            "Supports": { feature: "additionalPerformers", choose: "roles" },
+            "Tools": { feature: "facilitationTools", choose: "tools" },
+            "Inputs": { feature: "inputs", choose: "products" },
+            "Outputs": { feature: "outputs", choose: "products" },
+        },
+        role: {
+            "Responsible for": { feature: "primaryPerformer", choose: "methods", reverse: true },
+            "Supports": { feature: "additionalPerformers", choose: "methods", reverse: true },
+        },
+        tool: { "Facilitates": { feature: "facilitationTools", choose: "methods", reverse: true } },
+        product: {
+            "Produced by": { feature: "outputs", choose: "methods", reverse: true },
+            "Needed by": { feature: "inputs", choose: "methods", reverse: true },
+        },
+    };
+
+    /**
+     * True if the relations of the shown element can be changed: an editable model and an MBSE environment that is not a
+     * library (unless the libraries are edited). Methods inherited from a library, e.g. the SYSMOD steps, are redefined
+     * in the environment.
+     */
+    editable(state, element) {
+        const environment = state.model && state.model.get(state.environmentId);
+        return !!(state.editable !== false && !element.external && environment && (!environment.library || state.libraryEditing));
+    }
+
+    /** The current value of a feature of a method, as the diagram and the table show it. */
+    featureValue(c, method, feature) {
+        if (feature === "primaryPerformer") return c.performers(method, ["primary"]);
+        if (feature === "additionalPerformers") return c.performers(method, ["additional"]);
+        if (feature === "facilitationTools") return c.performers(method, ["tool"]);
+        if (feature === "inputs") return c.inputsOf(method).filter(Boolean);
+        if (feature === "outputs") return c.outputsOf(method).filter(Boolean);
+        return [];
+    }
+
+    relationContext(label) {
+        const { model, environmentId } = this.state;
+        const element = model.get(this.currentId);
+        const kind = element ? kindOf(element) : null;
+        const relation = kind && ElementsView.RELATIONS[kind] && ElementsView.RELATIONS[kind][label];
+        if (!relation) return null;
+        const c = connections(model, environmentId);
+        const candidates = {
+            roles: () => model.inScope(model.roles, environmentId),
+            tools: () => model.inScope(model.tools, environmentId),
+            products: () => model.inScope(model.artifacts, environmentId),
+            methods: () => c.behaviors,
+        }[relation.choose]();
+        const current = relation.reverse
+            ? c.behaviors.filter(m => this.featureValue(c, m, relation.feature).includes(element))
+            : this.featureValue(c, element, relation.feature);
+        return { model, environmentId, element, relation, c, candidates, current };
+    }
+
+    /** The changes of the methods for a new value of a relation: [{ id: method, feature, ids }]. */
+    relationChanges(ctx, chosen) {
+        const { element, relation, c, current } = ctx;
+        if (!relation.reverse) return [{ id: element.id, feature: relation.feature, ids: chosen }];
+        const changes = [];
+        for (const method of new Set([...current, ...chosen.map(id => ctx.model.get(id)).filter(Boolean)])) {
+            const was = current.includes(method), now = chosen.includes(method.id);
+            if (was === now) continue;
+            const value = this.featureValue(c, method, relation.feature).map(e => e.id).filter(id => id !== element.id);
+            changes.push({ id: method.id, feature: relation.feature, ids: now ? (relation.feature === "primaryPerformer" ? [element.id] : [...value, element.id]) : value });
+        }
+        return changes;
+    }
+
+    emitChanges(ctx, changes, label) {
+        if (!changes.length) return;
+        this.dispatchEvent(new CustomEvent("command", { detail: { command: "setBehaviorFeatures", id: ctx.element.id,
+            args: { environmentId: ctx.environmentId, changes, label } } }));
+    }
+
+    /** Edits a relation of the table, e.g. the supporting roles of a method or the methods a role supports. */
+    async editRelation(label) {
+        const ctx = this.relationContext(label);
+        if (!ctx) return;
+        const { element, relation, candidates, current } = ctx;
+        const options = [...new Set([...candidates, ...current])].filter(Boolean).map(e => ({ value: e.id, label: e.name }));
+        const values = await formDialog({
+            title: `${label} – ${element.name}`, submitLabel: "Save",
+            fields: [relation.single
+                ? { name: "chosen", label, type: "radio", value: current[0] ? current[0].id : "", options: [{ value: "", label: "(none)" }, ...options] }
+                : { name: "chosen", label, type: "checkboxes", value: current.map(e => e.id), options }],
+        });
+        if (!values) return;
+        const chosen = relation.single ? (values.chosen ? [values.chosen] : []) : values.chosen;
+        this.emitChanges(ctx, this.relationChanges(ctx, chosen), `change ${label.toLowerCase()} of ${element.name}`);
+    }
+
+    /** Removes one entry of a relation of the table. */
+    removeFromRelation(label, targetId) {
+        const ctx = this.relationContext(label);
+        if (!ctx) return;
+        const chosen = ctx.current.map(e => e.id).filter(id => id !== targetId);
+        this.emitChanges(ctx, this.relationChanges(ctx, chosen), `remove ${ctx.model.nameOf(targetId, targetId)} from ${label.toLowerCase()} of ${ctx.element.name}`);
+    }
+
+    /** Edits the description (doc comment) of an element of the table. */
+    async editDescription(id) {
+        const element = this.state.model.get(id);
+        if (!element) return;
+        const values = await formDialog({
+            title: `Description of ${element.name}`, submitLabel: "Save",
+            fields: [{ name: "text", label: "Description", type: "textarea", rows: 6, value: element.doc || "",
+                hint: element.inheritedDoc && !element.doc ? `Inherited: ${element.inheritedDoc.text}` : "" }],
+        });
+        if (values) this.dispatchEvent(new CustomEvent("command", { detail: { command: "setDoc", id, args: { text: values.text } } }));
+    }
+
+    /**
      * The table of an element: what its diagram shows, row by row (e.g. for a method its responsible and supporting
      * roles, product owners, tools, the process it is part of, its steps, inputs and outputs), with the kind and the
-     * description of each connected artifact. A click on an artifact opens it.
+     * description of each connected artifact. A click on an artifact opens it. Editable: the relations that methods hold
+     * (✎ chooses the entries, × removes one) and the descriptions (✎).
      */
-    elementTable(model, element, environmentId, toolbar) {
+    elementTable(model, element, environmentId, toolbar, state = this.state) {
         const graph = graphOf(model, element, environmentId);
         const kindOfColumn = { role: "Role", tool: "Tool", method: "Process or method", product: "Product" };
+        const relations = ElementsView.RELATIONS[kindOf(element)] || {};
         const describe = e => {
             const doc = e.doc || (e.inheritedDoc ? e.inheritedDoc.text : "");
             const first = doc.replace(/\s+/g, " ").trim().match(/^.{0,160}?[.!?](\s|$)/);
             return first ? first[0].trim() : doc.length > 160 ? doc.slice(0, 160) + "…" : doc;
         };
+        const canEdit = this.editable(state, element);
+        const docEditable = e => e && state.editable !== false && !e.external && (!e.library || state.libraryEditing);
         const rows = [];
         for (const g of element.typeIds || []) {
             const general = model.get(g);
@@ -161,20 +295,26 @@ export class ElementsView extends EventTarget {
         }
         for (const column of graph.columns) for (const section of column.sections) {
             const items = section.items.filter(Boolean);
-            items.forEach((e, i) => rows.push({ relation: section.label, first: i === 0, count: items.length, e, name: e.name,
+            const editableRelation = canEdit && relations[section.label];
+            items.forEach((e, i) => rows.push({ relation: section.label, first: i === 0, e, name: e.name, editableRelation,
                 kind: kindOfColumn[section.kind || column.kind] || e.kindLabel, doc: describe(e), inherited: !!e.library }));
-            if (!items.length) rows.push({ relation: section.label, first: true, count: 1, empty: true });
+            if (!items.length) rows.push({ relation: section.label, first: true, empty: true, editableRelation });
         }
+        const relationCell = r => r.first === false ? "" : `${escapeHtml(r.relation)}${r.editableRelation
+            ? ` <button type="button" class="el-edit" data-edit-relation="${escapeHtml(r.relation)}" title="Choose the ${escapeHtml(r.relation.toLowerCase())} of ${escapeHtml(element.name)}" aria-label="Edit ${escapeHtml(r.relation)}">✎</button>` : ""}`;
         const body = rows.map(r => `<tr${r.empty ? ' class="el-empty-row"' : ""}>
-                <th scope="row">${r.first !== false ? escapeHtml(r.relation) : ""}</th>
-                <td>${r.empty ? '<span class="fv-muted">–</span>' : r.e ? `<button type="button" class="fv-link" data-open-element="${escapeHtml(r.e.id)}">${escapeHtml(r.name)}</button>${r.inherited ? ' <span class="fv-muted" title="from a library">◌</span>' : ""}` : escapeHtml(r.name)}</td>
+                <th scope="row">${relationCell(r)}</th>
+                <td>${r.empty ? '<span class="fv-muted">–</span>' : r.e ? `<button type="button" class="fv-link" data-open-element="${escapeHtml(r.e.id)}">${escapeHtml(r.name)}</button>${r.inherited ? ' <span class="fv-muted" title="from a library">◌</span>' : ""}${r.editableRelation
+                    ? ` <button type="button" class="el-remove" data-remove-relation="${escapeHtml(r.relation)}" data-target="${escapeHtml(r.e.id)}" title="Remove ${escapeHtml(r.name)} from ${escapeHtml(r.relation.toLowerCase())}" aria-label="Remove ${escapeHtml(r.name)}">×</button>` : ""}` : escapeHtml(r.name)}</td>
                 <td class="fv-muted">${escapeHtml(r.kind || "")}</td>
-                <td>${escapeHtml(r.doc || "")}</td></tr>`).join("");
+                <td>${escapeHtml(r.doc || "")}${docEditable(r.e) ? ` <button type="button" class="el-edit" data-edit-doc="${escapeHtml(r.e.id)}" title="Edit the description of ${escapeHtml(r.name)}" aria-label="Edit the description of ${escapeHtml(r.name)}">✎</button>` : ""}</td></tr>`).join("");
         const own = describe(element);
         return `<div class="dg-toolbar">${toolbar}<span class="dg-status">${escapeHtml(graph.summary)}</span></div>
             <div class="el-table-page">
-                <p class="el-table-lead"><span class="fv-muted">${escapeHtml(element.kindLabel)}</span> <strong>${escapeHtml(element.name)}</strong>${own ? ` – ${escapeHtml(own)}` : ""}
+                <p class="el-table-lead"><span class="fv-muted">${escapeHtml(element.kindLabel)}</span> <strong>${escapeHtml(element.name)}</strong>${own ? ` – ${escapeHtml(own)}` : ""}${docEditable(element)
+                    ? ` <button type="button" class="el-edit" data-edit-doc="${escapeHtml(element.id)}" title="Edit the description of ${escapeHtml(element.name)}" aria-label="Edit the description">✎</button>` : ""}
                     <span class="fv-muted">· ${escapeHtml(element.document || "")}</span></p>
+                ${!canEdit && Object.keys(relations).length ? `<p class="fv-line fv-muted">The MBSE environment is a library: switch on "Edit the libraries" to change it.</p>` : ""}
                 <table class="fv-table el-table">
                     <thead><tr><th>Relation</th><th>Element</th><th>Kind</th><th>Description</th></tr></thead>
                     <tbody>${body}</tbody>

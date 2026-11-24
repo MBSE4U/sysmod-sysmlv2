@@ -612,3 +612,8 @@
 .el-remove:hover { color: var(--error); background: color-mix(in srgb, var(--error) 10%, transparent); }
 /* The switch of the element above the text */
 .text-modes { border-bottom: 1px solid var(--line); }
+.el-namespace { color: var(--muted); font-size: 12px; }
+.el-properties { margin-bottom: 14px; }
+.el-properties th[scope=row] { width: 130px; }
+.el-doc { width: 100%; box-sizing: border-box; font: inherit; }
+.el-table thead th:first-child, .el-table tbody th[scope=row] { width: 170px; }

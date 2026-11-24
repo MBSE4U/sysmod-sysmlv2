@@ -2013,6 +2013,11 @@ body.resizing { cursor: col-resize; user-select: none; }
 .el-remove:hover { color: var(--error); background: color-mix(in srgb, var(--error) 10%, transparent); }
 /* The switch of the element above the text */
 .text-modes { border-bottom: 1px solid var(--line); }
+.el-namespace { color: var(--muted); font-size: 12px; }
+.el-properties { margin-bottom: 14px; }
+.el-properties th[scope=row] { width: 130px; }
+.el-doc { width: 100%; box-sizing: border-box; font: inherit; }
+.el-table thead th:first-child, .el-table tbody th[scope=row] { width: 170px; }
 
     </style>
     
@@ -9628,6 +9633,8 @@ class ElementsView extends EventTarget {
         this.currentId = null;
         // The list is resizable; all four tabs share its width.
         makeResizable(this.root, { pane: ".el-list", variable: "--el-list-width", key: "element-list", min: 220 });
+        this.root.addEventListener("input", e => { if (e.target.matches("[data-live-doc]")) this.scheduleDoc(e.target); });
+        this.root.addEventListener("focusout", e => { if (e.target.matches("[data-live-doc]")) this.flushDoc(); });
         this.root.addEventListener("click", e => {
             const modeButton = e.target.closest("[data-element-mode]");
             if (modeButton) { ElementsView.mode = modeButton.dataset.elementMode; if (this.state) this.show(this.state); return; }
@@ -9683,6 +9690,41 @@ class ElementsView extends EventTarget {
     }
 
     show(state) {
+        // A description being typed keeps its text and caret while the view is rendered again.
+        const field = document.activeElement;
+        const live = field && this.root.contains(field) && field.matches("[data-live-doc]")
+            ? { id: field.dataset.id, value: field.value, start: field.selectionStart, end: field.selectionEnd } : null;
+        this.render(state);
+        if (live) {
+            const again = this.root.querySelector(`[data-live-doc][data-id="${CSS.escape(live.id)}"]`);
+            if (again) {
+                again.value = live.value;
+                if (this.live && this.live.id === live.id) this.live.field = again;
+                again.focus({ preventScroll: true });
+                again.setSelectionRange(live.start, live.end);
+            }
+        }
+    }
+
+    /** The description of the element in the table: written 400 ms after the last keystroke, or on leaving the field. */
+    scheduleDoc(field) {
+        clearTimeout(this.liveTimer);
+        this.live = { id: field.dataset.id, field };
+        this.liveTimer = setTimeout(() => this.flushDoc(), 400);
+    }
+
+    flushDoc() {
+        clearTimeout(this.liveTimer);
+        const live = this.live;
+        this.live = null;
+        if (!live) return;
+        const text = live.field.value.trim();
+        if (text === (live.field.dataset.original || "").trim()) return;
+        live.field.dataset.original = live.field.value;
+        this.dispatchEvent(new CustomEvent("command", { detail: { command: "setDoc", id: live.id, args: { text } } }));
+    }
+
+    render(state) {
         this.state = state;
         const { model, environmentId, activeDocument, selectedId, editable } = state;
         if (!model) {
@@ -9883,43 +9925,58 @@ class ElementsView extends EventTarget {
         const graph = graphOf(model, element, environmentId);
         const kindOfColumn = { role: "Role", tool: "Tool", method: "Process or method", product: "Product" };
         const relations = ElementsView.RELATIONS[kindOf(element)] || {};
-        const describe = e => {
-            const doc = e.doc || (e.inheritedDoc ? e.inheritedDoc.text : "");
-            const first = doc.replace(/\s+/g, " ").trim().match(/^.{0,160}?[.!?](\s|$)/);
-            return first ? first[0].trim() : doc.length > 160 ? doc.slice(0, 160) + "…" : doc;
-        };
+        const describe = e => (e.doc || (e.inheritedDoc ? e.inheritedDoc.text : "")).replace(/\s+/g, " ").trim();
         const canEdit = this.editable(state, element);
-        const docEditable = e => e && state.editable !== false && !e.external && (!e.library || state.libraryEditing);
+        const docEditable = state.editable !== false && !element.external && (!element.library || state.libraryEditing);
+        const namespace = id => { const parts = String(id).split("::"); return parts.length > 1 ? parts.slice(0, -1).join("::") + "::" : ""; };
         const rows = [];
         for (const g of element.typeIds || []) {
             const general = model.get(g);
             const name = (model.generals[g] && model.generals[g].name) || model.nameOf(g, g.split("::").pop());
-            rows.push({ relation: "Specializes", e: general, name, kind: general ? general.kindLabel : "", doc: general ? describe(general) : "" });
+            rows.push({ relation: "Specializes", e: general, name, namespace: namespace(g), kind: general ? general.kindLabel : (model.generals[g] && model.generals[g].kind) ? "Definition" : "" });
         }
         for (const column of graph.columns) for (const section of column.sections) {
             const items = section.items.filter(Boolean);
             const editableRelation = canEdit && relations[section.label];
             items.forEach((e, i) => rows.push({ relation: section.label, first: i === 0, e, name: e.name, editableRelation,
-                kind: kindOfColumn[section.kind || column.kind] || e.kindLabel, doc: describe(e), inherited: !!e.library }));
+                kind: kindOfColumn[section.kind || column.kind] || e.kindLabel, inherited: !!e.library }));
             if (!items.length) rows.push({ relation: section.label, first: true, empty: true, editableRelation });
         }
+        // Equal names, e.g. two products named Project in different packages: with their namespace.
+        const counts = new Map();
+        rows.forEach(r => { if (r.e && !r.namespace) counts.set(r.name, (counts.get(r.name) || 0) + 1); });
+        rows.forEach(r => { if (r.e && !r.namespace && counts.get(r.name) > 1) r.namespace = namespace(r.e.id); });
         const relationCell = r => r.first === false ? "" : `${escapeHtml(r.relation)}${r.editableRelation
             ? ` <button type="button" class="el-edit" data-edit-relation="${escapeHtml(r.relation)}" title="Choose the ${escapeHtml(r.relation.toLowerCase())} of ${escapeHtml(element.name)}" aria-label="Edit ${escapeHtml(r.relation)}">✎</button>` : ""}`;
+        const elementCell = r => {
+            if (r.empty) return '<span class="fv-muted">–</span>';
+            const ns = r.namespace ? `<span class="el-namespace">${escapeHtml(r.namespace)}</span>` : "";
+            if (!r.e) return `${ns}${escapeHtml(r.name)}`;
+            const tip = describe(r.e);
+            return `${ns}<button type="button" class="fv-link" data-open-element="${escapeHtml(r.e.id)}"${tip ? ` title="${escapeHtml(tip)}"` : ""}>${escapeHtml(r.name)}</button>${r.inherited ? ' <span class="fv-muted" title="from a library">◌</span>' : ""}${r.editableRelation
+                ? ` <button type="button" class="el-remove" data-remove-relation="${escapeHtml(r.relation)}" data-target="${escapeHtml(r.e.id)}" title="Remove ${escapeHtml(r.name)} from ${escapeHtml(r.relation.toLowerCase())}" aria-label="Remove ${escapeHtml(r.name)}">×</button>` : ""}`;
+        };
         const body = rows.map(r => `<tr${r.empty ? ' class="el-empty-row"' : ""}>
                 <th scope="row">${relationCell(r)}</th>
-                <td>${r.empty ? '<span class="fv-muted">–</span>' : r.e ? `<button type="button" class="fv-link" data-open-element="${escapeHtml(r.e.id)}">${escapeHtml(r.name)}</button>${r.inherited ? ' <span class="fv-muted" title="from a library">◌</span>' : ""}${r.editableRelation
-                    ? ` <button type="button" class="el-remove" data-remove-relation="${escapeHtml(r.relation)}" data-target="${escapeHtml(r.e.id)}" title="Remove ${escapeHtml(r.name)} from ${escapeHtml(r.relation.toLowerCase())}" aria-label="Remove ${escapeHtml(r.name)}">×</button>` : ""}` : escapeHtml(r.name)}</td>
-                <td class="fv-muted">${escapeHtml(r.kind || "")}</td>
-                <td>${escapeHtml(r.doc || "")}${docEditable(r.e) ? ` <button type="button" class="el-edit" data-edit-doc="${escapeHtml(r.e.id)}" title="Edit the description of ${escapeHtml(r.name)}" aria-label="Edit the description of ${escapeHtml(r.name)}">✎</button>` : ""}</td></tr>`).join("");
-        const own = describe(element);
+                <td>${elementCell(r)}</td>
+                <td class="fv-muted">${escapeHtml(r.kind || "")}</td></tr>`).join("");
+        // The description is a property of the element: edited in place, written as you type.
+        const inherited = element.inheritedDoc && !element.doc ? element.inheritedDoc.text : "";
+        const description = docEditable
+            ? `<textarea class="fv-doc el-doc" data-live-doc data-id="${escapeHtml(element.id)}" data-original="${escapeHtml(element.doc || "")}" rows="${Math.min(8, Math.max(2, (element.doc || inherited).split("\n").length + 1))}"
+                placeholder="${escapeHtml(inherited ? `Inherited: ${inherited}` : `Description of ${element.name}`)}" title="Changes the file as you type">${escapeHtml(element.doc || "")}</textarea>`
+            : `<span>${escapeHtml(describe(element)) || '<span class="fv-muted">–</span>'}</span>`;
         return `<div class="dg-toolbar">${toolbar}<span class="dg-status">${escapeHtml(graph.summary)}</span></div>
             <div class="el-table-page">
-                <p class="el-table-lead"><span class="fv-muted">${escapeHtml(element.kindLabel)}</span> <strong>${escapeHtml(element.name)}</strong>${own ? ` – ${escapeHtml(own)}` : ""}${docEditable(element)
-                    ? ` <button type="button" class="el-edit" data-edit-doc="${escapeHtml(element.id)}" title="Edit the description of ${escapeHtml(element.name)}" aria-label="Edit the description">✎</button>` : ""}
-                    <span class="fv-muted">· ${escapeHtml(element.document || "")}</span></p>
+                <table class="fv-table el-table el-properties">
+                    <tbody>
+                        <tr><th scope="row">${escapeHtml(element.kindLabel)}</th><td><span class="el-namespace">${escapeHtml(namespace(element.id))}</span><strong>${escapeHtml(element.name)}</strong> <span class="fv-muted">· ${escapeHtml(element.document || "")}</span></td></tr>
+                        <tr><th scope="row">Description</th><td>${description}</td></tr>
+                    </tbody>
+                </table>
                 ${!canEdit && Object.keys(relations).length ? `<p class="fv-line fv-muted">The MBSE environment is a library: switch on "Edit the libraries" to change it.</p>` : ""}
                 <table class="fv-table el-table">
-                    <thead><tr><th>Relation</th><th>Element</th><th>Kind</th><th>Description</th></tr></thead>
+                    <thead><tr><th>Relation</th><th>Element</th><th>Kind</th></tr></thead>
                     <tbody>${body}</tbody>
                 </table>
             </div>`;
